@@ -2,47 +2,85 @@
 \section{Introduction}\label{sec:intro}
 %% ============================================================
 
-\input{sections/fig_overview}
-
 Loop invariants are the linchpin of deductive program verification.
 Ever since the inductive-assertion method of Floyd~\citep{floyd1967assigning} and the axiomatic semantics of Hoare~\citep{hoare1969axiomatic}, verifying a loop $\mathtt{while}\,(B)\,S$ against a contract $\{P\}\cdot\{Q\}$ has reduced to exhibiting an \emph{inductive invariant} $I$ satisfying initiation ($P \Rightarrow I$), consecution ($\{I \wedge B\}\,S\,\{I\}$), and safety ($I \wedge \neg B \Rightarrow Q$).
-Finding $I$ automatically has consequently been one of the most intensively studied problems in formal methods.
-Four decades of research have attacked it with abstract interpretation~\citep{cousot1977abstract,cousot1978automatic,karr1976affine}, constraint- and template-based synthesis~\citep{colon2003linear,sankaranarayanan2004non,gulwani2008program,gupta2009invgen}, interpolation and IC3/PDR-style generalization~\citep{mcmillan2003interpolation,bradley2011sat,komuravelli2014smt}, abductive inference~\citep{dillig2013inductive}, syntax-guided and stochastic search~\citep{alur2013sygus,fedyukovich2018syntax}, data-driven learning from program states~\citep{sharma2012interpolants,sharma2013data,garg2014ice,garg2016learning,padhi2016pie,zhu2018data,ezudheen2018horn}, neural architectures~\citep{si2018learning,si2020code2inv,ryan2020cln2inv,yao2020gcln}, and, most recently, large language models~\citep{pei2023can,kamath2023finding,chakraborty2023ranking,wu2024lemur,wu2024lam4inv,liu2024acinv,wen2024enchanting,liu2024towards}.
+The goal is not merely to find a predicate that satisfies the first two obligations.
+An invariant such as $\mathit{true}$ may be inductive but carries no information to the loop exit.
+Useful loop reasoning must preserve enough information to establish the required post-loop condition $Q$.
+This final obligation is the distinction between generating arbitrary invariants and completing loop verification.
 
-\paragraph{The target-dependence problem.}
-Despite their diversity, these lines of work share a common task definition: the input is a program \emph{together with a verification target}---a postcondition, assertion, or safety property $Q$---and the output is an invariant just strong enough to discharge $Q$.
-The target is not incidental; it is load-bearing.
-CEGIS- and ICE-style learners derive their counterexamples from failed attempts to prove $Q$~\citep{garg2014ice,garg2016learning,padhi2016pie}; Code2Inv shapes its reinforcement signal from the solver's rejection of $Q$-directed verification conditions~\citep{si2018learning,si2020code2inv}; LLM pipelines put the assertion in the prompt and score candidates by whether the verifier closes the goal~\citep{kamath2023finding,chakraborty2023ranking,wu2024lemur,wu2024lam4inv,liu2024acinv}.
+Existing methods use abstract domains, symbolic constraints, counterexamples,
+or learned generators to search for such invariants
+~\citep{cousot1977abstract,colon2003linear,garg2016learning,si2020code2inv,kamath2023finding,cao2025clause2inv}.
+Many learning-based systems expose $Q$ to the generator and use its proof as
+feedback.
+This is effective for a fixed verification instance, but it creates a shortcut: a model can tailor candidates to the visible assertion without learning the relations and bounds that explain the loop.
+Postcondition-derived invariant mutation makes this dependence explicit~\citep{furia2010inferring}.
 
-We contend that this framing rests on an uncomfortable circularity.
-First, verification targets are \emph{scarce}: real code overwhelmingly ships without formal postconditions, and writing them is itself the specification bottleneck that specification mining and, lately, LLM-based specification generation have tried to relieve~\citep{daikon,endres2024can,ma2024specgen,wen2024enchanting}.
-Second, and more fundamentally, for loop programs the verification target is very often nothing more than \emph{the invariant itself evaluated at loop exit}.
-The safety condition $I \wedge \neg B \Rightarrow Q$ means that the natural $Q$ for a loop---the one a human or a benchmark author writes down---is the exit-time projection of an invariant the author already had in mind; Furia and Meyer make the reverse direction explicit by \emph{deriving} candidate invariants syntactically from postconditions~\citep{furia2010inferring}.
-A system that requires $Q$ in order to find $I$ therefore presupposes the very reasoning it is supposed to automate.
-Target-directed training compounds the problem: when the reward is ``did the verifier close $Q$,'' the learner is incentivized to produce the \emph{weakest} invariant sufficient for the given target---frequently a light rewriting of $Q$ itself---which transfers to no other property of the same loop.
+\paragraph{Motivating example.}
+Consider \texttt{NLA\_lipus/10.c}, abridged below:
+\begin{lstlisting}
+int x = 1, y = 1, c = 1;
+while (c < k) {
+  c = c + 1;
+  x = x*z + 1;
+  y = y*z;
+}
+/*@ assert 1+x*z-x-z*y == 0; */
+\end{lstlisting}
+The assertion itself is established by the initial state and preserved by the loop body.
+When it is visible, invariant generation collapses to copying the target:
+\texttt{loop invariant 1+x*z-x-z*y == 0;}.
+The resulting clause is inductive and proves the assertion without revealing why this relation follows from the two coupled recurrences.
+When the assertion is hidden, the same clause must instead be recovered from the assignments to \texttt{x} and \texttt{y}.
+This small example captures the distinction we study: target-visible verification can make invariant inference trivial even when the underlying relation is nonlinear.
 
-\paragraph{Our reframing: inductive loop summaries.}
-We instead study the task of generating an inductive \emph{loop summary}: given only the precondition, guard, and body---\emph{no postcondition}---produce the strongest practically expressible inductive invariant characterizing the loop's reachable states at the loop head (Figure~\ref{fig:overview}a).
-This framing follows the tradition of loop summarization in static analysis and symbolic execution~\citep{kroening2008loop,godefroid2011automatic,xie2016proteus,farzan2015compositional,kincaid2017compositional}, but asks for summaries in the standard inductive-invariant form consumed by deductive verifiers (ACSL, checked by Frama-C/WP~\citep{framac,acsl}).
-A tight summary is strictly more useful than a target-directed invariant: it discharges \emph{every} downstream assertion $Q$ with $I \wedge \neg B \Rightarrow Q$, it is reusable across changing specifications, and generating it exercises exactly the semantic reasoning---conservation laws, relational couplings, progress bounds---that the target-directed setting lets a system shortcut.
+\paragraph{Target-hidden loop verification.}
+We study a stricter setting.
+The full verification instance contains a precondition, loop, and post-loop target $Q$, but the policy receives only the precondition, guard, body, and in-scope variables.
+Assertions and \texttt{ensures} clauses are removed before generation, refinement, and Houdini pruning.
+The policy emits ACSL loop invariants, not a new postcondition.
+Only at the final gate does \sam{} restore the original target and ask Frama-C/WP to prove all invariant obligations and the post-loop condition.
+For a standard \texttt{while} loop, acceptance therefore requires
+\[
+P \Rightarrow I,\qquad
+\{I \wedge B\}\,S\,\{I\},\qquad
+I \wedge \neg B \Rightarrow Q.
+\]
+The hidden target determines success, while the generator cannot read or paraphrase it.
+The task is consequently not ``generate any loop invariant,'' but ``recover loop conditions that carry enough information to the exit to prove a held-out requirement.''
 
-\paragraph{The reward problem, and why it is hard.}
-Dropping the target, however, destroys the training signal every prior learning-based system relied on: with no $Q$ there is no binary verified/failed outcome to optimize.
-``Is $I$ inductive?'' alone is useless as a reward---$\mathit{true}$, the guard, and any tautology are inductive.
-Recent work concurs that the verifier bit is too coarse a signal for learning even in the target-directed setting: InvBench scores invariants by wall-clock speedup rather than by verification alone~\citep{wei2025invbench}, and \citet{pinto2026notall} show that grading and curating invariants by quality, not mere validity, is what makes them useful training data.
-What must be rewarded is \emph{soundness plus empirical tightness}: how effectively does a proved invariant separate sampled reachable states from audited synthetic countertraces?
-We operationalize this with an execution-grounded dense reward (Figure~\ref{fig:overview}b,c).
-A sampler compiles and runs the instrumented loop over a deterministic input sweep to collect \emph{positive} loop-head states, then constructs three families of synthetic negative candidates: relational perturbations around densely observed trace neighborhoods, continuations of the real body past a genuine exit, and ladder-step escapes beyond a variable's sampled range.
-A candidate rollout is first reduced to its inductive core by Houdini-style pruning~\citep{flanagan2001houdini}, with Frama-C/WP as the authoritative backend, and the surviving subset is scored by the fraction of negative traces it rejects, plus a marginal (ablation) term for group-relative credit assignment.
+\paragraph{One framework for training and inference.}
+The central design of \sam{} is a shared rollout--Houdini loop, rather than separate training and deployment procedures.
+Given the masked program, both paths sample a group of invariant rollouts, normalize and merge their clauses, optionally grow the pool through stateless WP-guided repairs, and invoke the same Houdini-style Frama-C/WP operator~\citep{flanagan2001houdini,framac} to retain an inductive subset.
+Only the consumer of those survivors changes.
+During training, Houdini survivors are scored for behavioral coverage: generation rollouts receive standalone and group-marginal credit, and repairs receive credit for improving the merged pool.
+Within each generation rollout, clauses are traversed in model-output order:
+an admitted clause is penalized only when it rejects no negative trace beyond
+those already rejected by earlier clauses.
+During inference, the final Houdini survivors are inserted into the original program and checked against the restored \(Q\).
+Thus reward is coupled to exactly the rollout, pool-growth, feedback, and pruning semantics used at deployment; it is not an auxiliary objective attached to a different inference pipeline.
 
-Like any finite-sample signal, such a reward is vulnerable to mislabeled examples and sample-specific predicates~\citep{amodei2016concrete,skalse2022defining,gao2023scaling}.
-We therefore keep the trusted mechanism small.  Construction-time vetoes discard a candidate negative if it has been observed reachable or could be a fresh loop entry under admissible inputs, and oracle-controlled loops emit no synthetic negatives; real Houdini then removes candidate invariants that merely fit the finite positive sample but are not inductive.  The scoring rule itself has only two terms: $0.5$ times standalone rejection and $0.5$ times group-ablation marginal rejection.
+\input{sections/fig_overview}
+
+Hiding $Q$ removes the binary target-verification reward, while inductiveness alone remains too weak because tautologies and loose bounds pass.
+The execution sampler therefore constructs relational perturbations, continuations beyond a genuine exit, and sampled-range escapes without consulting \(Q\).
+Candidates contradicted by observed reachability, feasible fresh entries, or incomplete state coverage are suppressed.
+These audited traces provide the dense strength signal attached to the shared framework, while the held-out target remains the authoritative final criterion.
 
 \paragraph{Contributions.}
 This paper makes the following contributions:
 \begin{itemize}[leftmargin=1.5em, itemsep=2pt, topsep=2pt]
-  \item \textbf{Task reframing.} We identify the target-dependence circularity in loop invariant generation and formulate the alternative task of \emph{closed-book inductive loop summary generation}, which subsumes target-directed generation ($\S$\ref{sec:overview}).
-  \item \textbf{An execution-grounded, minimal reward.} We design a dense reward from three audited negative-candidate families and conservative construction guards, with Houdini-pruned survival, trace-unit accounting, and the complete formula $r=0.5\,\mathrm{base}+0.5\,\mathrm{marginal}$ ($\S$\ref{sec:method}).
-  \item \textbf{An open three-component pipeline.} \sam{} decomposes into an example sampler, a self-contained HTTP reward service whose image bundles Frama-C/WP, and an independent inference framework that performs no positive/negative sampling and optionally runs verdict-driven multi-round refinement before final certification ($\S$\ref{sec:overview}).
-  \item \textbf{Direct validation of discrimination and labels.} The maintained discrimination harness ranks known-quality rollout families on 10 deterministic programs, and the full mislabel audit found zero hard collisions among 486,302 negative witnesses from all 366 benchmark programs ($\S$\ref{sec:experiments}).
+  \item \textbf{A target-hidden verification task.} We separate the policy view from the verification instance: the model generates invariants without $Q$, while acceptance still requires proving $Q$ after the loop ($\S$\ref{sec:overview}).
+  \item \textbf{A shared rollout--Houdini framework.} Training and inference use the same grouped rollouts, growing clause pools, stateless WP feedback, and prover-backed Houdini survivors; training attaches rewards, while inference attaches the restored final proof obligation.
+  \item \textbf{An execution-grounded objective.} Generation receives
+  dominant standalone coverage, ordered clause-level redundancy control, and positive
+  cross-rollout marginal credit; refinement receives its gain over the shared
+  pool.  Response caps and explicit redundancy/overflow costs prevent clause
+  accumulation, while three conservative negative families provide target-free
+  strength evidence (\S\ref{sec:method}).
+  \item \textbf{An auditable evaluation contract.} We define controlled
+  target-visibility, equal-budget inference, and reward ablations, and validate
+  the implemented signal with known-quality discrimination and a full-suite
+  label audit (\S\ref{sec:experiments}).
 \end{itemize}

@@ -78,7 +78,7 @@ One call per prompt-group (the n rollouts sampled from one program's prompt).
   "rollout_rewards": [0.41, 0.17],          // ← the GRPO group rewards
   "base": [...], "marginal": [...], "marginal_rejected": [...],
   "redundant_clauses": [...], "redundancy_penalty": [...],
-  "overflow_penalty": [...], "precision": [...],
+  "overflow_penalty": [...], "essential": [...], "precision": [...],
   "marginal_enabled": true,
   "batch_score": 0.83, "should_reroll": false,
   "n_negatives": 118, "filter_mode": "cascade(positive->houdini)",
@@ -103,10 +103,9 @@ redundant; each such clause subtracts 0.02 by default. Thus earlier useful
 clauses receive credit, while later duplicates, covered clauses, tautologies,
 and clauses removed by Houdini are penalized.
 The complete reward is
-`0.8·base + 0.2·marginal + 0.3·min(essential/8,1)
-- redundancy_penalty - overflow_penalty`.
-An essential survivor greedily adds new rejected traces.
-`precision = essential/generated` is observational.
+`0.8·base + 0.2·marginal - redundancy_penalty - overflow_penalty`.
+`essential` counts ordered clauses that add new rejected traces, and
+`precision = essential/generated`; both are observational only.
 Only the first 20 invariant lines in each response enter Houdini; every later
 line subtracts 0.05 and is reported through `generated`, `accepted`, and
 `overflow`.

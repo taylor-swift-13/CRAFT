@@ -8,7 +8,6 @@ each rollout and the batch, using synthetic negative candidates from the sampler
   marginal[A] = fraction of candidates that Houdini(union) rejects but
                 Houdini(union \ A) does not                          (ablation 增益)
   reward[A]   = w_base * base[A] + w_marg * marginal[A]
-                + 0.3 * min(essential[A] / 8, 1)
                 - redundancy_penalty[A] - overflow_penalty[A]
   batch_score = fraction of candidates rejected by Houdini(union)    (batch performance)
   should_reroll = batch_score < reroll_threshold
@@ -55,7 +54,8 @@ class RolloutScore:
     redundant_clauses: int        # fully redundant clauses inside this rollout
     redundancy_penalty: float
     overflow_penalty: float
-    precision: float              # essential survivors / generated clauses
+    essential: int                # ordered clauses with incremental coverage
+    precision: float              # essential clauses / generated clauses
     reward: float
     rejected: int                 # negatives rejected standalone
 
@@ -94,6 +94,7 @@ class BatchReward:
             "generated": [r.generated for r in self.rollouts],
             "accepted": [r.accepted for r in self.rollouts],
             "overflow": [r.overflow for r in self.rollouts],
+            "essential": [r.essential for r in self.rollouts],
             "precision": [r.precision for r in self.rollouts],
             "rollouts": [
                 {"index": r.index, "reward": r.reward, "base": r.base,
@@ -102,6 +103,7 @@ class BatchReward:
                  "redundant_clauses": r.redundant_clauses,
                  "redundancy_penalty": r.redundancy_penalty,
                  "overflow_penalty": r.overflow_penalty,
+                 "essential": r.essential,
                  "generated": r.generated, "accepted": r.accepted,
                  "overflow": r.overflow,
                  "rejected": r.rejected,
@@ -355,13 +357,11 @@ class RewardCalculator:
                 precision = (
                     n_essential / n_generated if n_generated else 0.0
                 )
-                essential_bonus = min(n_essential / 8.0, 1.0)
                 redundancy_penalty = (
                     self.w_redundancy * redundant_clauses
                 )
                 reward = (
                     raw_reward
-                    + 0.3 * essential_bonus
                     - redundancy_penalty
                     - overflow_penalty
                 )
@@ -369,6 +369,7 @@ class RewardCalculator:
                 # No finite negative set is available: retain a bounded Houdini
                 # signal instead of returning an all-zero GRPO group.
                 precision = 1.0
+                n_essential = 0
                 redundancy_penalty = 0.0
                 redundant_clauses = 0
                 reward = (
@@ -381,7 +382,8 @@ class RewardCalculator:
                 marginal_rejected=marginal_rejected,
                 redundant_clauses=redundant_clauses,
                 redundancy_penalty=redundancy_penalty,
-                overflow_penalty=overflow_penalty, precision=precision,
+                overflow_penalty=overflow_penalty,
+                essential=n_essential, precision=precision,
                 reward=reward, rejected=len(base_rej),
             ))
 

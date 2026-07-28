@@ -1,15 +1,15 @@
 %%
-%% LoopGym: Invariants without Targets — Learning Inductive Loop Summaries
-%%          with Execution-Grounded, Audited Rewards
-%% NeurIPS 2024 Format
+%% LoopGym: Target-Hidden Loop Verification
+%% ICLR 2026 submission format
 %%
-\documentclass[11pt]{article}
+\documentclass{article}
 
-%% NeurIPS style
-\usepackage[preprint]{neurips_2024}
+%% Official ICLR style; keep \iclrfinalcopy disabled for anonymous review.
+\usepackage{iclr2026_conference,times}
 
 %% Packages
 \usepackage{booktabs}
+\usepackage{colortbl}
 \usepackage{listings}
 \usepackage{xcolor}
 \usepackage{subcaption}
@@ -24,7 +24,6 @@
 \usepackage{tcolorbox}
 \usepackage{enumitem}
 \usepackage{multirow}
-\usepackage{natbib}
 \usepackage{float}
 \usepackage{tikz}
 \usetikzlibrary{calc,arrows.meta,positioning}
@@ -37,7 +36,7 @@
 \newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{definition}[theorem]{Definition}
 
-%% ---- Custom algorithm environment (NeurIPS-style) ----
+%% ---- Compact algorithm environment ----
 \newfloat{algorithm}{tbp}{loa}
 \floatname{algorithm}{Algorithm}
 
@@ -58,16 +57,26 @@
 \newcommand{\algoutput}[1]{\hspace{1.8em}\textbf{Output:} #1\\}
 \newcommand{\algblank}{\\[-4pt]}
 
-%% Colors
-\definecolor{codeblue}{HTML}{2563EB}
-\definecolor{codegray}{HTML}{6B7280}
-\definecolor{codepurple}{HTML}{7C3AED}
-\definecolor{codered}{HTML}{DC2626}
-\definecolor{codegreen}{HTML}{059669}
-\definecolor{promptbg}{HTML}{F8FAFC}
-\definecolor{promptframe}{HTML}{CBD5E1}
-\definecolor{algobg}{HTML}{F0F9FF}
-\definecolor{algoframe}{HTML}{93C5FD}
+%% Muted green/gray palette
+\definecolor{codeblue}{RGB}{45,112,83}
+\definecolor{codegray}{RGB}{92,110,101}
+\definecolor{codepurple}{RGB}{88,132,111}
+\definecolor{codered}{RGB}{157,91,73}
+\definecolor{codegreen}{RGB}{72,137,104}
+\definecolor{promptbg}{RGB}{247,250,248}
+\definecolor{promptframe}{RGB}{201,214,206}
+\definecolor{algobg}{RGB}{237,246,241}
+\definecolor{algoframe}{RGB}{129,174,150}
+\definecolor{paperink}{RGB}{31,49,40}
+
+%% Restrained green accents; structural typography comes from the ICLR style.
+\hypersetup{
+  hidelinks
+}
+\setlist[itemize]{leftmargin=1.35em,itemsep=2pt,topsep=3pt,parsep=0pt}
+\setlist[enumerate]{leftmargin=1.45em,itemsep=2pt,topsep=3pt,parsep=0pt}
+\renewcommand{\arraystretch}{1.08}
+\arrayrulecolor{promptframe}
 
 %% Listings style for C / ACSL
 \lstdefinestyle{cstyle}{
@@ -80,14 +89,18 @@
   numberstyle=\tiny\color{codegray},
   stepnumber=1,
   numbersep=6pt,
-  backgroundcolor=\color{white},
+  backgroundcolor=\color{promptbg},
   showspaces=false,
   showstringspaces=false,
   showtabs=false,
-  frame=l,
-  rulecolor=\color{codeblue!40},
+  frame=single,
+  rulecolor=\color{promptframe},
   framesep=4pt,
-  framerule=2pt,
+  framerule=0.45pt,
+  xleftmargin=0.2em,
+  xrightmargin=0.2em,
+  framexleftmargin=0.35em,
+  framexrightmargin=0.35em,
   tabsize=2,
   captionpos=b,
   breaklines=true,
@@ -164,25 +177,36 @@
 \newcommand{\sam}{\textsc{LoopGym}}
 
 %% Meta
-\title{Invariants without Targets: Learning Inductive Loop Summaries\\with Execution-Grounded, Audited Rewards}
+\title{\sam{}: Target-Hidden Loop Verification\\
+with a Shared Rollout--Houdini Framework}
 
 \author{
-  Anonymous Author(s)\\
-  Anonymous Institution\\
-  \texttt{anonymous@example.com}
+  Anonymous authors\\
+  Paper under double-blind review
 }
 
+% \iclrfinalcopy % Uncomment only for the camera-ready version.
 \begin{document}
 
 \maketitle
 
 \begin{abstract}
-Loop invariant generation is a central challenge in program verification, and four decades of work---abstract interpretation, constraint solving, data-driven learning, and most recently large language models---have framed it almost uniformly as a \emph{target-directed} task: given a program \emph{and a verification target} (a postcondition or assertion), find an inductive invariant strong enough to discharge the target.
-We argue that this framing rests on a circularity that limits practical impact: verification targets are scarce in real code, writing them is itself the specification bottleneck, and for loop programs the target is typically nothing but the projection of an invariant at loop exit ($I \wedge \neg B \Rightarrow Q$)---whoever wrote $Q$ had already done the invariant reasoning.
-We therefore reframe the task as generating an \emph{inductive loop summary}: the strongest practically expressible inductive invariant that characterizes a loop's reachable states, synthesized \emph{closed-book}, with no postcondition visible to the generator.
-Removing the target removes the binary verifier signal that prior learning approaches optimize, so we develop an execution-grounded dense reward suitable for reinforcement learning.  Its sampler constructs three families of synthetic negative candidates---dense-neighborhood relational perturbations, genuine-exit over-run continuations, and sampled-range escapes---and conservatively suppresses candidates contradicted by sampled reachability, fresh-entry feasibility, or incomplete state/control coverage.
-Candidate invariants are reduced by an always-on cascade ending in Houdini-style Frama-C/WP pruning.  For each rollout, the complete generation reward is an equal-weighted sum of its standalone negative rejection rate and its marginal contribution to the group union, with no auxiliary scoring terms.
-The result, \sam{}, is an open three-component pipeline---sampler, reward service, and inference framework.  The current discrimination regression covers 10 deterministic programs, while a full-suite audit compared 486,302 sampled negative witnesses across 366 linear and nonlinear programs with larger reachable-state samples and found zero hard mislabels.
+Verifying a loop requires more than producing a predicate that is inductive: the predicate must retain enough information to establish the condition required after the loop.
+Most invariant-generation systems expose this postcondition or assertion to the generator, allowing candidates to be tailored to, or copied from, the target.
+We study \emph{target-hidden loop verification}.  The generator sees the precondition, loop guard, and body but not the target \(Q\); it emits ACSL loop invariants \(I\), which are accepted only when Frama-C/WP proves both their inductiveness and the original exit obligation \(I \wedge \neg B \Rightarrow Q\).
+\sam{} organizes learning and inference around one rollout--Houdini framework.
+Both form groups of invariant candidates, merge or repair their clauses, and
+apply the same Frama-C/WP Houdini operator.
+The training objective attaches dense credit to this core: a rollout is scored
+by standalone rejection, ordered within-rollout redundancy control, and
+leave-one-rollout-out group contribution on audited target-free traces.
+A repair is scored by its gain over the merged pool.
+Every policy response obeys a configurable clause cap, with explicit overflow
+cost.
+Inference executes the same rollout, pool-growth, feedback, and pruning stages,
+then restores \(Q\) for the final proof.
+This design aligns the model actions and prover-backed survivor semantics
+optimized during training with those executed at deployment.
 \end{abstract}
 
 %% ============================================================
@@ -196,7 +220,7 @@ The result, \sam{}, is an open three-component pipeline---sampler, reward servic
 %% ============================================================
 %% References
 %% ============================================================
-\bibliographystyle{plainnat}
+\bibliographystyle{iclr2026_conference}
 \bibliography{references}
 
 %% ============================================================

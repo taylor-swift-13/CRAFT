@@ -1,69 +1,81 @@
 %% ============================================================
-\section{Problem Formulation and System Overview}\label{sec:overview}
+\section{Problem Setting}\label{sec:overview}
 %% ============================================================
 
-\subsection{From Target-Directed Invariants to Loop Summaries}
+\subsection{Target-Hidden Exit Sufficiency}
 \label{sec:overview:task}
 
-Fix a loop program $P = (\phi_{\mathrm{pre}}, B, S)$ over integer variables $V$: a precondition $\phi_{\mathrm{pre}}$, a guard $B$, and a body $S$.
-A \emph{state} $\sigma : V \to \mathbb{Z}$ is a valuation of $V$ (together with the pre-state values $v_0$ of parameters, so that summaries may relate current to initial values).
-Let $\mathcal{R}(P)$ denote the set of states reachable \emph{at the loop head} from some initial state satisfying $\phi_{\mathrm{pre}}$.
+Fix a verification instance \((P,Q)\), where
+\(P=(\phi_{\mathrm{pre}},B,S)\) contains the precondition, loop guard, and body,
+and \(Q\) is a post-loop assertion or function postcondition.
+Let \(\mathcal R(P)\) be the states reachable at the loop head from an initial
+state satisfying \(\phi_{\mathrm{pre}}\).
+A predicate \(I\) is \emph{inductive} when
+\[
+  \phi_{\mathrm{pre}}\Rightarrow I
+  \qquad\text{and}\qquad
+  \{I\wedge B\}\,S\,\{I\}.
+\]
+Inductiveness gives a sound over-approximation of \(\mathcal R(P)\), but does
+not make it useful for a particular verification task.
+We call \(I\) \emph{exit-sufficient} for \(Q\) when
+\[
+  I\wedge\neg B\Rightarrow Q.
+\]
 
-\begin{definition}[Inductive invariant]
-A predicate $I$ over $V$ is an inductive invariant of $P$ if
-(i) \emph{initiation}: every loop-head state reached directly from $\phi_{\mathrm{pre}}$ satisfies $I$; and
-(ii) \emph{consecution}: $\{I \wedge B\}\, S\, \{I\}$.
-Equivalently, $I \supseteq \mathcal{R}(P)$ and $I$ is closed under the loop's transition relation.
+\begin{definition}[Target-hidden loop verification]
+The verification framework receives \((P,Q)\), but the policy receives only
+\(P\).
+It must generate an invariant set \(I\) without observing \(Q\), and succeeds
+only when \(I\) is both inductive and exit-sufficient for the original \(Q\).
 \end{definition}
 
-\begin{definition}[Target-directed generation]
-Given $(P, Q)$, produce any inductive $I$ with $I \wedge \neg B \Rightarrow Q$.
-\end{definition}
+The restriction is on information flow, not output syntax: both visible and
+hidden systems emit ACSL \texttt{loop invariant} clauses.
+In the visible setting, however, \(Q\) may itself be inductive and can simply be
+copied into the loop, as in \texttt{NLA\_lipus/10.c}.
+Target hiding removes this shortcut.
+It also makes binary verification unusable as a training reward, since querying
+the held-out target during RL would leak the answer.
+\sam{} instead rewards target-free behavioral strength and retains the original
+\(Q\) as the sole final acceptance criterion.
 
-\begin{definition}[Inductive loop summary generation (ours)]
-Given $P$ alone, produce an inductive $I$ that is as \emph{tight} as practically expressible: among predicates in the assertion language, $I$ should exclude as much of the unreachable space $\overline{\mathcal{R}(P)}$ as possible.
-The ideal object is the strongest inductive invariant, i.e.\ (the assertion-language best approximation of) $\mathcal{R}(P)$ itself.
-\end{definition}
-
-The summary task subsumes the target-directed one: any $Q$ provable from \emph{some} inductive invariant is provable from the strongest one.
-It is also strictly harder to game.
-In the target-directed task, $Q$ itself (weakened to pass initiation) is often an acceptable answer; in the summary task there is no $Q$ to parrot, and weak answers---$\mathit{true}$, the guard, loose boxes---are exactly what the reward of $\S$\ref{sec:method} is designed to score low.
-
-In practice a summary is a set of ACSL \texttt{loop invariant} clauses whose conjunction is the invariant.  Typical summaries pair one or two relational laws (e.g.\ $x = y \cdot z$ preserved by the body) with progress bounds (e.g.\ $0 \le i \le n$).
-Soundness is never entrusted to the learner in production: every clause set is reduced to its greatest inductive subset by Houdini pruning~\citep{flanagan2001houdini} over Frama-C/WP~\citep{framac} before it is scored or reported.  A native installation without Frama-C can fall back to the positive filter for development, but that path is not a proof certificate; both deployment images bundle the prover.
-
-\subsection{System Overview}
+\subsection{A Shared Candidate-Processing Operator}
 \label{sec:overview:system}
 
-\sam{} decomposes into three operationally independent components.  Training calls the reward service, while deployment evaluation runs inference; neither invokes the other:
+For a rollout group \(\mathcal A=\{A_1,\ldots,A_G\}\) and response-cap
+hyperparameter \(K\), each policy response is first capped at \(K\) parsed
+invariant clauses; let \(\bar A_i\) denote that
+ordered prefix and \(X_0=\bigcup_i \bar A_i\) its normalized, deduplicated
+clause union.
+Each optional repair round receives only target-free WP verdicts and grows the
+pool monotonically,
+\[
+  X_{t+1}=X_t\cup R_t.
+\]
+Finally, \(\mathsf H_P(X_t)\) denotes the subset that survives syntax checking
+and the Frama-C/WP Houdini fixpoint on the masked program \(P\).
+The sequence
+\[
+  \mathcal A
+  \;\longrightarrow\;
+  X_0
+  \;\longrightarrow\;
+  X_1,\ldots,X_m
+  \;\longrightarrow\;
+  \mathsf H_P(X_m)
+\]
+is the shared rollout--Houdini core in Figure~\ref{fig:overview}.
 
-\begin{stepbox}[1. Example sampler (\S\ref{sec:method:sampler})]
-Compiles and executes the instrumented loop over a deterministic, precondition-respecting input sweep; emits sampled positive loop-head states and three families of synthetic negative-candidate trace units: relational perturbations, genuine-exit over-runs, and sampled-range escapes.
-The sampler sees only $(\phi_{\mathrm{pre}}, B, S)$---never the postcondition.
-\end{stepbox}
-
-\begin{stepbox}[2. Reward framework (\S\ref{sec:method:reward})]
-Scores a \emph{group} of rollouts (candidate clause sets sampled for the same program, as in group-relative RL~\citep{shao2024deepseekmath}).
-Each rollout is reduced to its surviving inductive core, then receives $0.5$ times the fraction of negative traces it rejects alone (base) plus $0.5$ times its ablation gain in the group union (marginal).  This is the entire reward formula.
-Packaged as a self-contained HTTP service (\texttt{POST /reward}) with gcc, Frama-C/WP, Why3, and Z3 bundled in the image, plus an offline JSONL/Parquet scorer.
-\end{stepbox}
-
-\begin{stepbox}[3. Inference framework (\S\ref{sec:method:inference})]
-Prompts the policy \emph{closed-book} by default, unions and deduplicates candidate rollouts, optionally runs up to $m$ rounds of WP-verdict feedback and LLM refinement, then applies full Houdini and Frama-C/WP verification.
-It is independent of the reward and never invokes the execution sampler or constructs positive/negative examples; a vLLM rollout provider supplies model candidates.
-\end{stepbox}
-
-Two evaluation harnesses guard the implemented contract: discrimination over 10 deterministic programs with hand-written quality specifications, and a full-suite negative-mislabel audit ($\S$\ref{sec:experiments}).
-
-\paragraph{Running example.}
-Consider a benchmark loop (abridged from our linear suite):
-\begin{lstlisting}
-void foo(int n) {  // requires n >= 0
-  int x = 0, y = n;
-  while (y > 0) { x = x + 1; y = y - 1; }
-}
-\end{lstlisting}
-The sampler observes loop-head states such as $(x{=}0, y{=}5)$, $(x{=}1, y{=}4)$, \dots for $n{=}5$ and many other inputs.
-Relational negatives perturb dense trace neighborhoods---$(x{=}2, y{=}4)$ with $n{=}5$ breaks $x + y = n$; bound negatives continue past the real exit---$(x{=}6, y{=}{-}1)$ preserves $x+y=n$ yet is impossible.
-The summary $\{x + y = n,\; 0 \le y \le n\}$ (with $n \ge 0$ from the precondition) rejects every constructed negative trace, whereas the guard restatement $y \ge 0$ rejects only a subset of the bound negatives and a tautology rejects none.
-Any exit-time fact a user later cares about---$x = n$, $y = 0$, $x \ge y$---follows from the summary, though the generator never saw such a target.
+Training and inference differ only in how they consume this operator.
+Training evaluates individual rollouts, unions, ablations, and repaired pools
+to assign generation and refinement credit.  Within a rollout it preserves
+response order to distinguish clauses that extend negative-trace coverage from
+later clauses that add nothing; across rollouts it uses union ablation only as
+positive complementary credit.
+Inference performs the same union, pool growth, and Houdini pruning without
+constructing reward traces, then restores \(Q\) for final verification.
+Training uses sampled positives as a cheap pre-filter, but soundness in both
+modes comes from the same Frama-C/WP Houdini implementation.
+Thus deployment is independent of the reward service while preserving the
+candidate and prover semantics optimized during training.

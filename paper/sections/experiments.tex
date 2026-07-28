@@ -2,35 +2,141 @@
 \section{Experiments}\label{sec:experiments}
 %% ============================================================
 
-\subsection{Setup}
+\subsection{Benchmarks and Evaluation Contract}
 \label{sec:exp:setup}
 
-\paragraph{Benchmarks.}
-We evaluate the sampler on all 366 C loop programs in two suites.
-\textbf{Linear} (316 programs) contains single-loop affine programs in the style of SV-COMP loop tracks~\citep{svcomp}, including nondeterministic guards and branches (\texttt{unknown()}).
-\textbf{NLA} (50 programs) contains the standard non-linear arithmetic suite~\citep{nguyen2012using,nla2019}: polynomial identities (cubes, geometric sums), gcd/extended-gcd, and division-by-subtraction algorithms whose summaries require products and higher-degree terms (e.g.\ $y = 3n^2 + 3n + 1$, $ps - rq = 1$, $z = xy$).
-Assertions are present in 356 programs and absent in 10; when present they are ignored by the sampler and hidden from the generator in closed-book mode.
+\paragraph{Core-366.}
+The primary suite contains 366 single-loop C programs: 316 linear programs
+drawn from Code2Inv, SyGuS, and SV-COMP sources, and 50 nonlinear programs from
+the LIPuS benchmark.
+The latter includes polynomial identities, products, extended GCD, and
+division-by-subtraction algorithms.
+Assertions are present in 356 programs and absent in 10.
+They remain in the final verification instance but are removed from every model
+prompt and intermediate prover query.
+The repository also contains the 466 integer programs from Loopy's original
+469-program corpus; its three floating-point tasks are outside our predicate
+language.
+Because the two corpora share upstream sources, we treat Loopy-466 as a
+comparison suite rather than 466 independent training examples.
 
-\paragraph{Backends and configuration.}
-Positives and negative candidates use the canonical 12-run, seed-0 configuration.  Inductiveness and final certification use Frama-C/WP with Z3 (30\,s per goal, Typed memory model), and reward weights are $w_b=w_m=0.5$.
-The reward image needs no GPU and bundles gcc, Frama-C/WP, Why3, and Z3, so the training host calls the HTTP service without a local prover installation.
+\paragraph{Controlled target-hidden comparison.}
+Published baseline scores are not eligible for the main comparison because
+those systems solve the complete verification problem and may use \(Q\) in
+generation, ranking, constraint construction, or repair.
+We instead rerun target-hidden adaptations of Loopy, Clause2Inv, and
+\textsc{iRank}.
+Every method receives the same masked program \(P\setminus Q\); neither its
+policy nor any intermediate oracle may observe \(Q\) or a verdict derived from
+\(Q\).
+Loopy-no-\(Q\) receives only invariant initiation and preservation feedback.
+Clause2Inv-no-\(Q\) constructs and combines clauses using only initiation and
+consecution constraints, excluding safety counterexamples and
+\(Q\)-derived constraints.
+\textsc{iRank}-no-\(Q\) ranks a fixed target-hidden candidate pool without
+target text or target-derived verifier features.
+Only after each method has fixed its output do we restore \(Q\) and run the
+same final Frama-C/WP check.
 
-\subsection{Reward Regression Checks}
+\paragraph{Primary endpoint and budgets.}
+For a method \(M\), let \(I_M(P\setminus Q)\) be the invariant set produced
+without target access.
+The headline target-hidden accuracy is
+\[
+  \operatorname{Acc}_{\mathrm{hidden}}(M)
+  = \frac{1}{|\mathcal D|}
+    \sum_{(P,Q)\in\mathcal D}
+    \mathbf{1}\!\left[\operatorname{WP}
+      \bigl(P,I_M(P\setminus Q),Q\bigr)=\mathrm{valid}\right].
+\]
+Parse failures, timeouts, and unsupported attempted inputs count as failures;
+the denominator is therefore identical across methods on each reported suite.
+We separately report the \emph{exit gap}: programs with inductive Houdini
+survivors whose restored target still fails.
+This distinguishes producing valid loop facts from producing an
+exit-sufficient summary.
+Efficiency metrics are model calls, generated tokens, full-Houdini calls,
+final-WP calls, and wall time.
+All neural comparisons must use the same checkpoint, prompt, temperature,
+output-token limit, and response budget; every generation and refinement
+response is capped at the same \(K=20\) parsed invariant clauses.
+We use \(G=8\) initial rollouts and compare \(m\in\{0,1,2,4\}\) refinement
+rounds; an equal-call re-generation control receives exactly \(m\) additional
+fresh generations.
+
+\subsection{End-to-End Comparisons and Ablations}
+\label{sec:exp:e2e}
+
+The controlled evaluation is organized around three questions.
+First, under target hiding we compare Direct-no-\(Q\), Loopy-no-\(Q\),
+Clause2Inv-no-\(Q\), and \textsc{iRank}-no-\(Q\) against union plus Houdini,
+equal-budget re-generation, shuffled WP feedback, and the full \(m\)-round
+LoopGym refinement loop~\citep{chakraborty2023ranking}.
+Generated candidates are held fixed for the ranking comparison, while model
+calls are held fixed for refinement versus re-generation.
+Failure is assigned to one of six exclusive buckets: no parseable clause,
+syntax/scope error, initiation failure, preservation failure,
+inductive-but-insufficient, or tool timeout.
+
+Second, the same base model is run with and without the target only as a
+\emph{shortcut diagnostic}, not as a baseline comparison.
+A literal copy-\(Q\) test measures how often the assertion itself is
+inductive, and exact normalized target copies in model outputs are counted in
+both conditions.
+This diagnostic quantifies leakage from target visibility, while every
+headline accuracy remains target-hidden.
+
+Third, training compares the base checkpoint, the full generation reward in
+Eq.~\eqref{eq:generation-reward}, its explicit no-marginal variant
+(\texttt{use\_marginal=false}), and the full mixed
+generation--refinement objective.
+Further shaping ablations set the ordered redundancy cost
+\(w_{\mathrm{red}}\) or overflow cost \(w_{\mathrm{over}}\) to zero while
+leaving the 20-clause admission cap fixed.
+We also remove each negative family in turn.
+The key paired comparison is the same trained policy with \(m=0\) and \(m>0\):
+it tests whether the stateless repair action learned inside the shared framework
+transfers to repeated inference.
+We use whole provenance/clone clusters for train/validation/test assignment,
+rather than random files, to prevent the Code2Inv/SyGuS/SV-COMP overlap from
+inflating transfer.
+The complete run matrix, raw JSONL schema, and table templates are included in
+the artifact's \texttt{paper/EXPERIMENT\_PLAN.md}.
+
+\subsection{Measured Reward Regression Checks}
 \label{sec:exp:gates}
 
-A reward for RL depends on both quality discrimination and correct example labels.  The repository therefore maintains two checks that exercise the implemented reward directly.
+The current artifact contains no trained checkpoint, so we do not fill the
+end-to-end table with synthetic numbers.
+It does contain two measured checks of the signal on which training depends.
 
 \paragraph{Discrimination harness.}
-The current harness contains 10 hand-written specifications spanning long linear loops, symbolic bounds, division, polynomial relations, products, and extended GCD.  Nondeterministic programs are excluded because the conservative sampler emits no synthetic negatives for oracle-controlled loops.  For each selected program it scores up to six known-quality families: \emph{gold}, \emph{loose}, \emph{trivial}, \emph{guard copy}, \emph{post copy} when an assertion exists, and an \emph{unsound} sampled-value pin.
-It checks that all gold clauses survive, gold base rejection is at least $0.8$, loose does not beat gold, and the trivial, guard-copy, post-copy, and unsound baselines remain at least $0.15$ below gold (except a postcondition explicitly marked as a genuine invariant).  The harness uses the deployed filter cascade and fails on any ranking or sampler-label violation.
-The measured real-Frama-C run completed all 10 specifications with \textbf{0 violations}; every gold clause survived and the minimum gold base score was $0.996$.
+Ten hand-written specifications span long linear loops, symbolic bounds,
+division, polynomial relations, products, and extended GCD.
+Each program is scored with known-quality families: gold, loose, trivial,
+guard-copy, post-copy when an assertion exists, and an unsound sampled-value
+pin.
+The harness requires every gold clause to survive, gold base rejection to be
+at least \(0.8\), and the shortcut/unsound families to remain at least \(0.15\)
+below gold unless a postcondition is genuinely inductive.
+The measured real-Frama-C run completed all 10 specifications with
+\textbf{0 violations}; every gold clause survived and the minimum gold base
+score was \textbf{0.996}.
 
-\paragraph{Full mislabel audit.}
-For every benchmark program, the audit constructs negative candidates from the canonical 12-run sample, then checks whether the exact variable/pre-state pair appears reachable in larger 24-run samples using both the canonical seed and seed 9.  Such a pair collision is a hard label error that corrupts the tightness denominator; variable-only overlap with a different pre-state is reported separately as a soft diagnostic.
-The measured full run covered all 366 programs and 486,302 negative witness states, with \textbf{0 hard mislabels}.  It also reported 269 variable-only overlaps across 18 programs where the associated pre-state differed; these are soft diagnostics, not pair-level label collisions.
+\paragraph{Full negative-label audit.}
+For every Core-366 program, the audit constructs negatives with the canonical
+12-run, seed-0 sample and looks for the same variable/pre-state pair in larger
+24-run samples under seeds 0 and 9.
+The measured run covered \textbf{486,302} negative witness states and found
+\textbf{0 hard pair-level collisions}.
+It reported 269 variable-only overlaps across 18 programs where the associated
+pre-state differed; these are soft diagnostics rather than label collisions.
 
-\subsection{Current Scope and Future End-to-End Evaluation}
-\label{sec:exp:rl}
-
-This artifact implements and validates the sampler/reward contract and inference framework; it does not include a trained policy, checkpoint, or policy-training result.  Consequently, the two regression harnesses above are the complete empirical results reported here and should not be read as an end-to-end model-quality claim.
-Future policy evaluation should report (a) candidate-trace rejection on held-out programs, (b) the Frama-C-certified summary rate, and (c) the downstream rate at which a closed-book summary discharges a hidden benchmark assertion.  It should compare the plain pipeline with fixed refinement budgets, shuffled-feedback controls, equal-budget re-generation, and open-book generation.
+\paragraph{Scope.}
+These checks validate reward discrimination and sampled-label consistency, not
+model quality.
+A complete empirical claim still requires the end-to-end runs above, their raw
+rollouts and prover logs, and multiple training seeds.
+Until those artifacts exist, we report no target-hidden baseline accuracy;
+the measured reward checks remain deliberately separated from model-quality
+claims.

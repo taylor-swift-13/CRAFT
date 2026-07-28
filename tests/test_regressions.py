@@ -287,7 +287,7 @@ class RewardPatchRegressionTests(unittest.TestCase):
         def filter(_program, _loop_idx, invariants, _positives=None):
             return list(invariants)
 
-    def test_essential_bonus_ignores_tautologies_and_duplicate_output(self):
+    def test_ordered_essential_count_is_diagnostic_only(self):
         source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
         program = parse_program(source)
         examples = ExampleSet(
@@ -313,10 +313,11 @@ class RewardPatchRegressionTests(unittest.TestCase):
 
         self.assertEqual(score.base, 2 / 3)
         self.assertEqual(score.precision, 2 / 4)
+        self.assertEqual(score.essential, 2)
         self.assertEqual(score.redundant_clauses, 2)
         self.assertAlmostEqual(
             score.reward,
-            2 / 3 + 0.3 * 2 / 8 - 2 * 0.02,
+            2 / 3 - 2 * 0.02,
         )
 
     def test_zero_negative_fallback_uses_houdini_survival_fraction(self):
@@ -367,7 +368,8 @@ class RewardPatchRegressionTests(unittest.TestCase):
         self.assertEqual(strong.marginal, 0.5)
         self.assertEqual(strong.marginal_rejected, 1)
         self.assertEqual(strong.redundant_clauses, 0)
-        self.assertAlmostEqual(strong.reward, 0.8 + 0.2 * 0.5 + 0.3 / 8)
+        self.assertEqual(strong.essential, 1)
+        self.assertAlmostEqual(strong.reward, 0.8 + 0.2 * 0.5)
         self.assertEqual(overlapping.base, 0.5)
         self.assertEqual(overlapping.marginal, 0.0)
         self.assertEqual(overlapping.marginal_rejected, 0)
@@ -375,7 +377,7 @@ class RewardPatchRegressionTests(unittest.TestCase):
         self.assertEqual(overlapping.redundancy_penalty, 0.0)
         self.assertAlmostEqual(
             overlapping.reward,
-            0.8 * 0.5 + 0.3 / 8,
+            0.8 * 0.5,
         )
 
         disabled = RewardCalculator(
@@ -398,7 +400,7 @@ class RewardPatchRegressionTests(unittest.TestCase):
         )
         self.assertAlmostEqual(
             disabled.rollouts[0].reward,
-            0.8 + 0.3 / 8,
+            0.8,
         )
 
     def test_response_cap_truncates_and_penalizes_overflow_lines(self):

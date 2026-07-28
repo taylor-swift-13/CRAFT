@@ -1,96 +1,98 @@
 %% ============================================================
-%% Figure 1: main overview figure
+%% Figure 1: one shared rollout--Houdini core, two consumers
 %% ============================================================
-\begin{figure}[t]
+\begin{figure}[H]
 \centering
 \resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[
-  font=\scriptsize,
-  box/.style={draw, rounded corners=2pt, align=center, inner sep=3pt},
-  stage/.style={box, fill=codeblue!8, draw=codeblue!60, thick},
-  neg/.style={box, fill=codered!6, draw=codered!50},
-  chip/.style={box, fill=white, draw=black!40, inner sep=2pt, font=\tiny},
-  arr/.style={-{Stealth[length=2mm]}, thick, black!70},
-  lbl/.style={font=\tiny, black!60},
-  >=stealth,
+  font=\small,
+  >=Stealth,
+  flow/.style={
+    -{Stealth[length=2.2mm]}, draw=codegray!85, line width=0.9pt
+  },
+  credit/.style={
+    -{Stealth[length=2.0mm]}, draw=codeblue!85, line width=0.9pt
+  },
+  targetflow/.style={
+    -{Stealth[length=2.0mm]}, draw=codered!78, line width=0.9pt
+  },
+  stage/.style={
+    draw=codeblue!55, fill=white, rounded corners=3pt,
+    line width=0.8pt, align=center, minimum height=1.22cm,
+    inner xsep=7pt, inner ysep=5pt
+  },
+  corestage/.style={
+    stage, fill=algobg!70
+  },
+  finalstage/.style={
+    stage, draw=codeblue!80, fill=codeblue!88, text=white
+  },
+  output/.style={
+    draw=promptframe, fill=white, rounded corners=3pt,
+    line width=0.75pt, align=left, minimum height=1.05cm,
+    inner xsep=8pt, inner ysep=6pt
+  },
+  tag/.style={
+    rounded corners=2pt, inner xsep=5pt, inner ysep=2.5pt,
+    font=\scriptsize\bfseries, text=white
+  },
+  note/.style={font=\scriptsize, text=codegray, align=center}
 ]
-%% ---------------- panel (a): task ----------------
-\node[anchor=north west] (atitle) at (0,5.6) {\textbf{(a) Closed-book task}};
-\node[box, anchor=north west, fill=white, font=\ttfamily\tiny, align=left]
-  (prog) at (0,5.1) {
-    requires n >= 0;\\
-    x = 0; y = n;\\
-    while (y > 0)\\
-    x++; y--;\\
-    \textcolor{codered}{assert x == n;}
-  };
-\node[lbl, anchor=west] at ($(prog.south west)+(0,-0.22)$) {postcondition \textcolor{codered}{stripped}};
-\node[stage, anchor=north] (pol) at ($(prog.south)+(0,-0.65)$) {policy $\pi_\theta$};
-\node[box, anchor=north, fill=codegreen!8, draw=codegreen!60, font=\ttfamily\tiny]
-  (summ) at ($(pol.south)+(0,-0.45)$) {x + y == n;\\ 0 <= y <= n;};
-\node[lbl, anchor=north] at ($(summ.south)+(0,-0.05)$) {inductive loop summary};
-\draw[arr] (prog) -- (pol);
-\draw[arr] (pol) -- (summ);
 
-%% ---------------- panel (b): sampler ----------------
-\node[anchor=north west] (btitle) at (4.9,5.6) {\textbf{(b) Sampler: positives + candidate negatives}};
-\begin{scope}[shift={(5.7,1.55)}]
-  % axes
-  \draw[->, black!50] (0,0) -- (4.35,0) node[right, lbl] {$x$};
-  \draw[->, black!50] (0,0) -- (0,3.0) node[above, lbl] {$y$};
-  % observed range box
-  \draw[dashed, black!35] (-0.18,-0.18) rectangle (2.55,2.68);
-  \node[lbl, anchor=west] at (1.45,2.5) {observed range};
-  % manifold x+y=n, extended past the exit
-  \draw[codeblue!40, dashed] (0,2.45) -- (3.62,-1.17);
-  % positives on the manifold
-  \foreach \i in {0,...,6} {
-    \fill[codeblue] ({0.35*\i},{2.45-0.35*\i}) circle (1.6pt);
-  }
-  \node[lbl, text=codeblue!80!black, anchor=west] at (0.35,2.9) {positives: $x{+}y{=}n$, $0 \le y \le n$};
-  % relation negative: off the manifold
-  \node[text=codered] at (0.75,1.05) {$\times$};
-  \node[lbl, text=codered] at (0.75,0.72) {relation $\pm\{1,2\}$};
-  \node[lbl, text=codered] at (0.72,0.47) {off the law};
-  % escape: push one variable out of range, dotted displacement arrow
-  \draw[densely dotted, codered!70, -{Stealth[length=1.4mm]}] (1.15,1.4) -- (3.75,1.4);
-  \node[text=codered] at (3.87,1.4) {$\blacktriangle$};
-  \node[lbl, text=codered, anchor=east] at (4.25,1.72) {escape: outside};
-  \node[lbl, text=codered, anchor=east] at (4.25,1.02) {sampled range};
-  % over-run continuation: on the manifold, past the exit
-  \foreach \i in {8,9} {
-    \draw[codered, thick] ({0.35*\i-0.06},{2.45-0.35*\i-0.06}) rectangle ({0.35*\i+0.06},{2.45-0.35*\i+0.06});
-  }
-  \node[lbl, text=codered, anchor=west] at (0.0,-0.72) {over-run: past the exit};
-\end{scope}
-% filter strip
-\node[neg, anchor=north west] (f1) at (5.35,0.28) {reachable?};
-\node[neg, anchor=west] (f2) at ($(f1.east)+(0.18,0)$) {entry-feasible?};
-\node[neg, anchor=west] (f3) at ($(f2.east)+(0.18,0)$) {oracle?};
-\node[lbl, anchor=west] at ($(f3.east)+(0.15,0)$) {$\Rightarrow$ veto};
-\node[lbl, anchor=north west] at (5.35,-0.25) {trace units: one synthetic history $=$ one unit};
+%% Shared core --------------------------------------------------
+\draw[rounded corners=5pt, fill=promptbg, draw=promptframe, line width=0.8pt]
+  (0,2.15) rectangle (14.4,5.62);
+\node[font=\normalsize\bfseries, anchor=west, text=black] at (0.35,5.27)
+  {One target-hidden rollout--Houdini core};
+\node[tag, fill=codeblue, anchor=east] at (14.05,5.27)
+  {SHARED BY TRAINING AND INFERENCE};
 
-%% ---------------- panel (c): reward ----------------
-\node[anchor=north west] (ctitle) at (10.9,5.6) {\textbf{(c) Minimal dense reward}};
-\node[box, anchor=north west, font=\ttfamily\tiny, align=left] (roll) at (10.9,5.1)
-  {rollout $A$: clause set};
-\node[stage, anchor=north west, align=left] (casc) at ($(roll.south west)+(0,-0.3)$)
-  {positive filter $\to$ syntax\\ $\to$ Frama-C/WP Houdini};
-\node[lbl, anchor=west] at ($(casc.east)+(0.1,0.25)$) {$\mathrm{surv}(A)$};
-\node[box, anchor=north west, fill=white] (score) at ($(casc.south west)+(0,-0.35)$)
-  {$r = \tfrac12\,\mathrm{base} + \tfrac12\,\mathrm{marginal}$};
-\node[chip, anchor=north west] (s0) at ($(score.south west)+(0.05,-0.3)$) {base: $A$ alone};
-\node[chip, anchor=west] (s1) at ($(s0.east)+(0.12,0)$) {marginal: union ablation};
-\draw[arr] (roll) -- (casc);
-\draw[arr] (casc) -- (score);
-\draw[arr] ($(score.south)+(0,-0.05)$) -- ($(score.south)+(0,-0.28)$);
-\draw[arr] (s1.east) -- ++(0.35,0) node[anchor=west, lbl, align=left] {RL\\ update};
+\node[stage, text width=2.05cm] (masked) at (1.55,3.72)
+  {\textbf{Masked program}\\[-1pt]
+   \(P\setminus Q\)};
+\node[corestage, text width=2.20cm] (rollouts) at (4.55,3.72)
+  {\textbf{Grouped rollouts}\\[-1pt]
+   \(A_1,\ldots,A_G\)};
+\node[corestage, text width=2.75cm] (pool) at (8.05,3.72)
+  {\textbf{Merge and repair}\\[-1pt]
+   grow clause pool \(X\)\\[-2pt]
+   \textcolor{codegray}{\scriptsize target-free WP feedback}};
+\node[finalstage, text width=2.55cm] (houdini) at (12.10,3.72)
+  {\textbf{Houdini survivors}\\[-1pt]
+   \(\mathsf H_P(X)\)};
+
+\draw[flow] (masked) -- (rollouts);
+\draw[flow] (rollouts) -- (pool);
+\draw[flow] (pool) -- (houdini);
+
+%% Two consumers ------------------------------------------------
+\node[tag, fill=codeblue, anchor=west] at (0.35,1.72) {TRAINING};
+\node[output, text width=7.45cm, anchor=north west] (training) at (0.35,1.52)
+  {\textbf{Behavioral credit on the same prover semantics}\\[-1pt]
+   \(\mathit{generation}:\) base \(+\) rollout marginal \(-\) redundancy
+   \qquad \(\mathit{repair}:\) pool-gain reward\\[-1pt]
+   \textcolor{codegray}{Audited traces provide credit; mixed GRPO updates one policy.}};
+
+\node[tag, fill=codered!82, anchor=west] at (8.75,1.72) {INFERENCE};
+\node[output, draw=codered!55, text width=4.55cm, anchor=north west]
+  (inference) at (8.75,1.52)
+  {\textbf{Restore the held-out target \(Q\)}\\[-1pt]
+   Run the final Frama-C/WP proof.\\[-1pt]
+   \textcolor{codegray}{Only this gate decides success.}};
+
+\draw[credit] (rollouts.south) -- (rollouts.south |- training.north);
+\draw[credit] (pool.south) -- (pool.south |- training.north);
+\draw[targetflow] (houdini.south) -- (houdini.south |- inference.north);
+
 \end{tikzpicture}
 }%
-\caption{\textbf{\sam{} overview.}
-(a)~The policy sees precondition, guard, and body; any assertion present is stripped in closed-book mode, and the policy must emit the \emph{strongest} inductive loop summary rather than an invariant tailored to a target.
-(b)~The sampler executes the instrumented loop over a deterministic, precondition-respecting input sweep; positives are observed loop-head states, and negative candidates come from relational perturbations around dense trace windows, over-run continuations past a genuine exit, and sampled-range escapes.
-Reachability and entry-feasibility guards remove contradicted labels; incomplete state/control coverage disables synthetic negatives, and a broader-run audit checks for pair-level collisions.
-(c)~Each rollout is reduced to its surviving inductive core and receives the equal-weighted sum of its standalone rejection rate and its ablation-based marginal contribution; this is the complete scoring formula.}
+\caption{\textbf{Training and inference execute the same target-hidden
+rollout--Houdini core.}
+Both form rollout groups, grow a merged pool with target-free feedback, and
+retain clauses through the same Frama-C/WP Houdini operator.
+Training turns these operations into generation and refinement rewards;
+inference instead restores \(Q\) and applies the final proof gate.
+The execution sampler supplies training credit but is never called at
+inference.}
 \label{fig:overview}
 \end{figure}

@@ -15,7 +15,7 @@ Frama-C adapter:
          │ pos + neg traces                          └──────────────────┘
          ▼                                            (testing: vLLM + frama-c)
    ┌──────────────┐   per-rollout reward
-   │    Reward    │   = base + capped essential-coverage bonus
+   │    Reward    │   = base + marginal - redundancy/overflow costs
    │ HTTP service │   (training: called by the RL trainer, e.g. verl)
    └──────────────┘
 ```
@@ -134,15 +134,15 @@ units — one fake continuation is ONE negative, not twenty-four):
   clauses in model-output order and maintain the negative traces already
   rejected. A clause is penalized only if it adds zero new rejected traces.
   The default penalty is `0.02·redundant_clauses[A]`;
-- `reward[A]`   = `0.8·base[A] + 0.2·marginal[A] + 0.3·min(essential[A]/8, 1)
-  − redundancy_penalty[A] − overflow_penalty[A]` by default. An essential
-  clause is one that extends the rollout's rejected-negative set during that
-  same ordered traversal; redundant and tautological clauses add no bonus.
-  `precision = essential/generated` is reported for monitoring but
-  is not multiplied into reward. Soundness is not a scoring patch: when Frama-C is
+- `reward[A]`   = `0.8·base[A] + 0.2·marginal[A]
+  − redundancy_penalty[A] − overflow_penalty[A]` by default.
+  `essential` still counts clauses that extend the rollout's rejected-negative
+  set during the ordered traversal, and `precision = essential/generated`;
+  both are monitoring fields and do not affect reward.
+  Soundness is not a scoring patch: when Frama-C is
   available it comes from `PositiveFilter → Frama-C/WP fixpoint`. Unsound
-  clauses are pruned; tautologies may survive but reject no negatives and score
-  zero while negatives exist;
+  clauses are pruned; tautologies may survive but add no negative coverage and
+  are charged as redundant while negatives exist;
 - each model response admits at most 20 `loop invariant` lines. Later lines do
   not enter filtering or scoring, and each overflow line subtracts 0.05. The
   response exposes `generated`, `accepted`, `overflow`, and
@@ -156,7 +156,7 @@ from rl_pipeline.reward import RewardCalculator
 br = RewardCalculator().compute(source, rollouts)
 br.to_dict()   # rewards, marginal_rejected, redundancy/overflow metrics, batch_score
 
-# reward ablation: base + essential - internal redundancy - overflow
+# reward ablation: base - internal redundancy - overflow
 ablated = RewardCalculator(use_marginal=False).compute(source, rollouts)
 ```
 

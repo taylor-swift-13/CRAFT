@@ -22,10 +22,11 @@ from rl_pipeline.inference import InferenceFramework, MockRolloutProvider
 from rl_pipeline.inference import inference as inference_module
 from rl_pipeline.reward import annotate
 from rl_pipeline.reward.filters import HoudiniFilter, PositiveFilter
+from rl_pipeline.reward.reward_calculator import RewardCalculator
 from rl_pipeline.reward import service
 from rl_pipeline.reward import io as reward_io
 from rl_pipeline.reward.score_file import score_file
-from rl_pipeline.sampler import ExampleSampler
+from rl_pipeline.sampler import ExampleSampler, ExampleSet
 from rl_pipeline.sampler import cexec
 
 
@@ -257,8 +258,145 @@ class SyntaxScrubRegressionTests(unittest.TestCase):
         self.assertEqual(survivors, ["x >= 0"])
 
 
+class RewardPatchRegressionTests(unittest.TestCase):
+    class _IdentityFilter:
+        name = "identity"
+
+        @staticmethod
+        def filter(_program, _loop_idx, invariants, _positives=None):
+            return list(invariants)
+
+    def test_essential_bonus_ignores_tautologies_and_duplicate_output(self):
+        source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
+        program = parse_program(source)
+        examples = ExampleSet(
+            program=program,
+            positives={0: [State(vars={"x": 0})]},
+            negatives={
+                0: [
+                    State(vars={"x": -2}),
+                    State(vars={"x": -1}),
+                    State(vars={"x": 2}),
+                ]
+            },
+            neg_groups={0: [[0], [1], [2]]},
+        )
+        rollout = {
+            "invariants": ["x == x", "x >= -1", "x >= 0", "x >= 0"]
+        }
+
+        result = RewardCalculator(
+            invariant_filter=self._IdentityFilter(), n_jobs=1
+        ).compute(source, [rollout], examples=examples)
+        score = result.rollouts[0]
+
+        self.assertEqual(score.base, 2 / 3)
+        self.assertEqual(score.precision, 2 / 4)
+        self.assertAlmostEqual(score.reward, 2 / 3 + 0.3 * 2 / 8)
+
+    def test_zero_negative_fallback_uses_houdini_survival_fraction(self):
+        source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
+        examples = ExampleSet(
+            program=parse_program(source),
+            positives={0: []},
+            negatives={0: []},
+            neg_groups={0: []},
+        )
+
+        result = RewardCalculator(
+            invariant_filter=self._IdentityFilter(), n_jobs=1
+        ).compute(source, [["x >= 0"]], examples=examples)
+
+        self.assertEqual(result.batch_score, 1.0)
+        self.assertEqual(result.rollouts[0].reward, 1.0)
+        self.assertEqual(result.rollouts[0].precision, 1.0)
+
+    def test_default_reward_weights_base_and_marginal_as_eighty_twenty(self):
+        source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
+        examples = ExampleSet(
+            program=parse_program(source),
+            positives={0: [State(vars={"x": 0})]},
+            negatives={
+                0: [
+                    State(vars={"x": -1}),
+                    State(vars={"x": 1}),
+                ]
+            },
+            neg_groups={0: [[0], [1]]},
+        )
+
+        calculator = RewardCalculator(
+            invariant_filter=self._IdentityFilter(), n_jobs=1
+        )
+        result = calculator.compute(
+            source,
+            [["x == 0"], ["x <= 0"]],
+            examples=examples,
+        )
+        strong, overlapping = result.rollouts
+
+        self.assertEqual(calculator.w_base, 0.8)
+        self.assertEqual(calculator.w_marg, 0.2)
+        self.assertEqual(strong.base, 1.0)
+        self.assertEqual(strong.marginal, 0.5)
+        self.assertAlmostEqual(strong.reward, 0.8 + 0.2 * 0.5 + 0.3 / 8)
+        self.assertEqual(overlapping.base, 0.5)
+        self.assertEqual(overlapping.marginal, 0.0)
+        self.assertAlmostEqual(overlapping.reward, 0.8 * 0.5 + 0.3 / 8)
+
+
 @unittest.skipUnless(shutil.which("gcc"), "gcc is required for sampler tests")
 class SamplerIntegrationRegressionTests(unittest.TestCase):
+    def test_escape_uses_only_nearest_step_per_axis_and_direction(self):
+        source = "void f(void) { int x = 0; while (x < 10) { x++; } }"
+        sampler = ExampleSampler(source, n_runs=1)
+        positives = [
+            State(vars={"x": value}) for value in range(11)
+        ]
+
+        candidates = sampler._escape_negatives(
+            ["x"], [State(vars={"x": 0})], positives
+        )
+
+        self.assertEqual(
+            [candidate.state.vars["x"] for candidate in candidates],
+            [13, -5],
+        )
+
+    def test_linear_107_terminal_relations_reward_stronger_invariant(self):
+        source = (ROOT / "src/input/linear/107.c").read_text(encoding="utf-8")
+        examples = ExampleSampler(source).sample()
+        stats = examples.stats[0]
+
+        self.assertGreater(stats["relation"], 0)
+        self.assertLessEqual(stats["relation"], stats["relation_budget"])
+        self.assertLessEqual(stats["bound_overrun"], stats["overrun_budget"])
+        self.assertLessEqual(stats["bound_escape"], stats["escape_budget"])
+        self.assertLessEqual(stats["n_traces"], stats["negative_budget"])
+        self.assertTrue(any(
+            eval_predicate("0 <= k && k <= 1", state) is True
+            and eval_predicate("k == 0 || a <= m", state) is False
+            for state in examples.neg(0)
+        ))
+
+        class IdentityFilter:
+            name = "identity"
+
+            @staticmethod
+            def filter(_program, _loop_idx, invariants, _positives=None):
+                return list(invariants)
+
+        result = RewardCalculator(
+            invariant_filter=IdentityFilter(), n_jobs=1
+        ).compute(source, [
+            ["0 <= k", "k <= 1"],
+            ["0 <= k", "k <= 1", "k == 0 || a <= m"],
+        ], examples=examples)
+        bounds_only, strongest = result.rollouts
+
+        self.assertGreater(strongest.reward, bounds_only.reward + 0.15)
+        self.assertEqual(strongest.precision, 1.0)
+
     def test_abnormal_program_exit_fails_sampling(self):
         source = (
             "#include <stdlib.h>\n"
@@ -383,7 +521,7 @@ class SamplerIntegrationRegressionTests(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn("gcc failed", response.json()["detail"])
 
-    def test_nondeterministic_guard_and_body_produce_no_negatives(self):
+    def test_nondeterministic_guard_and_body_keep_safe_negatives(self):
         programs = {
             "guard": (
                 "int unknown(void); void f(void) { int x = 0; "
@@ -399,11 +537,36 @@ class SamplerIntegrationRegressionTests(unittest.TestCase):
             with self.subTest(label=label):
                 examples = ExampleSampler(source, n_runs=1).sample()
                 self.assertGreater(len(examples.pos(0)), 0)
-                self.assertEqual(examples.neg(0), [])
-                self.assertEqual(examples.groups(0), [])
-                self.assertEqual(examples.stats[0]["relation"], 0)
-                self.assertEqual(examples.stats[0]["bound_overrun"], 0)
-                self.assertEqual(examples.stats[0]["bound_escape"], 0)
+                self.assertGreater(len(examples.neg(0)), 0)
+                self.assertGreater(len(examples.groups(0)), 0)
+
+    def test_sampling_determinizes_oracle_calls_without_rewriting_declarations(self):
+        source = (
+            "int unknown(); int unknown1(void); "
+            "void f(int limit) { int x = unknown(); "
+            "while (x < limit && unknown1()) { x++; } }"
+        )
+
+        determinized = ExampleSampler._determinize_source(source)
+
+        self.assertIn("int unknown();", determinized)
+        self.assertIn("int unknown1(void);", determinized)
+        self.assertIn("void f(int limit, int _nd0, int _nd1)", determinized)
+        self.assertIn("int x = _nd0", determinized)
+        self.assertIn("x < limit && _nd1", determinized)
+
+    def test_only_body_oracle_dependencies_are_tainted(self):
+        preloop = parse_program(
+            "int unknown(void); void f(void) { int x = unknown(); "
+            "while (x < 10) { x++; } }"
+        )
+        in_body = parse_program(
+            "int unknown(void); void f(void) { int x = 0; int y = 0; "
+            "while (y < 10) { x = unknown(); y = x; } }"
+        )
+
+        self.assertEqual(ExampleSampler._nondet_tainted(preloop), set())
+        self.assertEqual(ExampleSampler._nondet_tainted(in_body), {"x", "y"})
 
     def test_untracked_block_state_disables_synthetic_negatives(self):
         source = (

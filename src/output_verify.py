@@ -164,7 +164,8 @@ class OutputVerifier:
         self.syntax_correct = True
         command = [
             "frama-c", "-wp", "-wp-print", "-wp-timeout", "30", "-wp-par", "8",
-            "-wp-prover", "z3", "-wp-model", "Typed", file_path,
+            "-wp-prover", "alt-ergo", "-wp-model", "Typed",
+            "-wp-prop=-@terminates", file_path,
         ]
         try:
             result = subprocess.run(command, capture_output=True, text=True, check=True)

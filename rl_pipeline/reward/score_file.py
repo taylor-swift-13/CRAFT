@@ -23,7 +23,7 @@ from .reward_calculator import RewardCalculator
 
 def score_file(input_path: str, output_path: str, cfg: io.IOConfig,
                sampler_kwargs: Optional[dict] = None,
-               w_base: float = 0.5, w_marg: float = 0.5,
+               w_base: float = 0.8, w_marg: float = 0.2,
                reroll_threshold: float = 0.6, include_program: bool = False,
                logger: Optional[logging.Logger] = None) -> Dict[str, int]:
     sampler_kwargs = dict(sampler_kwargs or {})
@@ -83,8 +83,8 @@ def main() -> int:
     ap.add_argument("--rollouts-field", default="rollouts")
     ap.add_argument("--response-field", default="response")
     ap.add_argument("--group-field", default="group_id")
-    ap.add_argument("--w-base", type=float, default=0.5)
-    ap.add_argument("--w-marg", type=float, default=0.5)
+    ap.add_argument("--w-base", type=float, default=0.8)
+    ap.add_argument("--w-marg", type=float, default=0.2)
     ap.add_argument("--reroll-threshold", type=float, default=0.6)
     ap.add_argument("--include-program", action="store_true", help="keep program column in output")
     # sampler knobs

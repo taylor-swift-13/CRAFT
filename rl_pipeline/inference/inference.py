@@ -11,6 +11,7 @@ import logging
 import os
 import shutil
 import tempfile
+import threading
 from dataclasses import dataclass, field
 from typing import Callable, List, Optional
 
@@ -104,6 +105,7 @@ class VLLMRolloutProvider:
         from vllm import LLM, SamplingParams  # optional dependency
         self._SamplingParams = SamplingParams
         self.llm = llm if llm is not None else LLM(model=model, **llm_kwargs)
+        self._lock = threading.Lock()
         self.system_prompt = prompts.system_prompt()
         self.temperature, self.top_p, self.max_tokens = temperature, top_p, max_tokens
 
@@ -124,7 +126,8 @@ class VLLMRolloutProvider:
         sp = self._SamplingParams(n=n, temperature=self.temperature,
                                   top_p=self.top_p, max_tokens=self.max_tokens)
         try:
-            outs = self.llm.chat(messages, sp, use_tqdm=False)
+            with self._lock:
+                outs = self.llm.chat(messages, sp, use_tqdm=False)
         except Exception as e:
             self.log.warning("vLLM generate failed: %s", e)
             return [[] for _ in range(n)]

@@ -57,8 +57,8 @@ class SamplerCfg(BaseModel):
 class RewardRequest(BaseModel):
     program: str = Field(..., description="C program source with requires/loop/assert")
     rollouts: List[Any] = Field(..., description="each: {'invariants':[...]} or {'code': '...'}")
-    w_base: float = Field(0.5, ge=0.0)
-    w_marg: float = Field(0.5, ge=0.0)
+    w_base: float = Field(0.8, ge=0.0)
+    w_marg: float = Field(0.2, ge=0.0)
     reroll_threshold: float = Field(0.6, ge=0.0, le=1.0)
     sampler: SamplerCfg = Field(default_factory=SamplerCfg)
 

@@ -67,25 +67,26 @@ One call per prompt-group (the n rollouts sampled from one program's prompt).
     {"invariants": ["x >= y", "y >= 0"]},   // or {"code": "<annotated C>"}
     "<raw LLM text — loop invariant lines are extracted>"
   ],
-  "w_base": 0.5, "w_marg": 0.5,             // optional, reward weights
+  "w_base": 0.8, "w_marg": 0.2,             // optional; these are the defaults
   "sampler": {"n_runs": 12, "seed": 0}      // optional; keep fixed per sweep
 }
 // response (order-aligned with rollouts)
 {
   "rollout_rewards": [0.41, 0.17],          // ← the GRPO group rewards
-  "base": [...], "marginal": [...],
+  "base": [...], "marginal": [...], "precision": [...],
   "batch_score": 0.83, "should_reroll": false,
   "n_negatives": 118, "filter_mode": "cascade(positive->houdini)",
   "rollouts": [{"index":0,"reward":...,"survivors":[...],"rejected":...}, ...]
 }
 ```
 
-Semantics: `base[A]` = fraction of sampled negative-candidate traces rejected by the
-Houdini survivors of A alone; `marginal[A]` = A's irreplaceable contribution to
-the group union (ablation); `reward = w_base·base + w_marg·marginal`. Negatives
-derive from the program's loop only (never the assert), so scoring stays
-closed-book. The example set is sampled once per (program, sampler-config) and
-cached in-process.
+Semantics: `base[A]` is the fraction of sampled negative-candidate traces
+rejected by A's Houdini survivors. By default, `marginal` is disabled and
+`reward = base + 0.3·min(essential/8, 1)`, where an essential survivor greedily
+adds new rejected traces. `precision = essential/generated` is observational.
+When no negatives are available, the service falls back to Houdini survival
+fractions. Negatives derive from the loop only (never the assert), so scoring
+stays closed-book. The example set is cached per (program, sampler-config).
 
 ### 2.2 `POST /refine_feedback` — build a refine group's prompt
 

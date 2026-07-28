@@ -15,7 +15,7 @@ Frama-C adapter:
          │ pos + neg traces                          └──────────────────┘
          ▼                                            (testing: vLLM + frama-c)
    ┌──────────────┐   per-rollout reward
-   │    Reward    │   = w_base·base + w_marg·marginal
+   │    Reward    │   = base + capped essential-coverage bonus
    │ HTTP service │   (training: called by the RL trainer, e.g. verl)
    └──────────────┘
 ```
@@ -55,22 +55,28 @@ checks the sampled labels for observed collisions.
 
 Three negative families:
 
-- **relation** — small perturbations (±1, ±2) around bases whose next three
-  trace coordinates were printed; candidates colliding with any sampled
-  reachable valuation are removed;
+- **relation** — small perturbations around bases whose next three trace
+  coordinates were printed, plus a wider local neighborhood around witnessed
+  true-guard → false-guard terminal transitions. Guard-preserving candidates
+  inside the sampled envelope are selected first; easy guard/range-changing
+  fallbacks are capped at 64 groups;
 - **over-run** — the loop body executed past a **genuine** exit: real dynamics
   (preserves every relation, linear *and* nonlinear, e.g. `z==x*y`), out of the
   reachable range;
-- **escape** — large ladder steps kept only when they leave the variable's
-  sampled range.
+- **escape** — only the nearest ladder step per base, variable, and direction
+  that leaves the sampled range.
+
+The independent trace-group caps are 320 relation, 64 over-run, and 128
+escape (512 total maximum), selected round-robin across structural buckets.
 
 Conservative construction guards:
 
 - states observed **reachable** are never negatives;
 - states that could be a **fresh loop entry** (params free, `requires`
   satisfiable) are never negatives — they are reachable under other inputs;
-- loops whose guard or body depends on `unknown()` produce positives but no
-  synthetic negatives: finite oracle runs under-approximate reachability;
+- `unknown()` call sites are replaced by fresh sampled parameters only during
+  concrete execution; body-tainted variables are not perturbed, but other
+  deterministic-transition variables can still produce negatives;
 - untracked block-local state, pointer/array state, and function calls in the
   loop body likewise disable synthetic negatives;
 - capped deterministic runs disable escapes because their sampled range is
@@ -86,8 +92,9 @@ The supported sampling model is one braced `while` loop over scalar C `int`
 parameters, locals, and file-scope variables. Multiple loops, `for` loops, and
 pointer/array parameters fail explicitly instead of returning partial samples.
 
-`unknown()` guards/values are supported (an undefined oracle is given a
-nondeterministic body; a per-run `srand` explores varied-length traces).
+`unknown()` guards/values are supported. Each syntactic call site is
+determinized to a fresh input during sampling; the original oracle-bearing
+source is retained for generation and Houdini verification.
 
 ```python
 from rl_pipeline.sampler import ExampleSampler
@@ -119,18 +126,22 @@ units — one fake continuation is ONE negative, not twenty-four):
 - `base[A]`     = candidates rejected by **Houdini(A alone)** — its own kill rate;
 - `marginal[A]` = `rejected(Houdini(∪)) − rejected(Houdini(∪ \ A))` — the effect on
   the group's kill rate of removing `A` (ablation);
-- `reward[A]`   = `w_base·base[A] + w_marg·marginal[A]` (default 0.5/0.5) —
-  **that is the whole formula**: no junk term, no complexity gates, no
-  multi-seed min-combining. Soundness is not a scoring patch: when Frama-C is
+- `reward[A]`   = `0.8·base[A] + 0.2·marginal[A] + 0.3·min(essential[A]/8, 1)`
+  by default. An essential survivor is one that greedily extends
+  the rollout's rejected-negative set; redundant and tautological clauses add
+  no bonus. `precision = essential/generated` is reported for monitoring but
+  is not multiplied into reward. Soundness is not a scoring patch: when Frama-C is
   available it comes from `PositiveFilter → Frama-C/WP fixpoint`. Unsound
   clauses are pruned; tautologies may survive but reject no negatives and score
-  zero;
-- `batch_score` = candidates rejected by `Houdini(∪)`.
+  zero while negatives exist;
+- `batch_score` = candidates rejected by `Houdini(∪)`. If no synthetic
+  negatives are available, rollout and batch rewards fall back to Houdini
+  survival fractions.
 
 ```python
 from rl_pipeline.reward import RewardCalculator
-br = RewardCalculator(w_base=0.5, w_marg=0.5).compute(source, rollouts)
-br.to_dict()   # rollout_rewards[], base[], marginal[], batch_score, should_reroll
+br = RewardCalculator().compute(source, rollouts)
+br.to_dict()   # rollout_rewards[], base[], marginal[], precision[], batch_score
 ```
 
 **Refine reward** — `rl_pipeline/reward/refine.py` scores a refine group (n

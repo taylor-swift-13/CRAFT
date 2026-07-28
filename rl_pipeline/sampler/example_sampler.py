@@ -13,17 +13,25 @@ union is the sampled reachable set. We produce:
     A rollout rejects a history iff some invariant is false at ANY witness.
 
 Three negative-candidate families:
-  * relation : small perturbations (±1, ±2) around DENSE sampled bases;
+  * relation : small perturbations (±1, ±2) around DENSE sampled bases and
+    observed terminal transitions;
   * over-run : the body executed past an observed genuine exit;
-  * escape   : ladder steps kept only when they leave the variable's sampled
-    range.
+  * escape   : the nearest ladder step in each direction that leaves the
+    variable's sampled range.
+
+Families have independent trace budgets (320 relation, 64 over-run, 128
+escape).  Candidates are selected round-robin across structural buckets, so a
+large collection of easy range violations cannot crowd relational witnesses
+out of the score.
 
 Conservative filters (a reachable state mislabeled as negative would distort
 the tightness signal):
   * states observed reachable are never negatives;
   * states that could be a fresh loop ENTRY under their input are dropped;
-  * nondeterministic guards/bodies disable synthetic negatives (finite oracle
-    runs under-approximate reachability); capped runs disable escapes.
+  * oracle calls are determinized into sampled parameters; variables whose body
+    transition remains oracle-tainted are not perturbed, and negatives are
+    disabled only when no safe movable variable remains;
+  * capped runs disable escapes.
 
 Soundness of scoring is delegated to the reward's filter cascade, which ends
 in real Houdini (Frama-C/WP).
@@ -44,12 +52,35 @@ DEFAULT_N_RUNS = 12
 DEFAULT_SEED = 0
 
 _SMALL_DELTAS = (1, -1, 2, -2)
+# Terminal transitions are especially scarce in short loops.  Probe a slightly
+# wider local neighborhood there so relation-breaking, guard-preserving
+# witnesses are not outnumbered by easy control/range violations.
+_TERMINAL_DELTAS = (1, -1, 2, -2, 3, -3, 5, -5, 8, -8)
 _LADDER_DELTAS = (5, -5, 8, -8, 13, -13, 21, -21, 34, -34)
 _BASE_CAP = 96           # perturbation bases, stratified across all positives
 # Forward trace states required for a "dense" base: the entry state (it=0) and
 # the first head (it=1) carry the SAME valuation, so a value-jump of 2 along a
 # unit-step manifold is only witnessed by the state at it+3.
 _DENSE_WINDOW = 3
+_RELATION_GROUP_BUDGET = 320
+# Non-preferred relation candidates change the guard truth value or leave the
+# sampled envelope, so single-variable bounds reject them too easily.  They
+# remain useful for coverage, but may not fill unused hard-relation capacity.
+_RELATION_FALLBACK_BUDGET = 64
+_OVERRUN_GROUP_BUDGET = 64
+_ESCAPE_GROUP_BUDGET = 128
+_NEGATIVE_GROUP_BUDGET = (
+    _RELATION_GROUP_BUDGET
+    + _OVERRUN_GROUP_BUDGET
+    + _ESCAPE_GROUP_BUDGET
+)
+
+
+@dataclass(frozen=True)
+class _NegativeCandidate:
+    state: State
+    bucket: Tuple
+    preferred: bool = True
 
 
 @dataclass
@@ -133,26 +164,16 @@ class ExampleSampler:
 
     @classmethod
     def _nondet_tainted(cls, prog: Program, loop_idx: int = 0) -> Set[str]:
-        """Variables whose loop-head value depends on WHICH unknown() branches
-        ran — their reachable values form an envelope a finite sample cannot
-        enumerate, so they must never be perturbed.  Taint = assigned from
-        unknown() (incl. pre-loop entry values), assigned under a
-        nondeterministic condition, then propagated through straight-line data
-        flow to a fixpoint."""
+        """Variables whose loop-body transition depends on ``unknown()``.
+
+        Pre-loop oracle values are deliberately not tainted: once fixed for a
+        sampled run, a transition such as ``x = x + 1`` is deterministic and
+        can safely be perturbed. Taint starts only at oracle-dependent body
+        assignments/branches and is propagated through body data flow.
+        """
         loop = prog.loops[loop_idx]
         body = prog.source[loop.body_open + 1: loop.body_close]
         tainted: Set[str] = set()
-        for name, expr in prog.local_inits:
-            if expr and re.search(r"\bunknown\w*\s*\(", expr):
-                tainted.add(name)
-        changed = True
-        while changed:
-            changed = False
-            for name, expr in prog.local_inits:
-                if name not in tainted and expr and any(
-                        re.search(rf"\b{re.escape(t)}\b", expr) for t in tainted):
-                    tainted.add(name)
-                    changed = True
         for m in re.finditer(r"\b(\w+)\s*=[^=][^;]*\bunknown\w*\s*\(", body):
             tainted.add(m.group(1))
         scopes = cls._branch_scopes(body)
@@ -281,7 +302,11 @@ class ExampleSampler:
         loop = prog.loops[loop_idx]
         body = prog.source[loop.body_open + 1:loop.body_close]
         calls = set(re.findall(r"\b([A-Za-z_]\w*)\s*\(", body))
-        return bool(calls - {"if", "while", "for", "switch", "sizeof"})
+        return bool(calls - {
+            "if", "while", "for", "switch", "sizeof",
+            "unknown", "unknown1", "unknown2", "unknown3", "nondet",
+            "__VERIFIER_nondet_int", "__VERIFIER_nondet_uint",
+        })
 
     @staticmethod
     def _body_has_unsupported_state(prog: Program, loop_idx: int = 0) -> bool:
@@ -323,127 +348,336 @@ class ExampleSampler:
 
         return feasible
 
-    def _relation_negatives(self, movable: List[str], bases: List[State],
-                            dense_index: Set[Tuple[int, int]]) -> List[State]:
-        """Small single-axis + pairwise steps from DENSE bases (next
-        `_DENSE_WINDOW` trace states sampled, so a surviving perturbation is
-        genuinely off-manifold)."""
-        out: List[State] = []
+    def _relation_negatives(
+        self,
+        prog: Program,
+        movable: List[str],
+        bases: List[State],
+        positives: List[State],
+        raw_reach: List[State],
+        capped: bool,
+    ) -> List[_NegativeCandidate]:
+        """Small off-manifold steps from locally witnessed trace positions.
 
-        for r in bases:
-            if r.run >= 0 and not all(
-                (r.run, r.it + k) in dense_index for k in range(1, _DENSE_WINDOW + 1)
-            ):
+        The original dense-window rule remains the default.  Short loops also
+        contribute their terminal state when both ends of the genuine final
+        transition were observed (predecessor guard true, terminal guard
+        false).  This is what lets one-iteration loops produce relational
+        witnesses without another execution.
+
+        Candidates that stay inside every sampled variable envelope and keep
+        the guard truth value are selected before range/control-changing
+        fallbacks.  They force the score to distinguish loop relations instead
+        of rewarding only easy extrema.
+        """
+        out: List[_NegativeCandidate] = []
+        trace_index = {
+            (s.run, s.it): s for s in raw_reach if s.run >= 0
+        }
+        dense_index = set(trace_index)
+        guard = prog.loops[0].guard or ""
+        lo = {
+            v: min(p.vars[v] for p in positives)
+            for v in prog.pre_vars
+            if all(v in p.vars for p in positives)
+        }
+        hi = {
+            v: max(p.vars[v] for p in positives)
+            for v in prog.pre_vars
+            if all(v in p.vars for p in positives)
+        }
+
+        def is_terminal(r: State) -> bool:
+            if capped or r.run < 0 or r.it <= 0:
+                return False
+            predecessor = trace_index.get((r.run, r.it - 1))
+            if predecessor is None:
+                return False
+            return (
+                eval_predicate(guard, predecessor) is True
+                and eval_predicate(guard, r) is False
+            )
+
+        # `_bases` is globally capped and can skip the last state of a run.
+        # Explicitly retain witnessed terminals so short traces are represented.
+        relation_bases = list(bases)
+        base_keys = {s.key() for s in relation_bases}
+        if not capped:
+            for state in raw_reach:
+                if state.key() not in base_keys and is_terminal(state):
+                    relation_bases.append(state)
+                    base_keys.add(state.key())
+
+        def add_candidate(
+            r: State,
+            nv: Dict[str, int],
+            axes: Tuple[str, ...],
+            directions: Tuple[int, ...],
+            terminal: bool,
+        ) -> None:
+            state = State(vars=nv, pre=dict(r.pre))
+            base_guard = eval_predicate(guard, r)
+            candidate_guard = eval_predicate(guard, state)
+            inside_envelope = all(
+                name in lo and lo[name] <= value <= hi[name]
+                for name, value in state.vars.items()
+            )
+            same_guard = (
+                base_guard is not None
+                and candidate_guard is not None
+                and base_guard == candidate_guard
+            )
+            out.append(_NegativeCandidate(
+                state=state,
+                bucket=(
+                    "terminal" if terminal else "interior",
+                    axes,
+                    directions,
+                ),
+                preferred=inside_envelope and same_guard,
+            ))
+
+        for r in relation_bases:
+            terminal = is_terminal(r)
+            dense = r.run < 0 or all(
+                (r.run, r.it + k) in dense_index
+                for k in range(1, _DENSE_WINDOW + 1)
+            )
+            if not dense and not terminal:
                 continue
             base = r.vars
+            deltas = _TERMINAL_DELTAS if terminal else _SMALL_DELTAS
             for v in movable:
-                for d in _SMALL_DELTAS:
+                for d in deltas:
                     nv = dict(base)
                     nv[v] += d
-                    out.append(State(vars=nv, pre=dict(r.pre)))
+                    add_candidate(
+                        r, nv, (v,), (1 if d > 0 else -1,), terminal
+                    )
             for i in range(len(movable)):
                 for j in range(i + 1, len(movable)):
                     u, w = movable[i], movable[j]
-                    for d in _SMALL_DELTAS:
+                    for d in deltas:
                         for su, sw in ((d, d), (d, -d)):
                             nv = dict(base)
                             nv[u] += su
                             nv[w] += sw
-                            out.append(State(vars=nv, pre=dict(r.pre)))
+                            add_candidate(
+                                r,
+                                nv,
+                                (u, w),
+                                (
+                                    1 if su > 0 else -1,
+                                    1 if sw > 0 else -1,
+                                ),
+                                terminal,
+                            )
         return out
 
     def _escape_negatives(self, movable: List[str], bases: List[State],
-                          positives: List[State]) -> List[State]:
-        """Ladder steps kept only when they leave the variable's sampled range
-        so they probe range facts outside the observed envelope."""
+                          positives: List[State]) -> List[_NegativeCandidate]:
+        """Return one nearest outside-envelope step per base/axis/direction."""
         lo = {v: min(p.vars[v] for p in positives) for v in movable}
         hi = {v: max(p.vars[v] for p in positives) for v in movable}
-        out: List[State] = []
+        out: List[_NegativeCandidate] = []
         for r in bases:
             base = r.vars
             for v in movable:
-                for d in _LADDER_DELTAS:
-                    nv_val = base[v] + d
-                    if lo[v] <= nv_val <= hi[v]:
+                for direction in (1, -1):
+                    outside = [
+                        d for d in _LADDER_DELTAS
+                        if (1 if d > 0 else -1) == direction
+                        and not lo[v] <= base[v] + d <= hi[v]
+                    ]
+                    if not outside:
                         continue
+                    d = min(outside, key=abs)
                     nv = dict(base)
-                    nv[v] = nv_val
-                    out.append(State(vars=nv, pre=dict(r.pre)))
+                    nv[v] = base[v] + d
+                    out.append(_NegativeCandidate(
+                        state=State(vars=nv, pre=dict(r.pre)),
+                        bucket=(v, direction),
+                    ))
         return out
 
+    @staticmethod
+    def _round_robin(
+        candidates: List[_NegativeCandidate], limit: int
+    ) -> List[_NegativeCandidate]:
+        """Stable round-robin selection across candidate buckets."""
+        if limit <= 0 or not candidates:
+            return []
+        buckets: Dict[Tuple, List[_NegativeCandidate]] = {}
+        for candidate in candidates:
+            buckets.setdefault(candidate.bucket, []).append(candidate)
+        positions = {bucket: 0 for bucket in buckets}
+        selected: List[_NegativeCandidate] = []
+        active = list(buckets)
+        while active and len(selected) < limit:
+            next_active = []
+            for bucket in active:
+                position = positions[bucket]
+                values = buckets[bucket]
+                if position < len(values):
+                    selected.append(values[position])
+                    positions[bucket] = position + 1
+                    if len(selected) == limit:
+                        break
+                if positions[bucket] < len(values):
+                    next_active.append(bucket)
+            active = next_active
+        return selected
+
     def _negatives(self, prog: Program, positives: List[State], overrun: List[State],
-                   raw_reach: List[State], capped: bool) -> Tuple[List[State], List[List[int]], dict]:
-        movable = self._modified_vars(prog, 0)
+                   raw_reach: List[State], capped: bool,
+                   analysis_prog: Program | None = None,
+                   ) -> Tuple[List[State], List[List[int]], dict]:
+        # ``prog`` is the determinized execution program, which supplies exact
+        # entry constraints for fresh oracle parameters. Safety checks still
+        # inspect the original body so oracle-tainted variables stay immovable.
+        analysis_prog = analysis_prog or prog
+        movable = self._modified_vars(analysis_prog, 0)
         if not movable:
-            movable = [v for v in prog.pre_vars if v not in set(prog.params)] or list(prog.pre_vars)
+            movable = [
+                v for v in analysis_prog.pre_vars
+                if v not in set(analysis_prog.params)
+            ] or list(analysis_prog.pre_vars)
 
         reachable = {s.vars_key() for s in positives}
         entry_feasible = self._entry_feasible_fn(prog)
         seen: set = set()
 
-        def keep(states: List[State]) -> List[State]:
-            out = []
-            for s in states:
-                k = s.vars_key()
-                if k in reachable or k in seen:
-                    continue
-                if entry_feasible(s):
-                    continue
-                seen.add(k)
-                out.append(s)
-            return out
+        def select_candidates(
+            candidates: List[_NegativeCandidate],
+            limit: int,
+            fallback_limit: int | None = None,
+        ) -> List[State]:
+            """Filter, stratify, and commit only candidates that are emitted."""
+            selected: List[_NegativeCandidate] = []
+            local_seen: Set[Tuple] = set()
+            for preferred in (True, False):
+                admissible: List[_NegativeCandidate] = []
+                for candidate in candidates:
+                    if candidate.preferred != preferred:
+                        continue
+                    state = candidate.state
+                    key = state.vars_key()
+                    if key in reachable or key in seen or key in local_seen:
+                        continue
+                    if entry_feasible(state):
+                        continue
+                    local_seen.add(key)
+                    admissible.append(candidate)
+                remaining = limit - len(selected)
+                if remaining <= 0:
+                    break
+                tier_limit = remaining
+                if not preferred and fallback_limit is not None:
+                    tier_limit = min(tier_limit, fallback_limit)
+                chosen = self._round_robin(admissible, tier_limit)
+                selected.extend(chosen)
+                # If the tier overflowed its budget, the family is full.
+                if len(chosen) < len(admissible) and len(selected) == limit:
+                    break
+            states = [candidate.state for candidate in selected]
+            seen.update(state.vars_key() for state in states)
+            return states
 
-        nondet_body = self._body_nondeterministic(prog, 0)
-        untracked = self._untracked_body_state(prog, 0)
-        body_call = self._body_calls_function(prog, 0)
-        unsupported_state = self._body_has_unsupported_state(prog, 0)
-        tainted = self._nondet_tainted(prog, 0)
-        guard = prog.loops[0].guard or ""
-        nondet = (self._guard_nondeterministic(prog, 0)
+        def select_overrun_groups() -> List[List[State]]:
+            """Keep genuine continuations atomic and cap them in trace units."""
+            by_run: Dict[int, List[State]] = {}
+            for state in overrun:
+                by_run.setdefault(state.run, []).append(state)
+            selected_groups: List[List[State]] = []
+            for run in sorted(by_run):
+                if len(selected_groups) >= _OVERRUN_GROUP_BUDGET:
+                    break
+                group: List[State] = []
+                local_seen: Set[Tuple] = set()
+                for state in by_run[run]:
+                    key = state.vars_key()
+                    if key in reachable or key in seen or key in local_seen:
+                        continue
+                    if entry_feasible(state):
+                        continue
+                    local_seen.add(key)
+                    group.append(state)
+                if not group:
+                    continue
+                selected_groups.append(group)
+                seen.update(state.vars_key() for state in group)
+            return selected_groups
+
+        nondet_body = self._body_nondeterministic(analysis_prog, 0)
+        untracked = self._untracked_body_state(analysis_prog, 0)
+        body_call = self._body_calls_function(analysis_prog, 0)
+        unsupported_state = self._body_has_unsupported_state(analysis_prog, 0)
+        tainted = self._nondet_tainted(analysis_prog, 0)
+        guard = analysis_prog.loops[0].guard or ""
+        nondet = (self._guard_nondeterministic(analysis_prog, 0)
                   or any(re.search(rf"\b{re.escape(t)}\b", guard) for t in tainted))
-        dense_index = {(s.run, s.it) for s in raw_reach if s.run >= 0}
         bases = self._bases(positives)
         movable = [v for v in movable if v not in tainted]
 
         # Incomplete transition state/control makes projected perturbations
         # unreliable. Degrade to no synthetic negatives in that case.
         uncontrolled = (
-            nondet or nondet_body or bool(untracked) or body_call or unsupported_state
+            bool(untracked) or body_call or unsupported_state
+            or ((nondet or nondet_body) and not movable)
         )
 
-        # bound families: over-run (one group per continuation) + ladder escapes
-        bound: List[State] = []
-        bound_groups: List[List[int]] = []
-        n_over_traces = n_escape = 0
+        # Family priority for cross-family de-duplication is intentional:
+        # relation > over-run > escape.  Each family keeps its own budget; an
+        # under-filled easy family never consumes relational capacity.
+        relation: List[State] = []
+        overrun_groups: List[List[State]] = []
+        escape: List[State] = []
         if not uncontrolled:
-            by_run: Dict[int, List[State]] = {}
-            for s in keep(overrun):
-                by_run.setdefault(s.run, []).append(s)
-            for run in sorted(by_run):
-                idxs = []
-                for s in by_run[run]:
-                    idxs.append(len(bound))
-                    bound.append(s)
-                bound_groups.append(idxs)
-            n_over_traces = len(by_run)
+            relation = select_candidates(
+                self._relation_negatives(
+                    prog,
+                    movable,
+                    bases,
+                    positives,
+                    raw_reach,
+                    capped,
+                ),
+                _RELATION_GROUP_BUDGET,
+                fallback_limit=_RELATION_FALLBACK_BUDGET,
+            )
+            overrun_groups = select_overrun_groups()
             if not capped and positives:
-                for s in keep(self._escape_negatives(movable, bases, positives)):
-                    bound_groups.append([len(bound)])
-                    bound.append(s)
-                    n_escape += 1
+                escape = select_candidates(
+                    self._escape_negatives(movable, bases, positives),
+                    _ESCAPE_GROUP_BUDGET,
+                )
 
-        relation = [] if uncontrolled else keep(
-            self._relation_negatives(movable, bases, dense_index)
-        )
+        negatives: List[State] = []
+        groups: List[List[int]] = []
+        for state in relation:
+            groups.append([len(negatives)])
+            negatives.append(state)
+        for trace in overrun_groups:
+            indices = []
+            for state in trace:
+                indices.append(len(negatives))
+                negatives.append(state)
+            groups.append(indices)
+        for state in escape:
+            groups.append([len(negatives)])
+            negatives.append(state)
 
-        negatives = bound + relation
-        groups = bound_groups + [[len(bound) + i] for i in range(len(relation))]
         stats = {
             "n_traces": len(groups),
             "n_witness_states": len(negatives),
             "relation": len(relation),
-            "bound_overrun": n_over_traces,
-            "bound_escape": n_escape,
+            "bound_overrun": len(overrun_groups),
+            "bound_escape": len(escape),
+            "negative_budget": _NEGATIVE_GROUP_BUDGET,
+            "relation_budget": _RELATION_GROUP_BUDGET,
+            "relation_fallback_budget": _RELATION_FALLBACK_BUDGET,
+            "overrun_budget": _OVERRUN_GROUP_BUDGET,
+            "escape_budget": _ESCAPE_GROUP_BUDGET,
             "capped": capped,
             "nondet_guard": nondet,
             "nondet_body": nondet_body,
@@ -454,16 +688,122 @@ class ExampleSampler:
         return negatives, groups, stats
 
     # ── driver ───────────────────────────────────────────────────────────────
+    @staticmethod
+    def _determinize_source(source: str) -> str:
+        """Replace oracle calls with fresh integer parameters for sampling.
+
+        This transformation is used only by the concrete executor. The
+        original source remains the program exposed to invariant generation
+        and Houdini verification.
+        """
+        # Match on a same-length code mask so comments and string literals are
+        # never rewritten as oracle calls.
+        def blank(match: re.Match) -> str:
+            return re.sub(r"[^\n]", " ", match.group(0))
+
+        mask = re.sub(
+            r"/\*.*?\*/|//[^\n]*|\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*'",
+            blank,
+            source,
+            flags=re.DOTALL,
+        )
+        call_re = re.compile(r"\bunknown\w*\s*\(\s*\)")
+        occupied = set(re.findall(r"\b[A-Za-z_]\w*\b", mask))
+        replacements: List[Tuple[int, int, str]] = []
+        params: List[str] = []
+        next_index = 0
+
+        for match in call_re.finditer(mask):
+            # Do not mistake old-style declarations/definitions such as
+            # ``int unknown();`` for calls.
+            boundary = max(
+                mask.rfind(";", 0, match.start()),
+                mask.rfind("{", 0, match.start()),
+                mask.rfind("}", 0, match.start()),
+                mask.rfind("\n", 0, match.start()),
+            )
+            prefix = mask[boundary + 1:match.start()].strip()
+            declaration_prefix = re.fullmatch(
+                r"(?:(?:extern|static|inline|const|volatile|signed|unsigned|long|short)\s+)*"
+                r"(?:void|int|char|_Bool|float|double)(?:\s+long)?",
+                prefix,
+            )
+            suffix = mask[match.end():].lstrip()
+            if declaration_prefix and suffix.startswith((";", "{")):
+                continue
+            if prefix.startswith("#"):
+                continue
+
+            while f"_nd{next_index}" in occupied:
+                next_index += 1
+            name = f"_nd{next_index}"
+            next_index += 1
+            occupied.add(name)
+            params.append(name)
+            replacements.append((match.start(), match.end(), name))
+
+        if not replacements:
+            return source
+
+        pieces: List[str] = []
+        cursor = 0
+        for start, end, name in replacements:
+            pieces.extend((source[cursor:start], name))
+            cursor = end
+        pieces.append(source[cursor:])
+        determinized = "".join(pieces)
+
+        # Find the loop-containing function definition selected by the parser,
+        # rather than preceding oracle declarations or helper functions.
+        func_name = parse_program(source).func_name
+        det_mask = re.sub(
+            r"/\*.*?\*/|//[^\n]*|\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*'",
+            blank,
+            determinized,
+            flags=re.DOTALL,
+        )
+        signature = None
+        for match in re.finditer(rf"\b{re.escape(func_name)}\s*\(", det_mask):
+            open_paren = det_mask.find("(", match.start(), match.end())
+            depth = 1
+            close_paren = open_paren + 1
+            while close_paren < len(det_mask) and depth:
+                if det_mask[close_paren] == "(":
+                    depth += 1
+                elif det_mask[close_paren] == ")":
+                    depth -= 1
+                close_paren += 1
+            if depth:
+                continue
+            close_paren -= 1
+            after = close_paren + 1
+            while after < len(det_mask) and det_mask[after].isspace():
+                after += 1
+            if after < len(det_mask) and det_mask[after] == "{":
+                signature = (open_paren, close_paren)
+                break
+        if signature is None:
+            raise ValueError(f"cannot determinize function signature: {func_name}")
+
+        open_paren, close_paren = signature
+        existing = determinized[open_paren + 1:close_paren].strip()
+        added = ", ".join(f"int {name}" for name in params)
+        if not existing or existing == "void":
+            return determinized[:open_paren + 1] + added + determinized[close_paren:]
+        return determinized[:close_paren] + ", " + added + determinized[close_paren:]
+
     def sample(self) -> ExampleSet:
         prog = parse_program(self.source)
         es = ExampleSet(program=prog)
         runs = self.n_runs * 2 if self._body_nondeterministic(prog, 0) else self.n_runs
+        sampling_prog = parse_program(self._determinize_source(self.source))
         reach, overrun, capped = cexec.collect_traces(
-            prog, loop_idx=0, n_runs=runs, seed=self.seed
+            sampling_prog, loop_idx=0, n_runs=runs, seed=self.seed
         )
         positives = self._dedup(reach)
         negatives, groups, stats = self._negatives(
-            prog, positives, overrun, reach, capped
+            sampling_prog, positives, overrun, reach, capped,
+            analysis_prog=prog,
         )
         es.positives[0] = positives
         es.negatives[0] = negatives

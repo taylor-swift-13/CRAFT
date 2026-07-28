@@ -8,6 +8,7 @@ each rollout and the batch, using synthetic negative candidates from the sampler
   marginal[A] = fraction of candidates that Houdini(union) rejects but
                 Houdini(union \ A) does not                          (ablation 增益)
   reward[A]   = w_base * base[A] + w_marg * marginal[A]
+                + 0.3 * min(essential[A] / 8, 1)
   batch_score = fraction of candidates rejected by Houdini(union)    (batch performance)
   should_reroll = batch_score < reroll_threshold
 
@@ -41,6 +42,7 @@ class RolloutScore:
     survivors: List[str]          # Houdini-surviving invariants (standalone)
     base: float
     marginal: float
+    precision: float              # essential survivors / generated clauses
     reward: float
     rejected: int                 # negatives rejected standalone
 
@@ -66,16 +68,18 @@ class BatchReward:
             "rollout_rewards": [r.reward for r in self.rollouts],
             "base": [r.base for r in self.rollouts],
             "marginal": [r.marginal for r in self.rollouts],
+            "precision": [r.precision for r in self.rollouts],
             "rollouts": [
                 {"index": r.index, "reward": r.reward, "base": r.base,
-                 "marginal": r.marginal, "rejected": r.rejected,
+                 "marginal": r.marginal, "precision": r.precision,
+                 "rejected": r.rejected,
                  "survivors": r.survivors}
                 for r in self.rollouts
             ],
         }
 
 
-def _rollout_invariants(rollout) -> List[str]:
+def _rollout_invariants_raw(rollout) -> List[str]:
     """Accept {'invariants': [...]} or {'code': '<annotated>'} or a raw list/str.
 
     A string may be (a) a JSON-encoded dict/list (unwrapped and recursed), or
@@ -99,20 +103,29 @@ def _rollout_invariants(rollout) -> List[str]:
             except ValueError:
                 parsed = None
         if parsed is not None:
-            return _rollout_invariants(parsed)
+            return _rollout_invariants_raw(parsed)
         # raw text / annotated code: extract explicit `loop invariant` lines only
         invs = extract_invariants(s)
     else:
         invs = []
-    return dedup_normalized(invs)
+    if isinstance(invs, str):
+        extracted = extract_invariants(invs)
+        invs = extracted or [invs]
+    return [normalized for inv in invs
+            if (normalized := normalize_invariant(inv))]
+
+
+def _rollout_invariants(rollout) -> List[str]:
+    """Canonical, de-duplicated invariants used by the filter cascade."""
+    return dedup_normalized(_rollout_invariants_raw(rollout))
 
 
 class RewardCalculator:
     def __init__(
         self,
         invariant_filter=None,
-        w_base: float = 0.5,
-        w_marg: float = 0.5,
+        w_base: float = 0.8,
+        w_marg: float = 0.2,
         reroll_threshold: float = 0.6,
         n_jobs: Optional[int] = None,     # parallel frama-c filter calls per group
         logger: Optional[logging.Logger] = None,
@@ -158,6 +171,29 @@ class RewardCalculator:
         """Candidate-trace indices rejected when any witness state is rejected."""
         return {g for g, idxs in enumerate(groups) if any(i in state_rej for i in idxs)}
 
+    @staticmethod
+    def _essential_count(
+        survivors: List[str], negatives: List[State], groups: List[List[int]],
+    ) -> int:
+        """Count survivors that greedily extend negative-trace coverage.
+
+        Equivalent, weaker, duplicate, and tautological clauses add no new
+        rejected group after an earlier clause and therefore are not essential.
+        """
+        covered: Set[int] = set()
+        essential = 0
+        for invariant in survivors:
+            rejected_states = RewardCalculator._rejected_set(
+                negatives, [invariant]
+            )
+            rejected_groups = RewardCalculator._to_groups(
+                rejected_states, groups
+            )
+            if rejected_groups - covered:
+                covered |= rejected_groups
+                essential += 1
+        return essential
+
     def _compute_one(self, source: str, rollouts: List, examples: ExampleSet,
                      loop_idx: int = 0) -> BatchReward:
         prog = parse_program(source)
@@ -174,7 +210,10 @@ class RewardCalculator:
             groups = [[i] for i in range(len(negatives))]
         n_neg = len(groups)
 
-        roll_invs = [_rollout_invariants(r) for r in rollouts]
+        # Preserve the model's actual clause count for precision monitoring.
+        # Filtering/scoring still uses a canonical de-duplicated set.
+        roll_invs_raw = [_rollout_invariants_raw(r) for r in rollouts]
+        roll_invs = [dedup_normalized(invs) for invs in roll_invs_raw]
 
         # memoize filter results across base/union/ablation calls — the ablation
         # subsets (∪ \ A) overlap heavily, so identical invariant sets are filtered
@@ -208,7 +247,10 @@ class RewardCalculator:
                     uniq.items()))
         union_surv = survive(union)
         union_rej = self._to_groups(self._rejected_set(negatives, union_surv), groups)
-        batch_score = (len(union_rej) / n_neg) if n_neg else 0.0
+        if n_neg:
+            batch_score = len(union_rej) / n_neg
+        else:
+            batch_score = (len(union_surv) / len(union)) if union else 0.0
 
         scores: List[RolloutScore] = []
         for idx, invs in enumerate(roll_invs):
@@ -225,10 +267,24 @@ class RewardCalculator:
                 marginal = (len(union_rej - rest_rej) / n_neg) if n_neg else 0.0
             else:
                 marginal = 0.0
-            reward = self.w_base * base + self.w_marg * marginal
+            if n_neg:
+                raw_reward = self.w_base * base + self.w_marg * marginal
+                n_generated = len(roll_invs_raw[idx])
+                n_essential = self._essential_count(surv, negatives, groups)
+                precision = (
+                    n_essential / n_generated if n_generated else 0.0
+                )
+                essential_bonus = min(n_essential / 8.0, 1.0)
+                reward = raw_reward + 0.3 * essential_bonus
+            else:
+                # No finite negative set is available: retain a bounded Houdini
+                # signal instead of returning an all-zero GRPO group.
+                precision = 1.0
+                reward = (len(surv) / len(invs)) if invs else 0.0
             scores.append(RolloutScore(
                 index=idx, invariants=invs, survivors=surv,
-                base=base, marginal=marginal, reward=reward, rejected=len(base_rej),
+                base=base, marginal=marginal, precision=precision,
+                reward=reward, rejected=len(base_rej),
             ))
 
         return BatchReward(

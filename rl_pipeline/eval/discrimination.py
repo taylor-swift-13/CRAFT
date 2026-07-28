@@ -80,8 +80,9 @@ SPECS: Dict[str, Dict[str, object]] = {
         "loose": ["p*s - r*q == 1", "a >= 1"],
         "post_is_invariant": True,
     },
-    # Nondeterministic programs are excluded because the conservative sampler
-    # emits no finite-sample negatives for oracle-controlled loops.
+    # Oracle-controlled programs are excluded from this fixed-spec gate: the
+    # sampler now keeps safe negatives when deterministic-transition variables
+    # remain, but fully body-tainted loops can still require fallback scoring.
 }
 
 def unsound_pin(examples) -> List[str]:

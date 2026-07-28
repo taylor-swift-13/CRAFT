@@ -49,6 +49,7 @@ class State:
 
 
 _INV_RE = re.compile(r"loop\s+invariant\s+([^;]+);")
+MAX_INVARIANTS_PER_RESPONSE = 20
 
 
 def normalize_invariant(inv: str) -> str:
@@ -60,12 +61,26 @@ def normalize_invariant(inv: str) -> str:
     return re.sub(r"\s+", " ", s).strip()
 
 
-def extract_invariants(text: str) -> List[str]:
+def extract_invariants(
+    text: str, max_invariants: Optional[int] = None
+) -> List[str]:
     """Pull `loop invariant <expr>;` texts (whitespace-normalized) out of annotated
-    code or raw LLM output.  Canonical parser shared by reward/inference."""
+    code or raw LLM output.
+
+    ``max_invariants`` caps model responses without changing callers that parse
+    fully annotated programs (which need the complete invariant count).
+    """
     if not text:
         return []
-    return [re.sub(r"\s+", " ", m.group(1)).strip() for m in _INV_RE.finditer(text)]
+    invariants = [
+        re.sub(r"\s+", " ", match.group(1)).strip()
+        for match in _INV_RE.finditer(text)
+    ]
+    if max_invariants is not None:
+        if max_invariants < 0:
+            raise ValueError("max_invariants must be non-negative")
+        return invariants[:max_invariants]
+    return invariants
 
 
 def dedup_normalized(invariants):

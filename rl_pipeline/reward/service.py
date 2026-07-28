@@ -25,7 +25,7 @@ from pydantic import BaseModel, Field
 
 from ..common import prompts
 from ..common.program import parse_program, strip_postcondition
-from ..common.state import dedup_normalized
+from ..common.state import MAX_INVARIANTS_PER_RESPONSE, dedup_normalized
 from ..sampler import ExampleSampler, ExampleSet
 from ..sampler.example_sampler import DEFAULT_N_RUNS, DEFAULT_SEED
 from . import filters
@@ -59,6 +59,14 @@ class RewardRequest(BaseModel):
     rollouts: List[Any] = Field(..., description="each: {'invariants':[...]} or {'code': '...'}")
     w_base: float = Field(0.8, ge=0.0)
     w_marg: float = Field(0.2, ge=0.0)
+    use_marginal: bool = True
+    w_redundancy: float = Field(0.02, ge=0.0)
+    w_overflow: float = Field(0.05, ge=0.0)
+    max_invariants: int = Field(
+        MAX_INVARIANTS_PER_RESPONSE,
+        ge=1,
+        le=MAX_INVARIANTS_PER_RESPONSE,
+    )
     reroll_threshold: float = Field(0.6, ge=0.0, le=1.0)
     sampler: SamplerCfg = Field(default_factory=SamplerCfg)
 
@@ -75,6 +83,7 @@ class RefineRewardRequest(BaseModel):
     pool: List[str] = Field(..., description="the SAME pool the refine prompt showed")
     refinements: List[List[str]] = Field(..., description="one invariant list per sampled refine response")
     loop_idx: int = Field(0, ge=0)
+    w_overflow: float = Field(0.05, ge=0.0)
     sampler: SamplerCfg = Field(default_factory=SamplerCfg)
 
 
@@ -114,6 +123,10 @@ def build_app():
             rc = RewardCalculator(
                 invariant_filter=_get_filter(),
                 w_base=req.w_base, w_marg=req.w_marg,
+                use_marginal=req.use_marginal,
+                w_redundancy=req.w_redundancy,
+                w_overflow=req.w_overflow,
+                max_invariants=req.max_invariants,
                 reroll_threshold=req.reroll_threshold, logger=log,
             )
             br = rc.compute(req.program, req.rollouts, examples=examples)
@@ -157,10 +170,13 @@ def build_app():
         try:
             examples = _get_examples(req.program, req.sampler)
             calc = RewardCalculator(invariant_filter=_get_filter(),
-                                    w_base=1.0, w_marg=0.0, logger=log)
+                                    w_base=1.0, w_marg=0.0,
+                                    w_redundancy=0.0, w_overflow=0.0,
+                                    logger=log)
             return refine_group_delta_base(
                 req.program, req.pool, req.refinements,
-                examples=examples, calculator=calc, loop_idx=req.loop_idx)
+                examples=examples, calculator=calc, loop_idx=req.loop_idx,
+                w_overflow=req.w_overflow)
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
 

@@ -25,7 +25,10 @@ def score_file(input_path: str, output_path: str, cfg: io.IOConfig,
                sampler_kwargs: Optional[dict] = None,
                w_base: float = 0.8, w_marg: float = 0.2,
                reroll_threshold: float = 0.6, include_program: bool = False,
-               logger: Optional[logging.Logger] = None) -> Dict[str, int]:
+               logger: Optional[logging.Logger] = None,
+               w_redundancy: float = 0.02,
+               w_overflow: float = 0.05,
+               use_marginal: bool = True) -> Dict[str, int]:
     sampler_kwargs = dict(sampler_kwargs or {})
     logger = logger or logging.getLogger("rl_pipeline.reward.score_file")
     batches = io.read_batches(input_path, cfg)
@@ -33,6 +36,9 @@ def score_file(input_path: str, output_path: str, cfg: io.IOConfig,
 
     shared_filter = filters.auto_filter(logger)
     rc = RewardCalculator(invariant_filter=shared_filter, w_base=w_base, w_marg=w_marg,
+                          use_marginal=use_marginal,
+                          w_redundancy=w_redundancy,
+                          w_overflow=w_overflow,
                           reroll_threshold=reroll_threshold, logger=logger)
 
     example_cache: Dict[str, ExampleSet] = {}
@@ -85,6 +91,13 @@ def main() -> int:
     ap.add_argument("--group-field", default="group_id")
     ap.add_argument("--w-base", type=float, default=0.8)
     ap.add_argument("--w-marg", type=float, default=0.2)
+    ap.add_argument(
+        "--disable-marginal",
+        action="store_true",
+        help="ablation: remove cross-rollout marginal reward and computation",
+    )
+    ap.add_argument("--w-redundancy", type=float, default=0.02)
+    ap.add_argument("--w-overflow", type=float, default=0.05)
     ap.add_argument("--reroll-threshold", type=float, default=0.6)
     ap.add_argument("--include-program", action="store_true", help="keep program column in output")
     # sampler knobs
@@ -102,7 +115,11 @@ def main() -> int:
     sampler_kwargs = {"n_runs": args.runs, "seed": args.seed}
     stats = score_file(
         args.input, args.output, cfg, sampler_kwargs,
-        args.w_base, args.w_marg, args.reroll_threshold, args.include_program, logger,
+        args.w_base, args.w_marg, args.reroll_threshold,
+        args.include_program, logger,
+        w_redundancy=args.w_redundancy,
+        w_overflow=args.w_overflow,
+        use_marginal=not args.disable_marginal,
     )
     return 1 if stats["failed"] else 0
 

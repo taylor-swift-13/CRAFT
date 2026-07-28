@@ -16,13 +16,20 @@ from unittest import mock
 from fastapi.testclient import TestClient
 
 from rl_pipeline.common.program import parse_program, strip_postcondition
-from rl_pipeline.common.state import State, eval_predicate, first_falsifying_state
+from rl_pipeline.common.state import (
+    MAX_INVARIANTS_PER_RESPONSE,
+    State,
+    eval_predicate,
+    extract_invariants,
+    first_falsifying_state,
+)
 from rl_pipeline.eval.mislabel_audit import discover_programs
 from rl_pipeline.inference import InferenceFramework, MockRolloutProvider
 from rl_pipeline.inference import inference as inference_module
 from rl_pipeline.reward import annotate
 from rl_pipeline.reward.filters import HoudiniFilter, PositiveFilter
 from rl_pipeline.reward.reward_calculator import RewardCalculator
+from rl_pipeline.reward.refine import refine_group_delta_base
 from rl_pipeline.reward import service
 from rl_pipeline.reward import io as reward_io
 from rl_pipeline.reward.score_file import score_file
@@ -34,6 +41,20 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class PredicateRegressionTests(unittest.TestCase):
+    def test_model_response_invariant_parser_can_enforce_twenty_line_cap(self):
+        response = "\n".join(
+            f"loop invariant x >= {-index};"
+            for index in range(25)
+        )
+
+        self.assertEqual(len(extract_invariants(response)), 25)
+        self.assertEqual(
+            len(extract_invariants(
+                response, max_invariants=MAX_INVARIANTS_PER_RESPONSE
+            )),
+            20,
+        )
+
     def test_positive_filter_checks_every_reachable_state(self):
         program = parse_program(
             "void f(void) { int x = 0; while (x < 10000) { x++; } }"
@@ -292,7 +313,11 @@ class RewardPatchRegressionTests(unittest.TestCase):
 
         self.assertEqual(score.base, 2 / 3)
         self.assertEqual(score.precision, 2 / 4)
-        self.assertAlmostEqual(score.reward, 2 / 3 + 0.3 * 2 / 8)
+        self.assertEqual(score.redundant_clauses, 2)
+        self.assertAlmostEqual(
+            score.reward,
+            2 / 3 + 0.3 * 2 / 8 - 2 * 0.02,
+        )
 
     def test_zero_negative_fallback_uses_houdini_survival_fraction(self):
         source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
@@ -337,12 +362,157 @@ class RewardPatchRegressionTests(unittest.TestCase):
 
         self.assertEqual(calculator.w_base, 0.8)
         self.assertEqual(calculator.w_marg, 0.2)
+        self.assertTrue(result.marginal_enabled)
         self.assertEqual(strong.base, 1.0)
         self.assertEqual(strong.marginal, 0.5)
+        self.assertEqual(strong.marginal_rejected, 1)
+        self.assertEqual(strong.redundant_clauses, 0)
         self.assertAlmostEqual(strong.reward, 0.8 + 0.2 * 0.5 + 0.3 / 8)
         self.assertEqual(overlapping.base, 0.5)
         self.assertEqual(overlapping.marginal, 0.0)
-        self.assertAlmostEqual(overlapping.reward, 0.8 * 0.5 + 0.3 / 8)
+        self.assertEqual(overlapping.marginal_rejected, 0)
+        self.assertEqual(overlapping.redundant_clauses, 0)
+        self.assertEqual(overlapping.redundancy_penalty, 0.0)
+        self.assertAlmostEqual(
+            overlapping.reward,
+            0.8 * 0.5 + 0.3 / 8,
+        )
+
+        disabled = RewardCalculator(
+            invariant_filter=self._IdentityFilter(),
+            use_marginal=False,
+            n_jobs=1,
+        ).compute(
+            source,
+            [["x == 0"], ["x <= 0"]],
+            examples=examples,
+        )
+        self.assertFalse(disabled.marginal_enabled)
+        self.assertEqual(
+            [score.marginal_rejected for score in disabled.rollouts],
+            [0, 0],
+        )
+        self.assertEqual(
+            [score.marginal for score in disabled.rollouts],
+            [0.0, 0.0],
+        )
+        self.assertAlmostEqual(
+            disabled.rollouts[0].reward,
+            0.8 + 0.3 / 8,
+        )
+
+    def test_response_cap_truncates_and_penalizes_overflow_lines(self):
+        source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
+        examples = ExampleSet(
+            program=parse_program(source),
+            positives={0: [State(vars={"x": 0})]},
+            negatives={0: [State(vars={"x": -100})]},
+            neg_groups={0: [[0]]},
+        )
+        rollout = [f"x >= {-index}" for index in range(25)]
+
+        score = RewardCalculator(
+            invariant_filter=self._IdentityFilter(), n_jobs=1
+        ).compute(source, [rollout], examples=examples).rollouts[0]
+
+        self.assertEqual(score.generated, 25)
+        self.assertEqual(score.accepted, 20)
+        self.assertEqual(score.overflow, 5)
+        self.assertEqual(score.overflow_penalty, 0.25)
+        self.assertEqual(len(score.invariants), 20)
+        self.assertNotIn("x >= -24", score.invariants)
+
+    def test_cross_rollout_marginal_does_not_control_internal_penalty(self):
+        source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
+        negatives = [State(vars={"x": value}) for value in range(200)]
+        examples = ExampleSet(
+            program=parse_program(source),
+            positives={0: [State(vars={"x": 50})]},
+            negatives={0: negatives},
+            neg_groups={0: [[index] for index in range(len(negatives))]},
+        )
+        calculator = RewardCalculator(
+            invariant_filter=self._IdentityFilter(), n_jobs=1
+        )
+
+        score = calculator.compute(
+            source,
+            [["x != 0"], ["x <= 198"]],
+            examples=examples,
+        ).rollouts[0]
+
+        self.assertEqual(score.marginal_rejected, 1)
+        self.assertEqual(score.marginal, 0.005)
+        self.assertEqual(score.redundant_clauses, 0)
+        self.assertEqual(score.redundancy_penalty, 0.0)
+
+    def test_only_fully_covered_clauses_are_penalized_inside_a_rollout(self):
+        source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
+        examples = ExampleSet(
+            program=parse_program(source),
+            positives={0: [State(vars={"x": 0})]},
+            negatives={
+                0: [
+                    State(vars={"x": -2}),
+                    State(vars={"x": -1}),
+                ]
+            },
+            neg_groups={0: [[0], [1]]},
+        )
+        calculator = RewardCalculator(
+            invariant_filter=self._IdentityFilter(), n_jobs=1
+        )
+
+        score = calculator.compute(
+            source,
+            [["x >= 0", "x >= -1"]],
+            examples=examples,
+        ).rollouts[0]
+
+        self.assertEqual(score.redundant_clauses, 1)
+        self.assertEqual(
+            score.redundancy_penalty, calculator.w_redundancy
+        )
+
+        reverse = calculator.compute(
+            source,
+            [["x >= -1", "x >= 0"]],
+            examples=examples,
+        ).rollouts[0]
+        self.assertEqual(reverse.redundant_clauses, 0)
+        self.assertEqual(reverse.redundancy_penalty, 0.0)
+
+    def test_refine_reward_caps_response_and_returns_trainable_overflow_penalty(self):
+        source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
+        examples = ExampleSet(
+            program=parse_program(source),
+            positives={0: [State(vars={"x": 0})]},
+            negatives={0: [State(vars={"x": -100})]},
+            neg_groups={0: [[0]]},
+        )
+        calculator = RewardCalculator(
+            invariant_filter=self._IdentityFilter(),
+            w_base=1.0,
+            w_marg=0.0,
+            w_redundancy=0.0,
+            w_overflow=0.0,
+            n_jobs=1,
+        )
+
+        result = refine_group_delta_base(
+            source,
+            [],
+            [[f"x >= {-index}" for index in range(25)]],
+            examples=examples,
+            calculator=calculator,
+        )
+
+        self.assertEqual(result["delta_base"], [1.0])
+        self.assertEqual(result["generated"], [25])
+        self.assertEqual(result["accepted"], [20])
+        self.assertEqual(result["overflow"], [5])
+        self.assertEqual(result["overflow_penalty"], [0.25])
+        self.assertEqual(result["refine_rewards"], [0.75])
 
 
 @unittest.skipUnless(shutil.which("gcc"), "gcc is required for sampler tests")
@@ -632,6 +802,23 @@ class InferenceRegressionTests(unittest.TestCase):
             )
             with mock.patch("src.output_verify.OutputVerifier", successful_result):
                 self.assertIs(framework._verify(annotated), True)
+
+    def test_framework_caps_each_rollout_at_twenty_invariants(self):
+        rollout = [f"x >= {-index}" for index in range(25)]
+        framework = InferenceFramework(
+            "void f(void) { int x = 0; while (x < 1) { x++; } }",
+            rollout_provider=MockRolloutProvider([rollout]),
+            invariant_filter=self._IdentityFilter(),
+            n_rollouts=1,
+            max_rerolls=0,
+        )
+        framework._verify = mock.Mock(return_value=True)
+
+        result = framework.run()
+
+        self.assertEqual(len(result.rollouts[0]), 20)
+        self.assertEqual(len(result.final_invariants), 20)
+        self.assertNotIn("x >= -24", result.final_invariants)
 
     def test_importing_inference_does_not_import_sampler(self):
         env = os.environ.copy()

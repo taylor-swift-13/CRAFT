@@ -22,7 +22,7 @@ trainer (GPU box)                         reward service (Docker, CPU box)
 format generate_prompt + sample rollouts
                                   ──────► POST /reward          → rewards[]
 merge pool                       ──────► POST /refine_feedback → refine prompt
-sample refine rollouts           ──────► POST /refine_reward   → delta_base[]
+sample refine rollouts           ──────► POST /refine_reward   → refine_rewards[]
 ```
 
 ---
@@ -67,13 +67,19 @@ One call per prompt-group (the n rollouts sampled from one program's prompt).
     {"invariants": ["x >= y", "y >= 0"]},   // or {"code": "<annotated C>"}
     "<raw LLM text — loop invariant lines are extracted>"
   ],
-  "w_base": 0.8, "w_marg": 0.2,             // optional; these are the defaults
+  "w_base": 0.8, "w_marg": 0.2,
+  "use_marginal": true,                    // false = marginal ablation
+  "w_redundancy": 0.02,
+  "w_overflow": 0.05, "max_invariants": 20, // optional defaults; max cannot exceed 20
   "sampler": {"n_runs": 12, "seed": 0}      // optional; keep fixed per sweep
 }
 // response (order-aligned with rollouts)
 {
   "rollout_rewards": [0.41, 0.17],          // ← the GRPO group rewards
-  "base": [...], "marginal": [...], "precision": [...],
+  "base": [...], "marginal": [...], "marginal_rejected": [...],
+  "redundant_clauses": [...], "redundancy_penalty": [...],
+  "overflow_penalty": [...], "precision": [...],
+  "marginal_enabled": true,
   "batch_score": 0.83, "should_reroll": false,
   "n_negatives": 118, "filter_mode": "cascade(positive->houdini)",
   "rollouts": [{"index":0,"reward":...,"survivors":[...],"rejected":...}, ...]
@@ -81,9 +87,29 @@ One call per prompt-group (the n rollouts sampled from one program's prompt).
 ```
 
 Semantics: `base[A]` is the fraction of sampled negative-candidate traces
-rejected by A's Houdini survivors. By default, `marginal` is disabled and
-`reward = base + 0.3·min(essential/8, 1)`, where an essential survivor greedily
-adds new rejected traces. `precision = essential/generated` is observational.
+rejected by A's Houdini survivors. `marginal_rejected[A]` is the exact number
+rejected by `Houdini(union)` but not by `Houdini(union without A)`, and
+`marginal` divides it by the number of negative candidates. This comparison is
+between rollouts: `union without A` contains every other rollout in the group.
+It is used only as positive cross-rollout credit.
+For the marginal ablation, send `"use_marginal": false`. The service then
+returns zero for both marginal fields, removes the term from reward, and skips
+the leave-one-rollout-out Houdini calls. The offline equivalent is
+`--disable-marginal`.
+The redundancy penalty is instead computed inside each rollout. Accepted
+clauses are traversed in model-output order while maintaining the negative
+traces covered so far. A clause with zero incremental coverage is fully
+redundant; each such clause subtracts 0.02 by default. Thus earlier useful
+clauses receive credit, while later duplicates, covered clauses, tautologies,
+and clauses removed by Houdini are penalized.
+The complete reward is
+`0.8·base + 0.2·marginal + 0.3·min(essential/8,1)
+- redundancy_penalty - overflow_penalty`.
+An essential survivor greedily adds new rejected traces.
+`precision = essential/generated` is observational.
+Only the first 20 invariant lines in each response enter Houdini; every later
+line subtracts 0.05 and is reported through `generated`, `accepted`, and
+`overflow`.
 When no negatives are available, the service falls back to Houdini survival
 fractions. Negatives derive from the loop only (never the assert), so scoring
 stays closed-book. The example set is cached per (program, sampler-config).
@@ -145,14 +171,19 @@ deployment distributions match by construction.
 }
 // response (order-aligned with refinements)
 {
-  "delta_base": [0.0090, 0.0],   // ← the GRPO group rewards
+  "refine_rewards": [0.0090, -0.25], // ← use these GRPO group rewards
+  "delta_base": [0.0090, 0.0],       // pure marginal-contribution diagnostic
+  "generated": [2, 25], "accepted": [2, 20], "overflow": [0, 5],
+  "overflow_penalty": [0.0, 0.25],
   "base_before": 0.0, "base_after": [0.0090, 0.0], "pool_size": 3
 }
 ```
 
 `delta_base[i] = base(Houdini(pool ∪ refined_i)) − base(Houdini(pool))` — the
-refinement's marginal contribution to the merged pool. Properties the trainer
-can rely on:
+refinement's marginal contribution to the merged pool. Train on
+`refine_rewards[i] = delta_base[i] - overflow_penalty[i]`; only the first 20
+lines are admitted and every later line costs 0.05. Properties the trainer can
+rely on:
 
 - **Δ ≥ 0 always** (the pool only grows; originals are kept). An all-zero group
   has zero variance → no gradient; expected early in training, not an error.
@@ -183,7 +214,7 @@ each RL step:
        → POST /refine_feedback
        → if n_rejected == 0: skip; else keep (prompt, pool)
   3. refine groups: for each kept prompt, sample n responses from the SAME
-       policy → POST /refine_reward → delta_base       (single-turn again)
+       policy → POST /refine_reward → refine_rewards   (single-turn again)
   4. mix both group types into one GRPO batch; update.
 ```
 

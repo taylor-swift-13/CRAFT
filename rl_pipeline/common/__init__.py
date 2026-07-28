@@ -5,6 +5,7 @@ from .state import (
     normalize_invariant,
     extract_invariants,
     dedup_normalized,
+    MAX_INVARIANTS_PER_RESPONSE,
 )
 
 __all__ = [
@@ -16,4 +17,5 @@ __all__ = [
     "normalize_invariant",
     "extract_invariants",
     "dedup_normalized",
+    "MAX_INVARIANTS_PER_RESPONSE",
 ]

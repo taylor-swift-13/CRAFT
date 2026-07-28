@@ -17,7 +17,11 @@ from typing import Callable, List, Optional
 
 from ..common import prompts
 from ..common.program import Program, parse_program, strip_postcondition
-from ..common.state import extract_invariants, dedup_normalized
+from ..common.state import (
+    MAX_INVARIANTS_PER_RESPONSE,
+    dedup_normalized,
+    extract_invariants,
+)
 from ..reward import annotate
 from ..reward import filters
 
@@ -84,7 +88,9 @@ class LLMRolloutProvider:
             except Exception as e:
                 self.log.warning("LLM call failed: %s", e)
                 resp = ""
-            out.append(extract_invariants(resp))
+            out.append(extract_invariants(
+                resp, max_invariants=MAX_INVARIANTS_PER_RESPONSE
+            ))
         return out
 
 
@@ -131,7 +137,12 @@ class VLLMRolloutProvider:
         except Exception as e:
             self.log.warning("vLLM generate failed: %s", e)
             return [[] for _ in range(n)]
-        return [extract_invariants(o.text) for o in outs[0].outputs]
+        return [
+            extract_invariants(
+                o.text, max_invariants=MAX_INVARIANTS_PER_RESPONSE
+            )
+            for o in outs[0].outputs
+        ]
 
 
 # ── result ───────────────────────────────────────────────────────────────────
@@ -256,7 +267,12 @@ class InferenceFramework:
             if not any(not v.kept for v in verdicts):
                 break                                  # nothing to refine
             feedback = filters.build_feedback(verdicts)
-            refined = refine_fn(self.masked_prog, feedback, self.refine_samples)
+            refined = [
+                list(response)[:MAX_INVARIANTS_PER_RESPONSE]
+                for response in refine_fn(
+                    self.masked_prog, feedback, self.refine_samples
+                )
+            ]
             rounds += 1
             new_pool = dedup_normalized(list(pool) + [c for r in refined for c in r])
             if len(new_pool) == len(pool):
@@ -267,7 +283,10 @@ class InferenceFramework:
 
     def _attempt(self):
         loop_idx = 0
-        rollouts = self.provider(self.masked_prog, self.n_rollouts)
+        rollouts = [
+            list(response)[:MAX_INVARIANTS_PER_RESPONSE]
+            for response in self.provider(self.masked_prog, self.n_rollouts)
+        ]
         # combine (union) across all rollouts, then prune with real Houdini
         # (Frama-C/WP).  No positives -> no lite pre-filter; Houdini is the judge.
         union = dedup_normalized(c for r in rollouts for c in r)

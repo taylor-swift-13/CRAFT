@@ -125,29 +125,47 @@ units — one fake continuation is ONE negative, not twenty-four):
 
 - `base[A]`     = candidates rejected by **Houdini(A alone)** — its own kill rate;
 - `marginal[A]` = `rejected(Houdini(∪)) − rejected(Houdini(∪ \ A))` — the effect on
-  the group's kill rate of removing `A` (ablation);
-- `reward[A]`   = `0.8·base[A] + 0.2·marginal[A] + 0.3·min(essential[A]/8, 1)`
-  by default. An essential survivor is one that greedily extends
-  the rollout's rejected-negative set; redundant and tautological clauses add
-  no bonus. `precision = essential/generated` is reported for monitoring but
+  the group's kill rate of removing `A` (ablation). This is the positive
+  comparison between rollouts. Set `use_marginal=False` for an ablation that
+  removes this term and skips all leave-one-rollout-out Houdini calls;
+- `marginal_rejected[A]` reports that leave-one-rollout-out effect as an exact
+  candidate count;
+- `redundant_clauses[A]` is computed inside rollout `A`: traverse its accepted
+  clauses in model-output order and maintain the negative traces already
+  rejected. A clause is penalized only if it adds zero new rejected traces.
+  The default penalty is `0.02·redundant_clauses[A]`;
+- `reward[A]`   = `0.8·base[A] + 0.2·marginal[A] + 0.3·min(essential[A]/8, 1)
+  − redundancy_penalty[A] − overflow_penalty[A]` by default. An essential
+  clause is one that extends the rollout's rejected-negative set during that
+  same ordered traversal; redundant and tautological clauses add no bonus.
+  `precision = essential/generated` is reported for monitoring but
   is not multiplied into reward. Soundness is not a scoring patch: when Frama-C is
   available it comes from `PositiveFilter → Frama-C/WP fixpoint`. Unsound
   clauses are pruned; tautologies may survive but reject no negatives and score
   zero while negatives exist;
+- each model response admits at most 20 `loop invariant` lines. Later lines do
+  not enter filtering or scoring, and each overflow line subtracts 0.05. The
+  response exposes `generated`, `accepted`, `overflow`, and
+  `overflow_penalty`;
 - `batch_score` = candidates rejected by `Houdini(∪)`. If no synthetic
   negatives are available, rollout and batch rewards fall back to Houdini
-  survival fractions.
+  survival fractions (the overflow penalty still applies).
 
 ```python
 from rl_pipeline.reward import RewardCalculator
 br = RewardCalculator().compute(source, rollouts)
-br.to_dict()   # rollout_rewards[], base[], marginal[], precision[], batch_score
+br.to_dict()   # rewards, marginal_rejected, redundancy/overflow metrics, batch_score
+
+# reward ablation: base + essential - internal redundancy - overflow
+ablated = RewardCalculator(use_marginal=False).compute(source, rollouts)
 ```
 
 **Refine reward** — `rl_pipeline/reward/refine.py` scores a refine group (n
 LLM repairs of one merged pool) as each refinement's marginal contribution:
 `delta_base[i] = base(Houdini(pool ∪ refined_i)) − base(Houdini(pool))`.
 Δ ≥ 0 by construction; trivial / copied / broken refinements score 0 for free.
+Train on `refine_rewards`, which equals `delta_base` minus the same per-line
+overflow penalty after the 20-line response cap.
 
 **HTTP service** (the training interface — see
 [docs/training_integration.md](docs/training_integration.md) for the full
@@ -167,6 +185,7 @@ curl -s localhost:8000/refine_reward -H 'content-type: application/json' \
 
 Offline JSONL/Parquet groups can be scored with
 `python -m rl_pipeline.reward.score_file --input <in> --output <out> --runs 12 --seed 0`.
+Add `--disable-marginal` for the corresponding reward ablation.
 Parquet additionally requires `pandas` and `pyarrow`.
 
 ## 3. Inference — `rl_pipeline/inference` (no reward sampling or scoring)

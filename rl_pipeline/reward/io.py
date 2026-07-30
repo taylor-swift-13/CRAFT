@@ -110,8 +110,8 @@ def batch_reward_to_rows(batch: Batch, br, include_program: bool = False) -> Lis
             "rollout_index": rs.index,
             "reward": rs.reward,
             "base": rs.base,
-            "marginal": rs.marginal,
-            "marginal_rejected": rs.marginal_rejected,
+            "hard_bonus": rs.hard_bonus,
+            "survival_bonus": rs.survival_bonus,
             "redundant_clauses": rs.redundant_clauses,
             "redundancy_penalty": rs.redundancy_penalty,
             "overflow_penalty": rs.overflow_penalty,
@@ -126,7 +126,6 @@ def batch_reward_to_rows(batch: Batch, br, include_program: bool = False) -> Lis
             "batch_score": br.batch_score,
             "should_reroll": br.should_reroll,
             "filter_mode": br.filter_mode,
-            "marginal_enabled": br.marginal_enabled,
             "n_positives": br.n_positives,
             "n_negatives": br.n_negatives,
         }

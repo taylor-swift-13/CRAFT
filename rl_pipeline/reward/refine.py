@@ -6,7 +6,7 @@ pool's base score (negative-discrimination after real Houdini):
 
     delta_base[i] = base(Houdini(pool ∪ refined_i)) − base(Houdini(pool))
 
-This IS the refined invariants' marginal contribution to the merged pool.
+This is the refined invariants' incremental contribution to the merged pool.
 Under GRPO group normalization the shared base_before is absorbed, so the delta
 equals the absolute score gradient-wise — the delta form is kept for monitoring
 ("how much discrimination the refine recovered").  Δ ≥ 0 always (the pool only
@@ -55,7 +55,7 @@ def refine_group_delta_base(
     if w_overflow < 0:
         raise ValueError("w_overflow must be non-negative")
     calc = calculator or RewardCalculator(
-        w_marg=0.0, w_redundancy=0.0, w_overflow=0.0
+        w_redundancy=0.0, w_overflow=0.0
     )
     if examples is None:
         examples = ExampleSampler(source, **calc.sampler_kwargs).sample()

@@ -16,24 +16,13 @@ Keep two program forms in the trainer or dataset:
 - `full_program`: the original function sent to reward endpoints, including its
   contract and assertion.
 
-### Training-only system-rule order perturbation
-
-During training, the 15 bullet rules between `## RULES` and `## OUTPUT` in
-`prompt/system_prompt.txt` may be randomly reordered. The definition section,
-output section, generation prompt, program text, and rule contents remain
-unchanged. The repository renderer is:
+### System prompt
 
 ```python
 from rl_pipeline.common import prompts
 
-# Derive once per prompt group from stable integer identifiers.
-group_seed = global_seed + epoch * 1_000_003 + group_id
-system_message = prompts.system_prompt(
-    shuffle_rules=True,
-    seed=group_seed,
-)
+system_message = prompts.system_prompt()
 
-# Every rollout normalized in this GRPO group uses this same system_message.
 rollouts = model.generate(
     user_prompt,
     system_prompt=system_message,
@@ -41,10 +30,7 @@ rollouts = model.generate(
 )
 ```
 
-Use a different seed for later groups or epochs, but never change the system
-message between rollouts in the same GRPO group. `shuffle_rules=True` requires
-an explicit seed to make accidental per-rollout perturbation fail fast.
-Inference continues to call `system_prompt()` without shuffling.
+Training and inference use the same canonical, fixed-order system prompt.
 
 ```
 trainer (GPU box)                         reward service (Docker, CPU box)
@@ -97,8 +83,7 @@ One call per prompt-group (the n rollouts sampled from one program's prompt).
     {"invariants": ["x >= y", "y >= 0"]},   // or {"code": "<annotated C>"}
     "<raw LLM text — loop invariant lines are extracted>"
   ],
-  "w_base": 0.8, "w_marg": 0.2,
-  "use_marginal": true,                    // false = marginal ablation
+  "w_base": 1.0, "w_hard": 0.3, "w_surv": 0.1,
   "w_redundancy": 0.02,
   "w_overflow": 0.05, "max_invariants": 20, // optional defaults; max cannot exceed 20
   "sampler": {"n_runs": 12, "seed": 0}      // optional; keep fixed per sweep
@@ -106,11 +91,10 @@ One call per prompt-group (the n rollouts sampled from one program's prompt).
 // response (order-aligned with rollouts)
 {
   "rollout_rewards": [0.41, 0.17],          // ← the GRPO group rewards
-  "base": [...], "marginal": [...], "marginal_rejected": [...],
+  "base": [...], "hard_bonus": [...], "survival_bonus": [...],
   "redundant_clauses": [...], "redundancy_penalty": [...],
   "overflow_penalty": [...], "essential": [...], "precision": [...],
   "reward_mode": "negative_coverage",
-  "marginal_enabled": true,
   "batch_score": 0.83, "should_reroll": false,
   "n_negatives": 118, "filter_mode": "cascade(positive->houdini)",
   "rollouts": [{"index":0,"reward":...,"survivors":[...],"rejected":...}, ...]
@@ -118,25 +102,22 @@ One call per prompt-group (the n rollouts sampled from one program's prompt).
 ```
 
 Semantics: `base[A]` is the fraction of sampled negative-candidate traces
-rejected by A's Houdini survivors. `marginal_rejected[A]` is the exact number
-rejected by `Houdini(union)` but not by `Houdini(union without A)`, and
-`marginal` divides it by the number of negative candidates. This comparison is
-between rollouts: `union without A` contains every other rollout in the group.
-It is used only as positive cross-rollout credit.
-For the marginal ablation, send `"use_marginal": false`. The service then
-returns zero for both marginal fields, removes the term from reward, and skips
-the leave-one-rollout-out Houdini calls. The offline equivalent is
-`--disable-marginal`.
+rejected by A's Houdini survivors. `hard_bonus[A]` emphasizes rejected traces
+that few other rollouts reject. `survival_bonus[A]` is the number of surviving
+clauses that add at least one new rejected negative group when traversed in
+model-output order.
 The redundancy penalty is instead computed inside each rollout. Accepted
 clauses are traversed in model-output order while maintaining the negative
 traces covered so far. A clause with zero incremental coverage is fully
-redundant; each such clause subtracts 0.02 by default. Thus earlier useful
-clauses receive credit, while later duplicates, covered clauses, tautologies,
-and clauses removed by Houdini are penalized.
-The complete reward is
-`0.8·base + 0.2·marginal - redundancy_penalty - overflow_penalty`.
-`essential` counts ordered clauses that add new rejected traces, and
-`precision = essential/generated`; both are observational only.
+redundant; each such surviving clause subtracts 0.02 by default. Thus earlier
+useful clauses receive credit, while later duplicates, covered clauses, and
+surviving tautologies are penalized. Clauses removed by Houdini are ignored by
+this penalty because they already contribute no coverage or survival bonus.
+The complete default reward is
+`1.0·base + 0.3·hard_bonus + 0.1·survival_bonus
+- redundancy_penalty - overflow_penalty`.
+`essential` is the same count used by `survival_bonus`;
+`precision = essential/generated` is observational only.
 Only the first 20 invariant lines in each response enter Houdini; every later
 line subtracts 0.05 and is reported through `generated`, `accepted`, and
 `overflow`.
@@ -206,7 +187,7 @@ deployment distributions match by construction.
 // response (order-aligned with refinements)
 {
   "refine_rewards": [0.0090, -0.25], // ← use these GRPO group rewards
-  "delta_base": [0.0090, 0.0],       // pure marginal-contribution diagnostic
+  "delta_base": [0.0090, 0.0],       // pure incremental-contribution diagnostic
   "generated": [2, 25], "accepted": [2, 20], "overflow": [0, 5],
   "overflow_penalty": [0.0, 0.25],
   "base_before": 0.0, "base_after": [0.0090, 0.0], "pool_size": 3
@@ -214,7 +195,7 @@ deployment distributions match by construction.
 ```
 
 `delta_base[i] = base(Houdini(pool ∪ refined_i)) − base(Houdini(pool))` — the
-refinement's marginal contribution to the merged pool. Train on
+refinement's incremental contribution to the merged pool. Train on
 `refine_rewards[i] = delta_base[i] - overflow_penalty[i]`; only the first 20
 lines are admitted and every later line costs 0.05. Properties the trainer can
 rely on:

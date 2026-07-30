@@ -121,8 +121,9 @@ class ExampleSampler:
     def _dedup(states: List[State]) -> List[State]:
         seen, out = set(), []
         for s in states:
-            # Pre-values are semantic inputs to \at(v,Pre) predicates.  The same
-            # loop-head valuation reached from two inputs must retain both pairs.
+            # Pre and LoopEntry values are semantic inputs to labelled
+            # predicates. The same current valuation reached from distinct
+            # labelled states must retain every combination.
             k = s.key()
             if k not in seen:
                 seen.add(k)
@@ -415,7 +416,11 @@ class ExampleSampler:
             directions: Tuple[int, ...],
             terminal: bool,
         ) -> None:
-            state = State(vars=nv, pre=dict(r.pre))
+            state = State(
+                vars=nv,
+                pre=dict(r.pre),
+                loop_entry=dict(r.loop_entry),
+            )
             base_guard = eval_predicate(guard, r)
             candidate_guard = eval_predicate(guard, state)
             inside_envelope = all(
@@ -495,7 +500,11 @@ class ExampleSampler:
                     nv = dict(base)
                     nv[v] = base[v] + d
                     out.append(_NegativeCandidate(
-                        state=State(vars=nv, pre=dict(r.pre)),
+                        state=State(
+                            vars=nv,
+                            pre=dict(r.pre),
+                            loop_entry=dict(r.loop_entry),
+                        ),
                         bucket=(v, direction),
                     ))
         return out
@@ -797,8 +806,9 @@ class ExampleSampler:
         es = ExampleSet(program=prog)
         runs = self.n_runs * 2 if self._body_nondeterministic(prog, 0) else self.n_runs
         sampling_prog = parse_program(self._determinize_source(self.source))
-        reach, overrun, capped = cexec.collect_traces(
-            sampling_prog, loop_idx=0, n_runs=runs, seed=self.seed
+        reach, overrun, capped, execution_stats = cexec.collect_traces(
+            sampling_prog, loop_idx=0, n_runs=runs, seed=self.seed,
+            return_stats=True,
         )
         positives = self._dedup(reach)
         negatives, groups, stats = self._negatives(
@@ -811,6 +821,7 @@ class ExampleSampler:
         es.stats[0] = {
             "n_pos": len(positives),
             "n_neg": len(groups),
+            **execution_stats,
             **stats,
         }
         return es

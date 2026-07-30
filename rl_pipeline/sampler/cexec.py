@@ -514,6 +514,7 @@ def _parse_output(stdout: str, loop_idx: int, pre_vars: List[str], pre: Dict[str
     'O' (over-run).  States carry (run, iteration) trace coordinates."""
     out = []
     capped = False
+    loop_entry: Optional[Dict[str, int]] = None
     for line in stdout.splitlines():
         c = _CAP_RE.search(line)
         if c and int(c.group(1)) == loop_idx:
@@ -532,8 +533,19 @@ def _parse_output(stdout: str, loop_idx: int, pre_vars: List[str], pre: Dict[str
                 except ValueError:
                     pass
         if len(vals) == len(pre_vars):
+            if m.group(1) == "E" or loop_entry is None:
+                loop_entry = dict(vals)
             kind = "O" if m.group(1) == "O" else "R"
-            out.append((kind, State(vars=vals, pre=dict(pre), run=run_id, it=it)))
+            out.append((
+                kind,
+                State(
+                    vars=vals,
+                    pre=dict(pre),
+                    loop_entry=dict(loop_entry),
+                    run=run_id,
+                    it=it,
+                ),
+            ))
     return out, capped
 
 
@@ -599,7 +611,8 @@ def collect_traces(
     n_runs: int = 24,
     source_override: Optional[str] = None,
     seed: int = 0,
-) -> Tuple[List[State], List[State], bool]:
+    return_stats: bool = False,
+):
     """Run the program over many inputs; return (reachable, overrun, capped_any).
 
     reachable = real trace states; overrun = states from running the body past a
@@ -624,10 +637,26 @@ def collect_traces(
     reachable: List[State] = []
     overrun: List[State] = []
     capped_any = False
+    abnormal_runs = []
     for i, inputs in enumerate(inputs_list):
         # distinct per-run seed so nondeterministic (unknown) loops vary trace length
-        states, capped = run_and_collect(src, prog, inputs, loop_idx,
-                                         run_seed=1000 + seed * 97 + i * 7 + 1, run_id=i)
+        try:
+            states, capped = run_and_collect(
+                src, prog, inputs, loop_idx,
+                run_seed=1000 + seed * 97 + i * 7 + 1, run_id=i,
+            )
+        except ValueError as exc:
+            # A concrete input can satisfy `requires` yet reach undefined C
+            # behavior (for example integer division by zero). Such a run has
+            # no valid reachable trace, but must not discard the other inputs.
+            if not str(exc).startswith("instrumented program exited abnormally"):
+                raise
+            abnormal_runs.append({
+                "run": i,
+                "inputs": dict(inputs),
+                "error": str(exc),
+            })
+            continue
         capped_any = capped_any or capped
         for kind, s in states:
             if kind == "O":
@@ -636,5 +665,16 @@ def collect_traces(
             else:
                 reachable.append(s)
     if not reachable:
+        if abnormal_runs:
+            raise ValueError(
+                "all sampled runs exited abnormally; first failure: "
+                f"{abnormal_runs[0]['error']}"
+            )
         raise ValueError("sampling produced no reachable loop-head states")
-    return reachable, overrun, capped_any
+    result = (reachable, overrun, capped_any)
+    if return_stats:
+        return result + ({
+            "skipped_abnormal_run_count": len(abnormal_runs),
+            "skipped_abnormal_runs": abnormal_runs,
+        },)
+    return result

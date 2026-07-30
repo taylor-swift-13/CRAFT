@@ -2,7 +2,9 @@
 State = a variable valuation at the loop entry (loop head).
 
   State.vars : Dict[str,int]   current values of loop-entry variables
-  State.pre  : Dict[str,int]   pre/initial values (for \\at(v,Pre) / v@pre)
+  State.pre        : Dict[str,int]   function-entry values (for \\at(v,Pre))
+  State.loop_entry : Dict[str,int]   first loop-head values (for
+                                     \\at(v,LoopEntry))
 
 Plus a safe evaluator for ACSL-ish boolean predicates (invariants, guards,
 postconditions) at a given state.  We convert the ACSL expression to a Python
@@ -24,6 +26,7 @@ from typing import Dict, List, Optional
 class State:
     vars: Dict[str, int]
     pre: Dict[str, int] = field(default_factory=dict)
+    loop_entry: Dict[str, int] = field(default_factory=dict)
     # trace coordinates (run index, loop-head iteration) — metadata only, NOT part
     # of identity: used by the sampler to tell which states have their local trace
     # window sampled (perturbation-base density check).  -1 = synthetic/unknown.
@@ -31,7 +34,13 @@ class State:
     it: int = -1
 
     def key(self) -> tuple:
-        return self.vars_key() + (("__pre__",),) + tuple(sorted(self.pre.items()))
+        return (
+            self.vars_key()
+            + (("__pre__",),)
+            + tuple(sorted(self.pre.items()))
+            + (("__loop_entry__",),)
+            + tuple(sorted(self.loop_entry.items()))
+        )
 
     def vars_key(self) -> tuple:
         """Reachability/identity key over the loop-entry valuation (ignores pre)."""
@@ -42,10 +51,18 @@ class State:
 
     def render(self) -> str:
         current = " && ".join(f"{k} == {v}" for k, v in sorted(self.vars.items()))
-        if not self.pre:
-            return current
-        initial = " && ".join(f"{k} == {v}" for k, v in sorted(self.pre.items()))
-        return f"{current}; Pre: {initial}"
+        parts = [current]
+        if self.pre:
+            initial = " && ".join(
+                f"{k} == {v}" for k, v in sorted(self.pre.items())
+            )
+            parts.append(f"Pre: {initial}")
+        if self.loop_entry:
+            entry = " && ".join(
+                f"{k} == {v}" for k, v in sorted(self.loop_entry.items())
+            )
+            parts.append(f"LoopEntry: {entry}")
+        return "; ".join(parts)
 
 
 _INV_RE = re.compile(r"loop\s+invariant\s+([^;]+);")
@@ -183,6 +200,11 @@ def _acsl_to_py(expr: str) -> str:
     s = re.sub(r"\\true\b", "True", expr)
     s = re.sub(r"\\false\b", "False", s)
     s = re.sub(r"\\at\(\s*(\w+)\s*,\s*Pre\s*\)", r"\1__PRE__", s)
+    s = re.sub(
+        r"\\at\(\s*(\w+)\s*,\s*LoopEntry\s*\)",
+        r"\1__LOOP_ENTRY__",
+        s,
+    )
     s = re.sub(r"\b(\w+)@pre\b", r"\1__PRE__", s)
     s = _translate_logic(s)
     s = re.sub(r"(?<![<>=!])=(?![=])", "==", s)
@@ -197,6 +219,21 @@ def _c_div(a, b):
 
 def _c_mod(a, b):
     return a - _c_div(a, b) * b
+
+
+def _logic_power(base, exponent):
+    base, exponent = int(base), int(exponent)
+    return 1 if exponent <= 0 else base ** exponent
+
+
+def _logic_factorial(value):
+    value = int(value)
+    if value <= 0:
+        return 1
+    result = 1
+    for factor in range(2, value + 1):
+        result *= factor
+    return result
 
 
 class _CDivTransformer(ast.NodeTransformer):
@@ -325,18 +362,24 @@ def eval_predicate(expr: str, state: "State") -> Optional[bool]:
         ns[k] = int(v)
     for k, v in state.pre.items():
         ns[f"{k}__PRE__"] = int(v)
+    for k, v in state.loop_entry.items():
+        ns[f"{k}__LOOP_ENTRY__"] = int(v)
     # any var not bound but referenced -> unknown
     try:
         names = code.co_names
     except AttributeError:
         names = ()
-    allowed = set(ns.keys()) | {"True", "False", "None", "bool", "abs",
-                                "__cdiv__", "__cmod__"}
+    allowed = set(ns.keys()) | {
+        "True", "False", "None", "bool", "abs", "power", "factorial",
+        "__cdiv__", "__cmod__",
+    }
     for nm in names:
         if nm not in allowed:
             return None
     ns["abs"] = abs
     ns["bool"] = bool
+    ns["power"] = _logic_power
+    ns["factorial"] = _logic_factorial
     ns["__cdiv__"] = _c_div
     ns["__cmod__"] = _c_mod
     try:
@@ -366,14 +409,23 @@ def first_falsifying_state(expr: str, states: List[State]) -> Optional[State]:
 
         code = _compile_vector(expr)
         function_names = {
-            "abs", "__cdiv__", "__cmod__", "__logical_and__",
+            "abs", "power", "factorial", "__cdiv__", "__cmod__", "__logical_and__",
             "__logical_or__", "__logical_not__",
         }
         columns = {}
         for name in code.co_names:
             if name in function_names:
                 continue
-            if name.endswith("__PRE__"):
+            if name.endswith("__LOOP_ENTRY__"):
+                key = name[:-14]
+                if any(key not in state.loop_entry for state in states):
+                    return None
+                columns[name] = np.fromiter(
+                    (state.loop_entry[key] for state in states),
+                    dtype=object,
+                    count=len(states),
+                )
+            elif name.endswith("__PRE__"):
                 key = name[:-7]
                 if any(key not in state.pre for state in states):
                     return None
@@ -400,6 +452,8 @@ def first_falsifying_state(expr: str, states: List[State]) -> Optional[State]:
         namespace = {
             **columns,
             "abs": np.abs,
+            "power": np.vectorize(_logic_power, otypes=[object]),
+            "factorial": np.vectorize(_logic_factorial, otypes=[object]),
             "__cdiv__": cdiv,
             "__cmod__": cmod,
             "__logical_and__": np.logical_and,

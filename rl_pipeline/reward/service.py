@@ -57,9 +57,9 @@ class SamplerCfg(BaseModel):
 class RewardRequest(BaseModel):
     program: str = Field(..., description="C program source with requires/loop/assert")
     rollouts: List[Any] = Field(..., description="each: {'invariants':[...]} or {'code': '...'}")
-    w_base: float = Field(0.8, ge=0.0)
-    w_marg: float = Field(0.2, ge=0.0)
-    use_marginal: bool = True
+    w_base: float = Field(1.0, ge=0.0)
+    w_hard: float = Field(0.3, ge=0.0)
+    w_surv: float = Field(0.1, ge=0.0)
     w_redundancy: float = Field(0.02, ge=0.0)
     w_overflow: float = Field(0.05, ge=0.0)
     max_invariants: int = Field(
@@ -122,8 +122,8 @@ def build_app():
             examples = _get_examples(req.program, req.sampler)
             rc = RewardCalculator(
                 invariant_filter=_get_filter(),
-                w_base=req.w_base, w_marg=req.w_marg,
-                use_marginal=req.use_marginal,
+                w_base=req.w_base, w_hard=req.w_hard,
+                w_surv=req.w_surv,
                 w_redundancy=req.w_redundancy,
                 w_overflow=req.w_overflow,
                 max_invariants=req.max_invariants,
@@ -170,7 +170,7 @@ def build_app():
         try:
             examples = _get_examples(req.program, req.sampler)
             calc = RewardCalculator(invariant_filter=_get_filter(),
-                                    w_base=1.0, w_marg=0.0,
+                                    w_base=1.0,
                                     w_redundancy=0.0, w_overflow=0.0,
                                     logger=log)
             return refine_group_delta_base(

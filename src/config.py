@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass
@@ -24,6 +25,9 @@ class LLMConfig:
     api_temperature: float = 1.0
     api_top_p: float = 1.0
     api_max_tokens: int = 16384
+    # Qwen3's non-streaming OpenAI-compatible endpoint requires this request
+    # parameter.  None keeps other providers/models untouched.
+    api_enable_thinking: Optional[bool] = None
 
 # ==============================================================================
 # Houdini configuration (used by src/houdini_pruner.py)

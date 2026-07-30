@@ -5,9 +5,10 @@ Given a program and a GROUP of rollouts (each a candidate invariant set), score
 each rollout and the batch, using synthetic negative candidates from the sampler:
 
   base[A]     = fraction of candidates rejected by Houdini(A alone)
-  marginal[A] = fraction of candidates that Houdini(union) rejects but
-                Houdini(union \ A) does not                          (ablation 增益)
-  reward[A]   = w_base * base[A] + w_marg * marginal[A]
+  hard[A]     = normalized hardness of candidates rejected by A
+  essential[A] = number of surviving clauses that add negative-group coverage
+  reward[A]   = w_base * base[A] + w_hard * hard[A]
+                + w_surv * essential[A]
                 - redundancy_penalty[A] - overflow_penalty[A]
   batch_score = fraction of candidates rejected by Houdini(union)    (batch performance)
   should_reroll = batch_score < reroll_threshold
@@ -50,8 +51,8 @@ class RolloutScore:
     accepted: int                 # clauses admitted before canonical de-duplication
     overflow: int                 # clauses beyond max_invariants
     base: float
-    marginal: float
-    marginal_rejected: int        # leave-one-rollout-out extra rejected negatives
+    hard_bonus: float
+    survival_bonus: float         # unweighted essential-survivor count
     redundant_clauses: int        # fully redundant clauses inside this rollout
     redundancy_penalty: float
     overflow_penalty: float
@@ -69,7 +70,6 @@ class BatchReward:
     batch_score: float
     should_reroll: bool
     filter_mode: str
-    marginal_enabled: bool
     rollouts: List[RolloutScore] = field(default_factory=list)
 
     def to_dict(self) -> dict:
@@ -84,11 +84,10 @@ class BatchReward:
                 "negative_coverage"
                 if self.n_negatives else "binary_frama_c_validation"
             ),
-            "marginal_enabled": self.marginal_enabled,
             "rollout_rewards": [r.reward for r in self.rollouts],
             "base": [r.base for r in self.rollouts],
-            "marginal": [r.marginal for r in self.rollouts],
-            "marginal_rejected": [r.marginal_rejected for r in self.rollouts],
+            "hard_bonus": [r.hard_bonus for r in self.rollouts],
+            "survival_bonus": [r.survival_bonus for r in self.rollouts],
             "redundant_clauses": [
                 r.redundant_clauses for r in self.rollouts
             ],
@@ -103,8 +102,9 @@ class BatchReward:
             "precision": [r.precision for r in self.rollouts],
             "rollouts": [
                 {"index": r.index, "reward": r.reward, "base": r.base,
-                 "marginal": r.marginal, "precision": r.precision,
-                 "marginal_rejected": r.marginal_rejected,
+                 "hard_bonus": r.hard_bonus,
+                 "survival_bonus": r.survival_bonus,
+                 "precision": r.precision,
                  "redundant_clauses": r.redundant_clauses,
                  "redundancy_penalty": r.redundancy_penalty,
                  "overflow_penalty": r.overflow_penalty,
@@ -163,8 +163,9 @@ class RewardCalculator:
     def __init__(
         self,
         invariant_filter=None,
-        w_base: float = 0.8,
-        w_marg: float = 0.2,
+        w_base: float = 1.0,
+        w_hard: float = 0.3,
+        w_surv: float = 0.1,
         w_redundancy: float = 0.02,
         w_overflow: float = 0.05,
         max_invariants: int = MAX_INVARIANTS_PER_RESPONSE,
@@ -172,20 +173,25 @@ class RewardCalculator:
         n_jobs: Optional[int] = None,     # parallel frama-c filter calls per group
         logger: Optional[logging.Logger] = None,
         sampler_kwargs: Optional[dict] = None,
-        use_marginal: bool = True,
     ):
         log = logger or logging.getLogger("rl_pipeline.reward")
         self.filter = invariant_filter or filters.auto_filter(log)
         self.w_base = w_base
-        self.w_marg = w_marg
-        self.use_marginal = use_marginal
+        self.w_hard = w_hard
+        self.w_surv = w_surv
         self.w_redundancy = w_redundancy
         self.w_overflow = w_overflow
         self.max_invariants = max_invariants
         self.reroll_threshold = reroll_threshold
         self.n_jobs = n_jobs or min(16, (os.cpu_count() or 8))
         self.sampler_kwargs = sampler_kwargs or {}
-        if min(self.w_base, self.w_marg, self.w_redundancy, self.w_overflow) < 0:
+        if min(
+            self.w_base,
+            self.w_hard,
+            self.w_surv,
+            self.w_redundancy,
+            self.w_overflow,
+        ) < 0:
             raise ValueError("reward weights must be non-negative")
         if not 1 <= self.max_invariants <= MAX_INVARIANTS_PER_RESPONSE:
             raise ValueError(
@@ -238,8 +244,10 @@ class RewardCalculator:
         Clauses are traversed in model-output order. Coverage is measured after
         the standalone Houdini pass: a clause is fully redundant exactly when
         it rejects no negative group beyond those already rejected by earlier
-        clauses. Filtered, tautological, and later duplicated/covered clauses
-        therefore receive the penalty.
+        clauses. Only Houdini survivors participate: rejected clauses already
+        contribute no coverage or survival bonus and are not also penalized as
+        redundant. Tautological and later duplicated/covered survivors receive
+        the penalty.
         """
         survivor_set = {
             normalize_invariant(clause) for clause in survivors
@@ -248,7 +256,6 @@ class RewardCalculator:
         redundant = 0
         for clause in clauses:
             if normalize_invariant(clause) not in survivor_set:
-                redundant += 1
                 continue
             rejected_states = RewardCalculator._rejected_set(
                 negatives, [clause]
@@ -289,9 +296,7 @@ class RewardCalculator:
         ]
         roll_invs = [dedup_normalized(invs) for invs in roll_invs_capped]
 
-        # memoize filter results across base/union/ablation calls — the ablation
-        # subsets (∪ \ A) overlap heavily, so identical invariant sets are filtered
-        # (and, in Houdini mode, verified by Frama-C) only once.
+        # Memoize filter results across per-rollout and union calls.
         survive_cache: dict = {}
 
         def survive(invs: List[str]) -> List[str]:
@@ -305,16 +310,9 @@ class RewardCalculator:
             return cached
 
         # PRE-WARM the survive cache in parallel: every distinct clause set the
-        # scoring below needs (per-rollout, union, ablation rests) is filtered
-        # concurrently — frama-c runs are independent subprocesses.
+        # scoring below needs is filtered concurrently.
         union = dedup_normalized(c for invs in roll_invs for c in invs)
         needed = [union] + roll_invs
-        score_marginal = bool(
-            n_neg and self.use_marginal and self.w_marg
-        )
-        if score_marginal:
-            needed += [dedup_normalized(c for j, other in enumerate(roll_invs) if j != idx for c in other)
-                       for idx in range(len(roll_invs))]
         uniq = {frozenset(normalize_invariant(i) for i in invs): invs
                 for invs in needed if invs}
         if len(uniq) > 1 and self.n_jobs > 1:
@@ -324,6 +322,20 @@ class RewardCalculator:
                     uniq.items()))
         union_surv = survive(union)
         rollout_survivors = [survive(invs) for invs in roll_invs]
+        rollout_base_rejections = [
+            self._to_groups(
+                self._rejected_set(negatives, survivors), groups
+            )
+            for survivors in rollout_survivors
+        ]
+        n_rollouts = max(len(rollouts), 1)
+        group_reject_count = [
+            sum(group in rejected for rejected in rollout_base_rejections)
+            for group in range(n_neg)
+        ]
+        group_hardness = [
+            1.0 - count / n_rollouts for count in group_reject_count
+        ]
         union_rej = self._to_groups(self._rejected_set(negatives, union_surv), groups)
         if n_neg:
             batch_score = len(union_rej) / n_neg
@@ -347,19 +359,12 @@ class RewardCalculator:
         for idx, invs in enumerate(roll_invs):
             # base: standalone Houdini survivors, counted in trace units
             surv = rollout_survivors[idx]
-            base_rej = self._to_groups(self._rejected_set(negatives, surv), groups)
+            base_rej = rollout_base_rejections[idx]
             base = (len(base_rej) / n_neg) if n_neg else 0.0
-            # marginal: ablation on the union (skipped when unweighted — the
-            # ablation refilters |rollouts| near-union sets, dominating cost)
-            if score_marginal:
-                rest = dedup_normalized(c for j, other in enumerate(roll_invs) if j != idx for c in other)
-                rest_surv = survive(rest)
-                rest_rej = self._to_groups(self._rejected_set(negatives, rest_surv), groups)
-                marginal_rejected = len(union_rej - rest_rej)
-                marginal = (marginal_rejected / n_neg) if n_neg else 0.0
-            else:
-                marginal_rejected = 0
-                marginal = 0.0
+            hard_bonus = (
+                sum(group_hardness[group] for group in base_rej) / n_neg
+                if n_neg else 0.0
+            )
             n_generated = len(roll_invs_raw[idx])
             n_accepted = len(roll_invs_capped[idx])
             overflow = (
@@ -368,13 +373,25 @@ class RewardCalculator:
             )
             overflow_penalty = self.w_overflow * overflow
             if n_neg:
-                raw_reward = self.w_base * base + self.w_marg * marginal
                 redundant_clauses = self._redundant_clause_count(
                     roll_invs_capped[idx], surv, negatives, groups
                 )
-                n_essential = n_accepted - redundant_clauses
+                survivor_set = {
+                    normalize_invariant(clause) for clause in surv
+                }
+                surviving_clauses = sum(
+                    normalize_invariant(clause) in survivor_set
+                    for clause in roll_invs_capped[idx]
+                )
+                n_essential = surviving_clauses - redundant_clauses
                 precision = (
                     n_essential / n_generated if n_generated else 0.0
+                )
+                survival_bonus = float(n_essential)
+                raw_reward = (
+                    self.w_base * base
+                    + self.w_hard * hard_bonus
+                    + self.w_surv * survival_bonus
                 )
                 redundancy_penalty = (
                     self.w_redundancy * redundant_clauses
@@ -390,14 +407,15 @@ class RewardCalculator:
                 # structural penalties into its public {0, 1} contract.
                 precision = 1.0
                 n_essential = 0
+                survival_bonus = 0.0
                 redundancy_penalty = 0.0
                 redundant_clauses = 0
                 reward = 1.0 if fully_verified(invs, surv) else 0.0
             scores.append(RolloutScore(
                 index=idx, invariants=invs, survivors=surv,
                 generated=n_generated, accepted=n_accepted, overflow=overflow,
-                base=base, marginal=marginal,
-                marginal_rejected=marginal_rejected,
+                base=base, hard_bonus=hard_bonus,
+                survival_bonus=survival_bonus,
                 redundant_clauses=redundant_clauses,
                 redundancy_penalty=redundancy_penalty,
                 overflow_penalty=overflow_penalty,
@@ -412,6 +430,5 @@ class RewardCalculator:
             batch_score=batch_score,
             should_reroll=batch_score < self.reroll_threshold,
             filter_mode=getattr(self.filter, "name", "unknown"),
-            marginal_enabled=bool(self.use_marginal and self.w_marg),
             rollouts=scores,
         )

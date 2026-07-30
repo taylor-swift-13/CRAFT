@@ -146,6 +146,18 @@ class OpenAILLM(BaseChatModel):
                 )
                 if self.top_p < 1.0:
                     kwargs["top_p"] = self.top_p
+                enable_thinking = getattr(
+                    self.config, "api_enable_thinking", None
+                )
+                if (
+                    enable_thinking is None
+                    and "qwen3" in self.model_name.lower()
+                ):
+                    enable_thinking = False
+                if enable_thinking is not None:
+                    kwargs["extra_body"] = {
+                        "enable_thinking": bool(enable_thinking)
+                    }
                 return self.client.chat.completions.create(**kwargs)
 
             # 调用 OpenAI API（并在“空内容+length”时自动重试一次）

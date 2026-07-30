@@ -26,6 +26,19 @@ def modified_vars(body: str) -> List[str]:
     return names
 
 
+_POWER_AXIOM = """\
+/*@ logic integer power(integer b, integer e) =
+      e <= 0 ? 1 : b * power(b, e - 1);
+*/
+"""
+
+_FACTORIAL_AXIOM = """\
+/*@ logic integer factorial(integer n) =
+      n <= 0 ? 1 : n * factorial(n - 1);
+*/
+"""
+
+
 def build_annotated(prog: Program, invariants: List[str], loop_idx: int = 0) -> str:
     """Return the program source with an ACSL block (invariants + assigns) before the loop."""
     loop = prog.loops[loop_idx]
@@ -37,4 +50,9 @@ def build_annotated(prog: Program, invariants: List[str], loop_idx: int = 0) -> 
         lines.append(f"      loop assigns {', '.join(assigns)};")
     block = "/*@\n" + "\n".join(lines) + "\n    */\n    "
     src = prog.source
-    return src[:loop.kw_start] + block + src[loop.kw_start:]
+    annotated = src[:loop.kw_start] + block + src[loop.kw_start:]
+    if any("factorial(" in inv for inv in invs):
+        annotated = _FACTORIAL_AXIOM + annotated
+    if any("power(" in inv for inv in invs):
+        annotated = _POWER_AXIOM + annotated
+    return annotated

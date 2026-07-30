@@ -36,8 +36,10 @@ from . import annotate
 
 # ACSL / boolean tokens that are not program variables
 _ACSL_STOPWORDS = {
-    "at", "Pre", "Post", "old", "result", "true", "false",
+    "at", "Pre", "Post", "LoopEntry", "LoopCurrent", "old", "result",
+    "true", "false",
     "True", "False", "None", "and", "or", "not", "bool", "abs",
+    "power", "factorial",
     "integer", "int", "long", "short", "unsigned", "signed", "real",
 }
 

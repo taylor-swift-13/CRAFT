@@ -6,7 +6,7 @@ LARGER sample (same seed, more runs — the input prefix is identical, so
 pair-level overlap is a genuine mislabel; extra runs only widen coverage).
 
 Reports, per program:
-  pair_mislabels : negatives whose (vars, pre) pair shows up as a positive  — hard error
+  pair_mislabels : negatives whose full labelled state shows up as a positive — hard error
   vars_overlap   : vars-only collisions (upper bound; pre may differ)       — soft signal
 
 Run:  python -m rl_pipeline.eval.mislabel_audit [--audit-runs 24] [--jobs 8]
@@ -49,10 +49,9 @@ def audit_one(rel: str, base_runs: int, audit_runs: int) -> dict:
         # no-param programs, whose pre is empty)
         big2 = ExampleSampler(source, n_runs=audit_runs, seed=9).sample()
         big_pos = big.pos(0) + big2.pos(0)
-        pos_pairs = {(p.vars_key(), tuple(sorted(p.pre.items()))) for p in big_pos}
+        pos_pairs = {p.key() for p in big_pos}
         pos_vars = {p.vars_key() for p in big_pos}
-        pair = sum(1 for n in negatives
-                   if (n.vars_key(), tuple(sorted(n.pre.items()))) in pos_pairs)
+        pair = sum(1 for n in negatives if n.key() in pos_pairs)
         vo = sum(1 for n in negatives if n.vars_key() in pos_vars)
         return {"program": rel, "n_neg": len(negatives),
                 "pair_mislabels": pair, "vars_overlap": vo}

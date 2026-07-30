@@ -148,6 +148,48 @@ def _strip_acsl_targets(body: str) -> str:
     return "".join(out)
 
 
+def _strip_c_assert_calls(source: str) -> str:
+    """Remove executable C assertion statements while preserving line layout.
+
+    LoopGym inputs normally encode targets as ACSL clauses, but external
+    baselines also accept ``assert(...)`` and ``__VERIFIER_assert(...)``.
+    Target-hidden generation must not leave either predicate in the prompt.
+    Replacing the statement with ``((void)0);`` keeps constructs such as
+    ``if (cond) assert(goal); else ...`` syntactically well formed.
+    """
+    pattern = re.compile(r"\b(?:__VERIFIER_assert|assert)\s*\(")
+    out = source
+    cursor = 0
+    while True:
+        match = pattern.search(out, cursor)
+        if match is None:
+            break
+        open_paren = out.find("(", match.start(), match.end())
+        close_paren = _match_paren(out, open_paren)
+        if close_paren < 0:
+            raise ValueError("unbalanced assertion expression")
+        stop = close_paren + 1
+        while stop < len(out) and out[stop] in " \t":
+            stop += 1
+        if stop < len(out) and out[stop] == ";":
+            stop += 1
+        original = out[match.start():stop]
+        replacement = "((void)0);"
+        non_newline = sum(char != "\n" for char in original)
+        if non_newline < len(replacement):
+            replacement = ";"
+        padding = non_newline - len(replacement)
+        replacement += " " * max(0, padding)
+        replacement_iter = iter(replacement)
+        masked = "".join(
+            "\n" if char == "\n" else next(replacement_iter)
+            for char in original
+        )
+        out = out[:match.start()] + masked + out[stop:]
+        cursor = match.start() + len(masked)
+    return out
+
+
 def _extract_requires(src: str) -> str:
     """All `requires <expr>;` clauses conjoined — a precondition may span several
     clauses (`requires x>0; requires y>0;`) and dropping any of them lets
@@ -180,6 +222,13 @@ def strip_postcondition(source: str) -> str:
         return prefix + match.group(2)
 
     out = re.sub(r"//@([^\n]*)(\n|$)", _strip_line_target, out)
+    out = _strip_c_assert_calls(out)
+    # Some safety corpora encode the assertion as `goto ERROR` followed by
+    # `assert(false)`.  Once the predicate is hidden, neutralize only that
+    # conventional label name so it cannot act as a textual target marker;
+    # all gotos are renamed with it, so control flow is unchanged.
+    if re.search(r"\bERROR\s*:", out):
+        out = re.sub(r"\bERROR\b", "__loopgym_label_0", out)
     return out
 
 

@@ -9,6 +9,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from types import SimpleNamespace
 import unittest
 from unittest import mock
@@ -36,9 +37,46 @@ from rl_pipeline.reward import io as reward_io
 from rl_pipeline.reward.score_file import score_file
 from rl_pipeline.sampler import ExampleSampler, ExampleSet
 from rl_pipeline.sampler import cexec
+from experiments.gpt5nano_full832 import common as full832_common
+from experiments.gpt5nano_full832 import native as full832_native
+from experiments.gpt5nano_full832 import run as full832_run
+from experiments.gpt5nano_full832 import samples as full832_samples
+from src.config import LLMConfig
+from src.llm import OpenAILLM
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+class LLMRegressionTests(unittest.TestCase):
+    @mock.patch("src.llm.openai.OpenAI")
+    def test_qwen3_api_disables_thinking_for_non_streaming_calls(
+        self, openai_cls
+    ):
+        response = SimpleNamespace(
+            choices=[
+                SimpleNamespace(
+                    message=SimpleNamespace(
+                        content="loop invariant v <= 30;",
+                        refusal=None,
+                    ),
+                    finish_reason="stop",
+                )
+            ],
+            usage=None,
+        )
+        create = openai_cls.return_value.chat.completions.create
+        create.return_value = response
+        model = OpenAILLM(LLMConfig(api_model="qwen3-8b", api_key="test"))
+
+        self.assertEqual(
+            model.generate_response("program"),
+            "loop invariant v <= 30;",
+        )
+        self.assertEqual(
+            create.call_args.kwargs["extra_body"],
+            {"enable_thinking": False},
+        )
 
 
 class PredicateRegressionTests(unittest.TestCase):
@@ -87,6 +125,51 @@ class PredicateRegressionTests(unittest.TestCase):
             [True, True, False],
         )
         self.assertIs(first_falsifying_state(expression, states), states[2])
+
+    def test_power_and_factorial_work_for_scalar_vector_and_positive_filter(self):
+        expression = "p == power(k, i) && f == factorial(i)"
+        states = [
+            State(vars={"p": 1, "k": 3, "i": 0, "f": 1}),
+            State(vars={"p": 27, "k": 3, "i": 3, "f": 6}),
+            State(vars={"p": 27, "k": 3, "i": 3, "f": 5}),
+        ]
+
+        self.assertEqual(
+            [eval_predicate(expression, state) for state in states],
+            [True, True, False],
+        )
+        self.assertIs(first_falsifying_state(expression, states), states[2])
+        program = parse_program(
+            "void f(int k) { int p = 1, i = 0, f = 1; "
+            "while (i < 3) { p *= k; i++; f *= i; } }"
+        )
+        self.assertEqual(
+            PositiveFilter().filter(
+                program, 0, [expression], states[:2]
+            ),
+            [expression],
+        )
+
+    def test_pre_and_loop_entry_labels_have_distinct_state_snapshots(self):
+        expression = (
+            r"\at(n,Pre) == 10 && \at(v,LoopEntry) == 3 && v == 5"
+        )
+        states = [
+            State(
+                vars={"n": 8, "v": 5},
+                pre={"n": 10},
+                loop_entry={"n": 8, "v": 3},
+            ),
+            State(
+                vars={"n": 8, "v": 6},
+                pre={"n": 10},
+                loop_entry={"n": 8, "v": 3},
+            ),
+        ]
+
+        self.assertIs(eval_predicate(expression, states[0]), True)
+        self.assertIs(eval_predicate(expression, states[1]), False)
+        self.assertIs(first_falsifying_state(expression, states), states[1])
 
     def test_positive_dedup_preserves_distinct_pre_values(self):
         positives = [
@@ -165,6 +248,37 @@ class ParserAndAnnotationRegressionTests(unittest.TestCase):
         )
         self.assertEqual(masked.post, "")
 
+    def test_strip_postcondition_removes_executable_assertions(self):
+        source = (
+            "void f(int x) {\n"
+            "  while (x > 0) { x--; }\n"
+            "  if (x == 0) assert(x == 7); else __VERIFIER_assert(x < 0);\n"
+            "}\n"
+        )
+
+        stripped = strip_postcondition(source)
+
+        self.assertNotIn("assert(", stripped)
+        self.assertNotIn("__VERIFIER_assert", stripped)
+        self.assertEqual(stripped.count("((void)0);"), 2)
+        self.assertEqual(stripped.count("\n"), source.count("\n"))
+
+    def test_strip_postcondition_neutralizes_error_target_label(self):
+        source = (
+            "void f(int x) {\n"
+            "  while (x > 0) { if (x == 2) goto ERROR; x--; }\n"
+            "  return;\n"
+            "ERROR:\n"
+            "  //@ assert \\false;\n"
+            "}\n"
+        )
+
+        stripped = strip_postcondition(source)
+
+        self.assertNotIn("ERROR", stripped)
+        self.assertNotIn(r"\false", stripped)
+        self.assertEqual(stripped.count("__loopgym_label_0"), 2)
+
     def test_parser_skips_helper_before_loop_function(self):
         source = (
             "int unknown(void) { return 0; }\n"
@@ -198,6 +312,35 @@ class ParserAndAnnotationRegressionTests(unittest.TestCase):
 
         self.assertIn("loop assigns n;", annotated)
         self.assertNotIn("loop assigns __n", annotated)
+
+    def test_logic_function_definitions_are_injected_only_when_referenced(self):
+        source = (
+            "int unknown(void); "
+            "void f(int k) { int p = 1, i = 0, fact = 1; "
+            "while (unknown()) { p *= k; i++; fact *= i; } }"
+        )
+        program = parse_program(source)
+
+        plain = annotate.build_annotated(program, ["i >= 0"])
+        powered = annotate.build_annotated(
+            program, ["p == power(k, i)"]
+        )
+        both = annotate.build_annotated(
+            program,
+            ["p == power(k, i)", "fact == factorial(i)"],
+        )
+
+        self.assertNotIn("logic integer power", plain)
+        self.assertNotIn("logic integer factorial", plain)
+        self.assertIn("logic integer power", powered)
+        self.assertNotIn("logic integer factorial", powered)
+        self.assertIn("logic integer power", both)
+        self.assertIn("logic integer factorial", both)
+        self.assertEqual(both.count("int unknown(void);"), 1)
+        self.assertLess(
+            both.index("logic integer power"),
+            both.index("int unknown(void);"),
+        )
 
     def test_parser_accepts_scalar_integer_type_combinations(self):
         source = (
@@ -251,6 +394,158 @@ class ParserAndAnnotationRegressionTests(unittest.TestCase):
         self.assertEqual(rendered, "n == 0; Pre: n == 65")
 
 
+class Full832ExperimentRegressionTests(unittest.TestCase):
+    def test_fixed_sample_encoding_is_deterministic_and_round_trips(self):
+        source = "void f(int x) { while (x > 0) { x--; } //@ assert x == 0;\n}"
+        hidden = strip_postcondition(source)
+        task = full832_common.Task(
+            suite="linear",
+            case_id="fixture",
+            source_path=Path("/fixture.c"),
+            source_sha256=hashlib.sha256(source.encode()).hexdigest(),
+            hidden_source=hidden,
+            hidden_source_sha256=hashlib.sha256(hidden.encode()).hexdigest(),
+        )
+        examples = ExampleSet(
+            program=parse_program(hidden),
+            positives={0: [State(vars={"x": 1}, pre={"x": 1}, run=0, it=0)]},
+            negatives={0: [State(vars={"x": -1}, pre={"x": 1})]},
+            neg_groups={0: [[0]]},
+            stats={0: {"n_pos": 1, "n_neg": 1}},
+        )
+        payload = full832_samples._payload(task, examples)
+        compressed_a, content_hash_a = full832_samples._encode_payload(payload)
+        compressed_b, content_hash_b = full832_samples._encode_payload(payload)
+
+        self.assertEqual(compressed_a, compressed_b)
+        self.assertEqual(content_hash_a, content_hash_b)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "sample.json.gz"
+            path.write_bytes(compressed_a)
+            manifest_row = {
+                "sample_artifact": str(path),
+                "sample_content_sha256": content_hash_a,
+            }
+            restored = full832_samples.load_sample(task, manifest_row)
+
+        self.assertEqual(restored.pos(0), examples.pos(0))
+        self.assertEqual(restored.neg(0), examples.neg(0))
+        self.assertEqual(restored.groups(0), [[0]])
+
+    def test_archived_v1_fixed_sample_round_trips(self):
+        source = "void f(int x) { while (x > 0) { x--; } //@ assert x == 0;\n}"
+        hidden = strip_postcondition(source)
+        task = full832_common.Task(
+            suite="linear",
+            case_id="archived-fixture",
+            source_path=Path("/archived-fixture.c"),
+            source_sha256=hashlib.sha256(source.encode()).hexdigest(),
+            hidden_source=hidden,
+            hidden_source_sha256=hashlib.sha256(hidden.encode()).hexdigest(),
+        )
+        examples = ExampleSet(
+            program=parse_program(hidden),
+            positives={0: [State(vars={"x": 1}, pre={"x": 1}, run=0, it=0)]},
+            negatives={0: [State(vars={"x": -1}, pre={"x": 1})]},
+            neg_groups={0: [[0]]},
+            stats={0: {"n_pos": 1, "n_neg": 1}},
+        )
+        payload = full832_samples._payload(task, examples)
+        payload["schema_version"] = 1
+        compressed, content_hash = full832_samples._encode_payload(payload)
+
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "sample.json.gz"
+            path.write_bytes(compressed)
+            restored = full832_samples.load_sample(task, {
+                "schema_version": 1,
+                "sample_artifact": str(path),
+                "sample_content_sha256": content_hash,
+            })
+
+        self.assertEqual(restored.pos(0), examples.pos(0))
+        self.assertEqual(restored.neg(0), examples.neg(0))
+        self.assertEqual(restored.groups(0), [[0]])
+
+    def test_manifest_is_complete_and_every_model_source_hides_target(self):
+        tasks = full832_common.discover_tasks()
+
+        self.assertEqual(len(tasks), 832)
+        self.assertEqual(
+            {suite: sum(task.suite == suite for task in tasks) for suite in {
+                "linear", "NLA_lipus", "Loopy"
+            }},
+            {"linear": 316, "NLA_lipus": 50, "Loopy": 466},
+        )
+        for task in tasks:
+            full832_common.assert_target_hidden(
+                task.source_path.read_text(errors="ignore"),
+                task.hidden_source,
+            )
+
+    def test_loopgym_batch_runner_hides_target_before_model_call(self):
+        source = (
+            "void f(int x) {\n"
+            "  while (x > 0) { x--; }\n"
+            "  //@ assert x == 0;\n"
+            "}\n"
+        )
+        hidden = strip_postcondition(source)
+        observed = {}
+
+        class FakeFramework:
+            def __init__(self, framework_source, rollout_provider, **_kwargs):
+                observed["source"] = framework_source
+                self.provider = rollout_provider
+
+            def run(self):
+                self.provider(parse_program(observed["source"]), 1)
+                return SimpleNamespace(
+                    rollouts=[[]],
+                    final_invariants=[],
+                    verified=False,
+                    reroll_count=0,
+                )
+
+        class FakeRecorder:
+            def __init__(self):
+                self.records = []
+
+            def chat(self, prompt):
+                observed["prompt"] = prompt
+                return ""
+
+            @staticmethod
+            def usage():
+                return {
+                    "prompt_tokens": 0,
+                    "completion_tokens": 0,
+                    "total_tokens": 0,
+                    "api_call_count": 0,
+                    "token_accounting": "exact",
+                }
+
+        with tempfile.TemporaryDirectory() as directory:
+            source_path = Path(directory) / "fixture.c"
+            source_path.write_text(source)
+            task = full832_common.Task(
+                suite="linear",
+                case_id="fixture",
+                source_path=source_path,
+                source_sha256=hashlib.sha256(source.encode()).hexdigest(),
+                hidden_source=hidden,
+                hidden_source_sha256=hashlib.sha256(hidden.encode()).hexdigest(),
+            )
+            with mock.patch.object(
+                full832_run, "RecordingChat", return_value=FakeRecorder()
+            ), mock.patch.object(full832_run, "InferenceFramework", FakeFramework):
+                full832_run._run_loopgym(task, Path(directory))
+
+        self.assertEqual(observed["source"], source)
+        self.assertNotIn("assert", observed["prompt"])
+        self.assertNotIn("x == 0", observed["prompt"])
+
+
 class SyntaxScrubRegressionTests(unittest.TestCase):
     def test_bad_superstring_does_not_remove_valid_invariant(self):
         source = "void f(void) { int x = 0; while (x < 2) { x++; } }"
@@ -288,46 +583,17 @@ class RewardPatchRegressionTests(unittest.TestCase):
         def filter(_program, _loop_idx, invariants, _positives=None):
             return list(invariants)
 
-    def test_training_system_prompt_shuffles_only_rule_bullets(self):
+    def test_system_prompt_uses_canonical_flat_rule_list(self):
         canonical = prompts.system_prompt()
         self.assertIn("## LOOP INVARIANT DEFINITION", canonical)
         self.assertIn("## RULES", canonical)
+        self.assertNotIn("### UNKNOWN", canonical)
+        self.assertNotIn("### Invariant content", canonical)
+        self.assertNotIn("### ACSL syntax and scope", canonical)
         self.assertIn("## OUTPUT", canonical)
-        with self.assertRaisesRegex(ValueError, "explicit seed"):
-            prompts.system_prompt(shuffle_rules=True)
+        self.assertEqual(canonical, prompts.system_prompt())
 
-        rules_section = canonical.split("## RULES", 1)[1].split(
-            "## OUTPUT", 1
-        )[0]
-        rules = [
-            line
-            for line in rules_section.strip().splitlines()
-            if line.strip()
-        ]
-        shuffled = prompts.system_prompt(
-            shuffle_rules=True, seed=17
-        )
-        self.assertEqual(
-            shuffled,
-            prompts.system_prompt(shuffle_rules=True, seed=17),
-        )
-        for rule in rules:
-            self.assertEqual(shuffled.count(rule), 1)
-        self.assertEqual(
-            canonical.split("## RULES", 1)[0],
-            shuffled.split("## RULES", 1)[0],
-        )
-        self.assertEqual(
-            canonical.split("## OUTPUT", 1)[1],
-            shuffled.split("## OUTPUT", 1)[1],
-        )
-        variants = {
-            prompts.system_prompt(shuffle_rules=True, seed=seed)
-            for seed in range(8)
-        }
-        self.assertGreater(len(variants), 1)
-
-    def test_ordered_essential_count_is_diagnostic_only(self):
+    def test_ordered_essential_survivors_receive_additive_bonus(self):
         source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
         program = parse_program(source)
         examples = ExampleSet(
@@ -354,10 +620,13 @@ class RewardPatchRegressionTests(unittest.TestCase):
         self.assertEqual(score.base, 2 / 3)
         self.assertEqual(score.precision, 2 / 4)
         self.assertEqual(score.essential, 2)
+        self.assertEqual(score.survival_bonus, 2.0)
         self.assertEqual(score.redundant_clauses, 2)
         self.assertAlmostEqual(
             score.reward,
-            2 / 3 - 2 * 0.02,
+            2 / 3
+            + 0.1 * 2
+            - 2 * 0.02,
         )
 
     def test_zero_negative_fallback_uses_binary_frama_c_validation(self):
@@ -395,7 +664,7 @@ class RewardPatchRegressionTests(unittest.TestCase):
         )
         self.assertEqual(result.rollouts[0].precision, 1.0)
 
-    def test_default_reward_weights_base_and_marginal_as_eighty_twenty(self):
+    def test_default_reward_adds_hard_and_essential_bonuses(self):
         source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
         examples = ExampleSet(
             program=parse_program(source),
@@ -419,46 +688,26 @@ class RewardPatchRegressionTests(unittest.TestCase):
         )
         strong, overlapping = result.rollouts
 
-        self.assertEqual(calculator.w_base, 0.8)
-        self.assertEqual(calculator.w_marg, 0.2)
-        self.assertTrue(result.marginal_enabled)
+        self.assertEqual(calculator.w_base, 1.0)
+        self.assertEqual(calculator.w_hard, 0.3)
+        self.assertEqual(calculator.w_surv, 0.1)
         self.assertEqual(strong.base, 1.0)
-        self.assertEqual(strong.marginal, 0.5)
-        self.assertEqual(strong.marginal_rejected, 1)
+        self.assertEqual(strong.hard_bonus, 0.25)
+        self.assertEqual(strong.survival_bonus, 1.0)
         self.assertEqual(strong.redundant_clauses, 0)
         self.assertEqual(strong.essential, 1)
-        self.assertAlmostEqual(strong.reward, 0.8 + 0.2 * 0.5)
+        self.assertAlmostEqual(
+            strong.reward,
+            1.0 + 0.3 * 0.25 + 0.1,
+        )
         self.assertEqual(overlapping.base, 0.5)
-        self.assertEqual(overlapping.marginal, 0.0)
-        self.assertEqual(overlapping.marginal_rejected, 0)
+        self.assertEqual(overlapping.hard_bonus, 0.0)
+        self.assertEqual(overlapping.survival_bonus, 1.0)
         self.assertEqual(overlapping.redundant_clauses, 0)
         self.assertEqual(overlapping.redundancy_penalty, 0.0)
         self.assertAlmostEqual(
             overlapping.reward,
-            0.8 * 0.5,
-        )
-
-        disabled = RewardCalculator(
-            invariant_filter=self._IdentityFilter(),
-            use_marginal=False,
-            n_jobs=1,
-        ).compute(
-            source,
-            [["x == 0"], ["x <= 0"]],
-            examples=examples,
-        )
-        self.assertFalse(disabled.marginal_enabled)
-        self.assertEqual(
-            [score.marginal_rejected for score in disabled.rollouts],
-            [0, 0],
-        )
-        self.assertEqual(
-            [score.marginal for score in disabled.rollouts],
-            [0.0, 0.0],
-        )
-        self.assertAlmostEqual(
-            disabled.rollouts[0].reward,
-            0.8,
+            0.5 + 0.1,
         )
 
     def test_response_cap_truncates_and_penalizes_overflow_lines(self):
@@ -481,30 +730,6 @@ class RewardPatchRegressionTests(unittest.TestCase):
         self.assertEqual(score.overflow_penalty, 0.25)
         self.assertEqual(len(score.invariants), 20)
         self.assertNotIn("x >= -24", score.invariants)
-
-    def test_cross_rollout_marginal_does_not_control_internal_penalty(self):
-        source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
-        negatives = [State(vars={"x": value}) for value in range(200)]
-        examples = ExampleSet(
-            program=parse_program(source),
-            positives={0: [State(vars={"x": 50})]},
-            negatives={0: negatives},
-            neg_groups={0: [[index] for index in range(len(negatives))]},
-        )
-        calculator = RewardCalculator(
-            invariant_filter=self._IdentityFilter(), n_jobs=1
-        )
-
-        score = calculator.compute(
-            source,
-            [["x != 0"], ["x <= 198"]],
-            examples=examples,
-        ).rollouts[0]
-
-        self.assertEqual(score.marginal_rejected, 1)
-        self.assertEqual(score.marginal, 0.005)
-        self.assertEqual(score.redundant_clauses, 0)
-        self.assertEqual(score.redundancy_penalty, 0.0)
 
     def test_only_fully_covered_clauses_are_penalized_inside_a_rollout(self):
         source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
@@ -542,6 +767,32 @@ class RewardPatchRegressionTests(unittest.TestCase):
         self.assertEqual(reverse.redundant_clauses, 0)
         self.assertEqual(reverse.redundancy_penalty, 0.0)
 
+    def test_non_surviving_clauses_are_not_counted_as_redundant(self):
+        source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
+        examples = ExampleSet(
+            program=parse_program(source),
+            positives={0: [State(vars={"x": 0})]},
+            negatives={0: [State(vars={"x": -1})]},
+            neg_groups={0: [[0]]},
+        )
+
+        class SelectiveFilter:
+            @staticmethod
+            def filter(_program, _loop_idx, invariants, _positives=None):
+                return [inv for inv in invariants if inv == "x >= 0"]
+
+        score = RewardCalculator(
+            invariant_filter=SelectiveFilter(), n_jobs=1
+        ).compute(
+            source, [["x >= 0", "x == 42"]], examples=examples
+        ).rollouts[0]
+
+        self.assertEqual(score.survivors, ["x >= 0"])
+        self.assertEqual(score.survival_bonus, 1.0)
+        self.assertEqual(score.redundant_clauses, 0)
+        self.assertEqual(score.redundancy_penalty, 0.0)
+        self.assertEqual(score.essential, 1)
+
     def test_refine_reward_caps_response_and_returns_trainable_overflow_penalty(self):
         source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
         examples = ExampleSet(
@@ -553,7 +804,6 @@ class RewardPatchRegressionTests(unittest.TestCase):
         calculator = RewardCalculator(
             invariant_filter=self._IdentityFilter(),
             w_base=1.0,
-            w_marg=0.0,
             w_redundancy=0.0,
             w_overflow=0.0,
             n_jobs=1,
@@ -592,6 +842,48 @@ class SamplerIntegrationRegressionTests(unittest.TestCase):
             [candidate.state.vars["x"] for candidate in candidates],
             [13, -5],
         )
+
+    def test_unknown_initialized_local_retains_loop_entry_snapshot(self):
+        source = (
+            "int unknown(void); "
+            "void f(void) { int v = unknown(); int i = 0; "
+            "int p = v; int fact = 1; "
+            "while (i < 3) { p *= 2; i++; fact *= i; } }"
+        )
+        invariants = [
+            r"p == \at(v,LoopEntry) * power(2, i)",
+            "fact == factorial(i)",
+            "0 <= i && i <= 3",
+        ]
+
+        examples = ExampleSampler(source, n_runs=4).sample()
+
+        self.assertGreater(len(examples.pos(0)), 0)
+        self.assertTrue(all(state.loop_entry for state in examples.pos(0)))
+        self.assertTrue(all(
+            eval_predicate(invariant, state) is True
+            for state in examples.pos(0)
+            for invariant in invariants
+        ))
+        self.assertTrue(all(
+            state.loop_entry
+            for state in examples.neg(0)
+        ))
+
+        class IdentityFilter:
+            @staticmethod
+            def filter(_program, _loop_idx, candidates, _positives=None):
+                return list(candidates)
+
+        score = RewardCalculator(
+            invariant_filter=IdentityFilter(), n_jobs=1
+        ).compute(
+            source, [invariants], examples=examples
+        ).rollouts[0]
+
+        self.assertGreater(len(examples.groups(0)), 0)
+        self.assertGreater(score.rejected, 0)
+        self.assertGreater(score.base, 0.5)
 
     def test_linear_107_terminal_relations_reward_stronger_invariant(self):
         source = (ROOT / "src/input/linear/107.c").read_text(encoding="utf-8")
@@ -635,6 +927,22 @@ class SamplerIntegrationRegressionTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "exited abnormally"):
             ExampleSampler(source, n_runs=1).sample()
+
+    def test_one_undefined_input_does_not_discard_valid_traces(self):
+        source = (
+            "/*@ requires n > 0; */\n"
+            "void f(int n) { int guess = n / 2; int prev = 0; "
+            "while (guess != prev) { prev = guess; "
+            "guess = (guess + n / guess) / 2; } }"
+        )
+
+        examples = ExampleSampler(source, n_runs=12, seed=0).sample()
+
+        self.assertGreater(len(examples.pos(0)), 0)
+        self.assertEqual(examples.stats[0]["skipped_abnormal_run_count"], 1)
+        skipped = examples.stats[0]["skipped_abnormal_runs"][0]
+        self.assertEqual(skipped["inputs"], {"n": 1})
+        self.assertIn("signal 8", skipped["error"])
 
     def test_typed_oracle_stub_and_labelled_body_compile(self):
         typed = (
@@ -879,6 +1187,35 @@ class InferenceRegressionTests(unittest.TestCase):
         self.assertEqual(len(result.rollouts[0]), 20)
         self.assertEqual(len(result.final_invariants), 20)
         self.assertNotIn("x >= -24", result.final_invariants)
+
+    def test_inference_preserves_unknown_and_injects_logic_definitions(self):
+        source = (
+            "int unknown(void); "
+            "void f(int k) { int p = 1, i = 0, fact = 1; "
+            "while (unknown()) { p *= k; i++; fact *= i; } "
+            "/*@ assert p >= 1; */ }"
+        )
+        framework = InferenceFramework(
+            source,
+            rollout_provider=MockRolloutProvider([[
+                "p == power(k, i)",
+                "fact == factorial(i)",
+            ]]),
+            invariant_filter=self._IdentityFilter(),
+            n_rollouts=1,
+            max_rerolls=0,
+        )
+        framework._verify = mock.Mock(return_value=True)
+
+        result = framework.run()
+
+        self.assertIn("logic integer power", result.annotated_code)
+        self.assertIn("logic integer factorial", result.annotated_code)
+        self.assertEqual(result.annotated_code.count("unknown()"), 1)
+        self.assertEqual(result.final_invariants, [
+            "p == power(k, i)",
+            "fact == factorial(i)",
+        ])
 
     def test_importing_inference_does_not_import_sampler(self):
         env = os.environ.copy()
@@ -1140,7 +1477,6 @@ class CommandAndPackagingRegressionTests(unittest.TestCase):
             "--runs", "3",
             "--seed", "7",
             "--w-base", "0.7",
-            "--w-marg", "0.3",
             "--reroll-threshold", "0.4",
             "--include-program",
             "--quiet",
@@ -1158,7 +1494,7 @@ class CommandAndPackagingRegressionTests(unittest.TestCase):
         args = scorer.call_args.args
         self.assertEqual(args[0:2], ("input.jsonl", "output.jsonl"))
         self.assertEqual(args[3], {"n_runs": 3, "seed": 7})
-        self.assertEqual(args[4:8], (0.7, 0.3, 0.4, True))
+        self.assertEqual(args[4:7], (0.7, 0.4, True))
 
         failed_argv = [
             "score_file",
@@ -1192,6 +1528,30 @@ class CommandAndPackagingRegressionTests(unittest.TestCase):
             "COPY rl_pipeline/inference/ /app/rl_pipeline/inference/",
             dockerfile,
         )
+
+    def test_native_timeout_kills_the_descendant_process_group(self):
+        with tempfile.TemporaryDirectory() as directory:
+            pid_path = Path(directory) / "child.pid"
+            child_code = (
+                "import pathlib,subprocess,time;"
+                f"p=subprocess.Popen(['sleep','30']);"
+                f"pathlib.Path({str(pid_path)!r}).write_text(str(p.pid));"
+                "time.sleep(30)"
+            )
+            result = full832_native._run(
+                [sys.executable, "-c", child_code],
+                cwd=Path(directory),
+                env=os.environ.copy(),
+                timeout=1,
+            )
+            self.assertIsNone(result[0])
+            self.assertTrue(result[1])
+            self.assertLess(result[4], 3)
+            child_pid = int(pid_path.read_text())
+            deadline = time.monotonic() + 2
+            while Path(f"/proc/{child_pid}").exists() and time.monotonic() < deadline:
+                time.sleep(0.02)
+            self.assertFalse(Path(f"/proc/{child_pid}").exists())
 
 
 if __name__ == "__main__":

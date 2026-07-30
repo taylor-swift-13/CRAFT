@@ -15,7 +15,7 @@ Frama-C adapter:
          │ pos + neg traces                          └──────────────────┘
          ▼                                            (testing: vLLM + frama-c)
    ┌──────────────┐   per-rollout reward
-   │    Reward    │   = base + marginal - redundancy/overflow costs
+   │    Reward    │   = base + hard/useful-clause bonuses - penalties
    │ HTTP service │   (training: called by the RL trainer, e.g. verl)
    └──────────────┘
 ```
@@ -124,21 +124,22 @@ Scores a **group** of rollouts. For each rollout `A` (in candidate-trace
 units — one fake continuation is ONE negative, not twenty-four):
 
 - `base[A]`     = candidates rejected by **Houdini(A alone)** — its own kill rate;
-- `marginal[A]` = `rejected(Houdini(∪)) − rejected(Houdini(∪ \ A))` — the effect on
-  the group's kill rate of removing `A` (ablation). This is the positive
-  comparison between rollouts. Set `use_marginal=False` for an ablation that
-  removes this term and skips all leave-one-rollout-out Houdini calls;
-- `marginal_rejected[A]` reports that leave-one-rollout-out effect as an exact
-  candidate count;
+- `hard_bonus[A]` gives extra credit for negatives rejected by few other
+  rollouts in the same group;
+- `survival_bonus[A]` is the number of non-redundant Houdini survivors:
+  traversing clauses in model-output order, each clause counts when it adds at
+  least one newly rejected negative group;
 - `redundant_clauses[A]` is computed inside rollout `A`: traverse its accepted
   clauses in model-output order and maintain the negative traces already
-  rejected. A clause is penalized only if it adds zero new rejected traces.
+  rejected. A Houdini survivor is penalized only if it adds zero new rejected
+  traces. Non-survivors are ignored rather than double-penalized.
   The default penalty is `0.02·redundant_clauses[A]`;
-- `reward[A]`   = `0.8·base[A] + 0.2·marginal[A]
+- `reward[A]`   = `1.0·base[A] + 0.3·hard_bonus[A]
+  + 0.1·survival_bonus[A]
   − redundancy_penalty[A] − overflow_penalty[A]` by default.
-  `essential` still counts clauses that extend the rollout's rejected-negative
-  set during the ordered traversal, and `precision = essential/generated`;
-  both are monitoring fields and do not affect reward.
+  `essential` is the same non-redundant survivor count used by
+  `survival_bonus`, while `precision = essential/generated` remains a
+  monitoring field.
   Soundness is not a scoring patch: when Frama-C is
   available it comes from `PositiveFilter → Frama-C/WP fixpoint`. Unsound
   clauses are pruned; tautologies may survive but add no negative coverage and
@@ -155,14 +156,11 @@ units — one fake continuation is ONE negative, not twenty-four):
 ```python
 from rl_pipeline.reward import RewardCalculator
 br = RewardCalculator().compute(source, rollouts)
-br.to_dict()   # rewards, marginal_rejected, redundancy/overflow metrics, batch_score
-
-# reward ablation: base - internal redundancy - overflow
-ablated = RewardCalculator(use_marginal=False).compute(source, rollouts)
+br.to_dict()   # rewards, hard/survival bonuses, redundancy/overflow, batch_score
 ```
 
 **Refine reward** — `rl_pipeline/reward/refine.py` scores a refine group (n
-LLM repairs of one merged pool) as each refinement's marginal contribution:
+LLM repairs of one merged pool) as each refinement's incremental contribution:
 `delta_base[i] = base(Houdini(pool ∪ refined_i)) − base(Houdini(pool))`.
 Δ ≥ 0 by construction; trivial / copied / broken refinements score 0 for free.
 Train on `refine_rewards`, which equals `delta_base` minus the same per-line
@@ -186,7 +184,6 @@ curl -s localhost:8000/refine_reward -H 'content-type: application/json' \
 
 Offline JSONL/Parquet groups can be scored with
 `python -m rl_pipeline.reward.score_file --input <in> --output <out> --runs 12 --seed 0`.
-Add `--disable-marginal` for the corresponding reward ablation.
 Parquet additionally requires `pandas` and `pyarrow`.
 
 ## 3. Inference — `rl_pipeline/inference` (no reward sampling or scoring)
@@ -223,10 +220,8 @@ no round number, no history) so a policy trained on single-round refine groups
 transfers to multi-round inference unchanged.  Training and inference format
 the SAME template — edit the file, both sides follow.
 
-For training-only augmentation,
-`prompts.system_prompt(shuffle_rules=True, seed=group_seed)` randomly reorders
-only the 15 bullets in the `## RULES` section. Every rollout in one GRPO group
-must share the same rendered system prompt.
+`prompts.system_prompt()` returns this canonical prompt in a fixed rule order
+for both training and inference.
 
 ## Houdini / Frama-C
 

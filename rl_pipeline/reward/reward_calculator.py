@@ -16,8 +16,9 @@ Scoring uses ONE canonical example set; soundness is delegated entirely to the
 filter cascade, which ends in real Houdini (Frama-C/WP).
 
 A candidate set "rejects" a negative valuation s iff some (Houdini-surviving)
-invariant evaluates to False at s — a cheap pure-Python check on states.  The
-only Frama-C cost is the Houdini step (swappable; see filters.py).
+invariant evaluates to False at s — a cheap pure-Python check on states.  When
+no safe negatives exist, the fallback is binary: one iff every candidate in a
+non-empty rollout survives Frama-C/WP validation, otherwise zero.
 """
 from __future__ import annotations
 
@@ -79,6 +80,10 @@ class BatchReward:
             "batch_score": self.batch_score,
             "should_reroll": self.should_reroll,
             "filter_mode": self.filter_mode,
+            "reward_mode": (
+                "negative_coverage"
+                if self.n_negatives else "binary_frama_c_validation"
+            ),
             "marginal_enabled": self.marginal_enabled,
             "rollout_rewards": [r.reward for r in self.rollouts],
             "base": [r.base for r in self.rollouts],
@@ -318,16 +323,30 @@ class RewardCalculator:
                     kv[0], self.filter.filter(prog, loop_idx, sorted(kv[0]), positives)),
                     uniq.items()))
         union_surv = survive(union)
+        rollout_survivors = [survive(invs) for invs in roll_invs]
         union_rej = self._to_groups(self._rejected_set(negatives, union_surv), groups)
         if n_neg:
             batch_score = len(union_rej) / n_neg
         else:
-            batch_score = (len(union_surv) / len(union)) if union else 0.0
+            def fully_verified(
+                candidates: List[str], survivors: List[str]
+            ) -> bool:
+                candidate_set = frozenset(
+                    normalize_invariant(i) for i in candidates
+                )
+                survivor_set = frozenset(
+                    normalize_invariant(i) for i in survivors
+                )
+                return bool(candidate_set) and survivor_set == candidate_set
+
+            batch_score = (
+                1.0 if fully_verified(union, union_surv) else 0.0
+            )
 
         scores: List[RolloutScore] = []
         for idx, invs in enumerate(roll_invs):
             # base: standalone Houdini survivors, counted in trace units
-            surv = survive(invs)
+            surv = rollout_survivors[idx]
             base_rej = self._to_groups(self._rejected_set(negatives, surv), groups)
             base = (len(base_rej) / n_neg) if n_neg else 0.0
             # marginal: ablation on the union (skipped when unweighted — the
@@ -366,15 +385,14 @@ class RewardCalculator:
                     - overflow_penalty
                 )
             else:
-                # No finite negative set is available: retain a bounded Houdini
-                # signal instead of returning an all-zero GRPO group.
+                # Pure binary fallback: every candidate in this non-empty
+                # rollout must survive Frama-C/WP validation. Do not mix
+                # structural penalties into its public {0, 1} contract.
                 precision = 1.0
                 n_essential = 0
                 redundancy_penalty = 0.0
                 redundant_clauses = 0
-                reward = (
-                    (len(surv) / len(invs)) if invs else 0.0
-                ) - overflow_penalty
+                reward = 1.0 if fully_verified(invs, surv) else 0.0
             scores.append(RolloutScore(
                 index=idx, invariants=invs, survivors=surv,
                 generated=n_generated, accepted=n_accepted, overflow=overflow,

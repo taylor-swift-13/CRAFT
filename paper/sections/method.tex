@@ -154,7 +154,8 @@ unchanged.
 Rejection tests are pure Python; division and remainder use C-style truncation on the concrete integer states, while the only heavyweight cost is the prover.  The distinct clause sets a group needs (per-rollout, union, ablations) are memoized and verified in parallel, and each WP run discharges its goals concurrently.
 The group additionally receives $\mathrm{batch} = |\mathrm{rej}(U)| / |\mathcal{N}|$ and a re-roll flag when it falls below a threshold.
 If no negative trace unit can be constructed safely, rollout and batch signals
-fall back to Houdini-survival fractions; the overflow cost still applies.
+fall back to binary Frama-C/WP validation: a nonempty candidate set receives one
+iff every clause survives standalone Houdini, and zero otherwise.
 
 Refinement training is a separate group type, not a third generation-reward term.  Given a shared merged pool $X$ and repair response $R_i$, its reward is
 \begin{align}

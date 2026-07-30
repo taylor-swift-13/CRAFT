@@ -15,6 +15,7 @@ from unittest import mock
 
 from fastapi.testclient import TestClient
 
+from rl_pipeline.common import prompts
 from rl_pipeline.common.program import parse_program, strip_postcondition
 from rl_pipeline.common.state import (
     MAX_INVARIANTS_PER_RESPONSE,
@@ -287,6 +288,45 @@ class RewardPatchRegressionTests(unittest.TestCase):
         def filter(_program, _loop_idx, invariants, _positives=None):
             return list(invariants)
 
+    def test_training_system_prompt_shuffles_only_rule_bullets(self):
+        canonical = prompts.system_prompt()
+        self.assertIn("## LOOP INVARIANT DEFINITION", canonical)
+        self.assertIn("## RULES", canonical)
+        self.assertIn("## OUTPUT", canonical)
+        with self.assertRaisesRegex(ValueError, "explicit seed"):
+            prompts.system_prompt(shuffle_rules=True)
+
+        rules_section = canonical.split("## RULES", 1)[1].split(
+            "## OUTPUT", 1
+        )[0]
+        rules = [
+            line
+            for line in rules_section.strip().splitlines()
+            if line.strip()
+        ]
+        shuffled = prompts.system_prompt(
+            shuffle_rules=True, seed=17
+        )
+        self.assertEqual(
+            shuffled,
+            prompts.system_prompt(shuffle_rules=True, seed=17),
+        )
+        for rule in rules:
+            self.assertEqual(shuffled.count(rule), 1)
+        self.assertEqual(
+            canonical.split("## RULES", 1)[0],
+            shuffled.split("## RULES", 1)[0],
+        )
+        self.assertEqual(
+            canonical.split("## OUTPUT", 1)[1],
+            shuffled.split("## OUTPUT", 1)[1],
+        )
+        variants = {
+            prompts.system_prompt(shuffle_rules=True, seed=seed)
+            for seed in range(8)
+        }
+        self.assertGreater(len(variants), 1)
+
     def test_ordered_essential_count_is_diagnostic_only(self):
         source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
         program = parse_program(source)
@@ -320,7 +360,7 @@ class RewardPatchRegressionTests(unittest.TestCase):
             2 / 3 - 2 * 0.02,
         )
 
-    def test_zero_negative_fallback_uses_houdini_survival_fraction(self):
+    def test_zero_negative_fallback_uses_binary_frama_c_validation(self):
         source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
         examples = ExampleSet(
             program=parse_program(source),
@@ -329,12 +369,30 @@ class RewardPatchRegressionTests(unittest.TestCase):
             neg_groups={0: []},
         )
 
-        result = RewardCalculator(
-            invariant_filter=self._IdentityFilter(), n_jobs=1
-        ).compute(source, [["x >= 0"]], examples=examples)
+        class SelectiveFilter:
+            name = "cascade(positive->houdini)"
 
-        self.assertEqual(result.batch_score, 1.0)
-        self.assertEqual(result.rollouts[0].reward, 1.0)
+            @staticmethod
+            def filter(_program, _loop_idx, invariants, _positives=None):
+                return [inv for inv in invariants if inv == "x >= 0"]
+
+        result = RewardCalculator(
+            invariant_filter=SelectiveFilter(), n_jobs=1,
+        ).compute(
+            source,
+            [["x >= 0"], ["x == 42"], []],
+            examples=examples,
+        )
+
+        self.assertEqual(result.batch_score, 0.0)
+        self.assertEqual(
+            [rollout.reward for rollout in result.rollouts],
+            [1.0, 0.0, 0.0],
+        )
+        self.assertEqual(
+            result.to_dict()["reward_mode"],
+            "binary_frama_c_validation",
+        )
         self.assertEqual(result.rollouts[0].precision, 1.0)
 
     def test_default_reward_weights_base_and_marginal_as_eighty_twenty(self):

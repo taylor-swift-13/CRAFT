@@ -16,6 +16,36 @@ Keep two program forms in the trainer or dataset:
 - `full_program`: the original function sent to reward endpoints, including its
   contract and assertion.
 
+### Training-only system-rule order perturbation
+
+During training, the 15 bullet rules between `## RULES` and `## OUTPUT` in
+`prompt/system_prompt.txt` may be randomly reordered. The definition section,
+output section, generation prompt, program text, and rule contents remain
+unchanged. The repository renderer is:
+
+```python
+from rl_pipeline.common import prompts
+
+# Derive once per prompt group from stable integer identifiers.
+group_seed = global_seed + epoch * 1_000_003 + group_id
+system_message = prompts.system_prompt(
+    shuffle_rules=True,
+    seed=group_seed,
+)
+
+# Every rollout normalized in this GRPO group uses this same system_message.
+rollouts = model.generate(
+    user_prompt,
+    system_prompt=system_message,
+    n=group_size,
+)
+```
+
+Use a different seed for later groups or epochs, but never change the system
+message between rollouts in the same GRPO group. `shuffle_rules=True` requires
+an explicit seed to make accidental per-rollout perturbation fail fast.
+Inference continues to call `system_prompt()` without shuffling.
+
 ```
 trainer (GPU box)                         reward service (Docker, CPU box)
 ─────────────────                         ─────────────────────────────────
@@ -79,6 +109,7 @@ One call per prompt-group (the n rollouts sampled from one program's prompt).
   "base": [...], "marginal": [...], "marginal_rejected": [...],
   "redundant_clauses": [...], "redundancy_penalty": [...],
   "overflow_penalty": [...], "essential": [...], "precision": [...],
+  "reward_mode": "negative_coverage",
   "marginal_enabled": true,
   "batch_score": 0.83, "should_reroll": false,
   "n_negatives": 118, "filter_mode": "cascade(positive->houdini)",
@@ -109,9 +140,13 @@ The complete reward is
 Only the first 20 invariant lines in each response enter Houdini; every later
 line subtracts 0.05 and is reported through `generated`, `accepted`, and
 `overflow`.
-When no negatives are available, the service falls back to Houdini survival
-fractions. Negatives derive from the loop only (never the assert), so scoring
-stays closed-book. The example set is cached per (program, sampler-config).
+When no negatives are available, each rollout receives a binary Frama-C/WP
+validation reward: 1 iff its non-empty canonical candidate set survives
+standalone Houdini without any clause being removed, otherwise 0. The
+union-backed `batch_score` follows the same rule. No assertion or postcondition
+is required or consulted, so this branch remains target-free. Structural
+penalties are reported but are not mixed into this binary reward. The example
+set is cached per (program, sampler-config).
 
 ### 2.2 `POST /refine_feedback` — build a refine group's prompt
 

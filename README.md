@@ -148,8 +148,9 @@ units — one fake continuation is ONE negative, not twenty-four):
   response exposes `generated`, `accepted`, `overflow`, and
   `overflow_penalty`;
 - `batch_score` = candidates rejected by `Houdini(∪)`. If no synthetic
-  negatives are available, rollout and batch rewards fall back to Houdini
-  survival fractions (the overflow penalty still applies).
+  negatives are available, rollout and batch rewards fall back to binary
+  Frama-C/WP validation: 1 iff the non-empty candidate set survives Houdini
+  without any clause being removed, otherwise 0.
 
 ```python
 from rl_pipeline.reward import RewardCalculator
@@ -221,6 +222,11 @@ refine prompt is **stateless by design** (program + current pool verdicts only,
 no round number, no history) so a policy trained on single-round refine groups
 transfers to multi-round inference unchanged.  Training and inference format
 the SAME template — edit the file, both sides follow.
+
+For training-only augmentation,
+`prompts.system_prompt(shuffle_rules=True, seed=group_seed)` randomly reorders
+only the 15 bullets in the `## RULES` section. Every rollout in one GRPO group
+must share the same rendered system prompt.
 
 ## Houdini / Frama-C
 

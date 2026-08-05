@@ -59,7 +59,6 @@ class RewardRequest(BaseModel):
     rollouts: List[Any] = Field(..., description="each: {'invariants':[...]} or {'code': '...'}")
     w_base: float = Field(1.0, ge=0.0)
     w_hard: float = Field(0.3, ge=0.0)
-    w_surv: float = Field(0.1, ge=0.0)
     w_redundancy: float = Field(0.02, ge=0.0)
     w_overflow: float = Field(0.05, ge=0.0)
     max_invariants: int = Field(
@@ -123,7 +122,6 @@ def build_app():
             rc = RewardCalculator(
                 invariant_filter=_get_filter(),
                 w_base=req.w_base, w_hard=req.w_hard,
-                w_surv=req.w_surv,
                 w_redundancy=req.w_redundancy,
                 w_overflow=req.w_overflow,
                 max_invariants=req.max_invariants,

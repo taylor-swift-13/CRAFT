@@ -83,7 +83,7 @@ One call per prompt-group (the n rollouts sampled from one program's prompt).
     {"invariants": ["x >= y", "y >= 0"]},   // or {"code": "<annotated C>"}
     "<raw LLM text — loop invariant lines are extracted>"
   ],
-  "w_base": 1.0, "w_hard": 0.3, "w_surv": 0.1,
+  "w_base": 1.0, "w_hard": 0.3,
   "w_redundancy": 0.02,
   "w_overflow": 0.05, "max_invariants": 20, // optional defaults; max cannot exceed 20
   "sampler": {"n_runs": 12, "seed": 0}      // optional; keep fixed per sweep
@@ -91,9 +91,9 @@ One call per prompt-group (the n rollouts sampled from one program's prompt).
 // response (order-aligned with rollouts)
 {
   "rollout_rewards": [0.41, 0.17],          // ← the GRPO group rewards
-  "base": [...], "hard_bonus": [...], "survival_bonus": [...],
+  "base": [...], "hard_bonus": [...],
   "redundant_clauses": [...], "redundancy_penalty": [...],
-  "overflow_penalty": [...], "essential": [...], "precision": [...],
+  "overflow_penalty": [...],
   "reward_mode": "negative_coverage",
   "batch_score": 0.83, "should_reroll": false,
   "n_negatives": 118, "filter_mode": "cascade(positive->houdini)",
@@ -103,21 +103,14 @@ One call per prompt-group (the n rollouts sampled from one program's prompt).
 
 Semantics: `base[A]` is the fraction of sampled negative-candidate traces
 rejected by A's Houdini survivors. `hard_bonus[A]` emphasizes rejected traces
-that few other rollouts reject. `survival_bonus[A]` is the number of surviving
-clauses that add at least one new rejected negative group when traversed in
-model-output order.
-The redundancy penalty is instead computed inside each rollout. Accepted
-clauses are traversed in model-output order while maintaining the negative
-traces covered so far. A clause with zero incremental coverage is fully
-redundant; each such surviving clause subtracts 0.02 by default. Thus earlier
-useful clauses receive credit, while later duplicates, covered clauses, and
-surviving tautologies are penalized. Clauses removed by Houdini are ignored by
-this penalty because they already contribute no coverage or survival bonus.
+that few other rollouts reject. The redundancy penalty counts only conservative
+semantic duplicates in the admitted response prefix. It does not penalize a
+unique clause merely because sampled negatives expose no independent coverage;
+such a clause may support another survivor or the hidden proof target. The
+same solver-free semantic key is used by training and inference, preserves the
+first spelling, and falls back to normalized text for unsupported expressions.
 The complete default reward is
-`1.0·base + 0.3·hard_bonus + 0.1·survival_bonus
-- redundancy_penalty - overflow_penalty`.
-`essential` is the same count used by `survival_bonus`;
-`precision = essential/generated` is observational only.
+`1.0·base + 0.3·hard_bonus - redundancy_penalty - overflow_penalty`.
 Only the first 20 invariant lines in each response enter Houdini; every later
 line subtracts 0.05 and is reported through `generated`, `accepted`, and
 `overflow`.

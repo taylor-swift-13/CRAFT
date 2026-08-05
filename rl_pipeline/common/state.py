@@ -19,7 +19,7 @@ from __future__ import annotations
 import ast
 import re
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, Hashable, List, Optional
 
 
 @dataclass(frozen=True)
@@ -101,12 +101,18 @@ def extract_invariants(
 
 
 def dedup_normalized(invariants):
-    """Normalize each invariant and dedup, preserving first-seen order; drop empties."""
+    """Normalize and conservatively de-duplicate integer invariants.
+
+    The first spelling is preserved for Frama-C and user-facing diagnostics;
+    only the membership key is canonicalized.  Unsupported expressions fall
+    back to their whitespace-normalized spelling.
+    """
     out, seen = [], set()
     for inv in invariants:
         c = normalize_invariant(inv)
-        if c and c not in seen:
-            seen.add(c)
+        key = invariant_dedup_key(c)
+        if c and key not in seen:
+            seen.add(key)
             out.append(c)
     return out
 
@@ -209,6 +215,170 @@ def _acsl_to_py(expr: str) -> str:
     s = _translate_logic(s)
     s = re.sub(r"(?<![<>=!])=(?![=])", "==", s)
     return re.sub(r"(?<![/])/(?![/])", "//", s)
+
+
+class _UnsupportedCanonicalNode(ValueError):
+    """Raised when an expression is outside the conservative dedup subset."""
+
+
+def _key_order(value: Hashable) -> str:
+    """Stable total order for nested canonical-key tuples."""
+    return repr(value)
+
+
+def _ordered_pair(left: Hashable, right: Hashable):
+    if _key_order(right) < _key_order(left):
+        return right, left
+    return left, right
+
+
+def _constant_is(key: Hashable, value: int) -> bool:
+    return key == ("constant", "int", value)
+
+
+def _canonical_compare(operator, left: Hashable, right: Hashable):
+    if isinstance(operator, ast.Gt):
+        return ("compare", "lt", right, left)
+    if isinstance(operator, ast.GtE):
+        return ("compare", "le", right, left)
+    if isinstance(operator, ast.Lt):
+        return ("compare", "lt", left, right)
+    if isinstance(operator, ast.LtE):
+        return ("compare", "le", left, right)
+    if isinstance(operator, ast.Eq):
+        left, right = _ordered_pair(left, right)
+        return ("compare", "eq", left, right)
+    if isinstance(operator, ast.NotEq):
+        left, right = _ordered_pair(left, right)
+        return ("compare", "ne", left, right)
+    raise _UnsupportedCanonicalNode(type(operator).__name__)
+
+
+def _negate_canonical_key(key: Hashable):
+    if isinstance(key, tuple) and key and key[0] == "not":
+        return key[1]
+    if not (isinstance(key, tuple) and len(key) == 4 and key[0] == "compare"):
+        return ("not", key)
+    _, operator, left, right = key
+    if operator == "lt":
+        return ("compare", "le", right, left)
+    if operator == "le":
+        return ("compare", "lt", right, left)
+    if operator == "eq":
+        return ("compare", "ne", left, right)
+    if operator == "ne":
+        return ("compare", "eq", left, right)
+    raise _UnsupportedCanonicalNode(operator)
+
+
+def _canonical_ast_key(node: ast.AST) -> Hashable:
+    """Build a solver-free key using only semantics-safe integer rewrites."""
+    if isinstance(node, ast.Expression):
+        return _canonical_ast_key(node.body)
+    if isinstance(node, ast.Name):
+        return ("name", node.id)
+    if isinstance(node, ast.Constant):
+        if isinstance(node.value, bool):
+            return ("constant", "bool", node.value)
+        if isinstance(node.value, int):
+            return ("constant", "int", node.value)
+        raise _UnsupportedCanonicalNode(type(node.value).__name__)
+    if isinstance(node, ast.UnaryOp):
+        operand = _canonical_ast_key(node.operand)
+        if isinstance(node.op, ast.Not):
+            return _negate_canonical_key(operand)
+        if isinstance(node.op, ast.UAdd):
+            return operand
+        if isinstance(node.op, ast.USub):
+            return ("unary", "neg", operand)
+        raise _UnsupportedCanonicalNode(type(node.op).__name__)
+    if isinstance(node, ast.BinOp):
+        left = _canonical_ast_key(node.left)
+        right = _canonical_ast_key(node.right)
+        if isinstance(node.op, ast.Add):
+            if _constant_is(left, 0):
+                return right
+            if _constant_is(right, 0):
+                return left
+            left, right = _ordered_pair(left, right)
+            return ("binary", "add", left, right)
+        if isinstance(node.op, ast.Mult):
+            if _constant_is(left, 1):
+                return right
+            if _constant_is(right, 1):
+                return left
+            left, right = _ordered_pair(left, right)
+            return ("binary", "mul", left, right)
+        if isinstance(node.op, ast.Sub):
+            if _constant_is(right, 0):
+                return left
+            return ("binary", "sub", left, right)
+        exact_operators = {
+            ast.FloorDiv: "div",
+            ast.Mod: "mod",
+            ast.Pow: "pow",
+        }
+        for operator_type, name in exact_operators.items():
+            if isinstance(node.op, operator_type):
+                return ("binary", name, left, right)
+        raise _UnsupportedCanonicalNode(type(node.op).__name__)
+    if isinstance(node, ast.BoolOp):
+        if isinstance(node.op, ast.And):
+            operator = "and"
+        elif isinstance(node.op, ast.Or):
+            operator = "or"
+        else:
+            raise _UnsupportedCanonicalNode(type(node.op).__name__)
+        values = []
+        for child in node.values:
+            key = _canonical_ast_key(child)
+            if isinstance(key, tuple) and len(key) == 3 and key[:2] == ("bool", operator):
+                candidates = key[2]
+            else:
+                candidates = (key,)
+            for candidate in candidates:
+                if candidate not in values:
+                    values.append(candidate)
+        if len(values) == 1:
+            return values[0]
+        return ("bool", operator, tuple(values))
+    if isinstance(node, ast.Compare):
+        current = _canonical_ast_key(node.left)
+        comparisons = []
+        for operator, comparator in zip(node.ops, node.comparators):
+            right = _canonical_ast_key(comparator)
+            comparisons.append(_canonical_compare(operator, current, right))
+            current = right
+        if len(comparisons) == 1:
+            return comparisons[0]
+        return ("bool", "and", tuple(comparisons))
+    if isinstance(node, ast.Call):
+        if (
+            isinstance(node.func, ast.Name)
+            and node.func.id == "bool"
+            and len(node.args) == 1
+            and not node.keywords
+        ):
+            return _canonical_ast_key(node.args[0])
+        raise _UnsupportedCanonicalNode("Call")
+    raise _UnsupportedCanonicalNode(type(node).__name__)
+
+
+def invariant_dedup_key(inv: str) -> Hashable:
+    """Return a conservative semantic key for a scalar-integer invariant.
+
+    This deliberately avoids algebraic normalization, Boolean reordering,
+    cancellation, and division/modulo rewrites.  It is a fast deduplication
+    helper, not a theorem prover; no SMT solver is imported or invoked.
+    """
+    normalized = normalize_invariant(inv)
+    if not normalized:
+        return ("raw", "")
+    try:
+        tree = ast.parse(_acsl_to_py(normalized).strip(), mode="eval")
+        return ("ast", _canonical_ast_key(tree))
+    except (SyntaxError, TypeError, ValueError, _UnsupportedCanonicalNode):
+        return ("raw", normalized)
 
 
 # C integer division/modulo: truncation toward zero (Python's // and % floor).

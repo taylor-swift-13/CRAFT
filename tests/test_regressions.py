@@ -5,6 +5,7 @@ import importlib
 import json
 import os
 from pathlib import Path
+import random
 import shutil
 import subprocess
 import sys
@@ -21,9 +22,11 @@ from rl_pipeline.common.program import parse_program, strip_postcondition
 from rl_pipeline.common.state import (
     MAX_INVARIANTS_PER_RESPONSE,
     State,
+    dedup_normalized,
     eval_predicate,
     extract_invariants,
     first_falsifying_state,
+    invariant_dedup_key,
 )
 from rl_pipeline.eval.mislabel_audit import discover_programs
 from rl_pipeline.inference import InferenceFramework, MockRolloutProvider
@@ -593,7 +596,84 @@ class RewardPatchRegressionTests(unittest.TestCase):
         self.assertIn("## OUTPUT", canonical)
         self.assertEqual(canonical, prompts.system_prompt())
 
-    def test_ordered_essential_survivors_receive_additive_bonus(self):
+    def test_conservative_semantic_dedup_merges_only_whitelisted_forms(self):
+        equivalent_pairs = [
+            ("x >= 0", "0 <= x"),
+            ("x >= 0", "!(x < 0)"),
+            ("x == y", "y == x"),
+            ("x + y == n", "n == y + x"),
+            ("x + 0 == n", "x == n"),
+            ("a && (b && a)", "(a && b) && a"),
+            ("a ==> b", "!a || b"),
+            (r"\at(j,LoopEntry) <= j", r"j >= \at(j,LoopEntry)"),
+        ]
+        for left, right in equivalent_pairs:
+            with self.subTest(left=left, right=right):
+                self.assertEqual(
+                    invariant_dedup_key(left),
+                    invariant_dedup_key(right),
+                )
+
+        distinct_pairs = [
+            ("x < 0", "x <= 0"),
+            ("x + y == n", "x == n - y"),
+            ("(x + y) + z == n", "x + (y + z) == n"),
+            ("2 * x == 2 * y", "x == y"),
+            ("a && b", "b && a"),
+            ("x / x == 1", "x != 0"),
+        ]
+        for left, right in distinct_pairs:
+            with self.subTest(left=left, right=right):
+                self.assertNotEqual(
+                    invariant_dedup_key(left),
+                    invariant_dedup_key(right),
+                )
+
+        self.assertEqual(
+            dedup_normalized(["x >= 0", "0 <= x", "y == y"]),
+            ["x >= 0", "y == y"],
+        )
+
+    def test_reward_public_api_contains_no_removed_credit_fields(self):
+        if hasattr(service.RewardRequest, "model_fields"):
+            request_fields = service.RewardRequest.model_fields
+        else:
+            request_fields = service.RewardRequest.__fields__
+        self.assertNotIn("w_surv", request_fields)
+        self.assertFalse(hasattr(RewardCalculator(), "w_surv"))
+
+    def test_semantic_dedup_fixed_seed_metamorphic_pairs(self):
+        rng = random.Random(20260805)
+        names = ["x", "y", "z", "n", "i", "j"]
+
+        def atom():
+            return rng.choice(names + [str(rng.randint(-4, 4))])
+
+        for index in range(5000):
+            left, right, third = atom(), atom(), atom()
+            case = index % 5
+            if case == 0:
+                original = f"{left} == {right}"
+                transformed = f"{right} == {left}"
+            elif case == 1:
+                original = f"{left} >= {right}"
+                transformed = f"{right} <= {left}"
+            elif case == 2:
+                original = f"{left} + {right} == {third}"
+                transformed = f"{right} + {left} == {third}"
+            elif case == 3:
+                original = f"({left} && {right}) && {third}"
+                transformed = f"{left} && ({right} && {third})"
+            else:
+                original = f"{left} ==> {right}"
+                transformed = f"!{left} || {right}"
+            with self.subTest(index=index):
+                self.assertEqual(
+                    invariant_dedup_key(original),
+                    invariant_dedup_key(transformed),
+                )
+
+    def test_duplicate_penalty_does_not_charge_unique_zero_coverage_clauses(self):
         source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
         program = parse_program(source)
         examples = ExampleSet(
@@ -618,15 +698,11 @@ class RewardPatchRegressionTests(unittest.TestCase):
         score = result.rollouts[0]
 
         self.assertEqual(score.base, 2 / 3)
-        self.assertEqual(score.precision, 2 / 4)
-        self.assertEqual(score.essential, 2)
-        self.assertEqual(score.survival_bonus, 2.0)
-        self.assertEqual(score.redundant_clauses, 2)
+        self.assertEqual(score.redundant_clauses, 1)
         self.assertAlmostEqual(
             score.reward,
             2 / 3
-            + 0.1 * 2
-            - 2 * 0.02,
+            - 0.02,
         )
 
     def test_zero_negative_fallback_uses_binary_frama_c_validation(self):
@@ -662,9 +738,10 @@ class RewardPatchRegressionTests(unittest.TestCase):
             result.to_dict()["reward_mode"],
             "binary_frama_c_validation",
         )
-        self.assertEqual(result.rollouts[0].precision, 1.0)
+        self.assertNotIn("survival_bonus", result.to_dict())
+        self.assertNotIn("marginal", result.to_dict())
 
-    def test_default_reward_adds_hard_and_essential_bonuses(self):
+    def test_default_reward_adds_positive_hardness_bonus(self):
         source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
         examples = ExampleSet(
             program=parse_program(source),
@@ -690,25 +767,18 @@ class RewardPatchRegressionTests(unittest.TestCase):
 
         self.assertEqual(calculator.w_base, 1.0)
         self.assertEqual(calculator.w_hard, 0.3)
-        self.assertEqual(calculator.w_surv, 0.1)
         self.assertEqual(strong.base, 1.0)
         self.assertEqual(strong.hard_bonus, 0.25)
-        self.assertEqual(strong.survival_bonus, 1.0)
         self.assertEqual(strong.redundant_clauses, 0)
-        self.assertEqual(strong.essential, 1)
         self.assertAlmostEqual(
             strong.reward,
-            1.0 + 0.3 * 0.25 + 0.1,
+            1.0 + 0.3 * 0.25,
         )
         self.assertEqual(overlapping.base, 0.5)
         self.assertEqual(overlapping.hard_bonus, 0.0)
-        self.assertEqual(overlapping.survival_bonus, 1.0)
         self.assertEqual(overlapping.redundant_clauses, 0)
         self.assertEqual(overlapping.redundancy_penalty, 0.0)
-        self.assertAlmostEqual(
-            overlapping.reward,
-            0.5 + 0.1,
-        )
+        self.assertAlmostEqual(overlapping.reward, 0.5)
 
     def test_response_cap_truncates_and_penalizes_overflow_lines(self):
         source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
@@ -731,7 +801,7 @@ class RewardPatchRegressionTests(unittest.TestCase):
         self.assertEqual(len(score.invariants), 20)
         self.assertNotIn("x >= -24", score.invariants)
 
-    def test_only_fully_covered_clauses_are_penalized_inside_a_rollout(self):
+    def test_overlapping_unique_clauses_are_not_penalized(self):
         source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
         examples = ExampleSet(
             program=parse_program(source),
@@ -754,10 +824,8 @@ class RewardPatchRegressionTests(unittest.TestCase):
             examples=examples,
         ).rollouts[0]
 
-        self.assertEqual(score.redundant_clauses, 1)
-        self.assertEqual(
-            score.redundancy_penalty, calculator.w_redundancy
-        )
+        self.assertEqual(score.redundant_clauses, 0)
+        self.assertEqual(score.redundancy_penalty, 0.0)
 
         reverse = calculator.compute(
             source,
@@ -766,6 +834,52 @@ class RewardPatchRegressionTests(unittest.TestCase):
         ).rollouts[0]
         self.assertEqual(reverse.redundant_clauses, 0)
         self.assertEqual(reverse.redundancy_penalty, 0.0)
+
+    def test_supporting_clause_enables_standalone_coverage_without_penalty(self):
+        source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
+        examples = ExampleSet(
+            program=parse_program(source),
+            positives={0: [State(vars={"x": 0})]},
+            negatives={0: [State(vars={"x": -1})]},
+            neg_groups={0: [[0]]},
+        )
+
+        class DependencyFilter:
+            @staticmethod
+            def filter(_program, _loop_idx, invariants, _positives=None):
+                invs = set(invariants)
+                if {"x >= 0", "x == x"} <= invs:
+                    return list(invariants)
+                return [inv for inv in invariants if inv == "x == x"]
+
+        score = RewardCalculator(
+            invariant_filter=DependencyFilter(), n_jobs=1
+        ).compute(
+            source, [["x >= 0", "x == x"]], examples=examples
+        ).rollouts[0]
+
+        # x == x rejects no state itself, but lets x >= 0 survive Houdini.
+        self.assertEqual(score.base, 1.0)
+        self.assertEqual(score.reward, 1.0)
+        self.assertEqual(score.redundant_clauses, 0)
+        self.assertEqual(score.redundancy_penalty, 0.0)
+
+    def test_unique_zero_coverage_clause_is_not_penalized(self):
+        source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
+        examples = ExampleSet(
+            program=parse_program(source),
+            positives={0: [State(vars={"x": 0})]},
+            negatives={0: [State(vars={"x": -1})]},
+            neg_groups={0: [[0]]},
+        )
+        score = RewardCalculator(
+            invariant_filter=self._IdentityFilter(), n_jobs=1
+        ).compute(
+            source, [["x >= 0", "x == x"]], examples=examples
+        ).rollouts[0]
+
+        self.assertEqual(score.redundant_clauses, 0)
+        self.assertEqual(score.redundancy_penalty, 0.0)
 
     def test_non_surviving_clauses_are_not_counted_as_redundant(self):
         source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
@@ -788,10 +902,8 @@ class RewardPatchRegressionTests(unittest.TestCase):
         ).rollouts[0]
 
         self.assertEqual(score.survivors, ["x >= 0"])
-        self.assertEqual(score.survival_bonus, 1.0)
         self.assertEqual(score.redundant_clauses, 0)
         self.assertEqual(score.redundancy_penalty, 0.0)
-        self.assertEqual(score.essential, 1)
 
     def test_refine_reward_caps_response_and_returns_trainable_overflow_penalty(self):
         source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
@@ -917,7 +1029,6 @@ class SamplerIntegrationRegressionTests(unittest.TestCase):
         bounds_only, strongest = result.rollouts
 
         self.assertGreater(strongest.reward, bounds_only.reward + 0.15)
-        self.assertEqual(strongest.precision, 1.0)
 
     def test_abnormal_program_exit_fails_sampling(self):
         source = (

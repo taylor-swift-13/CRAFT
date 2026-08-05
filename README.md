@@ -126,24 +126,21 @@ units — one fake continuation is ONE negative, not twenty-four):
 - `base[A]`     = candidates rejected by **Houdini(A alone)** — its own kill rate;
 - `hard_bonus[A]` gives extra credit for negatives rejected by few other
   rollouts in the same group;
-- `survival_bonus[A]` is the number of non-redundant Houdini survivors:
-  traversing clauses in model-output order, each clause counts when it adds at
-  least one newly rejected negative group;
-- `redundant_clauses[A]` is computed inside rollout `A`: traverse its accepted
-  clauses in model-output order and maintain the negative traces already
-  rejected. A Houdini survivor is penalized only if it adds zero new rejected
-  traces. Non-survivors are ignored rather than double-penalized.
-  The default penalty is `0.02·redundant_clauses[A]`;
+- `redundant_clauses[A]` counts conservative semantic duplicates inside the
+  admitted prefix. The solver-free key handles comparison direction,
+  commutative equality/addition/multiplication, harmless identities, and
+  order-preserving Boolean association; unsupported forms fall back to exact
+  normalized text. Duplicates are removed by the same clause-set construction
+  used at inference, so they cannot affect Houdini or any final target. The
+  default penalty is
+  `0.02·redundant_clauses[A]`;
 - `reward[A]`   = `1.0·base[A] + 0.3·hard_bonus[A]
-  + 0.1·survival_bonus[A]
   − redundancy_penalty[A] − overflow_penalty[A]` by default.
-  `essential` is the same non-redundant survivor count used by
-  `survival_bonus`, while `precision = essential/generated` remains a
-  monitoring field.
   Soundness is not a scoring patch: when Frama-C is
   available it comes from `PositiveFilter → Frama-C/WP fixpoint`. Unsound
-  clauses are pruned; tautologies may survive but add no negative coverage and
-  are charged as redundant while negatives exist;
+  clauses are pruned without zeroing the whole response. A unique clause with
+  no sampled negative coverage is not charged: it may support another
+  survivor or an unseen proof target;
 - each model response admits at most 20 `loop invariant` lines. Later lines do
   not enter filtering or scoring, and each overflow line subtracts 0.05. The
   response exposes `generated`, `accepted`, `overflow`, and
@@ -156,7 +153,7 @@ units — one fake continuation is ONE negative, not twenty-four):
 ```python
 from rl_pipeline.reward import RewardCalculator
 br = RewardCalculator().compute(source, rollouts)
-br.to_dict()   # rewards, hard/survival bonuses, redundancy/overflow, batch_score
+br.to_dict()   # rewards, hardness, duplicate/overflow costs, batch_score
 ```
 
 **Refine reward** — `rl_pipeline/reward/refine.py` scores a refine group (n

@@ -5,10 +5,8 @@ Given a program and a GROUP of rollouts (each a candidate invariant set), score
 each rollout and the batch, using synthetic negative candidates from the sampler:
 
   base[A]     = fraction of candidates rejected by Houdini(A alone)
-  hard[A]     = normalized hardness of candidates rejected by A
-  essential[A] = number of surviving clauses that add negative-group coverage
+  hard[A]     = normalized rarity of the candidates rejected by A
   reward[A]   = w_base * base[A] + w_hard * hard[A]
-                + w_surv * essential[A]
                 - redundancy_penalty[A] - overflow_penalty[A]
   batch_score = fraction of candidates rejected by Houdini(union)    (batch performance)
   should_reroll = batch_score < reroll_threshold
@@ -52,12 +50,9 @@ class RolloutScore:
     overflow: int                 # clauses beyond max_invariants
     base: float
     hard_bonus: float
-    survival_bonus: float         # unweighted essential-survivor count
-    redundant_clauses: int        # fully redundant clauses inside this rollout
+    redundant_clauses: int        # conservative semantic duplicate emissions
     redundancy_penalty: float
     overflow_penalty: float
-    essential: int                # ordered clauses with incremental coverage
-    precision: float              # essential clauses / generated clauses
     reward: float
     rejected: int                 # negatives rejected standalone
 
@@ -87,7 +82,6 @@ class BatchReward:
             "rollout_rewards": [r.reward for r in self.rollouts],
             "base": [r.base for r in self.rollouts],
             "hard_bonus": [r.hard_bonus for r in self.rollouts],
-            "survival_bonus": [r.survival_bonus for r in self.rollouts],
             "redundant_clauses": [
                 r.redundant_clauses for r in self.rollouts
             ],
@@ -98,17 +92,12 @@ class BatchReward:
             "generated": [r.generated for r in self.rollouts],
             "accepted": [r.accepted for r in self.rollouts],
             "overflow": [r.overflow for r in self.rollouts],
-            "essential": [r.essential for r in self.rollouts],
-            "precision": [r.precision for r in self.rollouts],
             "rollouts": [
                 {"index": r.index, "reward": r.reward, "base": r.base,
                  "hard_bonus": r.hard_bonus,
-                 "survival_bonus": r.survival_bonus,
-                 "precision": r.precision,
                  "redundant_clauses": r.redundant_clauses,
                  "redundancy_penalty": r.redundancy_penalty,
                  "overflow_penalty": r.overflow_penalty,
-                 "essential": r.essential,
                  "generated": r.generated, "accepted": r.accepted,
                  "overflow": r.overflow,
                  "rejected": r.rejected,
@@ -165,7 +154,6 @@ class RewardCalculator:
         invariant_filter=None,
         w_base: float = 1.0,
         w_hard: float = 0.3,
-        w_surv: float = 0.1,
         w_redundancy: float = 0.02,
         w_overflow: float = 0.05,
         max_invariants: int = MAX_INVARIANTS_PER_RESPONSE,
@@ -178,7 +166,6 @@ class RewardCalculator:
         self.filter = invariant_filter or filters.auto_filter(log)
         self.w_base = w_base
         self.w_hard = w_hard
-        self.w_surv = w_surv
         self.w_redundancy = w_redundancy
         self.w_overflow = w_overflow
         self.max_invariants = max_invariants
@@ -188,7 +175,6 @@ class RewardCalculator:
         if min(
             self.w_base,
             self.w_hard,
-            self.w_surv,
             self.w_redundancy,
             self.w_overflow,
         ) < 0:
@@ -233,42 +219,19 @@ class RewardCalculator:
         return {g for g, idxs in enumerate(groups) if any(i in state_rej for i in idxs)}
 
     @staticmethod
-    def _redundant_clause_count(
-        clauses: List[str],
-        survivors: List[str],
-        negatives: List[State],
-        groups: List[List[int]],
-    ) -> int:
-        """Greedily count clauses with zero incremental coverage.
+    def _duplicate_clause_count(clauses: List[str]) -> int:
+        """Count conservative semantic duplicates, independent of output order.
 
-        Clauses are traversed in model-output order. Coverage is measured after
-        the standalone Houdini pass: a clause is fully redundant exactly when
-        it rejects no negative group beyond those already rejected by earlier
-        clauses. Only Houdini survivors participate: rejected clauses already
-        contribute no coverage or survival bonus and are not also penalized as
-        redundant. Tautological and later duplicated/covered survivors receive
-        the penalty.
+        A repeated clause disappears under the canonical set semantics used by
+        both training and inference, so removing the repeated occurrence cannot
+        affect Houdini, negative coverage, or a held-out proof target.  Unique
+        zero-coverage clauses are deliberately *not* treated as redundant: they
+        may support another clause's inductiveness or a target direction that
+        the sampled negatives do not exercise.
         """
-        survivor_set = {
-            normalize_invariant(clause) for clause in survivors
-        }
-        covered: Set[int] = set()
-        redundant = 0
-        for clause in clauses:
-            if normalize_invariant(clause) not in survivor_set:
-                continue
-            rejected_states = RewardCalculator._rejected_set(
-                negatives, [clause]
-            )
-            rejected_groups = RewardCalculator._to_groups(
-                rejected_states, groups
-            )
-            incremental = rejected_groups - covered
-            if incremental:
-                covered |= rejected_groups
-            else:
-                redundant += 1
-        return redundant
+        normalized = [normalized for clause in clauses
+                      if (normalized := normalize_invariant(clause))]
+        return len(normalized) - len(dedup_normalized(normalized))
 
     def _compute_one(self, source: str, rollouts: List, examples: ExampleSet,
                      loop_idx: int = 0,
@@ -287,8 +250,8 @@ class RewardCalculator:
             groups = [[i] for i in range(len(negatives))]
         n_neg = len(groups)
 
-        # Preserve the model's actual clause count for precision monitoring.
-        # Filtering/scoring still uses a canonical de-duplicated set.
+        # Preserve the model's actual clause count for overflow and duplicate
+        # accounting. Filtering/scoring uses a canonical de-duplicated set.
         roll_invs_raw = [_rollout_invariants_raw(r) for r in rollouts]
         roll_invs_capped = [
             invs[:self.max_invariants] if cap_responses else invs
@@ -373,25 +336,12 @@ class RewardCalculator:
             )
             overflow_penalty = self.w_overflow * overflow
             if n_neg:
-                redundant_clauses = self._redundant_clause_count(
-                    roll_invs_capped[idx], surv, negatives, groups
+                redundant_clauses = self._duplicate_clause_count(
+                    roll_invs_capped[idx]
                 )
-                survivor_set = {
-                    normalize_invariant(clause) for clause in surv
-                }
-                surviving_clauses = sum(
-                    normalize_invariant(clause) in survivor_set
-                    for clause in roll_invs_capped[idx]
-                )
-                n_essential = surviving_clauses - redundant_clauses
-                precision = (
-                    n_essential / n_generated if n_generated else 0.0
-                )
-                survival_bonus = float(n_essential)
                 raw_reward = (
                     self.w_base * base
                     + self.w_hard * hard_bonus
-                    + self.w_surv * survival_bonus
                 )
                 redundancy_penalty = (
                     self.w_redundancy * redundant_clauses
@@ -405,9 +355,6 @@ class RewardCalculator:
                 # Pure binary fallback: every candidate in this non-empty
                 # rollout must survive Frama-C/WP validation. Do not mix
                 # structural penalties into its public {0, 1} contract.
-                precision = 1.0
-                n_essential = 0
-                survival_bonus = 0.0
                 redundancy_penalty = 0.0
                 redundant_clauses = 0
                 reward = 1.0 if fully_verified(invs, surv) else 0.0
@@ -415,11 +362,9 @@ class RewardCalculator:
                 index=idx, invariants=invs, survivors=surv,
                 generated=n_generated, accepted=n_accepted, overflow=overflow,
                 base=base, hard_bonus=hard_bonus,
-                survival_bonus=survival_bonus,
                 redundant_clauses=redundant_clauses,
                 redundancy_penalty=redundancy_penalty,
                 overflow_penalty=overflow_penalty,
-                essential=n_essential, precision=precision,
                 reward=reward, rejected=len(base_rej),
             ))
 

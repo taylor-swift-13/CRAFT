@@ -27,7 +27,6 @@ def score_file(input_path: str, output_path: str, cfg: io.IOConfig,
                reroll_threshold: float = 0.6, include_program: bool = False,
                logger: Optional[logging.Logger] = None,
                w_hard: float = 0.3,
-               w_surv: float = 0.1,
                w_redundancy: float = 0.02,
                w_overflow: float = 0.05) -> Dict[str, int]:
     sampler_kwargs = dict(sampler_kwargs or {})
@@ -37,7 +36,7 @@ def score_file(input_path: str, output_path: str, cfg: io.IOConfig,
 
     shared_filter = filters.auto_filter(logger)
     rc = RewardCalculator(invariant_filter=shared_filter, w_base=w_base,
-                          w_hard=w_hard, w_surv=w_surv,
+                          w_hard=w_hard,
                           w_redundancy=w_redundancy,
                           w_overflow=w_overflow,
                           reroll_threshold=reroll_threshold, logger=logger)
@@ -92,7 +91,6 @@ def main() -> int:
     ap.add_argument("--group-field", default="group_id")
     ap.add_argument("--w-base", type=float, default=1.0)
     ap.add_argument("--w-hard", type=float, default=0.3)
-    ap.add_argument("--w-surv", type=float, default=0.1)
     ap.add_argument("--w-redundancy", type=float, default=0.02)
     ap.add_argument("--w-overflow", type=float, default=0.05)
     ap.add_argument("--reroll-threshold", type=float, default=0.6)
@@ -115,7 +113,6 @@ def main() -> int:
         args.w_base, args.reroll_threshold,
         args.include_program, logger,
         w_hard=args.w_hard,
-        w_surv=args.w_surv,
         w_redundancy=args.w_redundancy,
         w_overflow=args.w_overflow,
     )

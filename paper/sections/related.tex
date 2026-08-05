@@ -26,7 +26,8 @@ Earlier invariant learners use solver feedback to train policies or differentiab
 \textsc{SpecRL} goes beyond binary verifier acceptance: it generates impossible input--output pairs and rewards specifications that reject them, providing a completeness signal for Dafny specification synthesis~\citep{huang2026specrl}.
 \sam{} shares the idea that formal validity alone cannot distinguish a useful specification from a weak one, but specializes it to hidden-target loops.
 Its negatives are relational perturbations, over-run exit continuations, and sampled-range escapes over internal loop states; conservative feasibility and coverage guards suppress uncertain labels, a broader execution audit checks for collisions, and Frama-C/WP separately proves inductiveness.
-Generation reward separates ordered clause redundancy within one rollout from
-leave-one-rollout-out complementarity across rollouts; repair reward measures
+Generation reward combines standalone negative rejection with positive
+hardness credit for trace units rejected by few group peers, while charging
+only conservative semantic duplicates; repair reward measures
 the gain of a capped response over the same merged pool consumed by inference.
 The held-out \(Q\) is never used as a feature or reward label and appears only in final acceptance.

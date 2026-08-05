@@ -43,18 +43,14 @@ Given a rollout group \(\mathcal A=\{A_1,\ldots,A_G\}\), both cap each response,
 normalize and deduplicate its accepted clauses, form the union
 \(U=\bigcup_i \bar A_i\), and use the same Frama-C adapter to compute inductive
 survivors.
-For rollout ablation, \(U_{-i}=\bigcup_{j\ne i}\bar A_j\) is reconstructed from
-the other rollouts; this preserves a shared clause when another rollout also
-emitted it.
 The authoritative operator \(\mathsf H_P(X)\) first uses a Frama-C syntax scrub to remove the exact malformed invariant lines, then runs Houdini over Frama-C/WP~\citep{flanagan2001houdini,framac} to iteratively remove clauses whose establishment or preservation goals fail.
 During reward computation, a positive pre-filter first removes out-of-scope clauses and clauses falsified by sampled reachable states.
 Inference supplies no sampled states and skips this optimization.
 Because both modes end in the same prover-backed Houdini operator, sampled states improve training efficiency but do not establish soundness.
 
 The two modes differ only in how they consume this common operator.
-Generation training evaluates \(\mathsf H_P(\bar A_i)\), \(\mathsf H_P(U)\),
-and, when the marginal term is enabled, the ablations
-\(\mathsf H_P(U_{-i})\).
+Generation training evaluates \(\mathsf H_P(\bar A_i)\) for every rollout and
+\(\mathsf H_P(U)\) for the group.
 Refinement training starts from a merged pool \(X\) and compares \(\mathsf H_P(X\cup R_i)\) with \(\mathsf H_P(X)\) for sampled repairs \(R_i\).
 Inference forms the same union, optionally repeats the same stateless WP-verdict prompt and monotone update \(X\leftarrow X\cup R_i\), and returns \(\mathsf H_P(X)\) to the final target-bearing verifier.
 Thus the reward service and deployment executable remain operationally independent, but rollout grouping, pool semantics, feedback format, and Houdini survival are shared by construction.
@@ -84,74 +80,56 @@ The sampler thus degrades conservatively: where state/control coverage is incomp
 \subsection{Training the Shared Core}
 \label{sec:method:reward}
 
-Generation training separates cross-rollout credit from within-rollout
-redundancy control.
-Standalone strength and cross-rollout complementarity are
+Let \(R_i=\mathrm{rej}(\bar A_i)\).  Standalone coverage and the rarity of
+each rejected trace unit are
 \begin{align}
-\mathrm{base}(A_i) &=
-  \frac{|\mathrm{rej}(\bar A_i)|}{|\mathcal{N}|},\\
-\mathrm{marg}(A_i) &=
-  \frac{\bigl|\mathrm{rej}(U)
-  \setminus \mathrm{rej}(U_{-i})\bigr|}
-  {|\mathcal{N}|}.
+\mathrm{base}(A_i) &= \frac{|R_i|}{|\mathcal N|},\\
+f(n) &= \sum_{j=1}^{G}\mathbf 1[n\in R_j],\qquad
+h(n)=1-\frac{f(n)}{G},\\
+\mathrm{hard}(A_i) &=
+\frac{1}{|\mathcal N|}\sum_{n\in R_i}h(n).
 \end{align}
-Here \(\mathrm{rej}(X)\) is evaluated only after applying \(\mathsf H_P(X)\), so both reward terms use the same prover-backed survivors as inference.
-Base measures how much of the sampled candidate space the rollout alone
-excludes.  Marginal is strictly positive cross-rollout credit: it pays only for
-negative traces lost when this rollout is removed from the group union, in the
-spirit of GRPO's group-relative comparison~\citep{shao2024deepseekmath}.
-It never imposes a cross-rollout redundancy penalty.
+All rejection sets are computed after standalone Houdini, so malformed and
+non-inductive clauses are discarded without zeroing the useful remainder of a
+response.  Base rewards overall strength; hard assigns additional positive
+credit to trace units rejected by few other rollouts in the group.  This uses
+group diversity without requiring any rollout to contain a complete proof.
 
-Inside each rollout, we perform an ordered coverage audit.
-Let \(S_A=\mathsf H_P(\bar A)\).  For the \(j\)-th accepted clause, define
-\begin{align}
-C_j(A)&=
-\begin{cases}
-\{n\in\mathcal N:\text{\(a_j\) is false at a witness of \(n\)}\},
-  &\mathrm{norm}(a_j)\in S_A,\\
-\varnothing,&\text{otherwise,}
-\end{cases}\\
-D_j(A)&=C_j(A)\setminus\bigcup_{k<j}C_k(A).
-\end{align}
-The traversal preserves model-output order.
-A clause is \emph{essential} when \(D_j(A)\ne\varnothing\), and fully
-redundant when \(D_j(A)=\varnothing\).
-Thus an earlier clause is marked informative as soon as it extends coverage,
-whereas
-a later duplicate, tautology, Houdini reject, or clause covered by the prefix
-is penalized.
-Let
+We do not penalize a unique clause merely because it adds no independently
+observed negative coverage.  Such a clause may be required to keep another
+clause inductive or may encode a direction needed by the hidden target \(Q\).
+The only within-cap redundancy cost is
 \[
-e(A)=\sum_{j\leq \min(L,K)}\mathbf 1[D_j(A)\ne\varnothing],
-\qquad
-d(A)=\sum_{j\leq \min(L,K)}\mathbf 1[D_j(A)=\varnothing].
+d_{\mathrm{dup}}(A)=|\bar A|-|\mathrm{dedup}(\bar A)|.
 \]
-For example, if three clauses reject trace sets
-\(\{1,\ldots,40\}\), \(\{1,\ldots,40\}\), and
-\(\{41,\ldots,50\}\) in that order, their incremental coverages have sizes
-40, 0, and 10; hence \(e(A)=2\) and \(d(A)=1\).
-The reported precision \(e(A)/L\) is diagnostic and is not multiplied into
-the reward.
+Here \(\mathrm{dedup}\) uses a conservative, solver-free AST key for the
+scalar-integer language.  It normalizes parentheses, comparison direction,
+equality sides, immediate commutative operands, harmless identities, and
+order-preserving Boolean association.  It deliberately does not reorder
+Boolean terms, reassociate arithmetic, cancel factors, move terms, or rewrite
+division and remainder; unsupported syntax falls back to normalized text.
+The first spelling is retained.  A removed occurrence therefore cannot add a
+Houdini survivor or final proof fact under the supported semantics.
 
 The complete generation reward is
 \begin{equation}
 \label{eq:generation-reward}
 r_{\mathrm{gen}}(A)=
 w_b\,\mathrm{base}(A)
-+w_m\,\mathrm{marg}(A)
--w_r\,d(A)
++w_h\,\mathrm{hard}(A)
+-w_r\,d_{\mathrm{dup}}(A)
 -w_o\,o(A),
 \end{equation}
-where \(w_b,w_m,w_r,w_o\geq 0\) are reward weights.
+where \(w_b,w_h,w_r,w_o\geq 0\) are reward weights; the defaults are
+\((1.0,0.3,0.02,0.05)\).
 The cap makes clauses after position \(K\) ineligible for coverage credit; when
 \(w_o>0\), the linear overflow term makes continued invariant emission strictly
 costly.
-For the marginal ablation, the implementation sets
-\(\mathrm{marg}(A)=0\) and skips every
-\(\mathsf H_P(U_{-i})\) call; all within-rollout terms remain
-unchanged.
 
-Rejection tests are pure Python; division and remainder use C-style truncation on the concrete integer states, while the only heavyweight cost is the prover.  The distinct clause sets a group needs (per-rollout, union, ablations) are memoized and verified in parallel, and each WP run discharges its goals concurrently.
+Rejection tests are pure Python; division and remainder use C-style truncation
+on concrete integer states, while the only heavyweight cost is the prover.
+The per-rollout and union clause sets are memoized and verified in parallel,
+and each WP run discharges its goals concurrently.
 The group additionally receives $\mathrm{batch} = |\mathrm{rej}(U)| / |\mathcal{N}|$ and a re-roll flag when it falls below a threshold.
 If no negative trace unit can be constructed safely, rollout and batch signals
 fall back to binary Frama-C/WP validation: a nonempty candidate set receives one

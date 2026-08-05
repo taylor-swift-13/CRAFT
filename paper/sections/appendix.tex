@@ -28,11 +28,10 @@ escape ladder & $\pm\{5,8,13,21,34\}$ & candidates kept only outside the sampled
 over-run steps & 24 & post-exit continuation length (one trace unit per run) \\
 iteration cap & $2 \times 10^6$ & divergence safety net (capped runs flagged) \\
 \midrule
-$(w_b, w_m)$ & $(0.8, 0.2)$ & standalone / cross-rollout marginal weights \\
-$w_r$ & 0.02 & cost per clause with zero ordered incremental coverage \\
+$(w_b, w_h)$ & $(1.0, 0.3)$ & standalone coverage / group-hardness weights \\
+$w_r$ & 0.02 & cost per conservative semantic duplicate; unique zero-coverage clauses are not penalized \\
 $K$ & 20 clauses & response cap applied independently to every generation/refinement response \\
 $w_o$ & 0.05 & overflow cost per clause after \(K\) \\
-marginal switch & enabled & disabling it zeros the term and skips rollout ablations \\
 re-roll threshold & 0.6 & group batch score below which re-rolling is advised \\
 \midrule
 Houdini iterations & $\le 500$ & greatest-inductive-subset pruning \\
@@ -69,17 +68,15 @@ Program:
 The reward framework is packaged as a self-contained, CPU-only container with gcc, Frama-C/WP, Why3, and Z3 bundled.  It exposes \texttt{POST /reward}, accepting program source and a rollout array, with the following response fields:
 \begin{lstlisting}[style=promptstyle]
 {program, n_positives, n_negatives, filter_mode,
- rollout_rewards[], base[], marginal[], marginal_rejected[],
- redundant_clauses[], redundancy_penalty[], essential[], precision[],
+ reward_mode, rollout_rewards[], base[], hard_bonus[],
+ redundant_clauses[], redundancy_penalty[],
  generated[], accepted[], overflow[], overflow_penalty[],
- marginal_enabled, rollouts[], batch_score, should_reroll}
+ rollouts[], batch_score, should_reroll}
 \end{lstlisting}
 Rollouts may be raw LLM text, invariant lists, or annotated code; parsing is uniform.
-The request flag \texttt{use\_marginal=false} implements the marginal
-ablation without paying for leave-one-rollout-out prover calls.
 For refinement training, \texttt{POST /refine\_feedback} returns the WP verdict
 table and assembled stateless prompt, while \texttt{POST /refine\_reward}
 returns both the nonnegative diagnostic \(\Delta\mathrm{base}\) and
 \texttt{refine\_rewards[]} after overflow cost.
 An offline scorer provides the same generation reward over JSONL/Parquet
-rollout dumps and exposes \texttt{--disable-marginal}.
+rollout dumps.

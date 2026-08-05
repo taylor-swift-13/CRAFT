@@ -68,11 +68,12 @@ The sequence
 is the shared rollout--Houdini core in Figure~\ref{fig:overview}.
 
 Training and inference differ only in how they consume this operator.
-Training evaluates individual rollouts, unions, ablations, and repaired pools
-to assign generation and refinement credit.  Within a rollout it preserves
-response order to distinguish clauses that extend negative-trace coverage from
-later clauses that add nothing; across rollouts it uses union ablation only as
-positive complementary credit.
+Training evaluates individual rollouts, their union, and repaired pools to
+assign generation and refinement credit.  Standalone rejection measures
+strength, while group-relative hardness rewards trace units rejected by few
+other rollouts.  The only redundancy cost applies to conservative semantic
+duplicates; unique clauses are never punished merely for overlapping sampled
+coverage.
 Inference performs the same union, pool growth, and Houdini pruning without
 constructing reward traces, then restores \(Q\) for final verification.
 Training uses sampled positives as a cheap pre-filter, but soundness in both

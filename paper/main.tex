@@ -198,8 +198,10 @@ We study \emph{target-hidden loop verification}.  The generator sees the precond
 Both form groups of invariant candidates, merge or repair their clauses, and
 apply the same Frama-C/WP Houdini operator.
 The training objective attaches dense credit to this core: a rollout is scored
-by standalone rejection, ordered within-rollout redundancy control, and
-leave-one-rollout-out group contribution on audited target-free traces.
+by standalone negative rejection and extra credit for hard trace units rejected
+by few peers in its rollout group.
+A conservative semantic duplicate cost and response overflow cost discourage
+wasted clauses without penalizing unique proof-supporting clauses.
 A repair is scored by its gain over the merged pool.
 Every policy response obeys a configurable clause cap, with explicit overflow
 cost.

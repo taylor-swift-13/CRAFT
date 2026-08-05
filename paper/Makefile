@@ -4,7 +4,7 @@ BIBTEX = bibtex
 
 all: $(MAIN).pdf
 
-$(MAIN).pdf: $(MAIN).tex sections/*.tex references.bib \
+$(MAIN).pdf: $(MAIN).tex sections/*.tex figures/*.pdf references.bib \
 	iclr2026_conference.sty iclr2026_conference.bst
 	$(LATEX) $(MAIN)
 	$(BIBTEX) $(MAIN)

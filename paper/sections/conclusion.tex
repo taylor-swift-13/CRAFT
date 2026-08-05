@@ -9,9 +9,11 @@ We instead study target-hidden verification: the policy sees the loop but not it
 \sam{} centers training and inference on the same rollout--Houdini framework.
 Both paths sample groups of candidate invariant sets, merge and optionally repair a growing clause pool, and retain its inductive core with the same Frama-C/WP Houdini operator.
 The training objective assigns
-dominant standalone rejection, positive cross-rollout marginal credit, and
-an ordered within-rollout redundancy cost to generation.
-Only clauses with zero incremental negative coverage are penalized, and a
+standalone rejection and positive hardness credit for trace units rejected by
+few rollouts in the group.
+A unique clause with zero sampled coverage is not penalized because it may
+support another invariant or the held-out target; only conservative semantic
+duplicates receive a redundancy cost.  A
 configurable \(K\)-clause response cap with overflow cost prevents unbounded
 output growth.
 Refinement receives pool-improvement credit subject to the same response cap;

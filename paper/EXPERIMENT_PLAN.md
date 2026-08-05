@@ -9,11 +9,9 @@ until the corresponding raw JSONL and Frama-C logs exist.
 
 | RQ | Claim to test | Primary evidence |
 |---|---|---|
-| RQ1 | Hiding the target removes a real shortcut and makes exit-sufficient invariant generation harder. | Same model and budget in target-visible vs. target-hidden mode; verified rate, target-copy rate, and inductive-but-insufficient rate. |
-| RQ2 | Execution-grounded RL improves target-hidden verification, rather than merely producing more inductive clauses. | Base checkpoint vs. SFT vs. generation-RL vs. full generation+refinement RL on a held-out, clone-deduplicated test set. |
-| RQ3 | Group union, Houdini, and refinement are complementary parts of the shared inference framework. | Equal-budget ablations: direct Best-of-\(G\), union+Houdini, re-ranking, re-generation, and \(m\)-round refinement. |
-| RQ4 | The reward is informative and resistant to obvious shortcuts. | Reward/success correlation, family ablations, the discrimination harness, and the full negative-label audit. |
-| RQ5 | Improvements are not purchased by unbounded verifier or token cost. | LLM calls, generated tokens, WP invocations, wall time, and verified programs per 100 verifier calls. |
+| RQ1 | Small models explore too few proof-relevant strategies, while combine+Houdini can exploit only clauses the model actually emits. | Direct pass@\(k\) and combine@\(k\) curves for four official Qwen3 checkpoints. |
+| RQ2 | The rollout--combine--Houdini inference framework improves target-hidden verification at a measurable token/time cost. | Fixed-model comparison with external tools and controlled one/five/ten-rollout inference variants. |
+| RQ3 | Framework-aligned RL should improve the grouped inference curve rather than optimize pass@1 alone. | Qwen3-8B versus 8B-RL-Zero direct and combine curves. |
 
 The primary endpoint is **target-hidden verification accuracy**, not the number
 of clauses accepted by Houdini:
@@ -156,17 +154,17 @@ invariant generation and target-hidden loop verification.
 
 Use the same training prompts and data order.
 
-| Variant | \(w_b\) | Marginal | \(w_r\) | \(w_o\) | Refine groups | Expected diagnostic |
+| Variant | \(w_b\) | \(w_h\) | \(w_r\) | \(w_o\) | Refine groups | Expected diagnostic |
 |---|---:|---:|---:|---:|---:|---|
 | Base checkpoint | -- | -- | -- | -- | -- | Pre-training reference |
-| Inductiveness-only RL | binary | off | 0 | 0 | no | Shows why soundness alone is weak |
-| Base-only RL | 0.8 | off | 0 | 0 | no | Standalone discrimination only |
-| No-marginal RL | 0.8 | off | 0.02 | 0.05 | no | Removes cross-rollout complementarity and its ablation calls |
-| No-redundancy-cost RL | 0.8 | 0.2 | 0 | 0.05 | no | Tests ordered within-rollout control |
-| No-overflow-cost RL | 0.8 | 0.2 | 0.02 | 0 | no | Keeps the 20-clause cap but removes its excess-length gradient |
-| Generation RL | 0.8 | 0.2 | 0.02 | 0.05 | no | Complete generation contribution |
-| Full LoopGym | 0.8 | 0.2 | 0.02 | 0.05 | 20--30% of batch | Shared generation+repair training |
-| No negative family | 0.8 | 0.2 | 0.02 | 0.05 | yes | Repeat for relation, over-run, and escape |
+| Inductiveness-only RL | binary | 0 | 0 | 0 | no | Shows why soundness alone is weak |
+| Base-only RL | 1.0 | 0 | 0 | 0 | no | Standalone discrimination only |
+| No-hardness RL | 1.0 | 0 | 0.02 | 0.05 | no | Removes explicit rare-trace exploration credit |
+| No-redundancy-cost RL | 1.0 | 0.3 | 0 | 0.05 | no | Tests conservative semantic-duplicate control |
+| No-overflow-cost RL | 1.0 | 0.3 | 0.02 | 0 | no | Keeps the 20-clause cap but removes its excess-length gradient |
+| Generation RL | 1.0 | 0.3 | 0.02 | 0.05 | no | Complete generation contribution |
+| Full LoopGym | 1.0 | 0.3 | 0.02 | 0.05 | 20--30% of batch | Shared generation+repair training |
+| No negative family | 1.0 | 0.3 | 0.02 | 0.05 | yes | Repeat for relation, over-run, and escape |
 
 Primary training plots:
 
@@ -186,7 +184,7 @@ Primary training plots:
 | Clause2Inv-no-\(Q\) | original training | TBD | TBD | TBD | TBD | fixed budget | TBD |
 | iRank-no-\(Q\) | original ranker | TBD | TBD | TBD | TBD | 8.0 | TBD |
 | Base Union+Houdini | none | TBD | TBD | TBD | TBD | 8.0 | TBD |
-| Generation RL | base+marginal-costs | TBD | TBD | TBD | TBD | 8.0 | TBD |
+| Generation RL | base+hardness-costs | TBD | TBD | TBD | TBD | 8.0 | TBD |
 | Full LoopGym, \(m=0\) | mixed GRPO | TBD | TBD | TBD | TBD | 8.0 | TBD |
 | Full LoopGym, \(m=2\) | mixed GRPO | TBD | TBD | TBD | TBD | 10.0 | TBD |
 

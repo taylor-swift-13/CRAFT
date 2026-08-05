@@ -2,146 +2,71 @@
 \section{Experiments}\label{sec:experiments}
 %% ============================================================
 
-We organize the evaluation around three research questions.  RQ1 probes why
-target-hidden RL must preserve useful exploration rather than optimize
-soundness alone.  RQ2 evaluates the effectiveness and cost of the inference
-framework against existing tools, with no LoopGym-trained policy involved.
-RQ3 then tests whether framework-aligned RL improves the grouped
-rollout--combine--Houdini objective even when standalone pass@\(k\) does not.
-This separation follows prior invariant-synthesis evaluations that distinguish
-candidate generation, candidate combination, and end-to-end tool performance
-~\citep{kamath2023finding,cao2025clause2inv,wei2025invbench}.
+We evaluate three questions in the order a reader encounters the system:
+(1) how effective and costly is target-hidden inference,
+(2) whether reinforcement learning improves that inference procedure, and
+(3) why candidate aggregation and execution-based rewards are useful.
 
 \subsection{Experimental Setup}
 \label{sec:exp:setup}
 
-\paragraph{Target-hidden acceptance.}
-Before any model-facing or intermediate generation step, we remove ACSL
-\texttt{assert} and \texttt{ensures} predicates, executable assertion calls,
-and conventional error-label names.  Preconditions and executable loop
-semantics remain visible.  After a method fixes its loop invariants, we insert
-them into the untouched original program and restore the target.  A task
-succeeds iff the source parses, Frama-C/WP proves establishment and preservation
-for every retained invariant, and all restored assertion or postcondition goals
-succeed.  Failures, timeouts, malformed outputs, and unsupported inputs count
-as zero.
+\paragraph{Benchmarks.}
+The evaluation contains 832 integer C programs.  The \emph{Core-366} subset
+contains 316 linear programs from Code2Inv, SyGuS, and SV-COMP and 50
+nonlinear programs from LIPuS.  The remaining 466 programs are the integer
+fragment of Loopy's original 469-program corpus; three floating-point programs
+are excluded because they fall outside our scalar-integer predicate language.
+Every method uses the same fixed manifest, and unsupported inputs remain
+failures in the common denominator.
 
-\paragraph{Verifier and model configurations.}
-All final checks use Frama-C 32.1 (Germanium), WP, and Z3 4.15.4.  The RQ1
-probe samples 100 target-hidden responses per task from the official
-Qwen3-4B, Qwen3-8B, Qwen3-14B, and Qwen3-30B-A3B checkpoints
-~\citep{yang2025qwen3}, at temperature 1.0 with thinking disabled.  RQ2 fixes
-\texttt{gpt-5-nano} across its LLM-backed rows; differences among the LoopGym
-rows are therefore inference-only.  RQ3 compares Qwen3-8B with the
-corresponding 8B-RL-Zero checkpoint under the same 100-rollout protocol.
+\paragraph{Target-hidden evaluation.}
+Before any model-facing step, we remove ACSL \texttt{assert} and
+\texttt{ensures} predicates, executable assertion calls, and conventional
+error-label names.  Preconditions and executable loop semantics remain
+visible.  After a method fixes its invariants, they are inserted into the
+untouched original program.  A task succeeds only if the source parses,
+Frama-C/WP proves establishment and preservation for every retained invariant,
+and all restored target goals succeed.  Failures, timeouts, malformed outputs,
+and unsupported programs count as zero.
 
-\subsection{RQ1: Why Must the Reward Preserve Exploration?}
-\label{sec:exp:probe}
+\paragraph{Verifier, models, and baselines.}
+All final checks use Frama-C 32.1 (Germanium), WP, and Z3 4.15.4.
+The main inference comparison fixes \texttt{gpt-5-nano} across all
+\sam{} variants, so differences among those rows come only from inference.
+We compare with the native target-hidden pipelines of \textsc{AutoSpec},
+\textsc{SESpec}, and \textsc{Clause2Inv}, and with Daikon 5.8.24
+~\citep{wen2024enchanting,yang2026sespec,cao2025clause2inv,daikon}.
+\textsc{Clause2Inv} supports only the 366 programs with transition
+verification conditions; its remaining inputs still count as failures.
 
-\paragraph{Soundness is a degenerate reward.}
-In target-hidden training, the exact target \(Q\) is unavailable, so the most
-obvious verifier reward is whether a candidate satisfies initiation and
-preservation.  This signal cannot distinguish a strong loop summary from
-\texttt{true}, a loose bound, or another weak-but-sound invariant.  Under a
-binary whole-response reward, these easy modes receive the same return as a
-semantically strong invariant; once they dominate a rollout group, normalized
-group advantages vanish and training has no incentive to discover stronger
-relations.  A single malformed or non-inductive clause can also zero an
-otherwise useful response, encouraging short and conservative outputs.
+The model-scale analysis samples 100 target-hidden responses per task from the
+official Qwen3-4B, Qwen3-8B, Qwen3-14B, and Qwen3-30B-A3B checkpoints
+~\citep{yang2025qwen3}, at temperature 1.0 with thinking disabled.
+The reinforcement-learning comparison uses Qwen3-8B and the corresponding
+8B-RL-Zero checkpoint under the same 100-response protocol.
 
-This failure is compounded by distribution sharpening.  The NeurIPS 2025 Best
-Paper Runner-Up study of Yue et al. shows that RLVR can improve low-\(k\)
-accuracy by concentrating probability mass on already rewarded reasoning paths
-while narrowing the reasoning coverage exposed at large \(k\)
-~\citep{yue2025rlcapacity}.  Such sharpening is particularly harmful here:
-grouped inference depends on different rollouts contributing complementary
-invariant clauses, not merely repeating the most likely sound clause.
-
-\paragraph{Measuring complete and clause-level exploration.}
-For each program, let \(c\) be the number of independently verifying responses
-among \(n=100\).  Direct pass@\(k\) uses the unbiased estimator
-\(1-\binom{n-c}{k}/\binom{n}{k}\) and asks whether some rollout independently
-contains a complete proof.  Combine@\(k\) instead deduplicates all clauses in
-the first \(k\) rollouts, applies iterative Houdini pruning, and checks whether
-the surviving pool proves the restored target.  It therefore asks whether the
-model has explored enough complementary proof ingredients for the inference
-framework to assemble a proof.
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\textwidth]{figures/qwen_official_probe.pdf}
-  \caption{Exploration probe over four official Qwen3 checkpoints.  Direct
-  pass@\(k\) measures complete responses, whereas combine@\(k\) measures
-  whether the accumulated clause pool contains a sufficient Houdini-surviving
-  subset.  The combine curves change by at most 0.60 percentage points after
-  \(k=30\).}
-  \label{fig:qwen-probe}
-\end{figure}
-
-Figure~\ref{fig:qwen-probe} exposes two limitations.  First, small models
-rarely assemble a complete invariant set: direct pass@100 is 15.62\% for 4B,
-compared with 33.29\% for 8B and 39.90\% for 14B.  Second, these weak complete
-responses still contain useful pieces.  Union and Houdini raise 4B to 47.84\%
-and 14B to 58.05\% at \(k=100\).  Combination thus recovers substantial value
-from partial rollouts, but it does not erase the exploration gap: it cannot
-invent a relation that the policy never emits.
-
-Exploration also saturates early.  From combine@30 to combine@100, no model
-gains more than 0.60 points, indicating that later responses contribute little
-new proof-relevant coverage.  We summarize rollout efficiency by
+\paragraph{Metrics.}
+For a program with \(c\) independently successful responses among \(n=100\),
+direct pass@\(k\) uses the unbiased estimator
+\(1-\binom{n-c}{k}/\binom{n}{k}\).
+Combine@\(k\) instead unions the clauses from the first \(k\) responses,
+applies Houdini, and tests the resulting invariant set against the restored
+target.  We summarize response efficiency with
 \[
-  k_{95}=\min\{k:C_\pi(k)\geq 0.95\,C_\pi(100)\},
+  k_{95}=\min\{k:C_\pi(k)\geq0.95\,C_\pi(100)\},
 \]
-where \(C_\pi(k)\) is the verification rate after union and Houdini over \(k\)
-policy samples.  A successful training objective should move this curve both
-upward and leftward: raise the final exploration ceiling while reaching it
-with fewer model generations.
+where \(C_\pi(k)\) is combine@\(k\) for policy \(\pi\).
 
-\paragraph{Reward implication.}
-LoopGym consequently treats inductiveness as a feasibility gate, not as the
-complete reward.  Malformed lines are discarded and non-inductive clauses are
-removed by the same Houdini operator used at inference; the remaining clauses
-receive standalone strength credit, with extra positive hardness credit for
-trace units rejected by few other rollouts.  Weak clauses add no coverage gain,
-while conservative semantic duplicates receive a small explicit cost.  This
-preserves the useful part of an imperfect response while rewarding exploration
-without requiring a complete response-level proof.
-Combination is therefore an exploration multiplier, not an exploration
-substitute.
-
-The reward sanity checks support this distinction without claiming a trained
-policy result.  Across ten hand-written specifications, every gold clause
-survives and the minimum gold base score is 0.996, with zero discrimination
-violations.  A larger audit over Core-366 covers 486,302 candidate negative
-states and finds no hard pair-level collision under the expanded sampling
-check.
-
-\subsection{RQ2: How Effective and Efficient Is the Inference Framework?}
+\subsection{RQ1: How Effective Is Target-Hidden Inference?}
 \label{sec:exp:e2e}
 
-\paragraph{Benchmark.}
-We evaluate the inference framework on 832 integer C programs.  The
-\emph{Core-366} subset contains 316 linear programs drawn from Code2Inv,
-SyGuS, and SV-COMP and 50 nonlinear programs from LIPuS.  The remaining 466
-programs are the integer fragment of Loopy's original 469-program corpus; three
-floating-point programs are excluded because they fall outside our
-scalar-integer predicate language.  Every method uses the same fixed manifest,
-and unsupported inputs remain failures in the common denominator.
+\textsc{Naive} uses one response and a minimal prompt.
+\textsc{R1-NoH} uses the \sam{} prompt but no Houdini filtering;
+\textsc{R1-H} adds Houdini; and \textsc{R5-H}/\textsc{R10-H} combine five or
+ten target-hidden responses before the same Houdini and final proof.
+Retries and repair are disabled in this comparison.
 
-RQ2 evaluates inference, not model training.  All LoopGym variants use the
-same \texttt{gpt-5-nano} checkpoint.  \textsc{Naive} uses one response with a
-minimal prompt; \textsc{R1-NoH} changes only to the LoopGym prompt;
-\textsc{R1-H} additionally applies Houdini; and \textsc{R5-H}/\textsc{R10-H}
-union five/ten target-hidden rollouts before the same Houdini and final-WP
-gate.  Re-rolling and refinement are disabled.
-
-We compare with the native target-hidden pipelines of \textsc{AutoSpec}
-~\citep{wen2024enchanting}, \textsc{SESpec}~\citep{yang2026sespec}, and
-\textsc{Clause2Inv}~\citep{cao2025clause2inv}, plus Daikon 5.8.24
-~\citep{daikon}.  Clause2Inv supports only the 366 programs with transition
-VCs; its 466 unsupported inputs remain failures in the common denominator.
-
-\begin{table}[t]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{3.5pt}
@@ -164,58 +89,92 @@ Method & Linear / 316 & NLA / 50 & Loopy / 466 & All / 832
 \textsc{R10-H} & 255 & 7 & 376 & 638 (76.68\%) & 536.81 & 68,953.35 & --- \\
 \bottomrule
 \end{tabular}}
-\caption{Target-hidden inference effectiveness and mean per-task generation
-cost.  Exact and estimated token averages are reported separately.  R1-NoH's
-time and exact-token means cover Loopy-466, while its estimate covers
-Core-366; unsupported Clause2Inv inputs are not timed but remain failures in
-the common 832-program denominator.}
+\caption{Target-hidden verification results and mean generation cost per task.
+Exact and estimated token averages are reported separately.  R1-NoH's time
+and exact-token means cover Loopy-466, while its estimate covers Core-366.
+Unsupported Clause2Inv inputs remain failures in the 832-program denominator.}
 \label{tab:inference-comparison}
 \end{table}
 
-Table~\ref{tab:inference-comparison} shows that R5-H verifies 622 programs,
-113 more than AutoSpec, the strongest external baseline.  The controlled rows
-attribute the gain to the prompt, Houdini pruning, and multi-rollout union:
-379/832 for \textsc{Naive}, 452/832 for \textsc{R1-NoH}, 504/832 for
-\textsc{R1-H}, and 622/832 for \textsc{R5-H}.  The improvement costs generation:
-R5-H averages 33,404.56 exact tokens and 284.81 seconds per task; R10-H adds
-only 16 proofs while rising to 68,953.35 tokens and 536.81 seconds.  This
-diminishing return motivates improving exploration efficiency rather than
-scaling the rollout budget indefinitely.
+Table~\ref{tab:inference-comparison} shows that five-response inference
+verifies 622 programs, 113 more than \textsc{AutoSpec}, the strongest external
+baseline.  The controlled rows isolate the contributions of prompting,
+Houdini, and response aggregation: 379/832 for \textsc{Naive}, 452/832 for
+\textsc{R1-NoH}, 504/832 for \textsc{R1-H}, and 622/832 for
+\textsc{R5-H}.
 
-\subsection{RQ3: Does Framework-Aligned RL Improve Grouped Inference?}
+The improvement has a clear cost.  \textsc{R5-H} averages 33,404.56 exact
+tokens and 284.81 seconds per task.  Increasing the budget to ten responses
+adds only 16 proofs while raising the averages to 68,953.35 tokens and
+536.81 seconds.  This diminishing return motivates improving the generator
+rather than scaling the response budget indefinitely.
+
+\subsection{RQ2: Does Reinforcement Learning Improve Inference?}
 \label{sec:exp:rlzero}
 
-In its normal negative-coverage mode, the LoopGym reward is deliberately not a
-binary verdict on an entire response.
-Such a verdict discards all useful information when one clause is malformed or
-non-inductive and encourages the weak conservative modes identified in RQ1.
-Instead, syntax scrubbing and Houdini remove failed clauses, after which the
-reward measures the standalone strength of the survivors and gives extra
-positive credit to hard trace units rejected by few group peers.  RQ3 tests the
-consequence of this alignment by comparing Qwen3-8B with 8B-RL-Zero under
-identical inference settings.
+We compare Qwen3-8B with 8B-RL-Zero while holding the candidate union,
+Houdini filter, target-hiding protocol, and response budget fixed.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{figures/qwen_rlzero_probe.pdf}
-  \caption{Framework-aligned RL improves grouped inference rather than
-  standalone success.  RL-Zero slightly decreases direct pass@\(k\) (left)
-  but consistently improves combine@\(k\) (right).  With ten rollouts,
-  RL-Zero exceeds the base model's result with 100 rollouts.}
+  \caption{Reinforcement learning improves combined inference even though it
+  does not improve the chance that one response proves the target.  With ten
+  responses, 8B-RL-Zero exceeds the base model's combine@100 result.}
   \label{fig:qwen-rlzero}
 \end{figure}
 
-Figure~\ref{fig:qwen-rlzero} shows a sharp divergence between the two metrics.
-RL-Zero lowers direct pass@1 from 9.30\% to 4.88\% and leaves direct pass@100
-nearly unchanged (33.29\% versus 32.93\%).  Judged only by standalone
-verification, the trained policy would appear worse.  Under the deployed
-pipeline, however, combine@10 rises from 52.40\% to 56.97\%, and combine@100
-rises from 55.41\% to 58.77\%.  Ten RL-Zero rollouts already outperform 100
-base-model rollouts, while measured \(k_{95}\) falls from 30 to 10.
+Figure~\ref{fig:qwen-rlzero} shows different trends for complete responses and
+complementary clauses.  RL-Zero lowers direct pass@1 from 9.30\% to 4.88\%
+and leaves direct pass@100 nearly unchanged (33.29\% versus 32.93\%).
+Under the deployed combination procedure, however, combine@10 rises from
+52.40\% to 56.97\%, and combine@100 rises from 55.41\% to 58.77\%.
+Ten RL-Zero responses outperform 100 base-model responses, while
+\(k_{95}\) falls from 30 to 10.
 
-The RL policy therefore moves the combine curve both upward and leftward: it
-raises the attainable verification rate and reaches that rate with fewer model
-generations.  This is the intended training outcome.  The objective does not
-require every rollout to verify independently; it rewards the usable clauses
-that survive pruning and cover difficult trace units, matching the diverse
-clause supply consumed by rollout--combine--Houdini at deployment.
+The trained policy therefore supplies useful complementary clauses with fewer
+generations.  This is the behavior encouraged by the group-relative reward:
+each response can contribute clauses that survive Houdini and cover behavior
+missed by its peers, even if the response is not a complete proof by itself.
+
+\subsection{RQ3: Why Are Aggregation and Execution-Based Rewards Needed?}
+\label{sec:exp:probe}
+
+\paragraph{Candidate aggregation.}
+Inductiveness by itself cannot distinguish a useful invariant from
+\texttt{true}, and a binary whole-response reward discards useful clauses when
+another clause in the same response fails.  Reinforcement learning with
+verifiable rewards can also concentrate probability on already rewarded paths
+while reducing large-\(k\) exploration~\citep{yue2025rlcapacity}.
+This matters here because different responses often contain complementary
+parts of a proof.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{figures/qwen_official_probe.pdf}
+  \caption{Direct pass@\(k\) measures complete responses, whereas
+  combine@\(k\) measures whether the accumulated clauses contain a sufficient
+  Houdini-filtered subset.  For all four official Qwen3 checkpoints, the
+  combine curves change by at most 0.60 percentage points after \(k=30\).}
+  \label{fig:qwen-probe}
+\end{figure}
+
+Figure~\ref{fig:qwen-probe} shows that partial responses contain substantial
+value.  Direct pass@100 is 15.62\% for Qwen3-4B, 33.29\% for 8B, and
+39.90\% for 14B.  Combining clauses raises 4B to 47.84\% and 14B to
+58.05\%.  Houdini can recover compatible clauses from imperfect responses, but
+it cannot invent a relation that the model never emits.
+
+The curves also saturate early: no checkpoint gains more than 0.60 percentage
+points between combine@30 and combine@100.  A useful reward should therefore
+increase both the attainable verification rate and the rate at which new
+responses contribute previously missing clauses.
+
+\paragraph{Reward and negative-example checks.}
+Across ten hand-written specifications, every gold invariant survives the
+verifier filter and rejects at least 99.6\% of the intended negative examples,
+with no ordering violations in the reward sanity checks.  A larger audit on
+Core-366 compares 486,302 generated negative states against an expanded set of
+program executions and finds no hard pair-level collision.  These checks do not
+prove that every synthetic negative is globally unreachable, but they support
+the conservative construction used for training.

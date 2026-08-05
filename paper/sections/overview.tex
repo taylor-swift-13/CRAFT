@@ -1,82 +1,75 @@
 %% ============================================================
-\section{Problem Setting}\label{sec:overview}
+\section{Task Definition}\label{sec:overview}
 %% ============================================================
 
-\subsection{Target-Hidden Exit Sufficiency}
+\subsection{Verification Objective}
 \label{sec:overview:task}
 
-Fix a verification instance \((P,Q)\), where
-\(P=(\phi_{\mathrm{pre}},B,S)\) contains the precondition, loop guard, and body,
-and \(Q\) is a post-loop assertion or function postcondition.
-Let \(\mathcal R(P)\) be the states reachable at the loop head from an initial
-state satisfying \(\phi_{\mathrm{pre}}\).
-A predicate \(I\) is \emph{inductive} when
+A verification instance is a pair \((P,Q)\).
+The program fragment \(P=(\phi_{\mathrm{pre}},B,S)\) contains the
+precondition, loop guard, and loop body; \(Q\) is an assertion or
+postcondition that must hold after the loop.  Let \(\mathcal R(P)\) denote the
+states reachable at the loop head from inputs satisfying
+\(\phi_{\mathrm{pre}}\).
+
+The generator returns a conjunction \(I\) of ACSL loop-invariant clauses.
+Frama-C/WP must prove initiation and preservation,
 \[
   \phi_{\mathrm{pre}}\Rightarrow I
   \qquad\text{and}\qquad
   \{I\wedge B\}\,S\,\{I\}.
 \]
-Inductiveness gives a sound over-approximation of \(\mathcal R(P)\), but does
-not make it useful for a particular verification task.
-We call \(I\) \emph{exit-sufficient} for \(Q\) when
+It must also prove the original verification goal,
 \[
   I\wedge\neg B\Rightarrow Q.
 \]
+The third condition matters because inductiveness alone admits predicates that
+are correct but too weak to establish \(Q\).
+
+\subsection{Information Available to the Generator}
+\label{sec:overview:visibility}
 
 \begin{definition}[Target-hidden loop verification]
-The verification framework receives \((P,Q)\), but the policy receives only
-\(P\).
-It must generate an invariant set \(I\) without observing \(Q\), and succeeds
-only when \(I\) is both inductive and exit-sufficient for the original \(Q\).
+The framework receives \((P,Q)\), but the generator and all intermediate
+feedback receive only \(P\).  The generated invariant set is accepted only if
+it satisfies all three obligations above after the original \(Q\) is restored.
 \end{definition}
 
-The restriction is on information flow, not output syntax: both visible and
-hidden systems emit ACSL \texttt{loop invariant} clauses.
-In the visible setting, however, \(Q\) may itself be inductive and can simply be
-copied into the loop, as in \texttt{NLA\_lipus/10.c}.
-Target hiding removes this shortcut.
-It also makes binary verification unusable as a training reward, since querying
-the held-out target during RL would leak the answer.
-\sam{} instead rewards target-free behavioral strength and retains the original
-\(Q\) as the sole final acceptance criterion.
+Before generation, complete ACSL \texttt{assert} and \texttt{ensures} clauses,
+executable assertion calls, and conventional error-label names are removed.
+Preconditions and executable loop semantics remain visible.  Candidate
+generation, repair feedback, execution sampling, and Houdini filtering all use
+this target-masked program.  The untouched full program is used only for final
+verification.
 
-\subsection{A Shared Candidate-Processing Operator}
-\label{sec:overview:system}
+The restriction concerns information flow, not output syntax: both
+target-visible and target-hidden systems produce the same ACSL
+\texttt{loop invariant} clauses.  Querying final proof success during training
+would reveal information about \(Q\), so \sam{} instead derives its reward from
+program executions (\S\ref{sec:method:sampler}).
 
-For a rollout group \(\mathcal A=\{A_1,\ldots,A_G\}\) and response-cap
-hyperparameter \(K\), each policy response is first capped at \(K\) parsed
-invariant clauses; let \(\bar A_i\) denote that
-ordered prefix and \(X_0=\bigcup_i \bar A_i\) its normalized, deduplicated
-clause union.
-Each optional repair round receives only target-free WP verdicts and grows the
-pool monotonically,
-\[
-  X_{t+1}=X_t\cup R_t.
-\]
-Finally, \(\mathsf H_P(X_t)\) denotes the subset that survives syntax checking
-and the Frama-C/WP Houdini fixpoint on the masked program \(P\).
-The sequence
-\[
-  \mathcal A
-  \;\longrightarrow\;
-  X_0
-  \;\longrightarrow\;
-  X_1,\ldots,X_m
-  \;\longrightarrow\;
-  \mathsf H_P(X_m)
-\]
-is the shared rollout--Houdini core in Figure~\ref{fig:overview}.
+\subsection{Scope and Motivating Example}
 
-Training and inference differ only in how they consume this operator.
-Training evaluates individual rollouts, their union, and repaired pools to
-assign generation and refinement credit.  Standalone rejection measures
-strength, while group-relative hardness rewards trace units rejected by few
-other rollouts.  The only redundancy cost applies to conservative semantic
-duplicates; unique clauses are never punished merely for overlapping sampled
-coverage.
-Inference performs the same union, pool growth, and Houdini pruning without
-constructing reward traces, then restores \(Q\) for final verification.
-Training uses sampled positives as a cheap pre-filter, but soundness in both
-modes comes from the same Frama-C/WP Houdini implementation.
-Thus deployment is independent of the reward service while preserving the
-candidate and prover semantics optimized during training.
+We focus on a single braced \texttt{while} loop over scalar C integers.
+Arithmetic equalities and inequalities in this domain can be checked
+automatically, allowing us to study invariant discovery without the additional
+representation choices required by arrays, heaps, or recursive structures.
+Nonlinear updates remain challenging because exact algorithmic guarantees are
+largely concentrated on affine transition systems.
+
+Consider the following abridged program:
+\begin{lstlisting}
+int x = 1, y = 1, c = 1;
+while (c < k) {
+  c = c + 1;
+  x = x*z + 1;
+  y = y*z;
+}
+/*@ assert 1+x*z-x-z*y == 0; */
+\end{lstlisting}
+When the assertion is visible, the clause
+\texttt{loop invariant 1+x*z-x-z*y == 0;} can be copied directly.
+When it is hidden, the same nonlinear relation must be recovered from the
+coupled updates to \texttt{x} and \texttt{y}.  This example illustrates the
+difference between proving a supplied candidate and discovering the loop
+relation needed by a held-out target.

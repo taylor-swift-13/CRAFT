@@ -2,32 +2,51 @@
 \section{Related Work}\label{sec:related}
 %% ============================================================
 
-\paragraph{Loop-invariant generation.}
-Classical techniques infer invariants with abstract domains, templates, interpolation, or recurrences~\citep{cousot1977abstract,colon2003linear,mcmillan2003interpolation,kincaid2017compositional}; data-driven systems instead infer likely relations from traces and then filter or prove them~\citep{daikon,nguyen2012using,garg2016learning}.
-Recent LLM systems broaden the candidate language.
-\textsc{Loopy} generates ACSL clauses, filters them with Houdini, and repairs failures using Frama-C feedback~\citep{kamath2023finding}; \textsc{Clause2Inv} generates clauses and combines them under counterexample guidance~\citep{cao2025clause2inv}.
-\textsc{iRank} addresses the cost of sampling by contrastively re-ranking LLM-generated invariants before verifier calls~\citep{chakraborty2023ranking}.
-These systems improve candidate generation, combination, or ordering for a supplied verification problem.
-By contrast, \sam{} withholds the post-loop target \(Q\) throughout generation and training, then accepts an invariant set only if it is inductive \emph{and} proves the restored obligation \(I\wedge\neg B\Rightarrow Q\).
-Houdini~\citep{flanagan2001houdini} is therefore a sound pruning component in our pipeline, not the generation objective: it can remove non-inductive clauses from a fixed pool, but cannot determine whether the surviving pool retains enough information for an unseen \(Q\).
-Our additional distinction is alignment: grouped rollout construction and Houdini survival define one shared core for both policy training and deployment inference.
+\paragraph{Programmatic invariant synthesis.}
+Classical methods infer invariants with abstract interpretation, affine
+equalities, templates, interpolation, recurrences, or constraint solving
+~\citep{karr1976affine,cousot1977abstract,cousot1978automatic,
+sankaranarayanan2004non,colon2003linear,mcmillan2003interpolation,
+kincaid2017compositional}.  These methods provide strong guarantees for
+selected languages, especially affine transition systems, but nonlinear
+templates trade generality for increasingly difficult algebraic search.
+Dynamic approaches instead infer likely relations from execution traces and
+then filter or prove them~\citep{daikon,nguyen2012using,garg2016learning}.
+\sam{} also uses executions, but only to construct a training signal; final
+soundness is established independently by Frama-C/WP.
+
+\paragraph{Neural and LLM-based invariant generation.}
+Learned methods broaden the candidate language by using neural generators,
+counterexamples, or verifier feedback
+~\citep{si2018learning,si2020code2inv,ryan2020cln2inv,yao2020gcln}.
+\textsc{Loopy} generates ACSL clauses, filters them with Houdini, and repairs
+failures using Frama-C feedback~\citep{kamath2023finding}.
+\textsc{Clause2Inv} combines generated clauses under counterexample guidance,
+and \textsc{iRank} learns to rank LLM-generated invariants before expensive
+verifier calls~\citep{cao2025clause2inv,chakraborty2023ranking}.
+These systems solve a supplied verification problem.  Our setting instead
+withholds its target throughout generation and training, then restores it only
+for final evaluation.
 
 \paragraph{Specification generation.}
-LLM-based tools also synthesize artifacts broader than loop invariants.
-\textsc{AutoSpec} decomposes C programs, repeatedly samples ACSL contracts and annotations, and retains verifier-accepted clauses~\citep{wen2024enchanting}; \textsc{SpecGen} combines LLM proposals with mutation in Java/JML~\citep{ma2024specgen}.
-\textsc{SESpec} uses symbolic execution to expose path-sensitive strongest-postcondition information and generate goal-independent, verifier-checked specifications for C~\citep{yang2026sespec}.
-These systems aim to recover function-level behavioral specifications, possibly including preconditions, postconditions, predicates, and loop annotations.
-\sam{} studies a narrower but deliberately controlled problem: the output is an ACSL loop-invariant set, the downstream target is hidden rather than generated, and success is measured by whether the set is sufficient for that held-out target.
-Thus our focus is not general contract recovery, but learning target-agnostic loop facts that remain useful when a concrete verification obligation is later restored.
+LLM-based tools also synthesize broader program specifications.
+\textsc{AutoSpec} repeatedly proposes and verifies ACSL annotations;
+\textsc{SpecGen} combines LLM proposals with mutation in Java/JML; and
+\textsc{SESpec} uses symbolic execution to generate goal-independent
+specifications for C
+~\citep{wen2024enchanting,ma2024specgen,yang2026sespec}.
+Such systems may generate preconditions, postconditions, predicates, and loop
+annotations.  We study the narrower output of loop invariants and measure
+whether they are sufficient for a held-out target rather than whether they
+form a general behavioral specification.
 
 \paragraph{Reinforcement learning from formal feedback.}
-Earlier invariant learners use solver feedback to train policies or differentiable predicates~\citep{si2018learning,si2020code2inv,ryan2020cln2inv,yao2020gcln}.
-\textsc{Re:Form} reduces human priors in Dafny generation through scalable data curation and verifier-guided RL~\citep{yan2025reform}.
-\textsc{SpecRL} goes beyond binary verifier acceptance: it generates impossible input--output pairs and rewards specifications that reject them, providing a completeness signal for Dafny specification synthesis~\citep{huang2026specrl}.
-\sam{} shares the idea that formal validity alone cannot distinguish a useful specification from a weak one, but specializes it to hidden-target loops.
-Its negatives are relational perturbations, over-run exit continuations, and sampled-range escapes over internal loop states; conservative feasibility and coverage guards suppress uncertain labels, a broader execution audit checks for collisions, and Frama-C/WP separately proves inductiveness.
-Generation reward combines standalone negative rejection with positive
-hardness credit for trace units rejected by few group peers, while charging
-only conservative semantic duplicates; repair reward measures
-the gain of a capped response over the same merged pool consumed by inference.
-The held-out \(Q\) is never used as a feature or reward label and appears only in final acceptance.
+Verifier-guided reinforcement learning has been used for program synthesis and
+formal reasoning.  \textsc{Re:Form} uses scalable curation and verifier-guided
+RL for Dafny, while \textsc{SpecRL} generates impossible input--output pairs
+and rewards specifications that reject them
+~\citep{yan2025reform,huang2026specrl}.
+The latter shares our motivation that validity alone does not distinguish a
+useful specification from a weak one.  \sam{} specializes this idea to loops:
+the target is unavailable as a reward label, synthetic negative states provide
+a strength signal, and Frama-C/WP separately proves inductiveness.

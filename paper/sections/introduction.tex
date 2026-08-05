@@ -2,185 +2,80 @@
 \section{Introduction}\label{sec:intro}
 %% ============================================================
 
-Loop invariants are the linchpin of deductive program verification.
-They summarize an unbounded computation in a finite assertion, connecting the
-operational behavior of a loop to the mathematical facts needed by a proof.
-Generating them therefore demands both \emph{program understanding}---tracking
-control flow, assignments, and interacting recurrences---and
-\emph{mathematical reasoning}---discovering relations and bounds that hold
-across arbitrarily many iterations.
-Ever since the inductive-assertion method of Floyd~\citep{floyd1967assigning}
-and the axiomatic semantics of Hoare~\citep{hoare1969axiomatic}, verifying a
-loop $\mathtt{while}\,(B)\,S$ against a contract $\{P\}\cdot\{Q\}$ has reduced
-to exhibiting an \emph{inductive invariant} $I$ satisfying initiation
-($P \Rightarrow I$), consecution ($\{I \wedge B\}\,S\,\{I\}$), and safety
-($I \wedge \neg B \Rightarrow Q$).
-The goal is not merely to find a predicate that satisfies the first two obligations.
-An invariant such as $\mathit{true}$ may be inductive but carries no information to the loop exit.
-Useful loop reasoning must preserve enough information to establish the required post-loop condition $Q$.
-This final obligation is the distinction between generating arbitrary invariants and completing loop verification.
+Loop invariants summarize an unbounded computation in a finite assertion.
+For a loop \(\mathtt{while}\,(B)\,S\) with precondition
+\(\phi_{\mathrm{pre}}\) and target
+\(Q\), an invariant \(I\) must hold initially, be preserved by the loop body,
+and retain enough information at the exit to prove \(Q\)
+~\citep{floyd1967assigning,hoare1969axiomatic}:
+\[
+  \phi_{\mathrm{pre}}\Rightarrow I,\qquad
+  \{I\wedge B\}\,S\,\{I\},\qquad
+  I\wedge\neg B\Rightarrow Q.
+\]
+The first two conditions establish inductiveness, but they do not guarantee
+usefulness: \(\mathit{true}\) is often inductive and proves nothing about the
+loop exit.
 
-When the desired post-loop condition \(Q\) is available, invariant synthesis
-can exploit it directly as a search objective.
-Template- and constraint-based procedures, counterexample-guided inductive
-synthesis (CEGIS), ICE-style learners, and postcondition-guided inference can
-use \(Q\), failed proof obligations, or counterexamples to steer the search
-toward an invariant sufficient for \(Q\)
+Most invariant-synthesis systems are given \(Q\) during generation.
+Template search, counterexample-guided methods, and recent neural systems can
+therefore use the target or its failed proof obligations to guide the search
 ~\citep{gulwani2008program,gupta2009invgen,dillig2013inductive,
-alur2013sygus,garg2014ice,garg2016learning,nguyen2017syminfer,
-furia2010inferring}.
-Recent systems further combine this verifier-guided loop with neural or
-large language model (LLM) proposals, filtering, ranking, and repair
-~\citep{si2020code2inv,kamath2023finding,chakraborty2023ranking,
-wu2024lam4inv,cao2025clause2inv,liu2024acinv}.
-However, these formulations presuppose that \(Q\) has already been written,
-whereas obtaining a useful post-loop condition is often itself a nontrivial
-specification task.
-For a \texttt{while} loop, an invariant naturally induces such an exit
-condition when combined with the negated guard.
-We therefore reverse the usual direction: without exposing the ground-truth
-target \(Q\), we generate an invariant \(I\) from the loop and define its
-induced post-loop condition as
-\[
-  Q' \triangleq I \wedge \neg B.
-\]
-We then evaluate whether the generated condition is strong enough by checking
-\(Q' \Rightarrow Q\), using \(Q\) only as held-out ground truth rather than as
-input to synthesis.
+alur2013sygus,garg2014ice,garg2016learning,si2020code2inv,
+kamath2023finding,cao2025clause2inv}.
+This is appropriate when the verification target is already known, but it also
+creates a shortcut: when \(Q\) is itself inductive, a generator can copy it
+into the loop without recovering the relations that explain the program.
 
-Checking a proposed invariant and discovering one are markedly different
-problems.
-Once a candidate is fixed, an automated theorem prover (ATP) can often discharge
-its verification conditions.
-Generation must first invent the right abstraction from an open-ended space of
-predicates: it must be weak enough to hold initially and survive every
-iteration, yet strong enough to imply a downstream property.
-This tension has made automatic loop-invariant generation a longstanding and
-difficult problem.
+We study \emph{target-hidden loop verification}.  The generator sees the
+precondition, loop guard, body, and in-scope variables, but all assertions and
+postconditions are removed.  The original target \(Q\) is restored only after
+the invariant set has been fixed.  Success still requires the complete
+Frama-C/WP proof above, so hiding the target changes the information available
+to generation without weakening the final criterion
+(\S\ref{sec:overview}).
 
-\paragraph{Why numerical loops?}
-We focus on numerical loops for two reasons.
-First, candidate invariants in this domain are predominantly arithmetic
-equalities and inequalities, often polynomial ones.
-Their correctness is comparatively amenable to automatic checking, so ATP
-feedback can serve as a scalable and objective signal without requiring the
-interactive proofs commonly needed for richer program states.
-Second, numerical loops largely factor out the representational machinery of
-arrays, heaps, and recursive data structures, whose verification often depends
-on inventing auxiliary functions or inductive predicates.
-They therefore provide a controlled setting in which success depends more
-directly on algebraic discovery and reasoning about loop dynamics, rather than
-on reproducing a particular data-structure abstraction.
+This setting removes the most direct training signal.  Inductiveness alone
+cannot distinguish a strong loop summary from a tautology or a loose bound,
+while using final proof success as a reward would expose the held-out target.
+\sam{} instead executes the loop to collect reachable states and constructs
+three kinds of synthetic negative examples without consulting \(Q\):
+relational perturbations of observed traces, continuations after genuine loop
+exits, and values outside sampled ranges.  Conservative checks remove
+candidates that collide with observed executions, may be valid fresh entries,
+or depend on unsupported state.
 
-This restriction does not make the problem easy.
-The Collatz iteration, for example, is expressible as a one-variable loop with
-two elementary arithmetic updates, yet whether it reaches \(1\) from every
-positive integer remains open~\citep{lagarias1985collatz}.
-Consequently, no known polynomial invariant, together with an automatically
-checkable descent argument, suffices to certify this global claim; such a
-certificate would resolve the conjecture.
-Even within this deliberately simple domain, compact program syntax can thus
-hide mathematical behavior beyond presently known invariants.
-
-\paragraph{From algorithmic to learned generation.}
-Classical algorithmic methods have made their strongest exact progress on
-affine transition systems.
-Karr's seminal procedure computes affine equalities, while abstract
-interpretation and constraint-based methods extend this foundation to linear
-equalities and inequalities
-~\citep{karr1976affine,cousot1977abstract,cousot1978automatic,colon2003linear}.
-The canonical setting is a loop whose numerical state \(\mathbf{y}\) evolves as
-\[
-  \mathbf{y}' = A\mathbf{y}+\mathbf{b},
-\]
-possibly with linear guards.
-Within this setting, invariant inference can exploit linear algebra, convex
-geometry, or decidable constraint solving.
-Methods based on polynomial templates and Gr\"obner bases extend the frontier
-to selected nonlinear algebraic invariants, but impose syntactic or algebraic
-restrictions and face an explicit trade-off between completeness and
-tractability~\citep{sankaranarayanan2004non}.
-Thus, the most robust algorithmic guarantees remain concentrated around affine
-updates, rather than general nonlinear loop dynamics.
-
-Data-driven and learned methods broaden the search by using traces,
-counterexamples, or neural generators
-~\citep{garg2016learning,si2020code2inv,kamath2023finding,cao2025clause2inv}.
-Many such systems expose $Q$ to the generator and use its proof as feedback.
-This is effective for a fixed verification instance, but it creates a shortcut:
-a model can tailor candidates to the visible assertion without learning the
-relations and bounds that explain the loop.
-Postcondition-derived invariant mutation makes this dependence
-explicit~\citep{furia2010inferring}.
-
-\paragraph{Motivating example.}
-Consider \texttt{NLA\_lipus/10.c}, abridged below:
-\begin{lstlisting}
-int x = 1, y = 1, c = 1;
-while (c < k) {
-  c = c + 1;
-  x = x*z + 1;
-  y = y*z;
-}
-/*@ assert 1+x*z-x-z*y == 0; */
-\end{lstlisting}
-The assertion itself is established by the initial state and preserved by the loop body.
-When it is visible, invariant generation collapses to copying the target:
-\texttt{loop invariant 1+x*z-x-z*y == 0;}.
-The resulting clause is inductive and proves the assertion without revealing why this relation follows from the two coupled recurrences.
-When the assertion is hidden, the same clause must instead be recovered from the assignments to \texttt{x} and \texttt{y}.
-This small example captures the distinction we study: target-visible verification can make invariant inference trivial even when the underlying relation is nonlinear.
-
-\paragraph{Target-hidden loop verification.}
-We study a stricter setting.
-The full verification instance contains a precondition, loop, and post-loop target $Q$, but the policy receives only the precondition, guard, body, and in-scope variables.
-Assertions and \texttt{ensures} clauses are removed before generation, refinement, and Houdini pruning.
-The policy emits ACSL loop invariants, not a new postcondition.
-Only at the final gate does \sam{} restore the original target and ask Frama-C/WP to prove all invariant obligations and the post-loop condition.
-For a standard \texttt{while} loop, acceptance therefore requires
-\[
-P \Rightarrow I,\qquad
-\{I \wedge B\}\,S\,\{I\},\qquad
-I \wedge \neg B \Rightarrow Q.
-\]
-The hidden target determines success, while the generator cannot read or paraphrase it.
-The task is consequently not ``generate any loop invariant,'' but ``recover loop conditions that carry enough information to the exit to prove a held-out requirement.''
-
-\paragraph{One framework for training and inference.}
-The central design of \sam{} is a shared rollout--Houdini loop, rather than separate training and deployment procedures.
-Given the masked program, both paths sample a group of invariant rollouts, normalize and merge their clauses, optionally grow the pool through stateless WP-guided repairs, and invoke the same Houdini-style Frama-C/WP operator~\citep{flanagan2001houdini,framac} to retain an inductive subset.
-Only the consumer of those survivors changes.
-During training, Houdini survivors are scored for behavioral coverage:
-generation rollouts receive standalone credit plus extra reward for hard trace
-units rejected by few group peers, and repairs receive credit for improving the
-merged pool.  Malformed or non-inductive clauses are removed without erasing
-the value of usable clauses in the same response.  A unique clause with zero
-sampled coverage is not penalized because it may support another survivor or
-the hidden target; only conservative semantic duplicates incur the redundancy
-cost.
-During inference, the final Houdini survivors are inserted into the original program and checked against the restored \(Q\).
-Thus reward is coupled to exactly the rollout, pool-growth, feedback, and pruning semantics used at deployment; it is not an auxiliary objective attached to a different inference pipeline.
+Training has two distinct data paths.  To construct synthetic SFT data,
+multiple target-hidden responses are normalized, merged, optionally repaired,
+and filtered with Houdini over Frama-C/WP.  The masked program is paired with
+the resulting verified invariant set as a supervised example.  Reinforcement
+learning uses the execution-derived positives and negatives described above to
+reward clauses that are both inductive and behaviorally informative.  The same
+candidate-processing steps are used at inference, where \(Q\) is restored only
+for the final proof.
 
 \input{sections/fig_overview}
 
-Hiding $Q$ removes the binary target-verification reward, while inductiveness alone remains too weak because tautologies and loose bounds pass.
-The execution sampler therefore constructs relational perturbations, continuations beyond a genuine exit, and sampled-range escapes without consulting \(Q\).
-Candidates contradicted by observed reachability, feasible fresh entries, or incomplete state coverage are suppressed.
-These audited traces provide the dense strength signal attached to the shared framework, while the held-out target remains the authoritative final criterion.
+Our evaluation separates inference quality from the effect of reinforcement
+learning.  On 832 integer C programs, five target-hidden responses with
+candidate union and Houdini verify 622 programs (74.76\%), compared with 509
+(61.18\%) for the strongest external baseline.  On the Qwen3-8B study,
+reinforcement learning increases combine@10 from 52.40\% to 56.97\% and
+reduces \(k_{95}\), the number of responses needed to reach 95\% of measured
+combine@100, from 30 to 10.  A separate audit of 486,302 generated negative
+states finds no hard pair-level collision under an expanded execution check.
 
 \paragraph{Contributions.}
-This paper makes the following contributions:
-\begin{itemize}[leftmargin=1.5em, itemsep=2pt, topsep=2pt]
-  \item \textbf{A target-hidden verification task.} We separate the policy view from the verification instance: the model generates invariants without $Q$, while acceptance still requires proving $Q$ after the loop ($\S$\ref{sec:overview}).
-  \item \textbf{A shared rollout--Houdini framework.} Training and inference use the same grouped rollouts, growing clause pools, stateless WP feedback, and prover-backed Houdini survivors; training attaches rewards, while inference attaches the restored final proof obligation.
-  \item \textbf{An execution-grounded objective.} Generation receives
-  standalone negative coverage and positive hardness credit for trace units
-  rejected by few group peers; refinement receives its gain over the shared
-  pool.  Response caps and conservative duplicate/overflow costs prevent clause
-  accumulation, while three conservative negative families provide target-free
-  strength evidence (\S\ref{sec:method}).
-  \item \textbf{An auditable evaluation contract.} We define controlled
-  target-visibility, equal-budget inference, and reward ablations, and validate
-  the implemented signal with known-quality discrimination and a full-suite
-  label audit (\S\ref{sec:experiments}).
+This paper makes three contributions:
+\begin{itemize}
+  \item We formulate target-hidden loop verification and an evaluation
+  protocol in which \(Q\) is unavailable to generation, feedback, and reward,
+  but remains the final acceptance criterion.
+  \item We use one verified candidate-processing pipeline to synthesize SFT
+  pairs, compute execution-based RL rewards, and perform inference.  The SFT
+  targets are verified invariant sets; the separate RL signal uses
+  conservatively filtered synthetic negatives.
+  \item We evaluate inference, reinforcement learning, and negative-example
+  quality separately, showing higher verification rates and substantially
+  better rollout efficiency.
 \end{itemize}

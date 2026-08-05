@@ -1,26 +1,25 @@
 %% ============================================================
-\section{Conclusion}\label{sec:conclusion}
+\section{Conclusion and Limitations}\label{sec:conclusion}
 %% ============================================================
 
-Loop verification requires invariants that are both inductive and strong enough to establish the condition required after the loop.
-When that condition is visible, generation may collapse to copying the assertion, as illustrated by \texttt{NLA\_lipus/10.c}.
-We instead study target-hidden verification: the policy sees the loop but not its assertion, while the original assertion remains the final acceptance criterion.
+We studied loop-invariant generation when the assertion or postcondition is
+hidden from the generator.  \sam{} uses the same verified candidate pipeline
+to synthesize SFT pairs, train with execution-based rewards, and perform
+inference.  SFT targets are Houdini-filtered invariant sets paired with masked
+programs.  Separately, reachable executions and conservatively filtered
+negative states provide the reinforcement-learning signal.  The original
+target is restored only for final verification.
 
-\sam{} centers training and inference on the same rollout--Houdini framework.
-Both paths sample groups of candidate invariant sets, merge and optionally repair a growing clause pool, and retain its inductive core with the same Frama-C/WP Houdini operator.
-The training objective assigns
-standalone rejection and positive hardness credit for trace units rejected by
-few rollouts in the group.
-A unique clause with zero sampled coverage is not penalized because it may
-support another invariant or the held-out target; only conservative semantic
-duplicates receive a redundancy cost.  A
-configurable \(K\)-clause response cap with overflow cost prevents unbounded
-output growth.
-Refinement receives pool-improvement credit subject to the same response cap;
-inference replaces these rewards with final target-bearing verification.
-This shared scaffold aligns learning with deployment while keeping \(Q\) absent from prompts, feedback, pruning, and reward labels.
-The pipeline therefore rewards semantic information carried through the loop without weakening the end goal: a result succeeds only when the restored postcondition verifies.
+The experiments show that combining multiple target-hidden responses is
+substantially more effective than relying on a single complete response, and
+that reinforcement learning improves both the attainable combined verification
+rate and response efficiency.  These results support evaluating learned
+invariant generators under the candidate-combination procedure actually used
+at deployment, rather than by standalone pass rate alone.
 
-Beyond the immediate system, we see the shared training--inference scaffold and audited behavioral rewards as portable.
-Audited synthetic negatives generalize to domains where construction-specific evidence is cheaper than proving optimality; keeping assumptions and collision checks explicit is preferable to compensating for bad labels in the scoring formula.
-Future work includes multi-loop and heap-manipulating programs~\citep{liu2024towards}, richer assertion languages, and conditions that connect several loops before a final postcondition.
+The current implementation is limited to one loop over scalar integer state.
+Its synthetic negatives are conservatively checked training examples, not
+proofs of global unreachability, and final soundness still depends on
+Frama-C/WP.  Extending the approach to multiple loops, arrays, heaps, richer
+assertion languages, and inter-loop properties remains future work
+~\citep{liu2024towards}.

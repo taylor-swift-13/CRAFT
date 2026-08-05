@@ -177,8 +177,8 @@
 \newcommand{\sam}{\textsc{LoopGym}}
 
 %% Meta
-\title{\sam{}: Target-Hidden Loop Verification\\
-with a Shared Rollout--Houdini Framework}
+\title{\sam{}: Learning Loop Invariants\\
+without Seeing the Verification Target}
 
 \author{
   Anonymous authors\\
@@ -191,24 +191,28 @@ with a Shared Rollout--Houdini Framework}
 \maketitle
 
 \begin{abstract}
-Verifying a loop requires more than producing a predicate that is inductive: the predicate must retain enough information to establish the condition required after the loop.
-Most invariant-generation systems expose this postcondition or assertion to the generator, allowing candidates to be tailored to, or copied from, the target.
-We study \emph{target-hidden loop verification}.  The generator sees the precondition, loop guard, and body but not the target \(Q\); it emits ACSL loop invariants \(I\), which are accepted only when Frama-C/WP proves both their inductiveness and the original exit obligation \(I \wedge \neg B \Rightarrow Q\).
-\sam{} organizes learning and inference around one rollout--Houdini framework.
-Both form groups of invariant candidates, merge or repair their clauses, and
-apply the same Frama-C/WP Houdini operator.
-The training objective attaches dense credit to this core: a rollout is scored
-by standalone negative rejection and extra credit for hard trace units rejected
-by few peers in its rollout group.
-A conservative semantic duplicate cost and response overflow cost discourage
-wasted clauses without penalizing unique proof-supporting clauses.
-A repair is scored by its gain over the merged pool.
-Every policy response obeys a configurable clause cap, with explicit overflow
-cost.
-Inference executes the same rollout, pool-growth, feedback, and pruning stages,
-then restores \(Q\) for the final proof.
-This design aligns the model actions and prover-backed survivor semantics
-optimized during training with those executed at deployment.
+Loop-invariant generators are commonly given the assertion or postcondition
+that their output must prove.  This can simplify generation to copying or
+specializing to the target rather than recovering the behavior of the loop.
+We study \emph{target-hidden loop verification}: the generator sees the
+precondition, guard, and loop body but not the verification target \(Q\).
+It produces ACSL invariants \(I\), and a result succeeds only when Frama-C/WP
+proves both that \(I\) is inductive and that
+\(I\wedge\neg B\Rightarrow Q\).
+\sam{} trains the generator without querying \(Q\).  For supervised
+fine-tuning, multiple target-hidden responses are combined, optionally
+repaired, and filtered by Houdini; the verified invariant set becomes the
+target paired with the masked program.  Reinforcement learning uses a separate
+execution signal: reachable states and three conservatively filtered kinds of
+synthetic negative examples.  Rewards measure which negatives are rejected by
+the inductive clauses in each response, with an additional group-relative
+bonus for less common contributions.  SFT data synthesis, RL, and inference
+use the same candidate normalization, union, optional repair, and
+Frama-C/WP-based Houdini filtering; only inference restores \(Q\) for the final
+proof.  On 832 C programs, five-rollout inference verifies 74.76\% of tasks,
+compared with 61.18\% for the strongest external baseline.  Reinforcement
+learning raises combine@10 from 52.40\% to 56.97\% and reduces the rollouts
+needed to reach 95\% of the measured maximum from 30 to 10.
 \end{abstract}
 
 %% ============================================================

@@ -2,12 +2,15 @@
 %% Appendix (included after \appendix in main.tex)
 %% ============================================================
 
-\section{Canonical Component Defaults}
+\section{Implementation Details}
 \label{app:constants}
 
 Table~\ref{tab:constants} lists the implemented defaults.
-Execution-trace sampling belongs only to reward construction, while grouped model rollouts, monotone refinement pools, and the Houdini backend are shared with inference.
-Inference has its own refinement budget and never constructs a trace example set.
+Execution sampling is used only to compute reinforcement-learning rewards; it
+does not construct the synthetic SFT corpus.  SFT synthesis, RL, and inference
+use the same response cap, candidate union, repair format, and Houdini
+implementation.  Inference has its own repair budget and does not construct
+execution examples.
 
 \begin{table}[h]
 \centering
@@ -19,17 +22,18 @@ Inference has its own refinement budget and never constructs a trace example set
 \midrule
 runs requested & 12 & input executions; deterministic no-input programs collapse to one, and oracle-body sampling doubles the request \\
 sampler seed & 0 & one canonical example set per reward request unless overridden \\
-input tiers & 20 values in $[-64, 64]$ & deterministic edge-first magnitude schedule \\
+input tiers & 20 fixed values & deterministic near-input schedule listed below; unconstrained tier candidates are clamped to $[-64,64]$ \\
 far probes & 3, plus 2 ordered multi-parameter probes & seed-hashed input-envelope coverage, magnitude $\le 512$ \\
-relation deltas & $\pm\{1,2\}$ & single-axis and pairwise perturbations off dense bases \\
+relation deltas & dense: $\pm\{1,2\}$; terminal: $\pm\{1,2,3,5,8\}$ & single-axis and pairwise perturbations; terminal bases require a witnessed final transition rather than a forward dense window \\
 dense window & 3 & sampled successors required for a relation base \\
 relation base cap & 96 & bases stratified across positives \\
-escape ladder & $\pm\{5,8,13,21,34\}$ & candidates kept only outside the sampled range \\
-over-run steps & 24 & post-exit continuation length (one trace unit per run) \\
+range-perturbation steps & $\pm\{5,8,13,21,34\}$ & candidates kept only outside the sampled range \\
+post-exit steps & 24 & continuation length after a genuine exit (one negative trace per run) \\
+negative-example budgets & 320 ($\le 64$ fallback) / 64 / 128 & relational / post-exit / range examples; stable round-robin within each kind \\
 iteration cap & $2 \times 10^6$ & divergence safety net (capped runs flagged) \\
 \midrule
-$(w_b, w_h)$ & $(1.0, 0.3)$ & standalone coverage / group-hardness weights \\
-$w_r$ & 0.02 & cost per conservative semantic duplicate; unique zero-coverage clauses are not penalized \\
+$(w_c, w_g)$ & $(1.0, 0.3)$ & negative rejection / group-relative bonus weights \\
+$w_d$ & 0.02 & cost per conservative duplicate; unique zero-coverage clauses are not penalized \\
 $K$ & 20 clauses & response cap applied independently to every generation/refinement response \\
 $w_o$ & 0.05 & overflow cost per clause after \(K\) \\
 re-roll threshold & 0.6 & group batch score below which re-rolling is advised \\
@@ -39,14 +43,20 @@ WP configuration & Z3, 30\,s, Typed model & per-goal prover budget \\
 $m_{\mathrm{refine}}$ & 0 & inference refinement disabled by default; any nonnegative round budget is supported \\
 \bottomrule
 \end{tabular}
-\caption{Implemented defaults of the sampler ($\S$\ref{sec:method:sampler}), reward ($\S$\ref{sec:method:reward}), inference, and verification backend.}
+\caption{Defaults for execution sampling
+($\S$\ref{sec:method:sampler}), reward computation
+($\S$\ref{sec:method:reward}), inference, and verification.}
 \label{tab:constants}
 \end{table}
+The exact near-input tier order is
+\texttt{0, 1, 2, -1, 3, 5, 8, -2, 10, 17, 4, -3, 25, 6, 40, 7, -5, 13, 50, 9}.
 
 \section{Generation Prompt}
 \label{app:prompt}
 
-The complete generation template; closed-book inference strips an assertion when one is present before inserting the program source.  General ACSL rules are supplied separately by \texttt{system\_prompt.txt}.
+The same generation template is used to propose candidates for SFT synthesis,
+RL, and inference.  Any assertion is stripped before the program is inserted.
+General ACSL rules are supplied separately by \texttt{system\_prompt.txt}.
 
 \begin{promptbox}[Generation prompt]
 \begin{lstlisting}[style=promptstyle]
@@ -62,10 +72,13 @@ Program:
 \end{lstlisting}
 \end{promptbox}
 
-\section{Reward Service Interface}
+\section{Training Interface}
 \label{app:service}
 
-The reward framework is packaged as a self-contained, CPU-only container with gcc, Frama-C/WP, Why3, and Z3 bundled.  It exposes \texttt{POST /reward}, accepting program source and a rollout array, with the following response fields:
+The training service is packaged as a self-contained, CPU-only container with
+gcc, Frama-C/WP, Why3, and Z3.  It exposes \texttt{POST /reward}, accepting
+program source and an array of model responses.  The implementation retains
+the following field names for compatibility:
 \begin{lstlisting}[style=promptstyle]
 {program, n_positives, n_negatives, filter_mode,
  reward_mode, rollout_rewards[], base[], hard_bonus[],
@@ -73,10 +86,11 @@ The reward framework is packaged as a self-contained, CPU-only container with gc
  generated[], accepted[], overflow[], overflow_penalty[],
  rollouts[], batch_score, should_reroll}
 \end{lstlisting}
-Rollouts may be raw LLM text, invariant lists, or annotated code; parsing is uniform.
+Responses may be raw LLM text, invariant lists, or annotated code; parsing is uniform.
 For refinement training, \texttt{POST /refine\_feedback} returns the WP verdict
 table and assembled stateless prompt, while \texttt{POST /refine\_reward}
-returns both the nonnegative diagnostic \(\Delta\mathrm{base}\) and
+returns both the nonnegative improvement diagnostic (stored as
+\texttt{delta\_base}) and
 \texttt{refine\_rewards[]} after overflow cost.
 An offline scorer provides the same generation reward over JSONL/Parquet
 rollout dumps.

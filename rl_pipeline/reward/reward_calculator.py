@@ -56,12 +56,6 @@ class RolloutScore:
     reward: float
     rejected: int                 # negatives rejected standalone
 
-    @property
-    def hard_bonus(self) -> float:
-        """Deprecated compatibility alias for pre-Shapley reward consumers."""
-        return self.shapley_credit
-
-
 @dataclass
 class BatchReward:
     program: str
@@ -87,10 +81,6 @@ class BatchReward:
             "rollout_rewards": [r.reward for r in self.rollouts],
             "base": [r.base for r in self.rollouts],
             "shapley_credit": [r.shapley_credit for r in self.rollouts],
-            # Compatibility alias for rollout dumps produced before the
-            # group-credit formula was changed to the coverage-game Shapley
-            # allocation.
-            "hard_bonus": [r.hard_bonus for r in self.rollouts],
             "redundant_clauses": [
                 r.redundant_clauses for r in self.rollouts
             ],
@@ -104,7 +94,6 @@ class BatchReward:
             "rollouts": [
                 {"index": r.index, "reward": r.reward, "base": r.base,
                  "shapley_credit": r.shapley_credit,
-                 "hard_bonus": r.hard_bonus,
                  "redundant_clauses": r.redundant_clauses,
                  "redundancy_penalty": r.redundancy_penalty,
                  "overflow_penalty": r.overflow_penalty,
@@ -163,7 +152,7 @@ class RewardCalculator:
         self,
         invariant_filter=None,
         w_base: float = 1.0,
-        w_hard: float = 0.3,
+        w_shapley: float = 0.3,
         w_redundancy: float = 0.02,
         w_overflow: float = 0.05,
         max_invariants: int = MAX_INVARIANTS_PER_RESPONSE,
@@ -171,14 +160,11 @@ class RewardCalculator:
         n_jobs: Optional[int] = None,     # parallel frama-c filter calls per group
         logger: Optional[logging.Logger] = None,
         sampler_kwargs: Optional[dict] = None,
-        w_shapley: Optional[float] = None,
     ):
         log = logger or logging.getLogger("rl_pipeline.reward")
         self.filter = invariant_filter or filters.auto_filter(log)
         self.w_base = w_base
-        self.w_shapley = w_hard if w_shapley is None else w_shapley
-        # Deprecated alias retained for existing training configurations.
-        self.w_hard = self.w_shapley
+        self.w_shapley = w_shapley
         self.w_redundancy = w_redundancy
         self.w_overflow = w_overflow
         self.max_invariants = max_invariants

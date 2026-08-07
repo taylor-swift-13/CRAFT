@@ -262,27 +262,6 @@ precision 字段保留在 RolloutScore 里,仅供观测。
 
 **保持不变**: essential_count 算法 (顺序贪心)、w_base=1.0、w_marg=0.0。
 
-## 2026-07-31: Reward v3 — essential-survivor bonus
-
-The default reward combines standalone coverage, hard-negative credit, and
-clause-level useful coverage. Cross-rollout marginal reward has been removed
-from the implementation and public interfaces.
-
-```text
-raw_reward = 1.0 * base
-           + 0.3 * hard_bonus
-           + 0.1 * essential_survivors
-reward = raw_reward
-       - 0.02 * redundant_clauses
-       - 0.05 * overflow
-```
-
-`essential_survivors` is computed greedily in model-output order. A
-Houdini-surviving clause is essential exactly when adding it increases the
-fraction of rejected negative groups. A surviving clause with zero incremental
-coverage is redundant. Non-survivors count as neither essential nor redundant.
-Zero-negative programs retain the binary Frama-C/WP fallback.
-
 ## 2026-08-07: Reward v4 — coverage-game Shapley credit
 
 The group term now allocates standalone negative-set union coverage with the
@@ -298,7 +277,5 @@ reward[i] = 1.0 * base[i]
           - 0.05 * overflow[i]
 ```
 
-The calculation reuses rejection frequencies already required by the old
-rarity bonus and adds no Houdini or verifier calls. The public response now
-exposes `shapley_credit`; `hard_bonus` and `w_hard` remain compatibility
-aliases.
+The calculation reuses the rejection frequencies and adds no Houdini or
+verifier calls. The public response exposes `shapley_credit` directly.

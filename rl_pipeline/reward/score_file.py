@@ -26,10 +26,9 @@ def score_file(input_path: str, output_path: str, cfg: io.IOConfig,
                w_base: float = 1.0,
                reroll_threshold: float = 0.6, include_program: bool = False,
                logger: Optional[logging.Logger] = None,
-               w_hard: float = 0.3,
+               w_shapley: float = 0.3,
                w_redundancy: float = 0.02,
-               w_overflow: float = 0.05,
-               w_shapley: Optional[float] = None) -> Dict[str, int]:
+               w_overflow: float = 0.05) -> Dict[str, int]:
     sampler_kwargs = dict(sampler_kwargs or {})
     logger = logger or logging.getLogger("rl_pipeline.reward.score_file")
     batches = io.read_batches(input_path, cfg)
@@ -37,7 +36,6 @@ def score_file(input_path: str, output_path: str, cfg: io.IOConfig,
 
     shared_filter = filters.auto_filter(logger)
     rc = RewardCalculator(invariant_filter=shared_filter, w_base=w_base,
-                          w_hard=w_hard,
                           w_shapley=w_shapley,
                           w_redundancy=w_redundancy,
                           w_overflow=w_overflow,
@@ -92,8 +90,7 @@ def main() -> int:
     ap.add_argument("--response-field", default="response")
     ap.add_argument("--group-field", default="group_id")
     ap.add_argument("--w-base", type=float, default=1.0)
-    ap.add_argument("--w-hard", type=float, default=0.3)
-    ap.add_argument("--w-shapley", type=float, default=None)
+    ap.add_argument("--w-shapley", type=float, default=0.3)
     ap.add_argument("--w-redundancy", type=float, default=0.02)
     ap.add_argument("--w-overflow", type=float, default=0.05)
     ap.add_argument("--reroll-threshold", type=float, default=0.6)
@@ -115,7 +112,6 @@ def main() -> int:
         args.input, args.output, cfg, sampler_kwargs,
         args.w_base, args.reroll_threshold,
         args.include_program, logger,
-        w_hard=args.w_hard,
         w_shapley=args.w_shapley,
         w_redundancy=args.w_redundancy,
         w_overflow=args.w_overflow,

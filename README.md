@@ -126,8 +126,7 @@ units — one fake continuation is ONE negative, not twenty-four):
 - `base[A]`     = candidates rejected by **Houdini(A alone)** — its own kill rate;
 - `shapley_credit[A]` allocates the union of the group's standalone negative
   coverage: a trace rejected by `f` rollouts contributes `1/f` to each.
-  Credits therefore sum exactly to standalone union coverage. The serialized
-  `hard_bonus` field remains as a compatibility alias;
+  Credits therefore sum exactly to standalone union coverage;
 - `redundant_clauses[A]` counts conservative semantic duplicates inside the
   admitted prefix. The solver-free key handles comparison direction,
   commutative equality/addition/multiplication, harmless identities, and

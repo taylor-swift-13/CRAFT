@@ -641,9 +641,8 @@ class RewardPatchRegressionTests(unittest.TestCase):
         self.assertNotIn("w_surv", request_fields)
         self.assertIn("w_shapley", request_fields)
         self.assertFalse(hasattr(RewardCalculator(), "w_surv"))
-        configured = RewardCalculator(w_hard=0.3, w_shapley=0.7)
+        configured = RewardCalculator(w_shapley=0.7)
         self.assertEqual(configured.w_shapley, 0.7)
-        self.assertEqual(configured.w_hard, 0.7)
 
     def test_semantic_dedup_fixed_seed_metamorphic_pairs(self):
         rng = random.Random(20260805)
@@ -772,10 +771,8 @@ class RewardPatchRegressionTests(unittest.TestCase):
 
         self.assertEqual(calculator.w_base, 1.0)
         self.assertEqual(calculator.w_shapley, 0.3)
-        self.assertEqual(calculator.w_hard, 0.3)
         self.assertEqual(strong.base, 1.0)
         self.assertEqual(strong.shapley_credit, 0.75)
-        self.assertEqual(strong.hard_bonus, strong.shapley_credit)
         self.assertEqual(strong.redundant_clauses, 0)
         self.assertAlmostEqual(
             strong.reward,

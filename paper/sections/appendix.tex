@@ -138,12 +138,10 @@ Program:
 The training service is packaged as a self-contained, CPU-only container with
 gcc, the verifier, Why3, and Z3.  It exposes \texttt{POST /reward}, accepting
 program source and an array of model responses.  The response exposes the
-Shapley credit explicitly and retains \texttt{hard\_bonus} as a compatibility
-alias:
+Shapley credit explicitly:
 \begin{lstlisting}[style=promptstyle]
 {program, n_positives, n_negatives, filter_mode,
  reward_mode, rollout_rewards[], base[], shapley_credit[],
- hard_bonus[],
  redundant_clauses[], redundancy_penalty[],
  generated[], accepted[], overflow[], overflow_penalty[],
  rollouts[], batch_score, should_reroll}

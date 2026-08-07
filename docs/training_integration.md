@@ -81,8 +81,6 @@ the rollout's Houdini survivors. `shapley_credit` allocates the group's
 standalone union coverage: a trace covered by `f` rollouts contributes `1/f`
 to each. The default reward is
 `base + 0.3 * shapley_credit - redundancy_penalty - overflow_penalty`.
-The response also includes `hard_bonus` as a deprecated alias for
-`shapley_credit`, and requests using the old `w_hard` field remain accepted.
 
 Only the first 20 invariant lines enter Houdini. Every later line incurs the
 configured overflow penalty. If the sampler produces no negatives, the service

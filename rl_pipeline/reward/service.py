@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from pydantic import BaseModel, Field
 
@@ -51,9 +51,7 @@ class RewardRequest(BaseModel):
     program: str = Field(..., description="C program source with requires/loop/assert")
     rollouts: List[Any] = Field(..., description="each: {'invariants':[...]} or {'code': '...'}")
     w_base: float = Field(1.0, ge=0.0)
-    w_shapley: Optional[float] = Field(None, ge=0.0)
-    # Deprecated compatibility name; used only when w_shapley is omitted.
-    w_hard: float = Field(0.3, ge=0.0)
+    w_shapley: float = Field(0.3, ge=0.0)
     w_redundancy: float = Field(0.02, ge=0.0)
     w_overflow: float = Field(0.05, ge=0.0)
     max_invariants: int = Field(
@@ -100,8 +98,7 @@ def build_app():
             examples = _get_examples(req.program, req.sampler)
             rc = RewardCalculator(
                 invariant_filter=_get_filter(),
-                w_base=req.w_base, w_hard=req.w_hard,
-                w_shapley=req.w_shapley,
+                w_base=req.w_base, w_shapley=req.w_shapley,
                 w_redundancy=req.w_redundancy,
                 w_overflow=req.w_overflow,
                 max_invariants=req.max_invariants,

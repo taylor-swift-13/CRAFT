@@ -111,8 +111,6 @@ def batch_reward_to_rows(batch: Batch, br, include_program: bool = False) -> Lis
             "reward": rs.reward,
             "base": rs.base,
             "shapley_credit": rs.shapley_credit,
-            # Compatibility alias for older training readers.
-            "hard_bonus": rs.hard_bonus,
             "redundant_clauses": rs.redundant_clauses,
             "redundancy_penalty": rs.redundancy_penalty,
             "overflow_penalty": rs.overflow_penalty,

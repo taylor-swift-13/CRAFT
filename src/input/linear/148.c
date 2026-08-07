@@ -13,4 +13,6 @@ void foo148() {
        y = x + y;
       }
 
+    /*@ assert y >= 1; */
+
   }

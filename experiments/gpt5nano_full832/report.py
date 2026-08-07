@@ -104,6 +104,17 @@ def _hours(value: Any) -> str:
     return f"{float(value) / 3600:.2f} h"
 
 
+def _tokens(value: Any) -> str:
+    count = _int(value)
+    return f"{count:,}" if count else "—"
+
+
+def _mean(value: Any, rows: Any, suffix: str) -> str:
+    if value in (None, ""):
+        return "—"
+    return f"{float(value):.2f} {suffix} ({_int(rows)} rows)"
+
+
 def _int(value: Any) -> int:
     return int(float(value or 0))
 
@@ -192,22 +203,28 @@ def build_report(root: Path, *, allow_incomplete: bool = False) -> dict:
     all_summary = {
         row["method"]: row for row in summary if row["suite"] == "all"
     }
+    efficiency_path = root / "efficiency_reaudit.csv"
+    if not efficiency_path.exists():
+        raise RuntimeError(
+            "efficiency re-audit is missing; run "
+            "`python3 -m experiments.gpt5nano_full832.recompute_efficiency`"
+        )
+    with efficiency_path.open(newline="") as handle:
+        efficiency = {
+            row["method"]: row for row in csv.DictReader(handle)
+        }
     table = [
         "| Method | Generated | Gen OK | Failed | Timeout | Unsupported | "
         "Verified / 832 | Verified / supported | Negative micro | "
-        "Negative macro | Known tokens | Token rows E/X/U | Generation time |",
+        "Negative macro | Mean gen. time | Mean API tokens | Mean est. tokens |",
         "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for method in METHODS:
         row = all_summary[method]
+        cost = efficiency[method]
         supported = EXPECTED_TASKS - _int(row["unsupported"])
         verified = _int(row["verified"])
         supported_rate = verified / supported if supported else None
-        token_rows = (
-            f"{_int(row['token_rows_estimated'])}/"
-            f"{_int(row['token_rows_exact'])}/"
-            f"{_int(row['token_rows_unavailable'])}"
-        )
         table.append(
             f"| {method} | {_int(row['generated'])} | "
             f"{_int(row['completed'])} | {_int(row['failed'])} | "
@@ -216,8 +233,9 @@ def build_report(root: Path, *, allow_incomplete: bool = False) -> dict:
             f"{verified}/{supported} ({_percent(supported_rate)}) | "
             f"{_percent(row['negative_micro_rejection'])} | "
             f"{_percent(row['negative_macro_rejection'])} | "
-            f"{_int(row['total_tokens_known']):,} | {token_rows} | "
-            f"{_hours(row['generation_seconds'])} |"
+            f"{_mean(cost['mean_task_seconds'], cost['task_time_rows'], 's')} | "
+            f"{_mean(cost['mean_tokens_exact'], cost['token_rows_exact'], 'tok')} | "
+            f"{_mean(cost['mean_tokens_estimated'], cost['token_rows_estimated'], 'tok')} |"
         )
 
     report = "\n".join([
@@ -227,12 +245,14 @@ def build_report(root: Path, *, allow_incomplete: bool = False) -> dict:
         "",
         *table,
         "",
-        "Timing note: generation time is accumulated task wall time. For reused "
-        "legacy batches, the separately recorded batch wall time is included only "
-        "in the all-suite row; see `generation_time_accounting` in `summary.csv`.",
+        "Timing note: mean generation time is the arithmetic mean of recorded "
+        "per-task durations over the displayed row count. Reused rows without "
+        "per-task timing are not imputed. Reconstructed batch wall time remains "
+        "in `efficiency_batches.csv`.",
         "",
-        "Token note: E/X/U means estimated/exact/unavailable token-accounting "
-        "rows. Unknown usage is not imputed.",
+        "Token note: averages use the displayed exact or estimated row count. "
+        "API-reported and estimated usage are never combined; unknown usage is "
+        "not imputed.",
         "",
         "Artifacts:",
         "",
@@ -241,6 +261,8 @@ def build_report(root: Path, *, allow_incomplete: bool = False) -> dict:
         "- `completion_audit.json`: machine-readable completeness checks.",
         "- `latest.jsonl`: full latest result objects, including raw artifact paths.",
         "- `summary.csv`: suite-level aggregate metrics and accounting metadata.",
+        "- `efficiency_reaudit.csv`: corrected token and wall-time accounting.",
+        "- `efficiency_batches.csv`: reconstructed batch/session timing evidence.",
         "",
     ])
     (root / "final_report.md").write_text(report)

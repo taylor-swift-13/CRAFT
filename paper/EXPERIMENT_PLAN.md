@@ -28,20 +28,25 @@ inputs are failures, so every method uses the same denominator.
 
 ## 2. Corpora and leakage control
 
-### Core-366
+### Linear and nonlinear
 
 - 316 linear programs in `src/input/linear`.
+  - 133 from Code2Inv.
+  - 84 from SyGuS 2019.
+  - 99 from SV-COMP 2024.
 - 50 nonlinear programs in `src/input/NLA_lipus`.
+  - 30 from LIPuS.
+  - 20 from SV-COMP 2024.
 - This is the primary test suite because it matches the benchmark boundary used
   by Clause2Inv.
 
-### Loopy-466
+### Loopy
 
 - 466 normalized integer programs in `src/input/Loopy`.
 - Use as a transfer/comparison suite, not as 466 additional independent tasks.
 - The three official floating-point cases are out of scope.
 
-The corpora share Code2Inv, SyGuS, and SV-COMP provenance. A random file split is
+These collections reuse benchmarks from prior work. A random file split is
 therefore insufficient. Before training:
 
 1. recover the upstream source family for every program;
@@ -50,9 +55,10 @@ therefore insufficient. Before training:
 4. assign whole clusters to train/validation/test;
 5. publish the cluster manifest and hashes.
 
-The standard 366-program table should remain an evaluation table. If Core-366
-examples are used for RL training, report a separate held-out split and never
-compare that trained-on subset with published zero-shot baseline counts.
+The standard 366-program linear and nonlinear table should remain an evaluation
+table. If these examples are used for RL training, report a separate held-out
+split and never compare that trained-on subset with published zero-shot
+baseline counts.
 
 ## 3. Target-hidden baseline protocol
 

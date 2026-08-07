@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rejudge the saved 366 SESpec artifacts with their full loop annotations.
+"""Rejudge all 832 saved SESpec artifacts with their native loop invariants.
 
 SESpec's ``output/{function}.c`` files sometimes copy ``loop invariant`` clauses
 into a function contract.  Frama-C correctly rejects that form because loop
@@ -8,10 +8,11 @@ contains a separate, valid loop-annotation block before ``while``.
 
 This reproducer:
 
-1. reads the latest saved SESpec artifact for each Linear/NLA task;
+1. reads the latest saved SESpec artifact for every Linear/NLA/Loopy task;
 2. preserves generated top-level ACSL predicate/logic definitions;
-3. transplants only the ACSL block immediately preceding the first loop into
-   the untouched benchmark source, thereby restoring the hidden assertion;
+3. parses complete invariant clauses only from the annotation immediately
+   preceding the first loop, then inserts them into the untouched benchmark
+   source with the common frame clause, thereby restoring the hidden target;
 4. runs the same Frama-C/WP configuration used by the common judge; and
 5. saves every reconstructed C file, Frama-C log, and machine-readable result.
 
@@ -30,14 +31,15 @@ import subprocess
 import time
 from typing import Any
 
-from rl_pipeline.common.program import parse_program
+from rl_pipeline.common.program import _iter_acsl_clauses, _strip_comments, parse_program
+from rl_pipeline.reward.annotate import build_annotated
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_RESULTS = REPO_ROOT / "results" / "gpt5nano_full832"
-DEFAULT_OUTPUT = DEFAULT_RESULTS / "sespec366_rejudge_full_artifact"
-SUITES = ("linear", "NLA_lipus")
-EXPECTED = {"linear": 316, "NLA_lipus": 50}
+DEFAULT_OUTPUT = DEFAULT_RESULTS / "sespec832_rejudge_native_loop"
+SUITES = ("linear", "NLA_lipus", "Loopy")
+EXPECTED = {"linear": 316, "NLA_lipus": 50, "Loopy": 466}
 ACSL_BLOCK_RE = re.compile(r"/\*@.*?\*/", re.DOTALL)
 HELPER_KEYWORD_RE = re.compile(r"\b(?:predicate|logic|axiom|lemma)\b")
 CONTRACT_KEYWORD_RE = re.compile(
@@ -65,7 +67,7 @@ def load_latest_sespec_rows(path: Path) -> dict[tuple[str, str], dict[str, Any]]
     expected_total = sum(EXPECTED.values())
     if len(rows) != expected_total:
         raise RuntimeError(
-            f"expected {expected_total} SESpec rows for 366 subset, found {len(rows)}"
+            f"expected {expected_total} SESpec rows, found {len(rows)}"
         )
     for suite, expected in EXPECTED.items():
         count = sum(key[0] == suite for key in rows)
@@ -76,10 +78,11 @@ def load_latest_sespec_rows(path: Path) -> dict[tuple[str, str], dict[str, Any]]
 
 def find_loop_annotation(artifact: str) -> str:
     """Return the generated ACSL block closest to and before the first loop."""
-    program = parse_program(artifact)
-    if not program.loops:
+    uncommented = _strip_comments(artifact)
+    loop_match = re.search(r"\b(?:while|for)\s*\(", uncommented)
+    if loop_match is None:
         raise ValueError("artifact has no loop")
-    loop_start = program.loops[0].kw_start
+    loop_start = loop_match.start()
     candidates = [
         match
         for match in ACSL_BLOCK_RE.finditer(artifact, 0, loop_start)
@@ -97,10 +100,9 @@ def find_loop_annotation(artifact: str) -> str:
     return block.group(0)
 
 
-def find_global_helpers(artifact: str) -> list[str]:
+def find_global_helpers(artifact: str, function_name: str) -> list[str]:
     """Keep generated global logic context, but never generated assumptions."""
-    program = parse_program(artifact)
-    signature = re.search(rf"\b{re.escape(program.func_name)}\s*\(", artifact)
+    signature = re.search(rf"\b{re.escape(function_name)}\s*\(", artifact)
     if signature is None:
         return []
     helpers: list[str] = []
@@ -114,28 +116,30 @@ def find_global_helpers(artifact: str) -> list[str]:
     return helpers
 
 
-def count_loop_invariants(block: str) -> int:
-    return len(re.findall(r"\bloop\s+invariant\b", block))
+def extract_loop_invariants(block: str) -> list[str]:
+    """Parse complete clauses, including quantified clauses with binder semicolons."""
+    return [
+        expression
+        for _, _, expression in _iter_acsl_clauses(block, "loop invariant")
+    ]
 
 
 def reconstruct(original: str, artifact: str) -> tuple[str, int, int]:
     loop_block = find_loop_annotation(artifact)
-    helpers = find_global_helpers(artifact)
     original_program = parse_program(original)
     if not original_program.loops:
         raise ValueError("original source has no loop")
-    loop_start = original_program.loops[0].kw_start
+    invariants = extract_loop_invariants(loop_block)
+    if not invariants:
+        raise ValueError("loop annotation contains no complete invariant clause")
+    helpers = find_global_helpers(artifact, original_program.func_name)
     helper_prefix = "\n".join(helpers)
     if helper_prefix:
         helper_prefix += "\n"
-    annotated = (
-        helper_prefix
-        + original[:loop_start]
-        + loop_block
-        + "\n"
-        + original[loop_start:]
-    )
-    return annotated, count_loop_invariants(loop_block), len(helpers)
+    # The comparison evaluates invariant content, not a tool-specific frame
+    # clause. Generate the same loop-assigns clause used for every baseline.
+    annotated = helper_prefix + build_annotated(original_program, invariants, 0)
+    return annotated, len(invariants), len(helpers)
 
 
 def run_one(
@@ -164,6 +168,12 @@ def run_one(
         artifact_path = Path(str(row["artifact"]))
         original = source_path.read_text(errors="ignore")
         artifact = artifact_path.read_text(errors="ignore")
+        target_present = bool(
+            re.search(
+                r"\b(?:__VERIFIER_assert|assert|ensures)\b",
+                original,
+            )
+        )
         annotated, invariant_count, helper_count = reconstruct(original, artifact)
         annotated_path = case_dir / "annotated.c"
         annotated_path.write_text(annotated)
@@ -172,9 +182,7 @@ def run_one(
                 "annotated": str(annotated_path.resolve()),
                 "invariant_count": invariant_count,
                 "helper_definition_count": helper_count,
-                "assertion_restored": original != re.sub(
-                    r"\bassert\b", "__removed_assert_marker__", original
-                ),
+                "assertion_restored": target_present,
             }
         )
         command = [
@@ -216,7 +224,7 @@ def run_one(
             and goals is not None
             and goals > 0
             and proved == goals
-            and assertion_goal_seen
+            and target_present
         )
         result.update(
             {
@@ -277,7 +285,10 @@ def write_outputs(output_root: Path, rows: list[dict[str, Any]]) -> dict[str, An
             handle.write(json.dumps(row, sort_keys=True) + "\n")
 
     summary: dict[str, Any] = {
-        "protocol": "saved SESpec generations; full loop artifact + restored target",
+        "protocol": (
+            "saved SESpec generations; native loop invariant content + "
+            "common loop assigns + restored target"
+        ),
         "model_calls": 0,
         "total": len(ordered),
         "completed": sum(row["status"] == "completed" for row in ordered),

@@ -1,5 +1,5 @@
 {
-  "name": "loopgym-gpt5nano-full832-v1",
+  "name": "loopgym-gpt5nano-full832-v2",
   "model": "gpt-5-nano",
   "dataset": {
     "root": "src/input",
@@ -23,14 +23,25 @@
     "max_invariants_per_response": 20,
     "max_completion_tokens": 16384,
     "temperature": 1.0,
-    "top_p": 1.0
+    "top_p": 1.0,
+    "reasoning_effort": "medium"
   },
   "methods": {
     "naive": {
-      "definition": "one target-hidden response; no candidate pruning",
+      "definition": "one target-hidden response using only the trivial baseline prompt; no LoopGym system prompt, inference framework, pruning, or reroll",
       "rollouts": 1
     },
-    "loopgym": {
+    "loopgym_r1_no_houdini": {
+      "definition": "one target-hidden response using the LoopGym generation prompt; no candidate pruning or reroll",
+      "rollouts": 1,
+      "max_rerolls": 0
+    },
+    "loopgym_r1_houdini": {
+      "definition": "one target-hidden response using the LoopGym generation prompt, followed by Frama-C/WP Houdini",
+      "rollouts": 1,
+      "max_rerolls": 0
+    },
+    "loopgym_r4_houdini": {
       "definition": "four target-hidden responses per attempt; union then Frama-C/WP Houdini",
       "rollouts": 4,
       "max_rerolls": 1

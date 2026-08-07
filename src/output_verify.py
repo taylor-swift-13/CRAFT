@@ -159,8 +159,11 @@ class OutputVerifier:
             return
 
         self.syntax_correct = True
+        wp_parallel = os.environ.get("LOOPGYM_WP_PAR", "8")
+        if not wp_parallel.isdigit() or int(wp_parallel) < 1:
+            wp_parallel = "8"
         command = [
-            "frama-c", "-wp", "-wp-print", "-wp-timeout", "30", "-wp-par", "8",
+            "frama-c", "-wp", "-wp-print", "-wp-timeout", "30", "-wp-par", wp_parallel,
             "-wp-prover", "alt-ergo", "-wp-model", "Typed",
             "-wp-prop=-@terminates", file_path,
         ]

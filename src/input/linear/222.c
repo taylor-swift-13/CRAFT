@@ -13,4 +13,6 @@ void foo222(int w, int x, int y, int z) {
        z = z + 1;
       }
 
+    /*@ assert y == z; */
+
   }

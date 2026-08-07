@@ -137,11 +137,18 @@ Program:
 
 The training service is packaged as a self-contained, CPU-only container with
 gcc, the verifier, Why3, and Z3.  It exposes \texttt{POST /reward}, accepting
-program source and an array of model responses.  The response exposes the
-Shapley credit explicitly:
+program source, an array of model responses, \texttt{reward\_variant} in
+\{\texttt{binary}, \texttt{whole\_coverage}, \texttt{base},
+\texttt{base\_shapley}, \texttt{full}\},
+and \texttt{sampler.negative\_sampler} in
+\{\texttt{random}, \texttt{structured}\}.  The two switches are independent;
+the reward defaults to \texttt{full} and the sampler to
+\texttt{structured}.  The response exposes
+the selected modes and Shapley credit explicitly:
 \begin{lstlisting}[style=promptstyle]
 {program, n_positives, n_negatives, filter_mode,
- reward_mode, rollout_rewards[], base[], shapley_credit[],
+ reward_variant, negative_sampler, reward_mode,
+ rollout_rewards[], base[], shapley_credit[],
  redundant_clauses[], redundancy_penalty[],
  generated[], accepted[], overflow[], overflow_penalty[],
  rollouts[], batch_score, should_reroll}
@@ -151,6 +158,92 @@ An offline scorer provides the same generation reward over JSONL/Parquet
 rollout dumps.
 
 \clearpage
+\section{Training--Evaluation Overlap Audit}
+\label{app:data-leakage}
+
+The 37,958 released training records contain 36,301 unique source strings after
+whitespace normalization and include every program used for SFT.  We compare
+this pool against all 832 evaluation files after removing \(Q\), exactly as it
+is removed before model inference.
+
+\subsection{Layered Matching Protocol}
+
+A single exact-string check can miss renamed or lightly rewritten copies.  We
+therefore apply four increasingly aggressive program-level normalizations,
+all preserving \texttt{requires} clauses.
+
+\begin{enumerate}[leftmargin=*,itemsep=2pt,topsep=2pt]
+  \item \textbf{Target-hidden source} normalizes whitespace after removing
+  \(Q\).
+  \item \textbf{Near-exact tokens} additionally remove non-contract comments,
+  anonymize the loop function name, and tokenize the remaining source.
+  \item \textbf{Alpha-normalized source} renames identifiers in first-use
+  order and maps the benchmark nondeterministic-function names to one token,
+  while preserving constants, operators, statement order, and nesting.
+  \item \textbf{Constant-abstracted source} retains 0 and 1 but maps every
+  other integer literal to one token.  This catches copies changed only by
+  variable names and nontrivial numeric constants.
+\end{enumerate}
+
+We separately measure control-flow similarity.  The \emph{coarse profile}
+records the loop-guard category, capped numbers of \texttt{if}/\texttt{else}
+nodes, compound guards, and the presence of \texttt{break}, \texttt{continue},
+\texttt{return}, \texttt{goto}, and nested loops.  The \emph{ordered
+control-flow skeleton} retains the order and brace nesting of control nodes
+and replaces ordinary statements by a common token.  Its stricter variant
+also retains comparison and logical operators in branch conditions.  These
+control-flow signatures intentionally discard data flow and arithmetic and
+are similarity diagnostics, not program-identity tests.
+
+\subsection{Overlap Results}
+
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{lrr}
+\toprule
+Representation & Shared signatures & Matched evaluation files \\
+\midrule
+Target-hidden source                  & 0 & 0 (0.0\%) \\
+Near-exact token skeleton             & 0 & 0 (0.0\%) \\
+Alpha-normalized source               & 0 & 0 (0.0\%) \\
+Constant-abstracted alpha source      & 0 & 0 (0.0\%) \\
+\midrule
+Coarse control-flow profile           & 19 & 764 (91.8\%) \\
+Ordered control-flow skeleton         & 21 & 522 (62.7\%) \\
+Skeleton + condition-operator shape   & 22 & 421 (50.6\%) \\
+\bottomrule
+\end{tabular}
+\caption{Layered training--evaluation overlap audit.  Program-level
+representations preserve data flow; control-flow-only representations
+deliberately omit it.}
+\label{tab:train-test-leakage}
+\end{table}
+
+No evaluation program matches the training pool at any program-level stage.
+In particular, overlap remains zero after all identifiers are alpha-renamed
+and after nontrivial constants are abstracted.  This rules out exact copies,
+function-name or formatting variants, variable renamings, and copies changed
+only by numeric constants under the stated normalizations.
+
+Control flow alone overlaps substantially.  The coarse profiles of 764 of 832
+evaluation files occur in training; preserving statement order and nesting
+reduces this to 522 files, and retaining condition-operator shapes reduces it
+to 421.  This is expected for a scalar single-loop language: straight-line
+loops, one-branch loops, and \texttt{if--else} updates form a small reusable
+vocabulary.  The contrast is the relevant observation: training covers common
+control-flow forms, but every match disappears once arithmetic and data-flow
+structure are retained.  The observed control-flow overlap is therefore
+consistent with task coverage and does not by itself establish memorization.
+
+\paragraph{Scope and residual risk.}
+This audit covers the released fine-tuning data, not unknown base-model
+pretraining corpora.  It may also miss algebraically equivalent updates,
+reordered independent statements, transformed loops, or distant semantic
+clones.  We therefore report no overlap under the stated normalizations rather
+than claiming complete semantic independence.
+
 \section{Complete Experimental Data}
 \label{app:complete-results}
 
@@ -162,34 +255,33 @@ no missing value is used in the analysis.
 
 \subsection{Probe Curves}
 
-\begin{table}[t]
+\begin{table}[H]
 \centering
 \caption{Complete probe results.  \(k_{95}\) is the smallest \(k\) at which
 combine@\(k\) reaches \(95\%\) of its value at \(k=100\).}
 \label{tab:probe-complete}
 \resizebox{\textwidth}{!}{
-\begin{tabular}{llrrrrrrrr}
+\begin{tabular}{lrrrrrrrrrrrr}
 \toprule
-Model & Metric & \(k=1\) & \(k=5\) & \(k=10\) & \(k=20\) &
-\(k=30\) & \(k=50\) & \(k=100\) & \(k_{95}\) \\
+Model & pass@1 & pass@10 & pass@30 & pass@50 & pass@100 &
+combine@1 & combine@10 & combine@30 & combine@50 & combine@75 &
+combine@100 & \(k_{95}\) \\
 \midrule
-Qwen3-4B     & pass    & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & -- \\
-             & combine & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
-Qwen3-8B     & pass    & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & -- \\
-             & combine & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
-Qwen3-14B    & pass    & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & -- \\
-             & combine & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
-Qwen3-30B-A3B & pass    & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & -- \\
-              & combine & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
-Qwen3-32B    & pass    & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & -- \\
-             & combine & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Qwen3-4B & 2.53\% & 7.56\% & 11.21\% & 13.10\% & 15.62\%
+  & 33.89\% & 45.31\% & 47.24\% & 47.60\% & 47.72\% & 47.84\% & 30 \\
+Qwen3-8B & 9.30\% & 22.87\% & 28.30\% & 30.47\% & 33.29\%
+  & 24.88\% & 32.21\% & 33.65\% & 33.29\% & 32.93\% & 34.25\% & 30 \\
+Qwen3-14B & 10.29\% & 25.45\% & 33.55\% & 36.78\% & 39.90\%
+  & 49.52\% & 57.33\% & 57.81\% & 57.81\% & 57.93\% & 58.05\% & 10 \\
+Qwen3-30B-A3B & 7.43\% & 19.27\% & 25.13\% & 27.88\% & 31.73\%
+  & 43.27\% & 50.12\% & 50.96\% & 51.08\% & 51.20\% & 51.32\% & 10 \\
 \bottomrule
 \end{tabular}}
 \end{table}
 
 \subsection{Reinforcement-Learning Results}
 
-\begin{table}[t]
+\begin{table}[H]
 \centering
 \caption{Complete comparison before and after RL.  The Zero and SFT
 initializations are evaluated under the same decoding and verification
@@ -211,7 +303,7 @@ SFT  & SFT 8B + RL   & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD}
 
 \subsection{Ablation Results}
 
-\begin{table}[t]
+\begin{table}[H]
 \centering
 \caption{Complete reward-ablation results on the 8B model.  Reported values
 are verification rates; \(\mathrm{Verified}\in\{0,1\}\) records whether the
@@ -222,15 +314,16 @@ final union is accepted.}
 \toprule
 Reward & Seed 1 & Seed 2 & Seed 3 & Mean & Std. & Verified \\
 \midrule
-Binary verification                 & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
-Base                                & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
-Base + Shapley                      & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
-Base + Shapley + redundancy         & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Binary Verification                 & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Whole-Rollout Strength              & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Clause-Decomposed Strength          & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Compositional Credit                & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Regularized Compositional Credit    & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
 \bottomrule
 \end{tabular}}
 \end{table}
 
-\begin{table}[t]
+\begin{table}[H]
 \centering
 \caption{Complete negative-trace sampler ablation on the 8B model.}
 \label{tab:sampler-ablation-complete}
@@ -239,17 +332,15 @@ Base + Shapley + redundancy         & \textsc{TBD} & \textsc{TBD} & \textsc{TBD}
 \toprule
 Sampler & Seed 1 & Seed 2 & Seed 3 & Mean & Std. & Verified \\
 \midrule
-Random                              & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
-Relation                            & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
-Relation + escape                   & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
-Relation + escape + bound/range     & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Random perturbation                 & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Structured sampler                  & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
 \bottomrule
 \end{tabular}}
 \end{table}
 
 \subsection{Cross-Model Main Results}
 
-\begin{table}[t]
+\begin{table}[H]
 \centering
 \caption{Complete main results.  Each benchmark column reports
 pass@1/combine@1.}
@@ -260,12 +351,11 @@ pass@1/combine@1.}
 Model & Code2Inv & SyGuS & SV-COMP & LIPuS & Loopy & Overall &
 Time & Output tokens \\
 \midrule
-GPT-5-nano             & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
-GPT-5-mini             & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
-GPT-5                  & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
-Gemini-3.5-Flash       & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
-Claude-Sonnet-4.6      & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
-DeepSeek-V4-Flash      & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+GPT-5-nano             & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & 252/294 (54.08/63.09\%) & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+GPT-5-mini             & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & 284/353 (60.94/75.75\%) & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+GPT-5                  & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & 375/375 (80.47/80.47\%) & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Claude Sonnet-4.6      & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & 56.13\%/63.46\% & 59.88\,s\(^{\dagger}\) & 1,193.55\(^{\dagger}\) \\
+DeepSeek-V4-Flash      & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & 243/254 (52.15/54.51\%) & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
 Qwen3-14B              & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
 Qwen3-8B               & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
 Qwen3-4B               & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
@@ -276,35 +366,54 @@ Llama (checkpoint TBD) & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TB
 
 \subsection{Comparison with Specialized Tools}
 
-\begin{table}[t]
+\begin{table}[H]
 \centering
-\caption{Complete tool-comparison results.  Verification rate is reported for
-each benchmark and overall; costs are measured over the same benchmark split.}
+\caption{Complete target-hidden tool-comparison results.  Each cell reports
+verified programs and rate under the common file-level denominator.}
 \label{tab:tools-complete}
 \resizebox{\textwidth}{!}{
-\begin{tabular}{lcccccccccc}
+\begin{tabular}{lrrrrrr}
 \toprule
-Method & Code2Inv & SyGuS & SV-COMP & LIPuS & Loopy & Overall &
-Model calls & Verifier calls & Time & Peak context \\
+Method & Linear / 316 & NLA / 50 & Loopy / 466 & Overall / 832 &
+Tokens / task & Time / task \\
 \midrule
-AutoSpec                    & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
-SESpec                      & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
-Clause2Inv                  & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
-Daikon                      & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
-LoopGym (GPT-5-nano, combine@1) & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+AutoSpec & 208 (65.82\%) & 4 (8.00\%) & 302 (64.81\%)
+  & 514 (61.78\%) & 25,154.54 & 54.77\,s \\
+SESpec & 180 (56.96\%) & 3 (6.00\%) & 231 (49.57\%)
+  & 414 (49.76\%) & 44,807.05 & 117.31\,s \\
+Clause2Inv & 63 (19.94\%) & 1 (2.00\%) & 0 (0.00\%)
+  & 64 (7.69\%) & 385.80 & 29.04\,s \\
+Daikon & 73 (23.10\%) & 0 (0.00\%) & 101 (21.67\%)
+  & 174 (20.91\%) & 0 & 4.89\,s \\
+\midrule
+Naive
+  & 154 (48.73\%) & 4 (8.00\%) & 221 (47.42\%)
+  & 379 (45.55\%) & 4,493.37 & 28.87\,s \\
+LoopGym (pass@1)
+  & 193 (61.08\%) & 7 (14.00\%) & 252 (54.08\%)
+  & 452 (54.33\%) & 6,928.30 & 53.52\,s \\
+LoopGym (combine@1)
+  & 203 (64.24\%) & 7 (14.00\%) & 294 (63.09\%)
+  & 504 (60.58\%) & 6,928.30 & 66.60\,s \\
+LoopGym (combine@5)
+  & 250 (79.11\%) & 7 (14.00\%) & 365 (78.33\%)
+  & 622 (74.76\%) & 33,404.56 & 284.81\,s \\
+LoopGym (combine@10)
+  & 255 (80.70\%) & 7 (14.00\%) & 376 (80.69\%)
+  & 638 (76.68\%) & 68,953.35 & 536.81\,s \\
 \bottomrule
 \end{tabular}}
 \end{table}
 
 \clearpage
-\section{Why Thinking Is Disabled}
+\section{Why Thinking Is Disabled for Trained Models}
 \label{app:no-thinking}
 
-We disable chain-of-thought (CoT) in data synthesis, training, and inference.
-Open-weight checkpoints use \texttt{enable\_thinking=false}, and compatible
-hosted models use \texttt{reasoning\_effort=none}.  A run is excluded from the
-main comparison if its serving interface cannot explicitly disable reasoning.
-This choice has two practical motivations.
+API models use their default reasoning configuration.  For checkpoints trained
+in our pipeline, however, we disable chain-of-thought (CoT) during synthetic
+data construction, training rollouts, and evaluation inference.  Applying the
+same setting at all three stages avoids a train--test distribution shift.  This
+choice has two practical motivations.
 
 \paragraph{CoT substantially increases generation cost.}
 Our inference procedure samples many rollouts for each program.  Explicit CoT
@@ -325,7 +434,8 @@ remaining fragments from different rollouts into one faithful CoT for the
 combined invariant set.  Generating a new rationale after filtering would only
 produce a post-hoc explanation.  Consequently, CoT supervision is not aligned
 with the clause-wise filter-and-combine target.  For consistency, CoT remains
-disabled during synthetic-data construction, RL training, and inference.
+disabled for our trained checkpoints during synthetic-data construction, RL
+training, and inference.
 
 \clearpage
 \section{Training--Inference Mismatch in Houdini Ordering}

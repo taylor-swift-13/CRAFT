@@ -73,10 +73,10 @@ def _run_naive(task: Task, root: Path) -> dict:
     row = base_row("naive", task)
     directory = new_attempt_dir(root, "naive", task)
     hidden_path = save_hidden_source(directory, task)
-    recorder = RecordingChat()
+    recorder = RecordingChat(use_default_system_prompt=False)
     started = time.perf_counter()
     try:
-        prompt = prompts.GENERATE_PROMPT.format(program=task.hidden_source)
+        prompt = prompts.NAIVE_PROMPT.format(program=task.hidden_source)
         response = recorder.chat(prompt)
         invariants = extract_invariants(response, max_invariants=20)
         status, error = "completed", None
@@ -99,22 +99,64 @@ def _run_naive(task: Task, root: Path) -> dict:
     return row
 
 
-def _run_loopgym(task: Task, root: Path) -> dict:
-    row = base_row("loopgym", task)
-    directory = new_attempt_dir(root, "loopgym", task)
+def _run_loopgym_no_houdini(task: Task, root: Path) -> dict:
+    method = "loopgym_r1_no_houdini"
+    row = base_row(method, task)
+    directory = new_attempt_dir(root, method, task)
     hidden_path = save_hidden_source(directory, task)
     recorder = RecordingChat()
     started = time.perf_counter()
+    try:
+        prompt = prompts.GENERATE_PROMPT.format(program=task.hidden_source)
+        response = recorder.chat(prompt)
+        invariants = extract_invariants(response, max_invariants=20)
+        status, error = "completed", None
+    except Exception as exc:
+        response = ""
+        status = "failed"
+        error = f"{type(exc).__name__}: {exc}"
+        invariants = []
+    calls_path = directory / "api_calls.json"
+    calls_path.write_text(json.dumps(recorder.records, indent=2, ensure_ascii=False))
+    row.update({
+        "generation_status": status,
+        "generation_error": error,
+        "hidden_source": str(hidden_path),
+        "raw_responses": [response] if response else [],
+        "rollouts": [invariants],
+        "invariants": invariants,
+        "reroll_count": 0,
+        "generation_seconds": time.perf_counter() - started,
+        "api_calls_artifact": str(calls_path),
+        **recorder.usage(),
+    })
+    return row
+
+
+def _run_loopgym_houdini(
+    task: Task,
+    root: Path,
+    *,
+    method: str,
+    n_rollouts: int,
+    max_rerolls: int,
+) -> dict:
+    row = base_row(method, task)
+    directory = new_attempt_dir(root, method, task)
+    hidden_path = save_hidden_source(directory, task)
+    recorder = RecordingChat()
+    started = time.perf_counter()
+    result = None
     try:
         provider = LLMRolloutProvider(chat_fn=recorder.chat)
         source = task.source_path.read_text(errors="ignore")
         result = InferenceFramework(
             source,
             rollout_provider=provider,
-            n_rollouts=4,
-            max_rerolls=1,
+            n_rollouts=n_rollouts,
+            max_rerolls=max_rerolls,
         ).run()
-        expected_calls = 4 * (result.reroll_count + 1)
+        expected_calls = n_rollouts * (result.reroll_count + 1)
         status = "completed" if len(recorder.records) == expected_calls else "failed"
         error = None if status == "completed" else (
             f"expected {expected_calls} API calls, recorded {len(recorder.records)}"
@@ -136,12 +178,47 @@ def _run_loopgym(task: Task, root: Path) -> dict:
         "rollouts": rollouts,
         "invariants": invariants,
         "native_verified": native_verified,
-        "reroll_count": result.reroll_count if status == "completed" else None,
+        "reroll_count": result.reroll_count if result is not None else None,
         "generation_seconds": time.perf_counter() - started,
         "api_calls_artifact": str(calls_path),
         **recorder.usage(),
     })
     return row
+
+
+def _run_loopgym(task: Task, root: Path) -> dict:
+    """Backward-compatible entry point for the original four-rollout method."""
+    return _run_loopgym_houdini(
+        task,
+        root,
+        method="loopgym_r4_houdini",
+        n_rollouts=4,
+        max_rerolls=1,
+    )
+
+
+def _neural_runner(method: str):
+    if method == "naive":
+        return _run_naive
+    if method == "loopgym_r1_no_houdini":
+        return _run_loopgym_no_houdini
+    if method == "loopgym_r1_houdini":
+        return lambda task, root: _run_loopgym_houdini(
+            task,
+            root,
+            method=method,
+            n_rollouts=1,
+            max_rerolls=0,
+        )
+    if method == "loopgym_r4_houdini":
+        return lambda task, root: _run_loopgym_houdini(
+            task,
+            root,
+            method=method,
+            n_rollouts=4,
+            max_rerolls=1,
+        )
+    raise ValueError(f"not a neural method: {method}")
 
 
 def generate_neural(method: str, root: Path, workers: int, retry_failed: bool) -> None:
@@ -161,7 +238,7 @@ def generate_neural(method: str, root: Path, workers: int, retry_failed: bool) -
         raise RuntimeError(
             f"OPENAI_API_KEY is required for {method}'s {len(pending)} missing tasks"
         )
-    runner = _run_naive if method == "naive" else _run_loopgym
+    runner = _neural_runner(method)
     with ThreadPoolExecutor(max_workers=workers) as pool:
         futures = {pool.submit(runner, task, root): task for task in pending}
         for index, future in enumerate(as_completed(futures), 1):
@@ -387,10 +464,15 @@ def import_legacy_inference(root: Path, source_root: Path) -> tuple[int, int]:
     audit_path = Path(__file__).with_name("legacy_batches.json")
     audit = json.loads(audit_path.read_text())
     tasks = {(task.suite, task.case_id): task for task in discover_tasks(source_root)}
-    counts = {"naive": 0, "loopgym": 0}
-    for method, metadata in audit.items():
+    method_map = {
+        "naive": "loopgym_r1_no_houdini",
+        "loopgym": "loopgym_r4_houdini",
+    }
+    counts = {method: 0 for method in method_map.values()}
+    for legacy_method, metadata in audit.items():
+        method = method_map[legacy_method]
         source = REPO_ROOT / metadata["source"]
-        batch_id = f"legacy-{method}-366-20260724"
+        batch_id = f"legacy-{legacy_method}-366-20260724"
         batch_seconds = float(metadata["batch_seconds"])
         if not source.exists():
             continue
@@ -405,7 +487,7 @@ def import_legacy_inference(root: Path, source_root: Path) -> tuple[int, int]:
                 continue
             invariants = list(old.get("invariants") or [])
             rerolls = int(old.get("reroll_count") or 0)
-            calls = 1 if method == "naive" else 4 * (rerolls + 1)
+            calls = 1 if legacy_method == "naive" else 4 * (rerolls + 1)
             row = base_row(method, task)
             row.update({
                 "generation_status": (
@@ -417,7 +499,7 @@ def import_legacy_inference(root: Path, source_root: Path) -> tuple[int, int]:
                 "raw_responses": None,
                 "rollouts": None,
                 "native_verified": old.get("verified"),
-                "reroll_count": rerolls if method == "loopgym" else 0,
+                "reroll_count": rerolls if legacy_method == "loopgym" else 0,
                 "generation_seconds": None,
                 "generation_time_accounting": "unavailable_per_task",
                 "generation_batch_id": batch_id,
@@ -436,14 +518,21 @@ def import_legacy_inference(root: Path, source_root: Path) -> tuple[int, int]:
             append_jsonl(destination, row)
             existing[task.key(method)] = row
             counts[method] += 1
-    return counts["naive"], counts["loopgym"]
+    return (
+        counts["loopgym_r1_no_houdini"],
+        counts["loopgym_r4_houdini"],
+    )
 
 
 def reuse_legacy_inference_judges(root: Path) -> int:
     """Reuse old Frama-C/WP verdicts except where the restored target changed."""
     sources = {
-        "naive": REPO_ROOT / "results" / "loopgym_pass1_gpt5nano_nohoudini.jsonl",
-        "loopgym": REPO_ROOT / "results" / "loopgym_rollout4_houdini_gpt5nano.jsonl",
+        "loopgym_r1_no_houdini": (
+            REPO_ROOT / "results" / "loopgym_pass1_gpt5nano_nohoudini.jsonl"
+        ),
+        "loopgym_r4_houdini": (
+            REPO_ROOT / "results" / "loopgym_rollout4_houdini_gpt5nano.jsonl"
+        ),
     }
     count = 0
     for method, source in sources.items():
@@ -488,7 +577,7 @@ def reuse_legacy_inference_judges(root: Path) -> int:
 def attach_legacy_batch_audit(root: Path) -> int:
     audit_path = Path(__file__).with_name("legacy_batches.json")
     changed = 0
-    for method in ("naive", "loopgym"):
+    for method in ("loopgym_r1_no_houdini", "loopgym_r4_houdini"):
         destination = event_path(root, method)
         for row in latest_rows([destination]).values():
             if row.get("protocol_sha256") != protocol_sha256():
@@ -745,7 +834,7 @@ def import_sespec(root: Path, source_root: Path, roots: list[Path]) -> int:
 
 
 def import_existing(root: Path, source_root: Path) -> None:
-    naive, loopgym = import_legacy_inference(root, source_root)
+    r1_no_houdini, r4_houdini = import_legacy_inference(root, source_root)
     clause = import_clause2inv(root, source_root)
     autospec = import_autospec_audit(root, source_root)
     sespec_roots = [
@@ -759,7 +848,8 @@ def import_existing(root: Path, source_root: Path) -> None:
     audit_attached = attach_legacy_batch_audit(root)
     normalized_times = normalize_shared_score_time(root)
     print(
-        f"imported naive={naive}, LoopGym={loopgym}, Clause2Inv={clause}, "
+        f"imported R1-NoH={r1_no_houdini}, R4-H={r4_houdini}, "
+        f"Clause2Inv={clause}, "
         f"AutoSpec audit={autospec}, SESpec audit={sespec}, "
         f"SESpec invalidated={invalidated}, rejudged={rejudged}, "
         f"inference judges reused={inference_judges}, "
@@ -1204,7 +1294,12 @@ def main() -> int:
     elif args.command == "generate":
         if args.workers < 1:
             parser.error("--workers must be at least 1")
-        if args.method in {"naive", "loopgym"}:
+        if args.method in {
+            "naive",
+            "loopgym_r1_no_houdini",
+            "loopgym_r1_houdini",
+            "loopgym_r4_houdini",
+        }:
             generate_neural(args.method, args.results_root, args.workers, args.retry_failed)
         else:
             timeout = (
@@ -1234,7 +1329,12 @@ def main() -> int:
             sespec_root=args.sespec_root,
             timeout=args.timeout if args.timeout is not None else 7200,
         )
-        for method in ("naive", "loopgym"):
+        for method in (
+            "naive",
+            "loopgym_r1_no_houdini",
+            "loopgym_r1_houdini",
+            "loopgym_r4_houdini",
+        ):
             generate_neural(
                 method, args.results_root, args.workers, args.retry_failed
             )

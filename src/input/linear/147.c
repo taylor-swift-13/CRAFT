@@ -22,4 +22,6 @@ void foo147() {
        ya = x * 2 + y;
       }
 
+    /*@ assert xa + ya * 2 >= 0; */
+
   }

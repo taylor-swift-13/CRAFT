@@ -1,5 +1,5 @@
 %% ============================================================
-%% Figure 1: shared candidate processing and its three uses
+%% Figure 1: rollout--combine--filter as the organizing principle
 %% ============================================================
 \begin{figure}[t]
 \centering
@@ -38,7 +38,7 @@
 \node[tag, fill=codeblue, anchor=west] at (0.40,6.16)
   {ROLLOUT--COMBINE--FILTER};
 \node[font=\scriptsize, text=codegray, anchor=east]
-  at (15.58,6.16) {shared candidate processing};
+  at (15.58,6.16) {the compositional training--inference backbone};
 
 %% masked program card
 \node[card, draw=paperink!30, text width=1.58cm]
@@ -58,7 +58,7 @@
   (3.62,4.86)--(4.12,4.86)
   (3.62,4.67)--(4.20,4.67);
 \node[font=\tiny, text=codegray] at (4.00,4.18)
-  {responses \(A_1,\ldots,A_G\); cap \(K\)};
+  {independent exploration: \(A_1,\ldots,A_G\)};
 
 %% combined clause pool
 \node[heading] at (7.00,5.57) {COMBINE};
@@ -68,24 +68,24 @@
 \node[clause] at (7.60,5.04) {};
 \node[clause] at (7.60,4.72) {};
 \node[font=\tiny, text=codegray] at (7.00,4.18)
-  {split; normalize; union};
+  {split within; union across};
 
 %% iterative syntax filter
-\node[heading] at (8.92,5.57) {SYNTAX FILTER};
+\node[heading] at (8.92,5.57) {SYNTAX};
 \node[circle, draw=codeblue!58, fill=white, text=codeblue,
   minimum size=0.72cm, font=\bfseries] (syntax) at (8.92,4.88) {F};
 \node[font=\tiny, text=codegray] at (8.92,4.18)
-  {parse; AST dedup};
+  {parse + dedup};
 
 %% Houdini fixed point
 \node[heading] at (10.62,5.57) {HOUDINI};
 \node[circle, draw=codeblue!74, fill=codeblue!84, text=white,
   minimum size=0.88cm, font=\bfseries] (houdini) at (10.62,4.88) {H};
 \node[font=\tiny, text=codegray] at (10.62,4.18)
-  {establish + preserve};
+  {prove + prune};
 
 %% inductive clauses
-\node[heading] at (12.65,5.57) {INDUCTIVE CLAUSES};
+\node[heading] at (12.65,5.57) {SURVIVING CLAUSES};
 \node[survivor] at (12.00,5.08) {};
 \node[survivor] at (12.50,4.84) {};
 \node[survivor] at (13.00,5.08) {};
@@ -93,7 +93,7 @@
 \node[survivor] at (13.00,4.60) {};
 \node[card, draw=codegreen!64, fill=codegreen!10,
   text width=1.38cm] (survivors) at (14.42,4.88)
-  {\textbf{Filter output}\\[-1pt] \(C\)};
+  {\textbf{Output}\\[-1pt] \(C_k\)};
 
 \draw[flow] (masked) -- (3.44,4.88);
 \draw[flow] (4.66,4.88) -- (5.78,4.88);
@@ -107,7 +107,6 @@
 %% -----------------------------------------------------------------
 \draw[bus] (14.42,4.28) -- (14.42,3.42) -- (2.10,3.42);
 \fill[codeblue!72] (2.10,3.42) circle (1.8pt);
-\fill[codeblue!72] (7.40,3.42) circle (1.8pt);
 \fill[codeblue!72] (13.55,3.42) circle (1.8pt);
 
 %% -----------------------------------------------------------------
@@ -123,7 +122,7 @@
    {\scriptsize target: clause set \(C\)}};
 \draw[dataflow] (2.10,3.42) -- (sftpair.north);
 \node[tag, fill=codepurple!84, anchor=west] at (0.40,2.75)
-  {SYNTHETIC SFT DATA};
+  {DISTILL THE COMPOSITION};
 \node[card, draw=codepurple!64, fill=codepurple!7, text width=2.55cm]
   (sftdata) at (2.10,0.02)
   {\textbf{Canonical response}\\[-1pt]
@@ -136,7 +135,7 @@
 \draw[rounded corners=5pt, fill=codeblue!3, draw=codeblue!34,
   line width=0.8pt] (4.30,-2.10) rectangle (11.05,3.05);
 \node[tag, fill=codeblue, anchor=west] at (4.60,2.75)
-  {RL TRAINING};
+  {TRAIN FOR COMPOSITION};
 
 %% Execution examples are an RL reward signal, not the synthetic SFT corpus.
 \node[card, draw=codeblue!52, fill=white, text width=1.00cm,
@@ -157,27 +156,32 @@
 \draw[trainflow] (positives.east) -- (negsampler.west);
 \draw[trainflow] (negsampler.south) -- (audit.north);
 
-\node[card, draw=codeblue!52, fill=white, text width=1.55cm,
-  inner xsep=3pt] (trainin) at (6.70,-1.25)
-  {{\tiny\bfseries SCORE RESPONSES}\\[-1pt]
-   {\tiny after Houdini}\\[-2pt]
-   {\tiny with \((\mathcal P,\mathcal N)\)}};
-\node[card, draw=codeblue!62, fill=algobg!78, text width=1.55cm,
-  inner xsep=3pt] (score) at (8.62,-1.25)
-  {{\scriptsize\bfseries Reward}\\[-1pt]
-   {\tiny strength + complementarity}};
+\node[card, draw=codeblue!52, fill=white, text width=1.28cm,
+  inner xsep=3pt] (trainin) at (5.20,-1.25)
+  {{\tiny\bfseries SPLIT + FILTER}\\[-1pt]
+   {\tiny positive + Houdini}\\[-1pt]
+   {\tiny each \(A_i\to S_i\)}};
+\node[card, draw=codeblue!62, fill=algobg!78, text width=1.42cm,
+  inner xsep=3pt] (score) at (7.00,-1.25)
+  {{\tiny\bfseries SUBSET STRENGTH}\\[-1pt]
+   {\tiny coverage \(R_i\)}};
+\node[card, draw=codepurple!62, fill=codepurple!6, text width=1.48cm,
+  inner xsep=3pt] (groupcredit) at (8.95,-1.25)
+  {{\tiny\bfseries COMPOSE GROUP}\\[-1pt]
+   {\tiny union + Shapley}};
 \node[tag, fill=codeblue!84] (grpo) at (10.35,-1.25) {GRPO};
-\draw[trainflow] (7.40,3.42) -- (7.40,-0.58) --
-  (6.70,-0.58) -- (trainin.north);
 \draw[trainflow] (trainin) -- (score);
-\draw[trainflow] (score) -- (grpo);
-\draw[dataflow] (audit.south) -- (9.32,-0.76) --
-  (8.62,-0.76) -- (score.north);
+\draw[trainflow] (score) -- (groupcredit);
+\draw[trainflow] (groupcredit) -- (grpo);
+\draw[dataflow] (positives.south) -- (6.48,0.95) --
+  (5.20,0.95) -- (trainin.north);
+\draw[dataflow] (audit.south) -- (9.32,-0.45) --
+  (7.00,-0.45) -- (score.north);
 
 \draw[rounded corners=5pt, fill=codered!2, draw=codered!34,
   line width=0.8pt] (11.25,-2.10) rectangle (15.90,3.05);
 \node[tag, fill=codered!80, anchor=west] at (11.55,2.75)
-  {INFERENCE};
+  {DEPLOY THE COMPOSITION};
 \node[font=\scriptsize, text=codered!76, anchor=east]
   at (15.58,2.75) {fixed-budget};
 
@@ -198,13 +202,12 @@
 
 \end{tikzpicture}
 }%
-\caption{\textbf{Training is organized around rollout--combine--filter
-inference.}
-Multiple target-hidden responses are split into clauses, capped, normalized,
-and combined.  The filter iteratively removes syntax
-failures, optionally performs AST deduplication, then uses Houdini to
-iteratively remove clauses that fail establishment or preservation.  SFT
-compresses the result into one supervised response; RL rewards strong and
-complementary responses.  Deployment restores \(Q\) only after filtering.}
+\caption{\textbf{Rollout--combine--filter is the organizing principle.}
+Multiple target-hidden rollouts explore independently; their clauses are split
+within responses, unioned across responses, and filtered into one combined
+invariant.  SFT distills this composition.  RL mirrors it by rewarding the
+sound subset inside each rollout and its complementary contribution across the
+group; during training, reachable positive examples pre-filter clauses before
+Houdini.  Deployment restores \(Q\) only after the same composition is fixed.}
 \label{fig:overview}
 \end{figure}

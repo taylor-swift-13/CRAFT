@@ -98,12 +98,19 @@ source is retained for generation and Houdini verification.
 
 ```python
 from rl_pipeline.sampler import ExampleSampler
-es = ExampleSampler(source, n_runs=12).sample()  # loop only; no assert used
+es = ExampleSampler(
+    source, n_runs=12, negative_sampler="structured"
+).sample()  # loop only; no assert used
 es.pos(0)      # reachable loop-head valuations
 es.neg(0)      # witness states of synthetic negative candidates
 es.groups(0)   # witness-index groups, one per candidate trace unit
 ```
 CLI: `python -m rl_pipeline.sampler.example_sampler <file.c>`
+
+Negative-sampler ablations are selected with `negative_sampler` (or the CLI
+flag `--negative-sampler`): `random` uses budget-matched unstructured
+perturbations, while `structured` combines relational perturbations,
+post-exit continuations, and range/bound escapes. `structured` is the default.
 
 **Discrimination harness** — `python -m rl_pipeline.eval.discrimination` scores
 rollout families of known quality (gold / loose / trivial / guard / post /
@@ -153,9 +160,16 @@ units — one fake continuation is ONE negative, not twenty-four):
 
 ```python
 from rl_pipeline.reward import RewardCalculator
-br = RewardCalculator().compute(source, rollouts)
+br = RewardCalculator(reward_variant="full").compute(source, rollouts)
 br.to_dict()   # rewards, Shapley credit, duplicate/overflow costs, batch_score
 ```
+
+Reward ablations use `reward_variant`: `binary`, `whole_coverage`, `base`,
+`base_shapley`, and `full`. They respectively enable binary standalone
+validation; all-or-nothing whole-response negative coverage; clause-subset
+negative coverage; coverage plus Shapley credit; and the complete reward with
+the duplicate cost. The response records both `reward_variant` and
+`negative_sampler`, so experiment rows remain auditable.
 
 **HTTP service** (the training interface — see
 [docs/training_integration.md](docs/training_integration.md) for the full
@@ -168,7 +182,8 @@ curl -s localhost:8000/reward -H 'content-type: application/json' \
 ```
 
 Offline JSONL/Parquet groups can be scored with
-`python -m rl_pipeline.reward.score_file --input <in> --output <out> --runs 12 --seed 0`.
+`python -m rl_pipeline.reward.score_file --input <in> --output <out> --runs 12 --seed 0
+--reward-variant full --negative-sampler structured`.
 Parquet additionally requires `pandas` and `pyarrow`.
 
 ## 3. Inference — `rl_pipeline/inference` (no reward sampling or scoring)

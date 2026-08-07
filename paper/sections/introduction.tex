@@ -7,23 +7,13 @@ proof can otherwise cover arbitrarily many iterations, and writing invariants
 by hand remains a central bottleneck to verifying real software.  Loop
 invariants summarize an unbounded computation in a finite assertion.  They
 must be inductive while retaining enough program knowledge to establish
-the desired property at loop exit.  A weak predicate such as \(\mathit{true}\)
-can satisfy inductiveness but prove nothing useful.  We formalize soundness,
-logical strength, and target sufficiency in
-Section~\ref{sec:preliminaries}.
-
-Invariant generation is compositional: one response may provide a bound and
-another a relational equality, so their union can prove a target that neither
-proves alone.  Pass@1 discards this partial progress.  We instead sample
-multiple responses and retain a verified subset of their combined clauses with
-our rollout--combine--filter framework (Section~\ref{sec:method:core}).
-
-This procedure needs both \emph{strength} and \emph{exploration}: each response
-should contain useful clauses, while different responses should cover different
-relations.  Optimizing standalone success instead encourages repetition and
-ignores partial answers.  Our objective is the filtered combination at a fixed
-rollout budget, ideally compressing large-budget exploration into one
-practical deployment run.
+the desired property at loop exit.  A verifier gives a sharp test of
+soundness, but not a graded measure of precision: \(\mathit{true}\) can be
+inductive while proving nothing useful.  Moreover, the exact reachable-state
+set may be expensive to compute or inexpressible in the annotation language.
+The learning problem is therefore not merely to produce a sound invariant,
+but to approach a stronger sound over-approximation.  We formalize soundness,
+logical strength, and target sufficiency in Section~\ref{sec:preliminaries}.
 
 We study this alignment problem under \emph{target-hidden loop verification},
 where the target is withheld until after the invariant set has been fixed
@@ -33,24 +23,48 @@ obligations, or counterexamples to guide search
 alur2013sygus,garg2014ice,garg2016learning,si2020code2inv,
 kamath2023finding,cao2025clause2inv}.  Hiding \(Q\) prevents copying an
 inductive postcondition.  Final success is unchanged: the verifier must prove
-soundness and sufficiency for the restored target.
+soundness and sufficiency for the restored target.  This rules out direct
+target sufficiency as a training reward and makes a dense, target-independent
+strength signal necessary.
 
-\sam{} aligns both training stages with this structure.  For SFT, it applies
-the same framework, then serializes the verified set as
-one target for the masked program.  This distills multi-response search into a
-stronger response for later combined inference.
+The same task also offers a useful structure: sound invariants compose.  The
+conjunction of two inductive predicates is inductive and no weaker than either
+predicate.  One response may provide a bound and another a relational
+equality, so their union can prove a target that neither proves alone.  We
+therefore treat the filtered composition of a fixed rollout group as the
+deployed answer.  Our objective is combine@\(k\), rather than pass@1 or
+pass@\(k\): with as few responses as possible, the policy should discover a
+clause pool whose union survives Houdini and proves the restored target.  This
+compositionality is the organizing principle of our method: every other
+component is designed to make rollout--combine--filter effective under a
+finite sampling budget.
 
-Within loop-invariant generation specifically, prior systems search, filter
-counterexamples, or rank candidates, but none trains a generation policy with
-reinforcement learning (Section~\ref{sec:related}).  A usable reward is
-itself hard to define once \(Q\) is hidden: binary inductiveness cannot
-separate a useful invariant from a weak one such as \(\mathit{true}\), and
-querying \(Q\) during training would defeat the target-hidden setting.  For
-RL, executions provide reachable states and conservative negative examples
-without querying \(Q\).  After Houdini, negative coverage rewards response
-strength; a closed-form Shapley allocation divides the group's combined
-negative coverage among the responses that provide it.  Together they
-approximate the strength and complementarity needed after combination.
+This objective exposes a training--inference mismatch.  An independent
+verifier reward assigns the same score to a rollout regardless of what its
+peers already discovered.  It cannot distinguish a new useful relation from a
+redundant copy, and can collapse repeated sampling onto the same easy
+high-reward clauses.  A whole-response pass/fail reward also discards partial
+progress inside an imperfect response: one invalid clause can obscure several
+useful ones.
+
+We address credit assignment along both axes.  Within each rollout, we split
+conjunctions into clauses and use the verifier as a projection operator: syntax
+filtering and Houdini retain a sound subset, but provide no extra reward merely
+because the original response is syntactically valid or every proposed clause
+survives.  We reward the behavioral strength of the retained subset, so useful
+clauses receive partial credit even when their response is imperfect.  Across
+rollouts, a closed-form Shapley allocation credits each subset for negative
+coverage not already supplied by its peers.  The resulting reward is therefore
+both clause-decomposed within a response and group-conditioned across
+responses.
+
+\sam{} implements this idea with one rollout--combine--filter operator shared
+by training and deployment (Section~\ref{sec:method}).  SFT distills a filtered
+multi-response union into one stronger response.  GRPO supplies groups of
+rollouts, and our group-conditioned reward trains each response for its
+contribution to their composition.  At inference, the same clause splitting,
+union, syntax filtering, and Houdini pruning produce the final invariant before
+\(Q\) is restored.
 
 \input{sections/fig_overview}
 
@@ -68,15 +82,14 @@ target-proving answer.
 \paragraph{Contributions.}
 This paper makes three contributions:
 \begin{itemize}
-  \item We formulate target-hidden loop verification as a compositional
-  generation problem and evaluate the filtered combination of multiple
-  responses,
-  rather than treating pass@1 as the deployment objective.
-  \item We align training with rollout--combine--filter inference.  Synthetic
-  SFT targets distill filtered combinations into individual
-  responses, while an execution-based RL reward balances per-response strength
-  with complementary contributions across a rollout group without observing
-  \(Q\).
+  \item We formulate target-hidden loop verification around
+  rollout--combine--filter: the deployed and optimized object is the verified
+  composition of a fixed response group, measured by combine@\(k\), rather
+  than a standalone response measured by pass@1.
+  \item We align training credit with that compositional object.  Synthetic
+  SFT targets distill filtered combinations, while RL decomposes credit over
+  the sound clauses within each rollout and composes credit across rollouts
+  according to their complementary contribution, without observing \(Q\).
   \item We show that this alignment improves both combined verification and
   rollout efficiency, and audit the synthetic negative examples that support
   the reward.

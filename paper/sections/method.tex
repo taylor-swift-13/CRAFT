@@ -20,7 +20,15 @@ and deployment.  It samples responses, combines their clauses, iteratively
 removes syntax failures, optionally performs AST deduplication, and then
 applies Houdini.  SFT turns the filtered combination into one target, RL
 improves the responses that populate a combination, and inference applies the
-same framework before restoring \(Q\).
+same framework before restoring \(Q\).  This compositional operator is the
+central method; SFT construction, execution-derived negatives, and the RL
+credit rule are mechanisms for training the responses that feed it.
+
+The reward mirrors this structure in two directions: it \emph{decomposes
+within} each rollout and \emph{composes across} rollouts.  Within a response,
+clauses are filtered and credited separately, so an imperfect clause does not
+erase useful partial progress.  Across a response group, coverage is combined
+and allocated according to what each rollout contributes beyond its peers.
 
 %% ------------------------------------------------------------
 \subsection{Rollout--Combine--Filter}
@@ -30,15 +38,20 @@ same framework before restoring \(Q\).
 The model emits ACSL~\citep{acsl} annotations of the form
 \texttt{loop invariant <expr>;}.  We split each \texttt{<expr>} at top-level
 logical conjunctions, so a conjunction contributes separate clauses that can
-survive or fail independently.  Splitting precedes capping and normalization.
+survive or fail independently.  This makes the clause, rather than the entire
+response, the unit retained for later credit.  Splitting precedes capping and
+normalization.
 
 \paragraph{Combine.}
 Given \(G\) responses, we union their clause lists:
 \[
   X_0=\bigcup_{i=1}^{G}\bar A_i.
 \]
-This combination preserves partial progress across responses but can contain
-syntactically invalid or non-inductive clauses.
+If \(I_1\) and \(I_2\) are sound invariants of the same loop, then
+\(I_1\wedge I_2\) is also sound and no weaker than either constituent.
+Combination can therefore preserve a bound from one response and a relation
+from another even when neither response proves the target alone.  The raw
+union can nevertheless contain syntactically invalid or non-inductive clauses.
 
 \paragraph{Filter.}
 Algorithm~\ref{alg:rcf} gives the full framework.  The filter first
@@ -49,7 +62,8 @@ establishment or preservation obligation fails under the verifier
 ~\citep{flanagan2001houdini}.  We denote the surviving set by
 \(\mathsf{Filter}_{\mathcal L}(X)\).  Filtering can retain compatible clauses
 from imperfect responses but cannot invent a relation absent from the combined
-pool.
+pool.  The verifier is therefore used as a projection onto a sound clause
+subset, not as a binary reward for the correctness of the complete response.
 
 \begin{algorithm}[t]
 \caption{Rollout--combine--filter}
@@ -75,11 +89,19 @@ pool.
 \end{algorithmic}
 \end{algorithm}
 
-During RL scoring, sampled reachable states provide a cheap pre-filter for
-out-of-scope or obviously false clauses, after which the verifier remains the
-source of soundness.  Inference omits this optimization; all uses otherwise
-share clause splitting, capping, normalization, combination, syntax filtering,
-and Houdini.
+During RL scoring, we additionally apply a positive-example filter before the
+verifier pipeline.  Given sampled reachable states \(\mathcal P\), it retains
+only clauses consistent with every observed execution:
+\[
+  \mathsf{PF}_{\mathcal P}(X)
+  =\{a\in X:\forall p\in\mathcal P,\ p\models a\}.
+\]
+The syntax filter and Houdini then process
+\(\mathsf{PF}_{\mathcal P}(X)\).  This inexpensive step removes clauses already
+falsified by known reachable states; it is not a proof of soundness, which
+still comes from the verifier.  Inference has no execution examples and omits
+\(\mathsf{PF}_{\mathcal P}\); all uses otherwise share clause splitting,
+capping, normalization, syntax filtering, and Houdini.
 
 %% ------------------------------------------------------------
 \subsection{Compressing Multi-Response Search into SFT Targets}
@@ -145,23 +167,51 @@ let \(\mathrm{rej}(X)\subseteq\mathcal N\) be the traces on which at least one
 clause in \(\mathsf{Filter}_{\mathcal L}(X)\) is false.
 
 %% ------------------------------------------------------------
-\subsection{Rewarding Strength and Complementarity}
+\subsection{Clause-Decomposed and Group-Compositional Reward}
 \label{sec:method:reward}
 
 The deployed union needs strong individual responses that remain complementary
-within a group.  We reward both properties.
+within a group.  Rather than treating each rollout as one indivisible object,
+our reward first splits it into clauses and then relates its surviving subset
+to the other rollouts:
+\[
+  A_i
+  \xrightarrow{\ \operatorname{Split}+\mathsf{Filter}_{\mathcal L}\ }
+  S_i
+  \xrightarrow{\ \mathrm{rej}\ }
+  R_i,
+  \qquad
+  (R_1,\ldots,R_G)
+  \xrightarrow{\ \mathrm{union}+\mathrm{Shapley}\ }
+  (r_1,\ldots,r_G),
+\]
+where
+\[
+  S_i=\mathsf{Filter}_{\mathcal L}
+  \bigl(\mathsf{PF}_{\mathcal P}(\bar A_i)\bigr).
+\]
+The first arrow
+implements \emph{intra-rollout decomposition}; the second stage implements
+\emph{inter-rollout composition}.
 
-Soundness is checkable directly: Houdini either establishes and preserves a
-clause or it does not.  Strength is not.  An exact invariant need not have a
-finite representation in our annotation fragment (Section~\ref{sec:preliminaries}),
-so we cannot target exactness itself, and a binary sound/unsound label cannot
-tell a response that is merely inductive from one that is inductive and
-useful: \(\mathit{true}\) passes the same check as a tight bound.  We
-therefore need a graded, target-independent proxy for strength that a
-partial, sound response can satisfy by degree rather than all at once.
+Within a response, the reward measures the strength of \(S_i\); it does not add a response-level
+bonus for valid syntax or for every emitted clause surviving verification.  A
+malformed or non-inductive clause is removed, but does not erase credit earned
+by useful clauses in the same response.  Across responses, the total reward of
+\(A_i\) depends on the rejection sets of every other response in the group.
+Thus decomposition preserves partial progress within a rollout, while
+composition assigns credit for complementary progress across rollouts.
+
+Inductiveness supplies a binary soundness certificate, not a graded measure of
+precision.  Every sound invariant over-approximates the reachable loop-head
+states, while the exact set may be unavailable or inexpressible; predicates
+such as \(\mathit{true}\) can therefore pass Houdini while remaining useless.
+Because \(Q\) is hidden during training, target sufficiency cannot rank these
+sound candidates.  We instead use negative rejection as a dense,
+target-independent proxy for how tightly a candidate constrains behavior.
 
 For response \(A_i\), let
-\(R_i=\mathrm{rej}(\bar A_i)\) after standalone filtering.  Its
+\(R_i=\mathrm{rej}(S_i)\).  Its
 negative rejection rate is
 \[
   \mathrm{coverage}(A_i)=\frac{|R_i|}{|\mathcal N|}.
@@ -201,6 +251,16 @@ calls.  Individual coverage retains absolute response strength, while
 \(\phi_i\) assigns the group's combined behavioral coverage without double
 counting.
 
+The resulting credit is group-conditioned rather than an independent
+verifier reward:
+\[
+  r_i=r(A_i;A_{1:G}).
+\]
+Thus the same response receives less group credit when its rejections are
+already covered by its peers and more when it adds a distinct verified
+constraint.  This rewards behavioral complementarity rather than surface-form
+difference.
+
 We penalize only conservative duplicates within a response,
 \[
   d_{\mathrm{dup}}(A)=|\bar A|-|\mathrm{dedup}(\bar A)|.
@@ -214,7 +274,7 @@ or the hidden target.
 The generation reward is
 \begin{equation}
 \label{eq:generation-reward}
-r_{\mathrm{gen}}(A_i)=
+r_{\mathrm{gen}}(A_i;A_{1:G})=
 w_c\,\mathrm{coverage}(A_i)
 +w_g\,\phi_i
 -w_d\,d_{\mathrm{dup}}(A_i)
@@ -227,7 +287,9 @@ scoring, so one bad clause does not erase useful clauses in the response.
 We also compute the rejection rate of
 \(\mathsf{Filter}_{\mathcal L}(X_0)\) for the combined pool.  It
 controls group re-sampling but is not copied to every response.  With no safe
-negatives, reward falls back to binary inductiveness for a nonempty response.
+negatives, the implementation falls back to binary inductiveness for a
+nonempty response; all reported negative-coverage rewards otherwise use the
+two-level credit above.
 
 \paragraph{Group-relative policy update.}
 Each masked loop \(\mathcal L\) samples a group of \(G\) token sequences
@@ -238,8 +300,9 @@ normalize \(r_{\mathrm{gen}}\) within its own sampling group to obtain a
 group-relative advantage,
 \[
   \hat A_i=
-  \frac{r_{\mathrm{gen}}(A_i)-\operatorname{mean}_{1\le j\le G} r_{\mathrm{gen}}(A_j)}
-       {\operatorname{std}_{1\le j\le G} r_{\mathrm{gen}}(A_j)+10^{-6}},
+  \frac{r_{\mathrm{gen}}(A_i;A_{1:G})-
+        \operatorname{mean}_{1\le j\le G} r_{\mathrm{gen}}(A_j;A_{1:G})}
+       {\operatorname{std}_{1\le j\le G} r_{\mathrm{gen}}(A_j;A_{1:G})+10^{-6}},
 \]
 shared by every token of \(o_i\), and update \(\theta\) with the clipped GRPO
 objective~\citep{shao2024deepseekmath}
@@ -287,7 +350,20 @@ invocation are therefore
   I_k=\bigwedge_{a\in C_k}a,
   \qquad A_i\sim\pi(\cdot\mid\mathcal L),
 \]
-rather than the best standalone response.  SFT compresses a large candidate
-pool into stronger responses; RL improves their coverage and complementarity.
-Combine@\(k\) and \(k_{95}\) measure how few trained-policy responses are
-needed to match a much larger base-model sample.
+rather than the best standalone response.  Its final target utility is
+\[
+  U_Q(A_{1:k})=
+  \mathbf 1\!\left[I_k\wedge\neg B\Rightarrow Q\right],
+\]
+so the inference objective is
+\[
+  \max_{\pi}\;
+  \mathbb E_{A_{1:k}\sim\pi(\cdot\mid\mathcal L)}
+  \left[U_Q(A_{1:k})\right].
+\]
+Its empirical counterpart is combine@\(k\).  Unlike pass@\(k\), it records
+success when no standalone response is sufficient but their filtered union is.
+SFT compresses a large candidate pool into stronger responses, while RL
+improves their coverage and complementarity.  The goal is both to raise the
+combine@\(k\) curve and to make it converge with fewer rollouts; \(k_{95}\)
+measures the budget needed to reach the observed large-pool performance.

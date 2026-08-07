@@ -39,6 +39,7 @@ in real Houdini (Frama-C/WP).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import random
 import re
 from typing import Callable, Dict, List, Set, Tuple
 
@@ -50,6 +51,10 @@ from . import cexec
 # Inference deliberately does not construct reward examples.
 DEFAULT_N_RUNS = 12
 DEFAULT_SEED = 0
+NEGATIVE_SAMPLER_MODES = (
+    "random",
+    "structured",
+)
 
 _SMALL_DELTAS = (1, -1, 2, -2)
 # Terminal transitions are especially scarce in short loops.  Probe a slightly
@@ -91,6 +96,8 @@ class ExampleSet:
     # witness-state indices per synthetic trace unit (see module docstring)
     neg_groups: Dict[int, List[List[int]]] = field(default_factory=dict)
     stats: Dict[int, dict] = field(default_factory=dict)
+    # Kept after the historical fields for positional-constructor compatibility.
+    negative_sampler: str = "structured"
 
     def pos(self, loop_idx: int = 0) -> List[State]:
         return self.positives.get(loop_idx, [])
@@ -111,10 +118,17 @@ class ExampleSampler:
         source: str,
         n_runs: int = DEFAULT_N_RUNS,
         seed: int = DEFAULT_SEED,
+        negative_sampler: str = "structured",
     ):
+        if negative_sampler not in NEGATIVE_SAMPLER_MODES:
+            raise ValueError(
+                "negative_sampler must be one of: "
+                + ", ".join(NEGATIVE_SAMPLER_MODES)
+            )
         self.source = source
         self.n_runs = n_runs
         self.seed = seed
+        self.negative_sampler = negative_sampler
 
     # ── positives ────────────────────────────────────────────────────────────
     @staticmethod
@@ -641,25 +655,60 @@ class ExampleSampler:
         relation: List[State] = []
         overrun_groups: List[List[State]] = []
         escape: List[State] = []
+        random_states: List[State] = []
         if not uncontrolled:
-            relation = select_candidates(
-                self._relation_negatives(
-                    prog,
-                    movable,
-                    bases,
-                    positives,
-                    raw_reach,
-                    capped,
-                ),
-                _RELATION_GROUP_BUDGET,
-                fallback_limit=_RELATION_FALLBACK_BUDGET,
-            )
-            overrun_groups = select_overrun_groups()
-            if not capped and positives:
-                escape = select_candidates(
-                    self._escape_negatives(movable, bases, positives),
-                    _ESCAPE_GROUP_BUDGET,
+            if self.negative_sampler == "random":
+                # Budget-matched unstructured baseline.  It uses the same
+                # reachable bases, movable-variable safety checks, entry
+                # filter, seed, and total trace cap as the structured sampler,
+                # but
+                # chooses one or two axes and local deltas uniformly.
+                rng = random.Random(self.seed ^ 0x4C4F4F50)
+                deltas = tuple(range(-34, 0)) + tuple(range(1, 35))
+                attempts = 0
+                max_attempts = max(1024, 100 * _NEGATIVE_GROUP_BUDGET)
+                while (
+                    bases
+                    and movable
+                    and len(random_states) < _NEGATIVE_GROUP_BUDGET
+                    and attempts < max_attempts
+                ):
+                    attempts += 1
+                    base = rng.choice(bases)
+                    n_axes = 1 if len(movable) == 1 else rng.choice((1, 2))
+                    axes = rng.sample(movable, n_axes)
+                    values = dict(base.vars)
+                    for variable in axes:
+                        values[variable] += rng.choice(deltas)
+                    state = State(
+                        vars=values,
+                        pre=dict(base.pre),
+                        loop_entry=dict(base.loop_entry),
+                    )
+                    key = state.vars_key()
+                    if key in reachable or key in seen or entry_feasible(state):
+                        continue
+                    seen.add(key)
+                    random_states.append(state)
+            else:  # structured
+                relation = select_candidates(
+                    self._relation_negatives(
+                        prog,
+                        movable,
+                        bases,
+                        positives,
+                        raw_reach,
+                        capped,
+                    ),
+                    _RELATION_GROUP_BUDGET,
+                    fallback_limit=_RELATION_FALLBACK_BUDGET,
                 )
+                overrun_groups = select_overrun_groups()
+                if not capped and positives:
+                    escape = select_candidates(
+                        self._escape_negatives(movable, bases, positives),
+                        _ESCAPE_GROUP_BUDGET,
+                    )
 
         negatives: List[State] = []
         groups: List[List[int]] = []
@@ -675,6 +724,9 @@ class ExampleSampler:
         for state in escape:
             groups.append([len(negatives)])
             negatives.append(state)
+        for state in random_states:
+            groups.append([len(negatives)])
+            negatives.append(state)
 
         stats = {
             "n_traces": len(groups),
@@ -682,6 +734,8 @@ class ExampleSampler:
             "relation": len(relation),
             "bound_overrun": len(overrun_groups),
             "bound_escape": len(escape),
+            "random": len(random_states),
+            "negative_sampler": self.negative_sampler,
             "negative_budget": _NEGATIVE_GROUP_BUDGET,
             "relation_budget": _RELATION_GROUP_BUDGET,
             "relation_fallback_budget": _RELATION_FALLBACK_BUDGET,
@@ -803,7 +857,7 @@ class ExampleSampler:
 
     def sample(self) -> ExampleSet:
         prog = parse_program(self.source)
-        es = ExampleSet(program=prog)
+        es = ExampleSet(program=prog, negative_sampler=self.negative_sampler)
         runs = self.n_runs * 2 if self._body_nondeterministic(prog, 0) else self.n_runs
         sampling_prog = parse_program(self._determinize_source(self.source))
         reach, overrun, capped, execution_stats = cexec.collect_traces(
@@ -834,18 +888,33 @@ def _cli():
     ap = argparse.ArgumentParser(description="Sample positive/negative loop-entry valuations")
     ap.add_argument("program", help="path to a C program")
     ap.add_argument("--runs", type=int, default=DEFAULT_N_RUNS)
+    ap.add_argument("--seed", type=int, default=DEFAULT_SEED)
+    ap.add_argument(
+        "--negative-sampler",
+        choices=NEGATIVE_SAMPLER_MODES,
+        default="structured",
+    )
     ap.add_argument("--show", type=int, default=6, help="print N example states each")
     args = ap.parse_args()
 
     logging.basicConfig(level=logging.WARNING, format="%(message)s")
     src = open(args.program).read()
-    es = ExampleSampler(src, n_runs=args.runs).sample()
-    print(f"program: {es.program.func_name}  guard: {es.program.loop.guard!r} (loop only; assert not used)")
+    es = ExampleSampler(
+        src,
+        n_runs=args.runs,
+        seed=args.seed,
+        negative_sampler=args.negative_sampler,
+    ).sample()
+    print(
+        f"program: {es.program.func_name}  guard: {es.program.loop.guard!r} "
+        f"sampler={es.negative_sampler} (loop only; assert not used)"
+    )
     for li in sorted(es.positives):
         st = es.stats[li]
         print(f"\nloop {li}: positives={st['n_pos']} negative-traces={st['n_neg']} "
               f"(relation={st.get('relation','-')} overrun={st.get('bound_overrun','-')} "
-              f"escape={st.get('bound_escape','-')} capped={st.get('capped','-')})")
+              f"escape={st.get('bound_escape','-')} random={st.get('random','-')} "
+              f"capped={st.get('capped','-')})")
         print("  positives:")
         for s in es.pos(li)[:args.show]:
             print("    +", s.render())

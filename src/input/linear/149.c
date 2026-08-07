@@ -24,4 +24,6 @@ void foo149() {
       }
       }
 
+    /*@ assert j >= i; */
+
   }

@@ -54,7 +54,12 @@ program prompt.
   "w_redundancy": 0.02,
   "w_overflow": 0.05,
   "max_invariants": 20,
-  "sampler": {"n_runs": 12, "seed": 0}
+  "reward_variant": "full",
+  "sampler": {
+    "n_runs": 12,
+    "seed": 0,
+    "negative_sampler": "structured"
+  }
 }
 ```
 
@@ -68,6 +73,8 @@ The response is order-aligned with the submitted rollouts:
   "redundant_clauses": [0, 0],
   "redundancy_penalty": [0.0, 0.0],
   "overflow_penalty": [0.0, 0.0],
+  "reward_variant": "full",
+  "negative_sampler": "structured",
   "reward_mode": "negative_coverage",
   "batch_score": 0.83,
   "should_reroll": false,
@@ -90,6 +97,15 @@ candidate set survives standalone Houdini unchanged, otherwise 0.
 The `POST /sample` endpoint exposes sampled positives and negatives for
 debugging. `GET /health` reports filter mode and cache size.
 
+For reward ablations, set `reward_variant` to `binary`, `whole_coverage`,
+`base`, `base_shapley`, or `full`. `whole_coverage` gives negative coverage
+only when every admitted clause in the response survives the positive and
+Houdini filters; otherwise it gives zero. For sampler ablations, set
+`sampler.negative_sampler` to `random` or `structured`. The two switches are
+independent, and omitted switches default to the complete method.
+`structured` combines relational perturbations, post-exit continuations, and
+range/bound escapes under their fixed family budgets.
+
 ## 3. GRPO recipe
 
 For each RL step:
@@ -102,7 +118,8 @@ For each RL step:
    the group, and update the policy.
 
 Keep `sampler.seed` and `sampler.n_runs` fixed within a sweep so
-the cached example sets and rewards remain comparable.
+the cached example sets and rewards remain comparable. Also record
+`reward_variant` and `sampler.negative_sampler` for every ablation run.
 
 ## 4. Inference
 
@@ -128,7 +145,9 @@ python3 -m rl_pipeline.reward.score_file \
   --input rollouts.jsonl \
   --output rewards.jsonl \
   --runs 12 \
-  --seed 0
+  --seed 0 \
+  --reward-variant full \
+  --negative-sampler structured
 ```
 
 Parquet additionally requires `pandas` and `pyarrow`.

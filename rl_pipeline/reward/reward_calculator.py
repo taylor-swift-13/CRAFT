@@ -4,6 +4,7 @@ RewardCalculator — Component 2.
 Given a program and a GROUP of rollouts (each a candidate invariant set), score
 each rollout and the batch, using synthetic negative candidates from the sampler:
 
+  whole[A]    = base[A] iff every clause in A survives, else zero
   base[A]     = fraction of candidates rejected by Houdini(A alone)
   shapley[A]  = Shapley allocation of the group's rejection coverage
   reward[A]   = w_base * base[A] + w_shapley * shapley[A]
@@ -40,6 +41,15 @@ from ..common.state import (
 from ..sampler import ExampleSampler, ExampleSet
 from . import filters
 
+REWARD_VARIANTS = (
+    "binary",
+    "whole_coverage",
+    "base",
+    "base_shapley",
+    "full",
+)
+
+
 @dataclass
 class RolloutScore:
     index: int
@@ -65,6 +75,9 @@ class BatchReward:
     should_reroll: bool
     filter_mode: str
     rollouts: List[RolloutScore] = field(default_factory=list)
+    # Kept after the historical fields for positional-constructor compatibility.
+    reward_variant: str = "full"
+    negative_sampler: str = "structured"
 
     def to_dict(self) -> dict:
         return {
@@ -74,9 +87,16 @@ class BatchReward:
             "batch_score": self.batch_score,
             "should_reroll": self.should_reroll,
             "filter_mode": self.filter_mode,
+            "reward_variant": self.reward_variant,
+            "negative_sampler": self.negative_sampler,
             "reward_mode": (
-                "negative_coverage"
-                if self.n_negatives else "binary_frama_c_validation"
+                "binary_frama_c_validation"
+                if self.reward_variant == "binary" or not self.n_negatives
+                else (
+                    "whole_response_negative_coverage"
+                    if self.reward_variant == "whole_coverage"
+                    else "negative_coverage"
+                )
             ),
             "rollout_rewards": [r.reward for r in self.rollouts],
             "base": [r.base for r in self.rollouts],
@@ -160,7 +180,13 @@ class RewardCalculator:
         n_jobs: Optional[int] = None,     # parallel frama-c filter calls per group
         logger: Optional[logging.Logger] = None,
         sampler_kwargs: Optional[dict] = None,
+        reward_variant: str = "full",
     ):
+        if reward_variant not in REWARD_VARIANTS:
+            raise ValueError(
+                "reward_variant must be one of: "
+                + ", ".join(REWARD_VARIANTS)
+            )
         log = logger or logging.getLogger("rl_pipeline.reward")
         self.filter = invariant_filter or filters.auto_filter(log)
         self.w_base = w_base
@@ -171,6 +197,7 @@ class RewardCalculator:
         self.reroll_threshold = reroll_threshold
         self.n_jobs = n_jobs or min(16, (os.cpu_count() or 8))
         self.sampler_kwargs = sampler_kwargs or {}
+        self.reward_variant = reward_variant
         if min(
             self.w_base,
             self.w_shapley,
@@ -302,20 +329,27 @@ class RewardCalculator:
             for count in group_reject_count
         ]
         union_rej = self._to_groups(self._rejected_set(negatives, union_surv), groups)
-        if n_neg:
+        def fully_verified(
+            candidates: List[str], survivors: List[str]
+        ) -> bool:
+            candidate_set = frozenset(
+                normalize_invariant(i) for i in candidates
+            )
+            survivor_set = frozenset(
+                normalize_invariant(i) for i in survivors
+            )
+            return bool(candidate_set) and survivor_set == candidate_set
+
+        if self.reward_variant == "binary":
+            batch_score = 1.0 if fully_verified(union, union_surv) else 0.0
+        elif self.reward_variant == "whole_coverage" and n_neg:
+            batch_score = (
+                len(union_rej) / n_neg
+                if fully_verified(union, union_surv) else 0.0
+            )
+        elif n_neg:
             batch_score = len(union_rej) / n_neg
         else:
-            def fully_verified(
-                candidates: List[str], survivors: List[str]
-            ) -> bool:
-                candidate_set = frozenset(
-                    normalize_invariant(i) for i in candidates
-                )
-                survivor_set = frozenset(
-                    normalize_invariant(i) for i in survivors
-                )
-                return bool(candidate_set) and survivor_set == candidate_set
-
             batch_score = (
                 1.0 if fully_verified(union, union_surv) else 0.0
             )
@@ -337,16 +371,33 @@ class RewardCalculator:
                 if cap_responses else 0
             )
             overflow_penalty = self.w_overflow * overflow
-            if n_neg:
+            if self.reward_variant == "binary":
+                redundancy_penalty = 0.0
+                redundant_clauses = 0
+                overflow_penalty = 0.0
+                reward = 1.0 if fully_verified(invs, surv) else 0.0
+            elif self.reward_variant == "whole_coverage" and n_neg:
+                # All-or-nothing response control: use the same dense
+                # negative-coverage signal as ``base``, but do not salvage a
+                # sound subset from an imperfect response. Keep the overflow
+                # cost shared by all coverage variants so the comparison with
+                # ``base`` isolates clause-subset credit.
+                redundancy_penalty = 0.0
+                redundant_clauses = 0
+                reward = (
+                    (base if fully_verified(invs, surv) else 0.0)
+                    - overflow_penalty
+                )
+            elif n_neg:
                 redundant_clauses = self._duplicate_clause_count(
                     roll_invs_capped[idx]
                 )
-                raw_reward = (
-                    self.w_base * base
-                    + self.w_shapley * shapley_credit
-                )
+                raw_reward = self.w_base * base
+                if self.reward_variant in ("base_shapley", "full"):
+                    raw_reward += self.w_shapley * shapley_credit
                 redundancy_penalty = (
                     self.w_redundancy * redundant_clauses
+                    if self.reward_variant == "full" else 0.0
                 )
                 reward = (
                     raw_reward
@@ -359,6 +410,7 @@ class RewardCalculator:
                 # structural penalties into its public {0, 1} contract.
                 redundancy_penalty = 0.0
                 redundant_clauses = 0
+                overflow_penalty = 0.0
                 reward = 1.0 if fully_verified(invs, surv) else 0.0
             scores.append(RolloutScore(
                 index=idx, invariants=invs, survivors=surv,
@@ -377,5 +429,9 @@ class RewardCalculator:
             batch_score=batch_score,
             should_reroll=batch_score < self.reroll_threshold,
             filter_mode=getattr(self.filter, "name", "unknown"),
+            reward_variant=self.reward_variant,
+            negative_sampler=getattr(
+                examples, "negative_sampler", "structured"
+            ),
             rollouts=scores,
         )

@@ -2,11 +2,13 @@
 \section{Conclusion and Limitations}\label{sec:conclusion}
 %% ============================================================
 
-Because clauses compose across responses, our objective is the filtered
-combination, not pass@1.  Inference uses rollout--combine--filter before
-restoring the target.  SFT distills a verified combination into one response;
-target-independent RL rewards response strength and behavior not covered by
-peers through a Shapley allocation of group coverage.  Consequently, ten
+The central property exploited by \sam{} is that verified invariant clauses
+compose across responses.  We therefore make rollout--combine--filter the
+shared object of training and inference, and optimize its fixed-budget
+combine@\(k\) outcome rather than pass@1.  SFT distills a verified combination
+into one response; target-independent RL decomposes credit over the sound
+clause subset within each response and composes credit across responses based
+on behavior not covered by peers.  Consequently, ten
 trained-policy responses
 outperform one hundred base-model responses even as pass@1 decreases.
 
@@ -24,13 +26,14 @@ remains future work~\citep{liu2024towards}.
 
 \paragraph{Inference engine.}
 In preliminary comparisons, we observed lower verification rates when serving
-the evaluated checkpoints with vLLM than with alternative inference backends,
-even under nominally matched decoding settings.  We nevertheless use vLLM for
-all reported experiments: its throughput makes the sampling study practical,
-and using the same engine for training rollouts and evaluation avoids an
-additional train--test mismatch.  The reported absolute success rates may
-therefore be conservative and should not be read as an engine-independent
-ceiling on the checkpoints.
+the locally evaluated checkpoints with vLLM than with alternative inference
+backends, even under nominally matched decoding settings.  We nevertheless use
+vLLM for all locally served base and trained checkpoints: its throughput makes
+the sampling study practical, and using the same engine for training rollouts
+and evaluation avoids an additional train--test mismatch.  API models retain
+their service defaults.  The reported absolute success rates for local
+checkpoints may therefore be conservative and should not be read as an
+engine-independent ceiling.
 
 \paragraph{Verifier and specification language.}
 All filtering and final judgments use Frama-C/WP, and candidates are expressed

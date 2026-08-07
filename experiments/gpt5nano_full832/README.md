@@ -1,13 +1,22 @@
 # GPT-5-nano full-832 reproduction
 
-This directory is the executable protocol for comparing five methods on the
-same 832 LoopGym programs:
+This directory is the executable protocol for the current nine-method final
+comparison on the same 832 LoopGym programs:
 
 1. AutoSpec
 2. Clause2Inv
 3. SESpec
-4. LoopGym
-5. Naive direct generation
+4. True Naive: one call with the trivial prompt and no LoopGym framework
+5. LoopGym-R1-NoH: the LoopGym prompt, one rollout, no Houdini
+6. LoopGym-R1-H: the LoopGym prompt, one rollout, with Houdini
+7. LoopGym-R5-H: five rollouts, union, Houdini, no re-roll
+8. LoopGym-R10-H: ten rollouts, union, Houdini, no re-roll
+9. Daikon: native dynamic invariant mining, no Houdini
+
+The original frozen seven-method run contained LoopGym-R4-H. Its artifacts
+remain available for provenance and call reuse, but R4-H is intentionally
+excluded from the current final table and is replaced by the clean no-reroll
+R5-H configuration.
 
 The authoritative settings are in `protocol.json`. `protocol_sha256` is stored
 in every result row, so results from different prompts, budgets, or target
@@ -103,7 +112,7 @@ Materialize or validate the fixed 832-task evaluation sample set:
 python -m experiments.gpt5nano_full832.run samples --workers 8
 ```
 
-Import the reusable 366-task Naive, LoopGym, and Clause2Inv generations and
+Import the reusable legacy generation batches and
 retain incompatible SESpec rows for audit:
 
 ```bash
@@ -114,7 +123,8 @@ Run only missing model calls (requires `OPENAI_API_KEY`; all commands resume):
 
 ```bash
 python -m experiments.gpt5nano_full832.run generate --method naive --workers 8
-python -m experiments.gpt5nano_full832.run generate --method loopgym --workers 8
+python -m experiments.gpt5nano_full832.run generate --method loopgym_r1_no_houdini --workers 8
+python -m experiments.gpt5nano_full832.run generate --method loopgym_r1_houdini --workers 8
 python -m experiments.gpt5nano_full832.run generate --method autospec --workers 8 --timeout 600
 python -m experiments.gpt5nano_full832.run generate --method sespec --workers 8
 python -m experiments.gpt5nano_full832.run generate --method clause2inv --workers 8
@@ -132,6 +142,7 @@ Apply the common final judge and negative-rejection scorer:
 ```bash
 python -m experiments.gpt5nano_full832.run score --workers 10
 python -m experiments.gpt5nano_full832.run summarize
+python3 -m experiments.gpt5nano_full832.recompute_efficiency
 python -m experiments.gpt5nano_full832.report
 ```
 
@@ -145,11 +156,91 @@ Outputs default to `results/gpt5nano_full832/`. JSONL files are append-only and
 resumable; `latest.jsonl` and summary tables are deterministic materializations
 of the newest row for every task key.
 
-The final report command refuses to claim completion unless all five methods
+The base report command refuses to claim completion unless all seven frozen
+base methods
 have 832 rows, all rows use `gpt-5-nano` and the same protocol hash, every
 model-facing target is hidden, and every row has both common-judge and frozen
 sample bindings. It writes `final_report.md`, `final_results.csv`,
 `failures.csv`, and `completion_audit.json`.
+
+After the R5-H, R10-H, and Daikon extensions are complete, materialize the
+current nine-method result (with R4-H removed) using:
+
+```bash
+python3 -m experiments.gpt5nano_full832.finalize_r5
+```
+
+This writes `comparison_table_9methods.{md,csv}`,
+`final_results_9methods.csv`, and `completion_audit_9methods.json`.
+
+## Daikon extension
+
+Daikon 5.8.24 is evaluated as a separately reported, non-neural extension so
+adding it does not change the frozen seven-method protocol hash.  The adapter
+streams a deterministic, stratified maximum of 2,048 reachable loop-head
+states from each fixed sample into Daikon's native decls/dtrace format.  It
+does not expose the assertion, postcondition, or negative traces to Daikon.
+Only scalar integer invariants that translate directly to the supported ACSL
+subset are retained. They are sent directly to the common final judge; no
+Houdini pruning is applied. The explicit method name is `daikon`.
+
+Daikon makes no model calls, so prompt, completion, and total token counts are
+all exactly zero.  Its per-task generation time includes fixed-sample hash and
+streaming read, dtrace export, and Daikon execution.  It
+does not include the one-time creation of the frozen traces shared by every
+method.  Run or resume the full extension with:
+
+```bash
+python3 -m experiments.gpt5nano_full832.daikon_adapter all \
+  --workers 4 --score-workers 4
+```
+
+The append-only events and per-task artifacts are written beside the primary
+evaluation under `events/daikon.jsonl` and
+`artifacts/daikon/`.  `daikon_results.csv`, `daikon_summary.json`, and
+`daikon_report.md` are materialized after scoring.
+
+## R10-H extension
+
+`loopgym_r10_houdini` evaluates exactly ten target-hidden rollouts, their
+union, and Frama-C/WP Houdini, with `max_rerolls=0`. Compatible first-attempt
+R4-H responses are reused when their complete per-call artifacts and prompt
+hashes are available; their original tokens and measured call latency remain
+part of R10-H's algorithmic cost. Missing responses are sampled normally.
+Generation, scoring, and reporting are append-only and resumable:
+
+```bash
+python3 -m experiments.gpt5nano_full832.r10_extension generate --workers 16
+python3 -m experiments.gpt5nano_full832.r10_extension score --workers 4
+python3 -m experiments.gpt5nano_full832.r10_extension report
+```
+
+The extension writes `events/loopgym_r10_houdini.jsonl`,
+`artifacts/loopgym_r10_houdini/`, `r10_results.csv`, `r10_summary.json`, and
+`r10_protocol.json` without changing the frozen seven-method protocol hash.
+
+## R5-H no-reroll result
+
+`loopgym_r5_houdini` uses exactly five target-hidden rollouts, union, and
+Frama-C/WP Houdini with `max_rerolls=0`. To avoid redundant model spending,
+the completed evaluation replays the exact first five stored R10-H responses
+for each task. It does not reuse the R10-H candidate union or proof result:
+response parsing, union, Houdini, restored-target validation, and fixed-sample
+negative scoring are recomputed independently. Original per-call latency and
+exact provider token usage remain part of R5-H's algorithmic cost; the local
+replay wall time is retained separately.
+
+```bash
+LOOPGYM_WP_PAR=2 python3 -m experiments.gpt5nano_full832.r5_extension generate --workers 16
+LOOPGYM_WP_PAR=2 python3 -m experiments.gpt5nano_full832.r5_extension score --workers 12
+python3 -m experiments.gpt5nano_full832.r5_extension report
+python3 -m experiments.gpt5nano_full832.finalize_r5
+```
+
+The extension writes `events/loopgym_r5_houdini.jsonl`,
+`artifacts/loopgym_r5_houdini/`, `r5_results.csv`, `r5_summary.json`, and
+`r5_protocol.json`. All 832 final artifacts contain exactly five reused calls,
+zero rerolls, and no fresh API calls.
 
 ## Timing and AutoSpec runtime guards
 
@@ -163,6 +254,15 @@ separately because per-task durations cannot be recovered faithfully.
 `generation_task_seconds`, `generation_task_rows`, and
 `generation_task_mean_seconds`; legacy batch wall time is never presented as a
 per-task measurement.
+
+The authoritative efficiency table is regenerated by
+`recompute_efficiency`. It separates API-reported tokens from estimates and
+reconstructs active batch wall time from generation event intervals. Idle
+periods longer than five minutes create separate execution sessions. The
+resulting `efficiency_reaudit.csv`, `efficiency_batches.csv`, and
+`efficiency_timing_evidence.json` retain both the aggregate and its timing
+evidence; `summary.csv` continues to retain accumulated task-time for latency
+and work accounting.
 
 Fresh AutoSpec runs use three independent runtime guards:
 

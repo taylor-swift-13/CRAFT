@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Literal
 
 from pydantic import BaseModel, Field
 
@@ -45,6 +45,9 @@ class SamplerCfg(BaseModel):
     # Synthetic negatives derive only from loop traces, never from the assert.
     n_runs: int = Field(DEFAULT_N_RUNS, ge=1)
     seed: int = DEFAULT_SEED
+    negative_sampler: Literal[
+        "random", "structured"
+    ] = "structured"
 
 
 class RewardRequest(BaseModel):
@@ -60,6 +63,9 @@ class RewardRequest(BaseModel):
         le=MAX_INVARIANTS_PER_RESPONSE,
     )
     reroll_threshold: float = Field(0.6, ge=0.0, le=1.0)
+    reward_variant: Literal[
+        "binary", "whole_coverage", "base", "base_shapley", "full"
+    ] = "full"
     sampler: SamplerCfg = Field(default_factory=SamplerCfg)
 
 
@@ -69,15 +75,29 @@ class SampleRequest(BaseModel):
     show: int = Field(8, ge=0)
 
 
-def _cache_key(program: str, n_runs: int, seed: int) -> str:
-    return hashlib.sha1(f"{program}|runs={n_runs}|seed={seed}".encode()).hexdigest()
+def _cache_key(
+    program: str, n_runs: int, seed: int,
+    negative_sampler: str = "structured"
+) -> str:
+    payload = (
+        f"{program}|runs={n_runs}|seed={seed}|"
+        f"negative_sampler={negative_sampler}"
+    )
+    return hashlib.sha1(payload.encode()).hexdigest()
 
 
 def _get_examples(program: str, cfg: SamplerCfg):
-    key = _cache_key(program, cfg.n_runs, cfg.seed)
+    key = _cache_key(
+        program, cfg.n_runs, cfg.seed, cfg.negative_sampler
+    )
     es = _EXAMPLE_CACHE.get(key)
     if es is None:
-        es = ExampleSampler(program, n_runs=cfg.n_runs, seed=cfg.seed).sample()
+        es = ExampleSampler(
+            program,
+            n_runs=cfg.n_runs,
+            seed=cfg.seed,
+            negative_sampler=cfg.negative_sampler,
+        ).sample()
         _EXAMPLE_CACHE[key] = es
     return es
 
@@ -102,7 +122,9 @@ def build_app():
                 w_redundancy=req.w_redundancy,
                 w_overflow=req.w_overflow,
                 max_invariants=req.max_invariants,
-                reroll_threshold=req.reroll_threshold, logger=log,
+                reroll_threshold=req.reroll_threshold,
+                reward_variant=req.reward_variant,
+                logger=log,
             )
             br = rc.compute(req.program, req.rollouts, examples=examples)
             return br.to_dict()
@@ -115,8 +137,12 @@ def build_app():
             es = _get_examples(req.program, req.sampler)
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
-        out = {"program": es.program.func_name, "guard": es.program.loop.guard,
-               "loops": {}}
+        out = {
+            "program": es.program.func_name,
+            "guard": es.program.loop.guard,
+            "negative_sampler": es.negative_sampler,
+            "loops": {},
+        }
         for li in sorted(es.positives):
             out["loops"][li] = {
                 "stats": es.stats.get(li, {}),

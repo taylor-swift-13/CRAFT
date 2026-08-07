@@ -24,7 +24,15 @@ HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parents[1]
 PROTOCOL_PATH = HERE / "protocol.json"
 DEFAULT_RESULTS_ROOT = REPO_ROOT / "results" / "gpt5nano_full832"
-METHODS = ("autospec", "clause2inv", "sespec", "loopgym", "naive")
+METHODS = (
+    "autospec",
+    "clause2inv",
+    "sespec",
+    "naive",
+    "loopgym_r1_no_houdini",
+    "loopgym_r1_houdini",
+    "loopgym_r4_houdini",
+)
 
 
 def ensure_frama_c_available() -> Path:
@@ -84,7 +92,7 @@ class Task:
             method,
             self.suite,
             self.case_id,
-            load_protocol()["model"],
+            os.environ.get("LOOPGYM_MODEL") or load_protocol()["model"],
             protocol_sha256(),
         )
 
@@ -141,12 +149,21 @@ def discover_tasks(source_root: Optional[Path] = None) -> list[Task]:
 
 def base_row(method: str, task: Task) -> dict:
     protocol = load_protocol()
+    configured_reasoning_effort = (
+        os.environ.get("LOOPGYM_REASONING_EFFORT")
+        or protocol["generation"].get("reasoning_effort")
+    )
     return {
         "schema_version": 1,
         "protocol": protocol["name"],
         "protocol_sha256": protocol_sha256(),
         "method": method,
-        "model": protocol["model"],
+        "model": os.environ.get("LOOPGYM_MODEL") or protocol["model"],
+        "reasoning_effort": (
+            None
+            if str(configured_reasoning_effort).lower() in {"default", "omit"}
+            else configured_reasoning_effort
+        ),
         **task.to_dict(),
         "target_hidden": True,
         "event_utc": datetime.now(timezone.utc).isoformat(),

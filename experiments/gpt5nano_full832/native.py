@@ -123,6 +123,10 @@ def run_autospec(
     timeout: int = 600,
 ) -> dict:
     worker = _autospec_worker_root(autospec_root)
+    # AutoSpec runs with its temporary worker checkout as cwd.  Keep the
+    # result directory absolute so a caller-provided relative --results-root
+    # cannot redirect generated files into that disposable checkout.
+    artifact_dir = artifact_dir.resolve()
     artifact_dir.mkdir(parents=True, exist_ok=True)
     hidden = artifact_dir / "input.hidden.c"
     hidden.write_text(task.hidden_source)
@@ -169,16 +173,36 @@ def run_autospec(
     invariants = extract_invariants(
         merged.read_text(errors="ignore") if merged else ""
     )
+    usage_matches = re.findall(r"AUTOSPEC_API_USAGE=(\{[^\n]+\})", stdout)
+    api_usage = json.loads(usage_matches[-1]) if usage_matches else None
     token_match = re.search(r"tokens_usage\s*=\s*([\d,]+)", stdout)
     native_tokens = int(token_match.group(1).replace(",", "")) if token_match else None
+    if api_usage:
+        usage_fields = token_fields(
+            prompt=api_usage.get("prompt_tokens"),
+            completion=api_usage.get("completion_tokens"),
+            total=api_usage.get("total_tokens"),
+            calls=1,
+            accounting="exact",
+        )
+        token_estimate_kind = None
+    else:
+        usage_fields = token_fields(
+            total=native_tokens,
+            accounting="estimated" if native_tokens is not None else "unavailable",
+        )
+        token_estimate_kind = (
+            "AutoSpec native tiktoken estimate" if native_tokens is not None else None
+        )
     return {
         "generation_status": (
             "timeout" if timed_out
-            else "completed" if returncode == 0
+            else "completed" if returncode == 0 and merged is not None
             else "failed"
         ),
         "generation_error": (
             "timeout" if timed_out
+            else "missing_merged_artifact" if returncode == 0 and merged is None
             else None if returncode == 0
             else f"returncode_{returncode}"
         ),
@@ -195,11 +219,9 @@ def run_autospec(
         "autospec_framac_wall_timeout_seconds": int(
             env["AUTOSPEC_FRAMAC_WALL_TIMEOUT"]
         ),
-        "token_estimate_kind": "AutoSpec native tiktoken estimate",
-        **token_fields(
-            total=native_tokens,
-            accounting="estimated" if native_tokens is not None else "unavailable",
-        ),
+        "reasoning_tokens": api_usage.get("reasoning_tokens") if api_usage else None,
+        "token_estimate_kind": token_estimate_kind,
+        **usage_fields,
     }
 
 

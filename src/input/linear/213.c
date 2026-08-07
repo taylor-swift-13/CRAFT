@@ -35,4 +35,6 @@ void foo213() {
       }
       }
 
+    /*@ assert ((nonexclusive + unowned) >= 1 && invalid >= 1) ==> nonexclusive >= 0; */
+
   }

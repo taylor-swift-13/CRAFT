@@ -20,11 +20,14 @@ class RecordingChat:
         model: Optional[str] = None,
         base_url: Optional[str] = None,
         api_key: Optional[str] = None,
+        system_prompt: Optional[str] = None,
+        use_default_system_prompt: bool = True,
         max_completion_tokens: Optional[int] = None,
+        reasoning_effort: Optional[str] = None,
         retries: int = 5,
     ):
         protocol = load_protocol()
-        self.model = model or protocol["model"]
+        self.model = model or os.environ.get("LOOPGYM_MODEL") or protocol["model"]
         self.base_url = (
             base_url
             or os.environ.get("OPENAI_BASE_URL")
@@ -37,6 +40,21 @@ class RecordingChat:
         self.max_completion_tokens = (
             max_completion_tokens
             or protocol["generation"]["max_completion_tokens"]
+        )
+        configured_reasoning_effort = (
+            reasoning_effort
+            or os.environ.get("LOOPGYM_REASONING_EFFORT")
+            or protocol["generation"].get("reasoning_effort")
+        )
+        self.reasoning_effort = (
+            None
+            if str(configured_reasoning_effort).lower() in {"default", "omit"}
+            else configured_reasoning_effort
+        )
+        self.system_prompt = (
+            prompts.system_prompt()
+            if use_default_system_prompt
+            else (system_prompt or "")
         )
         self.retries = retries
         self.records: list[dict] = []
@@ -59,10 +77,10 @@ class RecordingChat:
         return str(content)
 
     def chat(self, user_prompt: str) -> str:
-        messages = [
-            {"role": "system", "content": prompts.system_prompt()},
-            {"role": "user", "content": user_prompt},
-        ]
+        messages = []
+        if self.system_prompt:
+            messages.append({"role": "system", "content": self.system_prompt})
+        messages.append({"role": "user", "content": user_prompt})
         kwargs = {
             "model": self.model,
             "messages": messages,
@@ -70,6 +88,8 @@ class RecordingChat:
             "top_p": load_protocol()["generation"]["top_p"],
             "max_tokens": self.max_completion_tokens,
         }
+        if self.reasoning_effort:
+            kwargs["reasoning_effort"] = self.reasoning_effort
         started = time.perf_counter()
         last_error = None
         response = None
@@ -97,6 +117,11 @@ class RecordingChat:
         total_tokens = getattr(usage, "total_tokens", None) if usage else None
         self.records.append({
             "prompt_sha256": sha256_text(user_prompt),
+            "system_prompt_present": bool(self.system_prompt),
+            "system_prompt_sha256": (
+                sha256_text(self.system_prompt) if self.system_prompt else None
+            ),
+            "reasoning_effort": self.reasoning_effort,
             "response": text,
             "finish_reason": getattr(choice, "finish_reason", None),
             "seconds": time.perf_counter() - started,

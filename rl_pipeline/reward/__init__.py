@@ -1,4 +1,9 @@
-__all__ = ["RewardCalculator", "BatchReward", "RolloutScore"]
+__all__ = [
+    "RewardCalculator",
+    "BatchReward",
+    "RolloutScore",
+    "REWARD_VARIANTS",
+]
 
 
 def __getattr__(name):
@@ -9,11 +14,17 @@ def __getattr__(name):
     sampling stack as an accidental side effect.
     """
     if name in __all__:
-        from .reward_calculator import BatchReward, RewardCalculator, RolloutScore
+        from .reward_calculator import (
+            BatchReward,
+            REWARD_VARIANTS,
+            RewardCalculator,
+            RolloutScore,
+        )
 
         return {
             "RewardCalculator": RewardCalculator,
             "BatchReward": BatchReward,
             "RolloutScore": RolloutScore,
+            "REWARD_VARIANTS": REWARD_VARIANTS,
         }[name]
     raise AttributeError(name)

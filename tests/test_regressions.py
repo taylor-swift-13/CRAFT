@@ -37,7 +37,11 @@ from rl_pipeline.reward.reward_calculator import RewardCalculator
 from rl_pipeline.reward import service
 from rl_pipeline.reward import io as reward_io
 from rl_pipeline.reward.score_file import score_file
-from rl_pipeline.sampler import ExampleSampler, ExampleSet
+from rl_pipeline.sampler import (
+    ExampleSampler,
+    ExampleSet,
+    NEGATIVE_SAMPLER_MODES,
+)
 from rl_pipeline.sampler import cexec
 from experiments.gpt5nano_full832 import common as full832_common
 from experiments.gpt5nano_full832 import native as full832_native
@@ -640,9 +644,157 @@ class RewardPatchRegressionTests(unittest.TestCase):
             request_fields = service.RewardRequest.__fields__
         self.assertNotIn("w_surv", request_fields)
         self.assertIn("w_shapley", request_fields)
+        self.assertIn("reward_variant", request_fields)
+        if hasattr(service.SamplerCfg, "model_fields"):
+            sampler_fields = service.SamplerCfg.model_fields
+        else:
+            sampler_fields = service.SamplerCfg.__fields__
+        self.assertIn("negative_sampler", sampler_fields)
         self.assertFalse(hasattr(RewardCalculator(), "w_surv"))
         configured = RewardCalculator(w_shapley=0.7)
         self.assertEqual(configured.w_shapley, 0.7)
+
+    def test_reward_ablation_variants_select_expected_terms(self):
+        source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
+        examples = ExampleSet(
+            program=parse_program(source),
+            negative_sampler="structured",
+            positives={0: [State(vars={"x": 0})]},
+            negatives={0: [State(vars={"x": -1})]},
+            neg_groups={0: [[0]]},
+        )
+        rollout = [["x >= 0", "x >= 0"]]
+
+        expected = {
+            "binary": 1.0,
+            "whole_coverage": 1.0,
+            "base": 1.0,
+            "base_shapley": 1.3,
+            "full": 1.28,
+        }
+        for variant, expected_reward in expected.items():
+            with self.subTest(variant=variant):
+                result = RewardCalculator(
+                    invariant_filter=self._IdentityFilter(),
+                    reward_variant=variant,
+                    n_jobs=1,
+                ).compute(source, rollout, examples=examples)
+                self.assertAlmostEqual(
+                    result.rollouts[0].reward, expected_reward
+                )
+                self.assertEqual(result.reward_variant, variant)
+                self.assertEqual(result.negative_sampler, "structured")
+                self.assertEqual(
+                    result.to_dict()["reward_variant"], variant
+                )
+
+        with self.assertRaisesRegex(ValueError, "reward_variant"):
+            RewardCalculator(reward_variant="not-a-variant")
+
+    def test_whole_response_coverage_does_not_salvage_partial_rollout(self):
+        source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
+        examples = ExampleSet(
+            program=parse_program(source),
+            negative_sampler="structured",
+            positives={0: [State(vars={"x": 0})]},
+            negatives={0: [State(vars={"x": -1})]},
+            neg_groups={0: [[0]]},
+        )
+
+        class SelectiveFilter:
+            name = "cascade(positive->houdini)"
+
+            @staticmethod
+            def filter(_program, _loop_idx, invariants, _positives=None):
+                return [inv for inv in invariants if inv == "x >= 0"]
+
+        rollouts = [["x >= 0"], ["x >= 0", "x == 42"]]
+        whole = RewardCalculator(
+            invariant_filter=SelectiveFilter(),
+            reward_variant="whole_coverage",
+            n_jobs=1,
+        ).compute(source, rollouts, examples=examples)
+        subset = RewardCalculator(
+            invariant_filter=SelectiveFilter(),
+            reward_variant="base",
+            n_jobs=1,
+        ).compute(source, rollouts, examples=examples)
+
+        self.assertEqual(
+            [rollout.reward for rollout in whole.rollouts],
+            [1.0, 0.0],
+        )
+        self.assertEqual(
+            [rollout.reward for rollout in subset.rollouts],
+            [1.0, 1.0],
+        )
+        self.assertEqual(whole.batch_score, 0.0)
+        self.assertEqual(
+            whole.to_dict()["reward_mode"],
+            "whole_response_negative_coverage",
+        )
+        self.assertEqual(
+            service.RewardRequest(
+                program=source,
+                rollouts=rollouts,
+                reward_variant="whole_coverage",
+            ).reward_variant,
+            "whole_coverage",
+        )
+
+    def test_reward_service_cache_key_includes_negative_sampler(self):
+        structured_key = service._cache_key(
+            "program", 12, 0, "structured"
+        )
+        random_key = service._cache_key("program", 12, 0, "random")
+
+        self.assertNotEqual(structured_key, random_key)
+        self.assertEqual(
+            service.RewardRequest(
+                program="program", rollouts=[]
+            ).reward_variant,
+            "full",
+        )
+        self.assertEqual(
+            service.SamplerCfg().negative_sampler, "structured"
+        )
+
+    def test_reward_service_applies_and_reports_ablation_modes(self):
+        source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
+        examples = ExampleSet(
+            program=parse_program(source),
+            negative_sampler="structured",
+            positives={0: [State(vars={"x": 0})]},
+            negatives={0: [State(vars={"x": -1})]},
+            neg_groups={0: [[0]]},
+        )
+        with (
+            mock.patch.object(
+                service, "_get_examples", return_value=examples
+            ),
+            mock.patch.object(
+                service, "_get_filter", return_value=self._IdentityFilter()
+            ),
+        ):
+            response = TestClient(service.build_app()).post(
+                "/reward",
+                json={
+                    "program": source,
+                    "rollouts": [["x >= 0"]],
+                    "reward_variant": "base",
+                    "sampler": {
+                        "n_runs": 1,
+                        "seed": 3,
+                        "negative_sampler": "structured",
+                    },
+                },
+            )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["rollout_rewards"], [1.0])
+        self.assertEqual(payload["reward_variant"], "base")
+        self.assertEqual(payload["negative_sampler"], "structured")
 
     def test_semantic_dedup_fixed_seed_metamorphic_pairs(self):
         rng = random.Random(20260805)
@@ -952,6 +1104,46 @@ class RewardPatchRegressionTests(unittest.TestCase):
 
 @unittest.skipUnless(shutil.which("gcc"), "gcc is required for sampler tests")
 class SamplerIntegrationRegressionTests(unittest.TestCase):
+    def test_negative_sampler_ablation_modes_are_isolated_and_deterministic(self):
+        source = "void f(void) { int x = 0; while (x < 4) { x++; } }"
+        self.assertEqual(
+            NEGATIVE_SAMPLER_MODES, ("random", "structured")
+        )
+        sampled = {
+            mode: ExampleSampler(
+                source,
+                n_runs=1,
+                seed=3,
+                negative_sampler=mode,
+            ).sample()
+            for mode in ("random", "structured")
+        }
+
+        random_stats = sampled["random"].stats[0]
+        self.assertGreater(random_stats["random"], 0)
+        self.assertEqual(random_stats["relation"], 0)
+        self.assertEqual(random_stats["bound_overrun"], 0)
+        self.assertEqual(random_stats["bound_escape"], 0)
+        repeated = ExampleSampler(
+            source,
+            n_runs=1,
+            seed=3,
+            negative_sampler="random",
+        ).sample()
+        self.assertEqual(
+            [state.key() for state in sampled["random"].neg()],
+            [state.key() for state in repeated.neg()],
+        )
+
+        structured_stats = sampled["structured"].stats[0]
+        self.assertGreater(structured_stats["relation"], 0)
+        self.assertGreater(structured_stats["bound_overrun"], 0)
+        self.assertGreater(structured_stats["bound_escape"], 0)
+        self.assertEqual(structured_stats["random"], 0)
+
+        with self.assertRaisesRegex(ValueError, "negative_sampler"):
+            ExampleSampler(source, negative_sampler="not-a-sampler")
+
     def test_escape_uses_only_nearest_step_per_axis_and_direction(self):
         source = "void f(void) { int x = 0; while (x < 10) { x++; } }"
         sampler = ExampleSampler(source, n_runs=1)
@@ -1131,6 +1323,8 @@ class SamplerIntegrationRegressionTests(unittest.TestCase):
         self.assertEqual(len(rows), 2)
         self.assertIsInstance(rows[0]["invariants"], list)
         self.assertIsInstance(rows[0]["survivors"], list)
+        self.assertEqual(rows[0]["reward_variant"], "full")
+        self.assertEqual(rows[0]["negative_sampler"], "structured")
 
     def test_oracle_sampling_repeats_a_fixed_valid_input(self):
         inputs = cexec.sample_inputs(
@@ -1566,6 +1760,8 @@ class CommandAndPackagingRegressionTests(unittest.TestCase):
             "--output", "output.jsonl",
             "--runs", "3",
             "--seed", "7",
+            "--negative-sampler", "random",
+            "--reward-variant", "base_shapley",
             "--w-base", "0.7",
             "--reroll-threshold", "0.4",
             "--include-program",
@@ -1583,8 +1779,14 @@ class CommandAndPackagingRegressionTests(unittest.TestCase):
 
         args = scorer.call_args.args
         self.assertEqual(args[0:2], ("input.jsonl", "output.jsonl"))
-        self.assertEqual(args[3], {"n_runs": 3, "seed": 7})
+        self.assertEqual(
+            args[3],
+            {"n_runs": 3, "seed": 7, "negative_sampler": "random"},
+        )
         self.assertEqual(args[4:7], (0.7, 0.4, True))
+        self.assertEqual(
+            scorer.call_args.kwargs["reward_variant"], "base_shapley"
+        )
 
         failed_argv = [
             "score_file",

@@ -15,10 +15,10 @@ import hashlib
 import logging
 from typing import Dict, Optional
 
-from ..sampler import ExampleSampler, ExampleSet
+from ..sampler import ExampleSampler, ExampleSet, NEGATIVE_SAMPLER_MODES
 from ..sampler.example_sampler import DEFAULT_N_RUNS, DEFAULT_SEED
 from . import filters, io
-from .reward_calculator import RewardCalculator
+from .reward_calculator import REWARD_VARIANTS, RewardCalculator
 
 
 def score_file(input_path: str, output_path: str, cfg: io.IOConfig,
@@ -28,7 +28,8 @@ def score_file(input_path: str, output_path: str, cfg: io.IOConfig,
                logger: Optional[logging.Logger] = None,
                w_shapley: float = 0.3,
                w_redundancy: float = 0.02,
-               w_overflow: float = 0.05) -> Dict[str, int]:
+               w_overflow: float = 0.05,
+               reward_variant: str = "full") -> Dict[str, int]:
     sampler_kwargs = dict(sampler_kwargs or {})
     logger = logger or logging.getLogger("rl_pipeline.reward.score_file")
     batches = io.read_batches(input_path, cfg)
@@ -39,7 +40,9 @@ def score_file(input_path: str, output_path: str, cfg: io.IOConfig,
                           w_shapley=w_shapley,
                           w_redundancy=w_redundancy,
                           w_overflow=w_overflow,
-                          reroll_threshold=reroll_threshold, logger=logger)
+                          reroll_threshold=reroll_threshold,
+                          reward_variant=reward_variant,
+                          logger=logger)
 
     example_cache: Dict[str, ExampleSet] = {}
 
@@ -94,10 +97,18 @@ def main() -> int:
     ap.add_argument("--w-redundancy", type=float, default=0.02)
     ap.add_argument("--w-overflow", type=float, default=0.05)
     ap.add_argument("--reroll-threshold", type=float, default=0.6)
+    ap.add_argument(
+        "--reward-variant", choices=REWARD_VARIANTS, default="full"
+    )
     ap.add_argument("--include-program", action="store_true", help="keep program column in output")
     # sampler knobs
     ap.add_argument("--runs", type=int, default=DEFAULT_N_RUNS)
     ap.add_argument("--seed", type=int, default=DEFAULT_SEED)
+    ap.add_argument(
+        "--negative-sampler",
+        choices=NEGATIVE_SAMPLER_MODES,
+        default="structured",
+    )
     ap.add_argument("--quiet", action="store_true")
     args = ap.parse_args()
 
@@ -107,7 +118,11 @@ def main() -> int:
 
     cfg = io.IOConfig(program_field=args.program_field, rollouts_field=args.rollouts_field,
                       response_field=args.response_field, group_field=args.group_field)
-    sampler_kwargs = {"n_runs": args.runs, "seed": args.seed}
+    sampler_kwargs = {
+        "n_runs": args.runs,
+        "seed": args.seed,
+        "negative_sampler": args.negative_sampler,
+    }
     stats = score_file(
         args.input, args.output, cfg, sampler_kwargs,
         args.w_base, args.reroll_threshold,
@@ -115,6 +130,7 @@ def main() -> int:
         w_shapley=args.w_shapley,
         w_redundancy=args.w_redundancy,
         w_overflow=args.w_overflow,
+        reward_variant=args.reward_variant,
     )
     return 1 if stats["failed"] else 0
 

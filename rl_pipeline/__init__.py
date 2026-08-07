@@ -7,8 +7,8 @@ reward and inference additionally share the Frama-C adapter:
   * sampler   — produces positive (reachable) and negative (must-exclude)
                 loop-entry valuations for a program.
   * reward    — given a group of rollouts + example sets, computes per-rollout
-                base/hardness reward, duplicate/overflow costs, and a batch
-                score.
+                base/Shapley group credit, duplicate/overflow costs, and a
+                batch score.
                 Exposed as a FastAPI HTTP service.
   * inference — generate rollouts -> combine -> Houdini -> verify. It does not
                 sample reward examples.

@@ -13,7 +13,10 @@ splitting, response cap, normalization, candidate combination, iterative
 syntax filter, optional AST deduplication, and Houdini pruning.  SFT
 serializes the filtered combination, RL scores the responses that populate it,
 and inference restores \(Q\) only after filtering.  Inference does not
-construct execution examples.
+construct execution examples.  The operators are shared, but RL applies
+Houdini once per response for credit assignment whereas SFT and inference
+apply it after union; Appendix~\ref{app:houdini-order} analyzes this ordering
+mismatch.
 
 \begin{table}[h]
 \centering
@@ -35,7 +38,7 @@ post-exit steps & 24 & continuation length after a genuine exit (one negative tr
 negative-example budgets & 320 ($\le 64$ fallback) / 64 / 128 & relational / post-exit / range examples; stable round-robin within each kind \\
 iteration cap & $2 \times 10^6$ & divergence safety net (capped runs flagged) \\
 \midrule
-$(w_c, w_g)$ & $(1.0, 0.3)$ & negative rejection / group-relative bonus weights \\
+$(w_c, w_g)$ & $(1.0, 0.3)$ & negative rejection / Shapley group-credit weights \\
 $w_d$ & 0.02 & cost per conservative duplicate; unique zero-coverage clauses are not penalized \\
 $K$ & 20 clauses & response cap applied independently to every generated response \\
 $w_o$ & 0.05 & overflow cost per clause after \(K\) \\
@@ -134,11 +137,13 @@ Program:
 
 The training service is packaged as a self-contained, CPU-only container with
 gcc, the verifier, Why3, and Z3.  It exposes \texttt{POST /reward}, accepting
-program source and an array of model responses.  The implementation retains
-the following field names for compatibility:
+program source and an array of model responses.  The response exposes the
+Shapley credit explicitly and retains \texttt{hard\_bonus} as a compatibility
+alias:
 \begin{lstlisting}[style=promptstyle]
 {program, n_positives, n_negatives, filter_mode,
- reward_mode, rollout_rewards[], base[], hard_bonus[],
+ reward_mode, rollout_rewards[], base[], shapley_credit[],
+ hard_bonus[],
  redundant_clauses[], redundancy_penalty[],
  generated[], accepted[], overflow[], overflow_penalty[],
  rollouts[], batch_score, should_reroll}
@@ -146,3 +151,265 @@ the following field names for compatibility:
 Responses may be raw LLM text, invariant lists, or annotated code; parsing is uniform.
 An offline scorer provides the same generation reward over JSONL/Parquet
 rollout dumps.
+
+\clearpage
+\section{Complete Experimental Data}
+\label{app:complete-results}
+
+This section reports the complete experimental-data schema used for the final
+paper.  We include per-model, per-suite, and per-seed fields so that aggregate
+numbers in the main text can be traced to their underlying measurements.
+Entries marked \textsc{TBD} will be filled from the final evaluation artifacts;
+no missing value is used in the analysis.
+
+\subsection{Probe Curves}
+
+\begin{table}[t]
+\centering
+\caption{Complete probe results.  \(k_{95}\) is the smallest \(k\) at which
+combine@\(k\) reaches \(95\%\) of its value at \(k=100\).}
+\label{tab:probe-complete}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{llrrrrrrrr}
+\toprule
+Model & Metric & \(k=1\) & \(k=5\) & \(k=10\) & \(k=20\) &
+\(k=30\) & \(k=50\) & \(k=100\) & \(k_{95}\) \\
+\midrule
+Qwen3-4B     & pass    & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & -- \\
+             & combine & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Qwen3-8B     & pass    & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & -- \\
+             & combine & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Qwen3-14B    & pass    & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & -- \\
+             & combine & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Qwen3-30B-A3B & pass    & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & -- \\
+              & combine & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Qwen3-32B    & pass    & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & -- \\
+             & combine & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\subsection{Reinforcement-Learning Results}
+
+\begin{table}[t]
+\centering
+\caption{Complete comparison before and after RL.  The Zero and SFT
+initializations are evaluated under the same decoding and verification
+configuration.}
+\label{tab:rl-complete}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{llrrrrrrrr}
+\toprule
+Path & Model & pass@1 & combine@1 & combine@5 & combine@10 &
+combine@50 & combine@100 & \(k_{95}\) \\
+\midrule
+Zero & Base 8B       & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Zero & Base 8B + RL  & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+SFT  & SFT 8B        & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+SFT  & SFT 8B + RL   & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\subsection{Ablation Results}
+
+\begin{table}[t]
+\centering
+\caption{Complete reward-ablation results on the 8B model.  Reported values
+are verification rates; \(\mathrm{Verified}\in\{0,1\}\) records whether the
+final union is accepted.}
+\label{tab:reward-ablation-complete}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lrrrrrr}
+\toprule
+Reward & Seed 1 & Seed 2 & Seed 3 & Mean & Std. & Verified \\
+\midrule
+Binary verification                 & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Base                                & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Base + Shapley                      & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Base + Shapley + redundancy         & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Complete negative-trace sampler ablation on the 8B model.}
+\label{tab:sampler-ablation-complete}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lrrrrrr}
+\toprule
+Sampler & Seed 1 & Seed 2 & Seed 3 & Mean & Std. & Verified \\
+\midrule
+Random                              & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Relation                            & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Relation + escape                   & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Relation + escape + bound/range     & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\subsection{Cross-Model Main Results}
+
+\begin{table}[t]
+\centering
+\caption{Complete main results.  Each benchmark column reports
+pass@1/combine@1.}
+\label{tab:main-complete}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lccccccccc}
+\toprule
+Model & Code2Inv & SyGuS & SV-COMP & LIPuS & Loopy & Overall &
+Time & Output tokens \\
+\midrule
+GPT-5-nano             & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+GPT-5-mini             & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+GPT-5                  & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Gemini-3.5-Flash       & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Claude-Sonnet-4.6      & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+DeepSeek-V4-Flash      & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Qwen3-14B              & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Qwen3-8B               & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Qwen3-4B               & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Llama (checkpoint TBD) & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\subsection{Comparison with Specialized Tools}
+
+\begin{table}[t]
+\centering
+\caption{Complete tool-comparison results.  Verification rate is reported for
+each benchmark and overall; costs are measured over the same benchmark split.}
+\label{tab:tools-complete}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lcccccccccc}
+\toprule
+Method & Code2Inv & SyGuS & SV-COMP & LIPuS & Loopy & Overall &
+Model calls & Verifier calls & Time & Peak context \\
+\midrule
+AutoSpec                    & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+SESpec                      & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Clause2Inv                  & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Daikon                      & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+LoopGym (GPT-5-nano, combine@1) & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\clearpage
+\section{Why Thinking Is Disabled}
+\label{app:no-thinking}
+
+We disable chain-of-thought (CoT) in data synthesis, training, and inference.
+Open-weight checkpoints use \texttt{enable\_thinking=false}, and compatible
+hosted models use \texttt{reasoning\_effort=none}.  A run is excluded from the
+main comparison if its serving interface cannot explicitly disable reasoning.
+This choice has two practical motivations.
+
+\paragraph{CoT substantially increases generation cost.}
+Our inference procedure samples many rollouts for each program.  Explicit CoT
+adds reasoning tokens and generation latency to every rollout, so its cost is
+multiplied by the sampling budget.  The required output, however, is only a
+short, machine-parseable set of ACSL clauses.  We therefore omit explicit CoT
+to keep both data generation and multi-rollout inference efficient.
+
+\paragraph{Invariant clauses compose, but CoTs do not.}
+A single rollout may contain both valid and invalid candidate invariants.  The
+invariant output is explicitly decomposable into clauses: Houdini can remove a
+failing clause while retaining the useful clauses, and the retained clauses
+can then be combined across rollouts.  A CoT does not have this property.
+Correct and incorrect reasoning may be interleaved in one trace, with no
+reliable clause-level correspondence that would let us remove the reasoning
+associated with a rejected clause.  Nor is there a principled way to merge the
+remaining fragments from different rollouts into one faithful CoT for the
+combined invariant set.  Generating a new rationale after filtering would only
+produce a post-hoc explanation.  Consequently, CoT supervision is not aligned
+with the clause-wise filter-and-combine target.  For consistency, CoT remains
+disabled during synthetic-data construction, RL training, and inference.
+
+\clearpage
+\section{Training--Inference Mismatch in Houdini Ordering}
+\label{app:houdini-order}
+
+Let \(A_i\) be the invariant set proposed by rollout \(i\), and let
+\(\mathsf{H}(X)\) denote syntax filtering followed by Houdini on candidate set
+\(X\).  SFT construction and inference first merge the candidates and then
+filter them:
+\begin{equation}
+  S_{\mathrm{infer}}
+  =
+  \mathsf{H}\!\left(\bigcup_{i=1}^{G} A_i\right).
+  \label{eq:infer-houdini-order}
+\end{equation}
+This order allows a clause from one response to be preserved with the help of
+a companion clause proposed by another response.
+
+RL requires a scalar reward for each rollout.  The current implementation
+therefore runs Houdini independently and computes coverage, Shapley credit, and
+redundancy from
+\begin{equation}
+  S_i^{\mathrm{train}} = \mathsf{H}(A_i).
+  \label{eq:train-houdini-order}
+\end{equation}
+It also evaluates
+\(\mathsf{H}(\bigcup_i A_i)\) as a group-level diagnostic and for reroll
+decisions, but this shared result does not directly determine each rollout's
+token-level advantage.
+
+\paragraph{Why the two orders are not equivalent.}
+Houdini is not distributive over union:
+\begin{equation}
+  \mathsf{H}\!\left(\bigcup_i A_i\right)
+  \ne
+  \bigcup_i \mathsf{H}(A_i)
+  \quad\text{in general}.
+  \label{eq:houdini-nondistributive}
+\end{equation}
+For example, a clause from one rollout may fail preservation in isolation but
+become inductive when conjoined with a supporting clause from another rollout.
+Thus, two clauses rejected by separate Houdini runs can belong to an inductive
+conjunction after union.  Because the training reward filters each response
+first, it misses the positive credit associated with this cross-rollout
+support.
+
+\paragraph{Why the practical effect is small.}
+This is missed positive credit, not an explicit penalty for
+non-inductiveness.  The reward assigns coverage and Shapley credit to
+surviving clauses and penalizes duplicates and overflow, but it does not
+penalize a unique clause merely because it fails the standalone Houdini check.
+Such a clause therefore receives no inductiveness-derived reward, yet the
+policy is not directly trained to suppress it.  At inference time, raw
+candidates from all responses are unioned before Houdini, so a complementary
+pair remains available and can be retained jointly.  The mismatch therefore
+does not change the inference procedure or remove cross-response support from
+its candidate pool.  In our experiments, cases rescued only by cross-rollout
+inductiveness occur with low probability, making this a small mismatch in
+practice.
+
+\paragraph{Why retain this approximation.}
+Independent filtering gives a stable, parallelizable reward for every
+response.  Assigning the same union-level score to all \(G\) responses is
+uninformative under group-relative normalization because the shared component
+cancels.  Exact leave-one-out credit,
+\[
+  \Delta_i =
+  V\!\left(\mathsf{H}\!\left(\bigcup_j A_j\right)\right)
+  -
+  V\!\left(\mathsf{H}\!\left(\bigcup_{j\ne i} A_j\right)\right),
+\]
+requires at least \(G+1\) union-level Houdini evaluations per prompt and can
+still miss higher-order interactions.  Shapley-style credit captures such
+interactions more faithfully but requires many subset evaluations.  This
+would be the Shapley value of the union-and-Houdini verifier game, unlike the
+closed-form Shapley allocation of negative-set coverage used by our reward.
+
+\paragraph{Implications and future correction.}
+The ordering difference makes standalone Houdini a slightly imperfect reward
+surrogate for combine@\(k\), but it does not alter inference-time
+union-and-Houdini.  Future work can report the rescue rate represented by the
+gap between the two sides of Equation~\ref{eq:houdini-nondistributive} and test
+leave-one-out or randomized-subset credit when that rate is non-negligible.
+For the present experiments, the observed rarity of these rescues does not
+justify the additional verifier cost.

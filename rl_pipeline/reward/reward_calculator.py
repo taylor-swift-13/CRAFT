@@ -5,8 +5,8 @@ Given a program and a GROUP of rollouts (each a candidate invariant set), score
 each rollout and the batch, using synthetic negative candidates from the sampler:
 
   base[A]     = fraction of candidates rejected by Houdini(A alone)
-  hard[A]     = normalized rarity of the candidates rejected by A
-  reward[A]   = w_base * base[A] + w_hard * hard[A]
+  shapley[A]  = Shapley allocation of the group's rejection coverage
+  reward[A]   = w_base * base[A] + w_shapley * shapley[A]
                 - redundancy_penalty[A] - overflow_penalty[A]
   batch_score = fraction of candidates rejected by Houdini(union)    (batch performance)
   should_reroll = batch_score < reroll_threshold
@@ -49,12 +49,17 @@ class RolloutScore:
     accepted: int                 # clauses admitted before canonical de-duplication
     overflow: int                 # clauses beyond max_invariants
     base: float
-    hard_bonus: float
+    shapley_credit: float         # allocation of group negative coverage
     redundant_clauses: int        # conservative semantic duplicate emissions
     redundancy_penalty: float
     overflow_penalty: float
     reward: float
     rejected: int                 # negatives rejected standalone
+
+    @property
+    def hard_bonus(self) -> float:
+        """Deprecated compatibility alias for pre-Shapley reward consumers."""
+        return self.shapley_credit
 
 
 @dataclass
@@ -81,6 +86,10 @@ class BatchReward:
             ),
             "rollout_rewards": [r.reward for r in self.rollouts],
             "base": [r.base for r in self.rollouts],
+            "shapley_credit": [r.shapley_credit for r in self.rollouts],
+            # Compatibility alias for rollout dumps produced before the
+            # group-credit formula was changed to the coverage-game Shapley
+            # allocation.
             "hard_bonus": [r.hard_bonus for r in self.rollouts],
             "redundant_clauses": [
                 r.redundant_clauses for r in self.rollouts
@@ -94,6 +103,7 @@ class BatchReward:
             "overflow": [r.overflow for r in self.rollouts],
             "rollouts": [
                 {"index": r.index, "reward": r.reward, "base": r.base,
+                 "shapley_credit": r.shapley_credit,
                  "hard_bonus": r.hard_bonus,
                  "redundant_clauses": r.redundant_clauses,
                  "redundancy_penalty": r.redundancy_penalty,
@@ -161,11 +171,14 @@ class RewardCalculator:
         n_jobs: Optional[int] = None,     # parallel frama-c filter calls per group
         logger: Optional[logging.Logger] = None,
         sampler_kwargs: Optional[dict] = None,
+        w_shapley: Optional[float] = None,
     ):
         log = logger or logging.getLogger("rl_pipeline.reward")
         self.filter = invariant_filter or filters.auto_filter(log)
         self.w_base = w_base
-        self.w_hard = w_hard
+        self.w_shapley = w_hard if w_shapley is None else w_shapley
+        # Deprecated alias retained for existing training configurations.
+        self.w_hard = self.w_shapley
         self.w_redundancy = w_redundancy
         self.w_overflow = w_overflow
         self.max_invariants = max_invariants
@@ -174,7 +187,7 @@ class RewardCalculator:
         self.sampler_kwargs = sampler_kwargs or {}
         if min(
             self.w_base,
-            self.w_hard,
+            self.w_shapley,
             self.w_redundancy,
             self.w_overflow,
         ) < 0:
@@ -291,13 +304,16 @@ class RewardCalculator:
             )
             for survivors in rollout_survivors
         ]
-        n_rollouts = max(len(rollouts), 1)
         group_reject_count = [
             sum(group in rejected for rejected in rollout_base_rejections)
             for group in range(n_neg)
         ]
-        group_hardness = [
-            1.0 - count / n_rollouts for count in group_reject_count
+        # Closed-form Shapley allocation for the negative-set coverage game.
+        # A trace rejected by f rollouts contributes 1/f to each of them, so
+        # the per-rollout credits sum exactly to standalone union coverage.
+        group_shapley_weight = [
+            1.0 / count if count else 0.0
+            for count in group_reject_count
         ]
         union_rej = self._to_groups(self._rejected_set(negatives, union_surv), groups)
         if n_neg:
@@ -324,8 +340,8 @@ class RewardCalculator:
             surv = rollout_survivors[idx]
             base_rej = rollout_base_rejections[idx]
             base = (len(base_rej) / n_neg) if n_neg else 0.0
-            hard_bonus = (
-                sum(group_hardness[group] for group in base_rej) / n_neg
+            shapley_credit = (
+                sum(group_shapley_weight[group] for group in base_rej) / n_neg
                 if n_neg else 0.0
             )
             n_generated = len(roll_invs_raw[idx])
@@ -341,7 +357,7 @@ class RewardCalculator:
                 )
                 raw_reward = (
                     self.w_base * base
-                    + self.w_hard * hard_bonus
+                    + self.w_shapley * shapley_credit
                 )
                 redundancy_penalty = (
                     self.w_redundancy * redundant_clauses
@@ -361,7 +377,7 @@ class RewardCalculator:
             scores.append(RolloutScore(
                 index=idx, invariants=invs, survivors=surv,
                 generated=n_generated, accepted=n_accepted, overflow=overflow,
-                base=base, hard_bonus=hard_bonus,
+                base=base, shapley_credit=shapley_credit,
                 redundant_clauses=redundant_clauses,
                 redundancy_penalty=redundancy_penalty,
                 overflow_penalty=overflow_penalty,

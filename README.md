@@ -15,7 +15,7 @@ Frama-C adapter:
          │ pos + neg traces                          └──────────────────┘
          ▼                                            (testing: vLLM + frama-c)
    ┌──────────────┐   per-rollout reward
-   │    Reward    │   = base + hard/useful-clause bonuses - penalties
+   │    Reward    │   = base + Shapley group credit - penalties
    │ HTTP service │   (training: called by the RL trainer, e.g. verl)
    └──────────────┘
 ```
@@ -124,8 +124,10 @@ Scores a **group** of rollouts. For each rollout `A` (in candidate-trace
 units — one fake continuation is ONE negative, not twenty-four):
 
 - `base[A]`     = candidates rejected by **Houdini(A alone)** — its own kill rate;
-- `hard_bonus[A]` gives extra credit for negatives rejected by few other
-  rollouts in the same group;
+- `shapley_credit[A]` allocates the union of the group's standalone negative
+  coverage: a trace rejected by `f` rollouts contributes `1/f` to each.
+  Credits therefore sum exactly to standalone union coverage. The serialized
+  `hard_bonus` field remains as a compatibility alias;
 - `redundant_clauses[A]` counts conservative semantic duplicates inside the
   admitted prefix. The solver-free key handles comparison direction,
   commutative equality/addition/multiplication, harmless identities, and
@@ -134,7 +136,7 @@ units — one fake continuation is ONE negative, not twenty-four):
   used at inference, so they cannot affect Houdini or any final target. The
   default penalty is
   `0.02·redundant_clauses[A]`;
-- `reward[A]`   = `1.0·base[A] + 0.3·hard_bonus[A]
+- `reward[A]`   = `1.0·base[A] + 0.3·shapley_credit[A]
   − redundancy_penalty[A] − overflow_penalty[A]` by default.
   Soundness is not a scoring patch: when Frama-C is
   available it comes from `PositiveFilter → Frama-C/WP fixpoint`. Unsound
@@ -153,7 +155,7 @@ units — one fake continuation is ONE negative, not twenty-four):
 ```python
 from rl_pipeline.reward import RewardCalculator
 br = RewardCalculator().compute(source, rollouts)
-br.to_dict()   # rewards, hardness, duplicate/overflow costs, batch_score
+br.to_dict()   # rewards, Shapley credit, duplicate/overflow costs, batch_score
 ```
 
 **HTTP service** (the training interface — see

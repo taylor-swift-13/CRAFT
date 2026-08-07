@@ -150,12 +150,12 @@ invariant generation and target-hidden loop verification.
 
 Use the same training prompts and data order.
 
-| Variant | \(w_b\) | \(w_h\) | \(w_r\) | \(w_o\) | Expected diagnostic |
+| Variant | \(w_b\) | \(w_s\) | \(w_r\) | \(w_o\) | Expected diagnostic |
 |---|---:|---:|---:|---:|---|
 | Base checkpoint | -- | -- | -- | -- | Pre-training reference |
 | Inductiveness-only RL | binary | 0 | 0 | 0 | Shows why soundness alone is weak |
 | Base-only RL | 1.0 | 0 | 0 | 0 | Standalone discrimination only |
-| No-hardness RL | 1.0 | 0 | 0.02 | 0.05 | Removes explicit rare-trace exploration credit |
+| No-Shapley RL | 1.0 | 0 | 0.02 | 0.05 | Removes group coverage allocation |
 | No-redundancy-cost RL | 1.0 | 0.3 | 0 | 0.05 | Tests conservative semantic-duplicate control |
 | No-overflow-cost RL | 1.0 | 0.3 | 0.02 | 0 | Keeps the 20-clause cap but removes its excess-length gradient |
 | Full LoopGym | 1.0 | 0.3 | 0.02 | 0.05 | Complete generation objective |
@@ -178,7 +178,7 @@ Primary training plots:
 | Clause2Inv-no-\(Q\) | original training | TBD | TBD | TBD | TBD | fixed budget | TBD |
 | iRank-no-\(Q\) | original ranker | TBD | TBD | TBD | TBD | 8.0 | TBD |
 | Base Union+Houdini | none | TBD | TBD | TBD | TBD | 8.0 | TBD |
-| Full LoopGym | base+hardness-costs | TBD | TBD | TBD | TBD | 8.0 | TBD |
+| Full LoopGym | base+Shapley-costs | TBD | TBD | TBD | TBD | 8.0 | TBD |
 
 ### Target visibility diagnostic
 

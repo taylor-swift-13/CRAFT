@@ -171,15 +171,35 @@ target.
 
 Coverage alone can cause every response to repeat the easiest high-reward
 clauses.  For a group of \(G\) responses, define
-\begin{align}
-  f(n) &= \sum_{j=1}^{G}\mathbf 1[n\in R_j],\\
-  \mathrm{bonus}(A_i)
-  &=\frac{1}{|\mathcal N|}
-    \sum_{n\in R_i}\left(1-\frac{f(n)}{G}\right).
-\end{align}
-A rejection receives less additional credit when most responses already
-provide it.  The bonus is therefore a target-independent proxy for
-complementary value after union, while coverage retains absolute strength.
+\[
+  v(S)=\frac{\left|\bigcup_{j\in S}R_j\right|}{|\mathcal N|},
+  \qquad
+  f(n)=\sum_{j=1}^{G}\mathbf 1[n\in R_j].
+\]
+Here \(v(S)\) is the negative-trace coverage of a response coalition.  Its
+closed-form Shapley allocation gives response \(A_i\) the group credit
+\begin{equation}
+\label{eq:shapley-credit}
+  \phi_i
+  =
+  \frac{1}{|\mathcal N|}
+  \sum_{n\in R_i}\frac{1}{f(n)}.
+\end{equation}
+For a trace rejected by \(f(n)\) responses, each receives \(1/f(n)\) credit:
+a unique rejection receives full credit, while redundant rejections share it.
+Equivalently, \(1/f(n)\) is the probability that \(A_i\) is the first response
+to cover \(n\) under a uniformly random response ordering.  The allocation
+therefore conserves the combined standalone coverage,
+\[
+  \sum_{i=1}^{G}\phi_i
+  =
+  \frac{\left|\bigcup_{i=1}^{G}R_i\right|}{|\mathcal N|}.
+\]
+Unlike enumerating general response subsets, Equation~\ref{eq:shapley-credit}
+uses rejection frequencies already computed for coverage and adds no verifier
+calls.  Individual coverage retains absolute response strength, while
+\(\phi_i\) assigns the group's combined behavioral coverage without double
+counting.
 
 We penalize only conservative duplicates within a response,
 \[
@@ -196,7 +216,7 @@ The generation reward is
 \label{eq:generation-reward}
 r_{\mathrm{gen}}(A_i)=
 w_c\,\mathrm{coverage}(A_i)
-+w_g\,\mathrm{bonus}(A_i)
++w_g\,\phi_i
 -w_d\,d_{\mathrm{dup}}(A_i)
 -w_o\,o(A_i),
 \end{equation}
@@ -236,18 +256,16 @@ where \(\rho_{i,t}(\theta)=\pi_\theta(o_{i,t}\mid\mathcal L,o_{i,<t})\big/
 \pi_{\theta_{\mathrm{old}}}(o_{i,t}\mid\mathcal L,o_{i,<t})\) and
 \(\pi_{\mathrm{ref}}\) is the frozen reference policy.
 
-Group-relative normalization is why the bonus term matters for training, not
+Group-relative normalization is why the Shapley term matters for training, not
 only for evaluation.  Coverage alone is bounded, so once sampling collapses
 onto one easiest clause every response in the group reports nearly the same
 reward, the group standard deviation shrinks, and \(\hat A_i\) becomes an
-uninformative, high-variance signal for every member of the group, exactly
-the collapse a per-response objective invites.  The bonus breaks these ties
-before normalization: a response that only repeats a peer's rejections is
-pushed toward \(\hat A_i\approx0\) even though its raw coverage is positive,
-while a response exposing a rejection no peer in the group produced keeps a
-positive advantage.  Group-relative policy optimization therefore rewards a
-rollout for what it adds to its own group, which is the same quantity that
-determines whether the rollout helps combine@\(k\).
+uninformative signal.  Shapley allocation splits credit for shared rejections
+and gives full credit to a rejection supplied by only one response.  It
+therefore breaks ties before normalization and rewards a rollout for its
+allocated contribution to the group's combined coverage.  This is still a
+target-independent behavioral surrogate rather than the Shapley value of final
+\(Q\)-sufficient verification.
 
 %% ------------------------------------------------------------
 \subsection{Deployment and the Fixed-Budget Objective}

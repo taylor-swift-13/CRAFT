@@ -50,7 +50,7 @@ program prompt.
     "<raw LLM response>"
   ],
   "w_base": 1.0,
-  "w_hard": 0.3,
+  "w_shapley": 0.3,
   "w_redundancy": 0.02,
   "w_overflow": 0.05,
   "max_invariants": 20,
@@ -64,7 +64,7 @@ The response is order-aligned with the submitted rollouts:
 {
   "rollout_rewards": [0.41, 0.17],
   "base": [0.35, 0.14],
-  "hard_bonus": [0.20, 0.10],
+  "shapley_credit": [0.20, 0.10],
   "redundant_clauses": [0, 0],
   "redundancy_penalty": [0.0, 0.0],
   "overflow_penalty": [0.0, 0.0],
@@ -77,9 +77,12 @@ The response is order-aligned with the submitted rollouts:
 ```
 
 `base` is the fraction of sampled negative-candidate traces rejected by
-the rollout's Houdini survivors. `hard_bonus` emphasizes traces rejected
-by few other rollouts. The default reward is
-`base + 0.3 * hard_bonus - redundancy_penalty - overflow_penalty`.
+the rollout's Houdini survivors. `shapley_credit` allocates the group's
+standalone union coverage: a trace covered by `f` rollouts contributes `1/f`
+to each. The default reward is
+`base + 0.3 * shapley_credit - redundancy_penalty - overflow_penalty`.
+The response also includes `hard_bonus` as a deprecated alias for
+`shapley_credit`, and requests using the old `w_hard` field remain accepted.
 
 Only the first 20 invariant lines enter Houdini. Every later line incurs the
 configured overflow penalty. If the sampler produces no negatives, the service

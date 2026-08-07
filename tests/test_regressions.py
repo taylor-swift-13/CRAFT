@@ -639,7 +639,11 @@ class RewardPatchRegressionTests(unittest.TestCase):
         else:
             request_fields = service.RewardRequest.__fields__
         self.assertNotIn("w_surv", request_fields)
+        self.assertIn("w_shapley", request_fields)
         self.assertFalse(hasattr(RewardCalculator(), "w_surv"))
+        configured = RewardCalculator(w_hard=0.3, w_shapley=0.7)
+        self.assertEqual(configured.w_shapley, 0.7)
+        self.assertEqual(configured.w_hard, 0.7)
 
     def test_semantic_dedup_fixed_seed_metamorphic_pairs(self):
         rng = random.Random(20260805)
@@ -697,10 +701,12 @@ class RewardPatchRegressionTests(unittest.TestCase):
         score = result.rollouts[0]
 
         self.assertEqual(score.base, 2 / 3)
+        self.assertEqual(score.shapley_credit, 2 / 3)
         self.assertEqual(score.redundant_clauses, 1)
         self.assertAlmostEqual(
             score.reward,
             2 / 3
+            + 0.3 * (2 / 3)
             - 0.02,
         )
 
@@ -740,7 +746,7 @@ class RewardPatchRegressionTests(unittest.TestCase):
         self.assertNotIn("survival_bonus", result.to_dict())
         self.assertNotIn("marginal", result.to_dict())
 
-    def test_default_reward_adds_positive_hardness_bonus(self):
+    def test_default_reward_adds_coverage_game_shapley_credit(self):
         source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
         examples = ExampleSet(
             program=parse_program(source),
@@ -765,19 +771,61 @@ class RewardPatchRegressionTests(unittest.TestCase):
         strong, overlapping = result.rollouts
 
         self.assertEqual(calculator.w_base, 1.0)
+        self.assertEqual(calculator.w_shapley, 0.3)
         self.assertEqual(calculator.w_hard, 0.3)
         self.assertEqual(strong.base, 1.0)
-        self.assertEqual(strong.hard_bonus, 0.25)
+        self.assertEqual(strong.shapley_credit, 0.75)
+        self.assertEqual(strong.hard_bonus, strong.shapley_credit)
         self.assertEqual(strong.redundant_clauses, 0)
         self.assertAlmostEqual(
             strong.reward,
-            1.0 + 0.3 * 0.25,
+            1.0 + 0.3 * 0.75,
         )
         self.assertEqual(overlapping.base, 0.5)
-        self.assertEqual(overlapping.hard_bonus, 0.0)
+        self.assertEqual(overlapping.shapley_credit, 0.25)
         self.assertEqual(overlapping.redundant_clauses, 0)
         self.assertEqual(overlapping.redundancy_penalty, 0.0)
-        self.assertAlmostEqual(overlapping.reward, 0.5)
+        self.assertAlmostEqual(overlapping.reward, 0.5 + 0.3 * 0.25)
+        self.assertAlmostEqual(
+            sum(rollout.shapley_credit for rollout in result.rollouts),
+            1.0,
+        )
+        self.assertEqual(
+            result.to_dict()["shapley_credit"],
+            [0.75, 0.25],
+        )
+
+    def test_shapley_credit_splits_shared_traces_and_conserves_coverage(self):
+        source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
+        examples = ExampleSet(
+            program=parse_program(source),
+            positives={0: [State(vars={"x": 0})]},
+            negatives={
+                0: [
+                    State(vars={"x": -1}),
+                    State(vars={"x": 1}),
+                ]
+            },
+            neg_groups={0: [[0], [1]]},
+        )
+
+        result = RewardCalculator(
+            invariant_filter=self._IdentityFilter(), n_jobs=1
+        ).compute(
+            source,
+            [
+                ["x == 0"],  # rejects both traces
+                ["x <= 0"],  # the remaining rollouts share only x=1
+                ["x <= 0"],
+                ["x <= 0"],
+            ],
+            examples=examples,
+        )
+
+        credits = [rollout.shapley_credit for rollout in result.rollouts]
+        self.assertEqual(credits, [0.625, 0.125, 0.125, 0.125])
+        self.assertAlmostEqual(sum(credits), 1.0)
+        self.assertEqual(result.batch_score, 1.0)
 
     def test_response_cap_truncates_and_penalizes_overflow_lines(self):
         source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
@@ -859,7 +907,8 @@ class RewardPatchRegressionTests(unittest.TestCase):
 
         # x == x rejects no state itself, but lets x >= 0 survive Houdini.
         self.assertEqual(score.base, 1.0)
-        self.assertEqual(score.reward, 1.0)
+        self.assertEqual(score.shapley_credit, 1.0)
+        self.assertEqual(score.reward, 1.3)
         self.assertEqual(score.redundant_clauses, 0)
         self.assertEqual(score.redundancy_penalty, 0.0)
 

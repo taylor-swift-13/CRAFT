@@ -6,10 +6,48 @@ Because clauses compose across responses, our objective is the filtered
 combination, not pass@1.  Inference uses rollout--combine--filter before
 restoring the target.  SFT distills a verified combination into one response;
 target-independent RL rewards response strength and behavior not covered by
-peers.  Consequently, ten trained-policy responses
+peers through a Shapley allocation of group coverage.  Consequently, ten
+trained-policy responses
 outperform one hundred base-model responses even as pass@1 decreases.
 
-The implementation supports one scalar-integer loop.  Negative examples are
-training signals, the group bonus approximates contribution after union, and
-soundness depends on the verifier.  Multiple loops and richer state remain future
-work~\citep{liu2024towards}.
+\paragraph{Program scope.}
+Our implementation targets numerical programs with one scalar-integer loop.
+This scope follows the dominant setting in prior loop-invariant benchmarks,
+but excludes nested loops and invariants over arrays, heaps, or recursively
+defined predicates.  Such invariants require substantially richer
+representations and proof dependencies, while available training corpora
+contain too few examples to support the discriminative signal used here.  In
+particular, our state perturbations cannot yet construct reliably informative
+negative examples for inductive predicates or interacting nested loops.
+Extending both the data and negative-example semantics to these settings
+remains future work~\citep{liu2024towards}.
+
+\paragraph{Inference engine.}
+In preliminary comparisons, we observed lower verification rates when serving
+the evaluated checkpoints with vLLM than with alternative inference backends,
+even under nominally matched decoding settings.  We nevertheless use vLLM for
+all reported experiments: its throughput makes the sampling study practical,
+and using the same engine for training rollouts and evaluation avoids an
+additional train--test mismatch.  The reported absolute success rates may
+therefore be conservative and should not be read as an engine-independent
+ceiling on the checkpoints.
+
+\paragraph{Verifier and specification language.}
+All filtering and final judgments use Frama-C/WP, and candidates are expressed
+in ACSL.  Parser behavior, generated proof obligations, prover integration,
+and annotation syntax all affect which clauses survive the pipeline.  The
+rollout--combine--filter principle is not intrinsically tied to this toolchain,
+but the quantitative conclusions may not transfer unchanged to other
+verifiers, specification languages, or source languages.
+
+\paragraph{Feedback regime.}
+We focus on the feedback-scarce setting and do not evaluate iterative
+optimization from verifier feedback.  In our pilot runs, a model usually
+reached \emph{sound but weak} invariants quickly: they passed inductiveness
+checks, but the verifier provided no signal about the missing behavioral
+strength while the target remained hidden.  Consequently, feedback-based
+refinement produced little marginal gain, and that gain decreased further as
+the number of initial rollouts grew because their union already captured most
+easy corrections.  Our results therefore characterize target-independent
+training and finite-budget combination, not settings where a verifier exposes
+rich counterexamples or target-directed repair signals.

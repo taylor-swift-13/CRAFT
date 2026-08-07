@@ -282,3 +282,23 @@ Houdini-surviving clause is essential exactly when adding it increases the
 fraction of rejected negative groups. A surviving clause with zero incremental
 coverage is redundant. Non-survivors count as neither essential nor redundant.
 Zero-negative programs retain the binary Frama-C/WP fallback.
+
+## 2026-08-07: Reward v4 — coverage-game Shapley credit
+
+The group term now allocates standalone negative-set union coverage with the
+closed-form Shapley value. If negative trace `n` is rejected by `f(n)`
+rollouts, each rejecting rollout receives `1/f(n)` credit for that trace.
+Therefore the rollout credits sum exactly to the standalone union coverage.
+
+```text
+shapley_credit[i] = sum(1 / f(n) for n in R[i]) / len(N)
+reward[i] = 1.0 * base[i]
+          + 0.3 * shapley_credit[i]
+          - 0.02 * redundant_clauses[i]
+          - 0.05 * overflow[i]
+```
+
+The calculation reuses rejection frequencies already required by the old
+rarity bonus and adds no Houdini or verifier calls. The public response now
+exposes `shapley_credit`; `hard_bonus` and `w_hard` remain compatibility
+aliases.

@@ -1,0 +1,85 @@
+%% ============================================================
+\section{Preliminaries}\label{sec:preliminaries}
+%% ============================================================
+
+\subsection{Loop Verification}
+
+A verification task consists of a loop
+\(\mathcal L=(P,B,S)\) and a postcondition \(Q\), where \(P\) is the
+precondition, \(B\) is the loop guard, and \(S\) is the loop body.  Let
+\(\operatorname{Reach}(\mathcal L)\) denote the states reachable at the loop
+head, including the final guard test at loop exit.
+
+An invariant \(I\) is \emph{sound} (equivalently, inductive) when it is
+established by \(P\) and preserved by one iteration:
+\[
+  P\Rightarrow I,
+  \qquad
+  \{I\wedge B\}\,S\,\{I\}.
+\]
+These obligations ensure that \(I\) holds on every state in
+\(\operatorname{Reach}(\mathcal L)\)
+~\citep{floyd1967assigning,hoare1969axiomatic}.
+
+We say that \(I_1\) is \emph{stronger} than \(I_2\), written
+\(I_1\succeq I_2\), when
+\[
+  \models I_1\Rightarrow I_2.
+\]
+An invariant \(I^\star\) is \emph{exact} when
+\[
+  \denote{I^\star}=\operatorname{Reach}(\mathcal L).
+\]
+Because every sound invariant contains all reachable states, an exact
+invariant is stronger than every sound invariant of the same loop:
+\[
+  I^\star\text{ exact},\ J\text{ sound}
+  \quad\Longrightarrow\quad
+  \models I^\star\Rightarrow J.
+\]
+Exactness is a semantic ideal; the reachable states need not have a finite
+representation in the annotation fragment used by the generator.
+
+Finally, a sound invariant \(I\) is \emph{\(Q\)-sufficient} when it proves the
+postcondition at loop exit:
+\[
+  I\wedge\neg B\Rightarrow Q.
+\]
+Thus exactness describes the loop independently of a target, whereas
+\(Q\)-sufficiency is relative to one postcondition.  The final verifier must
+prove both soundness obligations and this exit obligation.
+
+\subsection{Target-Hidden Verification}
+
+In \emph{target-hidden loop verification}, the generator and all intermediate
+feedback see \(\mathcal L=(P,B,S)\) but not \(Q\).  The postcondition is
+restored only after the generated invariant has been fixed.  Preconditions and
+executable loop semantics remain visible, while assertions, postconditions,
+assertion calls, and conventional error-label names are masked.  The untouched
+program is used only for final verification.
+
+\subsection{Scope and Motivating Example}
+
+We focus on numerical loops for two reasons.  First, their invariants are
+predominantly arithmetic equalities and inequalities, including polynomial
+relations.  These predicates are comparatively amenable to automatic checking,
+which provides a scalable and objective verification signal.  Second, numerical
+loops factor out the representational machinery of arrays, heaps, and recursive
+data structures, whose verification often requires auxiliary functions or
+inductive predicates.  This gives a controlled setting in which success depends
+more directly on discovering algebraic relations and reasoning about loop
+dynamics.
+
+Concretely, we study one braced \texttt{while} loop over scalar C integers,
+including nonlinear updates; arrays, heaps, and recursive structures are out
+of scope.  This restriction does not make invariant discovery trivial: even a
+small loop can hide a nonlinear relation across coupled recurrences.
+
+Consider the following abridged program:
+\begin{lstlisting}
+int x = 1, y = 1, c = 1;
+while (c < k) { c++; x = x*z + 1; y = y*z; }
+/*@ assert 1+x*z-x-z*y == 0; */
+\end{lstlisting}
+The visible assertion can be copied verbatim as an invariant; when hidden, its
+nonlinear relation must instead be recovered from the coupled updates.

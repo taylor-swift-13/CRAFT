@@ -8,9 +8,12 @@
 Table~\ref{tab:constants} lists the implemented defaults.
 Execution sampling is used only to compute reinforcement-learning rewards; it
 does not construct the synthetic SFT corpus.  SFT synthesis, RL, and inference
-use the same response cap, candidate union, repair format, and Houdini
-implementation.  Inference has its own repair budget and does not construct
-execution examples.
+share the rollout--combine--filter implementation: the same conjunction
+splitting, response cap, normalization, candidate combination, iterative
+syntax filter, optional AST deduplication, and Houdini pruning.  SFT
+serializes the filtered combination, RL scores the responses that populate it,
+and inference restores \(Q\) only after filtering.  Inference does not
+construct execution examples.
 
 \begin{table}[h]
 \centering
@@ -34,13 +37,12 @@ iteration cap & $2 \times 10^6$ & divergence safety net (capped runs flagged) \\
 \midrule
 $(w_c, w_g)$ & $(1.0, 0.3)$ & negative rejection / group-relative bonus weights \\
 $w_d$ & 0.02 & cost per conservative duplicate; unique zero-coverage clauses are not penalized \\
-$K$ & 20 clauses & response cap applied independently to every generation/refinement response \\
+$K$ & 20 clauses & response cap applied independently to every generated response \\
 $w_o$ & 0.05 & overflow cost per clause after \(K\) \\
 re-roll threshold & 0.6 & group batch score below which re-rolling is advised \\
 \midrule
 Houdini iterations & $\le 500$ & greatest-inductive-subset pruning \\
 WP configuration & Z3, 30\,s, Typed model & per-goal prover budget \\
-$m_{\mathrm{refine}}$ & 0 & inference refinement disabled by default; any nonnegative round budget is supported \\
 \bottomrule
 \end{tabular}
 \caption{Defaults for execution sampling
@@ -51,12 +53,67 @@ $m_{\mathrm{refine}}$ & 0 & inference refinement disabled by default; any nonneg
 The exact near-input tier order is
 \texttt{0, 1, 2, -1, 3, 5, 8, -2, 10, 17, 4, -3, 25, 6, 40, 7, -5, 13, 50, 9}.
 
+\subsection{Negative-Trace Sampling}
+\label{app:negative-sampling}
+
+Algorithm~\ref{alg:negative-sampling} summarizes the sampler used for RL.
+\(\operatorname{Trace}\) records real loop-head states and, after each genuine
+exit, continues the real loop body to obtain one post-exit trace.
+\(\operatorname{Perturb}_{1,2}\) applies the configured single-variable and
+pairwise changes, while \(\operatorname{RangeEscape}\) moves one variable just
+outside its sampled range.  The exact perturbations and budgets are those in
+Table~\ref{tab:constants}.
+
+\begin{algorithm}[H]
+\caption{Target-hidden negative-trace sampling}
+\label{alg:negative-sampling}
+\begin{algorithmic}
+\alginput{masked loop \(\mathcal L=(P,B,S)\), input schedule \(U\), configuration \(\Theta\)}
+\algoutput{reachable states \(\mathcal P\), negative traces \(\mathcal N\)}
+\algline \(\mathcal T,\mathcal C_{\rm post},c
+  \leftarrow\operatorname{Trace}(\mathcal L,U,\Theta)\)
+  \cmnt{\(c\): some run was capped}\\
+\algline \(\mathcal P\leftarrow\operatorname{UniqueHeads}(\mathcal T)\);
+  \quad \(M\leftarrow\operatorname{SafeModifiedVars}(S)\)\\
+\algline \kw{if} \(M=\varnothing\) or \(S\) has unsupported state
+  \kw{then return} \((\mathcal P,\varnothing)\)\\
+\algline \(\mathcal S\leftarrow
+  \operatorname{StratifiedSample}(\mathcal P)\)\\
+\algline \(C_{\rm rel}\leftarrow
+  \operatorname{Perturb}_{1,2}(\operatorname{Dense}(\mathcal S),M,\Theta)\)\\
+\algline \kw{if} \(\neg c\) \kw{then}
+  \(C_{\rm rel}\leftarrow C_{\rm rel}\cup
+  \operatorname{Perturb}_{1,2}(\operatorname{Terminals}(\mathcal T),M,\Theta)\)\\
+\algline \(C_{\rm range}\leftarrow
+  \operatorname{RangeEscape}(\mathcal S,M,\mathcal P,\Theta)\) if \(\neg c\),
+  else \(\varnothing\)\\
+\algline \((C_{\rm rel},\mathcal C_{\rm post},C_{\rm range})
+  \leftarrow\operatorname{Clean}_{\mathcal P}
+  (C_{\rm rel},\mathcal C_{\rm post},C_{\rm range})\)\\
+\algline \(N_{\rm rel},\mathcal N_{\rm post},N_{\rm range}
+  \leftarrow\operatorname{BudgetAndRoundRobin}
+  (C_{\rm rel},\mathcal C_{\rm post},C_{\rm range},\Theta)\)\\
+\algline \(\mathcal N\leftarrow
+  \{\langle s\rangle:s\in N_{\rm rel}\}\cup\mathcal N_{\rm post}
+  \cup\{\langle s\rangle:s\in N_{\rm range}\}\)\\
+\algline \kw{return} \((\mathcal P,\mathcal N)\)\\
+\end{algorithmic}
+\end{algorithm}
+
+\(\operatorname{Clean}_{\mathcal P}\) removes observed reachable states,
+possible fresh loop entries, duplicates, and unsupported candidates, using
+family priority relation, post-exit, then range.  A cleaned post-exit
+continuation remains one trace; relation and range candidates become singleton
+traces.  Within the relation budget, candidates that preserve the guard truth
+value and remain inside the sampled coordinate ranges are selected first.
+
 \section{Generation Prompt}
 \label{app:prompt}
 
-The same generation template is used to propose candidates for SFT synthesis,
-RL, and inference.  Any assertion is stripped before the program is inserted.
-General ACSL rules are supplied separately by \texttt{system\_prompt.txt}.
+The same generation template proposes the responses later combined during SFT
+synthesis, RL, and inference.  Any assertion is stripped before the program is
+inserted.  General annotation rules are supplied separately by
+\texttt{system\_prompt.txt}.
 
 \begin{promptbox}[Generation prompt]
 \begin{lstlisting}[style=promptstyle]
@@ -76,7 +133,7 @@ Program:
 \label{app:service}
 
 The training service is packaged as a self-contained, CPU-only container with
-gcc, Frama-C/WP, Why3, and Z3.  It exposes \texttt{POST /reward}, accepting
+gcc, the verifier, Why3, and Z3.  It exposes \texttt{POST /reward}, accepting
 program source and an array of model responses.  The implementation retains
 the following field names for compatibility:
 \begin{lstlisting}[style=promptstyle]
@@ -87,10 +144,5 @@ the following field names for compatibility:
  rollouts[], batch_score, should_reroll}
 \end{lstlisting}
 Responses may be raw LLM text, invariant lists, or annotated code; parsing is uniform.
-For refinement training, \texttt{POST /refine\_feedback} returns the WP verdict
-table and assembled stateless prompt, while \texttt{POST /refine\_reward}
-returns both the nonnegative improvement diagnostic (stored as
-\texttt{delta\_base}) and
-\texttt{refine\_rewards[]} after overflow cost.
 An offline scorer provides the same generation reward over JSONL/Parquet
 rollout dumps.

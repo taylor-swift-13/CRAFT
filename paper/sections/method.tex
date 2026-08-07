@@ -4,210 +4,272 @@
 
 \subsection{Overview}
 
-For a verification instance \((P,Q)\), the generator receives the
-target-masked program \(P=(\phi_{\mathrm{pre}},B,S)\).
-One sampled response, or \emph{rollout},
-\(A=(a_1,\ldots,a_L)\), is an ordered list of parsed invariant clauses.
-A training group \(\mathcal A=\{A_1,\ldots,A_G\}\) contains \(G\) responses
-for the same program.  Only the first \(K\) clauses of each response are used:
+Using the notation of Section~\ref{sec:preliminaries}, the model receives only
+the target-masked loop \(\mathcal L\).  We parse each response, split every
+invariant at its top-level conjunctions, normalize the resulting clauses, and
+obtain an ordered list
+\(A=(a_1,\ldots,a_m)\).  We cap each response at \(K\) clauses,
 \[
-  \bar A=(a_1,\ldots,a_{\min(L,K)}),\qquad
-  o(A)=\max(0,L-K).
+  \bar A=(a_1,\ldots,a_{\min(m,K)}),\qquad
+  o(A)=\max(0,m-K),
 \]
+to prevent a response from gaining coverage by producing an unbounded list.
 
-Given a set of clauses \(X\), \(\mathsf H_P(X)\) denotes the subset retained
-after syntax checking and Houdini filtering with Frama-C/WP.
-Execution provides reachable loop-head states \(\mathcal P\) and synthetic
-negative traces \(\mathcal N\).  A negative trace may contain several witness
-states from one perturbed execution.  We write
-\(\mathrm{rej}(X)\subseteq\mathcal N\) for the negative traces on which at
-least one clause in \(\mathsf H_P(X)\) is false.
-
-The method has four parts.  First, candidate responses are normalized,
-combined, optionally repaired, and filtered by the verifier.  This pipeline is
-used to construct synthetic SFT pairs.  Program executions then provide a
-separate target-independent signal for reinforcement learning.  Inference
-reuses the candidate pipeline without SFT serialization, execution sampling,
-or reward computation.
+Our \emph{rollout--combine--filter} framework is shared by data construction
+and deployment.  It samples responses, combines their clauses, iteratively
+removes syntax failures, optionally performs AST deduplication, and then
+applies Houdini.  SFT turns the filtered combination into one target, RL
+improves the responses that populate a combination, and inference applies the
+same framework before restoring \(Q\).
 
 %% ------------------------------------------------------------
-\subsection{Candidate Generation and Verification}
+\subsection{Rollout--Combine--Filter}
 \label{sec:method:core}
 
-The model emits scalar ACSL clauses of the form
-\texttt{loop invariant <expr>;}.  Each response is capped at \(K\) parsed
-clauses, normalized, and deduplicated.  For a group of responses, the initial
-candidate set is
+\paragraph{Rollout.}
+The model emits ACSL~\citep{acsl} annotations of the form
+\texttt{loop invariant <expr>;}.  We split each \texttt{<expr>} at top-level
+logical conjunctions, so a conjunction contributes separate clauses that can
+survive or fail independently.  Splitting precedes capping and normalization.
+
+\paragraph{Combine.}
+Given \(G\) responses, we union their clause lists:
 \[
   X_0=\bigcup_{i=1}^{G}\bar A_i.
 \]
-An optional repair round receives only syntax, scope, establishment, and
-preservation verdicts from the target-masked program.  Its response \(R_t\)
-can add clauses but cannot remove existing candidates:
-\[
-  X_{t+1}=X_t\cup R_t.
-\]
+This combination preserves partial progress across responses but can contain
+syntactically invalid or non-inductive clauses.
 
-The filter \(\mathsf H_P(X)\) first removes malformed invariant lines and then
-runs Houdini over Frama-C/WP~\citep{flanagan2001houdini,framac}.
-Houdini repeatedly removes clauses whose establishment or preservation
-obligations fail and returns an inductive subset.  During reward computation,
-sampled reachable states provide a cheap pre-filter for out-of-scope or
-obviously false clauses.  Inference skips this optimization.  In both cases,
-Frama-C/WP is the source of soundness.
+\paragraph{Filter.}
+Algorithm~\ref{alg:rcf} gives the full framework.  The filter first
+iteratively removes clauses identified by the verifier's parser or type
+checker.  It may then deduplicate the syntax-valid clauses by their
+normalized ASTs.  Finally, Houdini iteratively removes every clause whose
+establishment or preservation obligation fails under the verifier
+~\citep{flanagan2001houdini}.  We denote the surviving set by
+\(\mathsf{Filter}_{\mathcal L}(X)\).  Filtering can retain compatible clauses
+from imperfect responses but cannot invent a relation absent from the combined
+pool.
 
-Training evaluates \(\mathsf H_P(\bar A_i)\) for each response,
-\(\mathsf H_P(X_0)\) for the union, and
-\(\mathsf H_P(X_t\cup R_t)\) when learning repair.
-Inference applies the same cap, normalization, union, repair feedback, and
-Houdini filter.  The difference is downstream: training computes rewards from
-execution examples, whereas inference inserts the filtered clauses into the
-full program and checks the restored \(Q\).
+\begin{algorithm}[t]
+\caption{Rollout--combine--filter}
+\label{alg:rcf}
+\begin{algorithmic}
+\alginput{masked loop \(\mathcal L\), responses \(A_{1:G}\), cap \(K\), AST-dedup flag \(d\)}
+\algoutput{filtered clause set \(C\)}
+\algline \(C\leftarrow\bigcup_{i=1}^{G}
+  \operatorname{Cap}_K(\operatorname{Normalize}(\operatorname{Split}_{\wedge}(A_i)))\)\\
+\algline \kw{repeat}\\
+\algline \algind \(E\leftarrow
+  \operatorname{ParserErrors}(\operatorname{Annotate}(\mathcal L,C))\)\\
+\algline \algind \(C\leftarrow C\setminus E\)\\
+\algline \kw{until} \(E=\varnothing\) or \(C=\varnothing\)\\
+\algline \kw{if} \(C=\varnothing\) \kw{then return} \(C\)\\
+\algline \kw{if} \(d\) \kw{then} \(C\leftarrow\operatorname{ASTDedup}(C)\)\\
+\algline \kw{repeat}\\
+\algline \algind \(V\leftarrow\operatorname{WP}_{\rm est,pres}(\mathcal L,C)\)\\
+\algline \algind \(D\leftarrow\{c\in C:\neg V_{\rm est}(c)\vee\neg V_{\rm pres}(c)\}\)\\
+\algline \algind \(C\leftarrow C\setminus D\)\\
+\algline \kw{until} \(D=\varnothing\) or \(C=\varnothing\)\\
+\algline \kw{return} \(C\)\\
+\end{algorithmic}
+\end{algorithm}
+
+During RL scoring, sampled reachable states provide a cheap pre-filter for
+out-of-scope or obviously false clauses, after which the verifier remains the
+source of soundness.  Inference omits this optimization; all uses otherwise
+share clause splitting, capping, normalization, combination, syntax filtering,
+and Houdini.
 
 %% ------------------------------------------------------------
-\subsection{Synthetic Data for Supervised Fine-Tuning}
+\subsection{Compressing Multi-Response Search into SFT Targets}
 \label{sec:method:sft}
 
-For each target-masked program \(P\), the data generator samples a group of
-candidate responses and applies the same cap, normalization, union, optional
-repair, and Houdini filter defined above.  When the resulting set
-\(\mathsf H_P(X)\) is nonempty, it is serialized as a canonical ACSL response
-and paired with \(P\):
+For every masked loop \(\mathcal L\), we sample a response group, combine its
+clauses, and compute
+\(\mathsf{Filter}_{\mathcal L}(X)\).  A nonempty result is serialized as one
+canonical response:
 \[
   \mathcal D_{\mathrm{SFT}}
-  =\left\{\bigl(P,\operatorname{serialize}(\mathsf H_P(X))\bigr)\right\}.
+  =\left\{\bigl(\mathcal L,
+    \operatorname{serialize}(\mathsf{Filter}_{\mathcal L}(X))\bigr)\right\}.
 \]
-The original target \(Q\) is not included in the input, feedback, or output of
-this construction.  Supervised fine-tuning therefore teaches the model to
-imitate verifier-accepted invariant sets produced by the same aggregation and
-filtering procedure later used at inference.
-
-This synthetic SFT corpus is distinct from the execution examples introduced
-next.  An SFT target is a verified ACSL invariant response; a positive or
-negative execution state is used only to compute the reinforcement-learning
-reward and is never serialized as an SFT answer.
+This distills a filtered multi-response result into one answer.  Neither side
+contains \(Q\): the input is masked and the output contains only inductive
+clauses.  Execution states are used only for RL, never as SFT answers.
 
 %% ------------------------------------------------------------
 \subsection{Execution-Based Training Examples}
 \label{sec:method:sampler}
 
-The execution sampler never reads an assertion or postcondition.  It supports
-one braced \texttt{while} loop over scalar integer parameters, locals, and
-file-scope variables.  It instruments the loop, compiles it with \texttt{gcc},
-and records loop-head valuations for a deterministic, precondition-checked
-input sweep.  The recorded states form the positive set \(\mathcal P\).
-Runs continue to a genuine loop exit; hitting the iteration cap marks a run as
-incomplete and disables any construction that requires reliable terminal or
-range information.
+To rank inductive sets without revealing \(Q\), we derive a strength signal
+from executions.  The sampler instruments one braced \texttt{while} loop,
+compiles it with \texttt{gcc}, and records loop-head valuations for a
+deterministic, precondition-checked input sweep.  The recorded states form
+\(\mathcal P\subseteq\operatorname{Reach}(\mathcal L)\); clauses falsified by
+these states are removed before scoring.  If any run hits the iteration cap,
+the sample is marked incomplete and cannot support terminal or range examples.
 
-The sampler constructs three kinds of negative examples:
+The sampler then constructs three kinds of negative examples without reading
+an assertion or postcondition:
 \begin{itemize}
-  \item \textbf{Relational perturbations.}  Single-variable and pairwise
-  \(\pm\{1,2\}\) changes are applied to densely observed states.  These
-  examples target relations such as \(x+y=n\) that may hold even when each
-  variable has a broad range.
-  \item \textbf{Post-exit continuations.}  After an observed genuine exit, the
-  loop body is executed for additional steps.  The continuation preserves the
-  program's transition relation while moving beyond the actual run.
-  \item \textbf{Range perturbations.}  One variable is moved beyond the range
-  observed for that variable.  These examples test whether a candidate
-  captures useful bounds.
+  \item \textbf{Relational perturbations} change one or two variables by
+  \(\pm\{1,2\}\) in densely observed states, testing relations such as
+  \(x+y=n\).
+  \item \textbf{Post-exit continuations} execute the real loop body for
+  additional steps after a genuine exit.
+  \item \textbf{Range perturbations} move one variable outside its observed
+  range and test useful bounds.
 \end{itemize}
 
-These are training candidates, not proofs of global unreachability.
-Any candidate equal to an observed reachable state is removed.  The sampler
-also removes states that may be feasible fresh loop entries for the recorded
-input, and it excludes variables affected by unsupported or
-oracle-dependent behavior.  Unsupported block-local state, pointers, arrays,
-or function calls disable synthetic negatives; if no safe variable remains,
-the program contributes positive states only.  Exact sampling schedules,
-budgets, perturbation sizes, and fallback conditions are reported in
-Appendix~\ref{app:constants}.
+Figure~\ref{fig:negative-sampling} illustrates how the three families are
+generated from observed executions and then converted into negative traces.
+\input{sections/fig_negative_sampling}
+
+These are training signals, not proofs of global unreachability.  We remove
+observed reachable states, possible fresh loop entries, duplicates, and
+candidates that depend on unsupported state.  Relation and range candidates
+form singleton negative traces, whereas all states from one post-exit
+continuation form one trace.  Each family has an independent budget, filled
+round-robin across variable and direction buckets.  Pointers, arrays, calls,
+unsupported locals, or oracle-dependent behavior disable the affected
+construction; a program with no safe variable contributes positives only.
+Capped executions contribute positives but disable constructions that require
+complete terminal or range information.  Algorithm~\ref{alg:negative-sampling} in
+Appendix~\ref{app:negative-sampling} and Table~\ref{tab:constants} give the
+sampling procedure and exact configuration.
+
+Let \(\mathcal N\) denote the retained negative traces.  One trace can contain
+several witness states from a perturbed execution.  For a candidate set \(X\),
+let \(\mathrm{rej}(X)\subseteq\mathcal N\) be the traces on which at least one
+clause in \(\mathsf{Filter}_{\mathcal L}(X)\) is false.
 
 %% ------------------------------------------------------------
-\subsection{Reward and Training}
+\subsection{Rewarding Strength and Complementarity}
 \label{sec:method:reward}
 
+The deployed union needs strong individual responses that remain complementary
+within a group.  We reward both properties.
+
+Soundness is checkable directly: Houdini either establishes and preserves a
+clause or it does not.  Strength is not.  An exact invariant need not have a
+finite representation in our annotation fragment (Section~\ref{sec:preliminaries}),
+so we cannot target exactness itself, and a binary sound/unsound label cannot
+tell a response that is merely inductive from one that is inductive and
+useful: \(\mathit{true}\) passes the same check as a tight bound.  We
+therefore need a graded, target-independent proxy for strength that a
+partial, sound response can satisfy by degree rather than all at once.
+
 For response \(A_i\), let
-\(R_i=\mathrm{rej}(\bar A_i)\) be the negative traces rejected after Houdini
-filtering.  Its negative rejection rate is
+\(R_i=\mathrm{rej}(\bar A_i)\) after standalone filtering.  Its
+negative rejection rate is
 \[
   \mathrm{coverage}(A_i)=\frac{|R_i|}{|\mathcal N|}.
 \]
-To reward complementary responses, define the frequency with which a negative
-trace \(n\) is rejected in the group and a bonus for less common rejections:
+This gives dense credit to a useful partial answer without querying the hidden
+target.
+
+Coverage alone can cause every response to repeat the easiest high-reward
+clauses.  For a group of \(G\) responses, define
 \begin{align}
   f(n) &= \sum_{j=1}^{G}\mathbf 1[n\in R_j],\\
   \mathrm{bonus}(A_i)
   &=\frac{1}{|\mathcal N|}
     \sum_{n\in R_i}\left(1-\frac{f(n)}{G}\right).
 \end{align}
-The first term rewards overall strength; the second rewards a response for
-contributing behavior not already covered by most of its peers.  A response
-need not contain a complete proof to receive credit.
+A rejection receives less additional credit when most responses already
+provide it.  The bonus is therefore a target-independent proxy for
+complementary value after union, while coverage retains absolute strength.
 
-We do not penalize a unique clause merely because it adds no independently
-observed coverage: it may support another clause or be needed for the hidden
-target.  We only count conservative syntactic and local algebraic duplicates,
+We penalize only conservative duplicates within a response,
 \[
-  d_{\mathrm{dup}}(A)
-    =|\bar A|-|\mathrm{dedup}(\bar A)|.
+  d_{\mathrm{dup}}(A)=|\bar A|-|\mathrm{dedup}(\bar A)|.
 \]
-The deduplication key normalizes comparison direction, equality sides,
-parentheses, immediate commutative operands, harmless identities, and Boolean
-association.  It deliberately avoids transformations whose validity depends
-on stronger arithmetic assumptions.
+The key normalizes comparison direction, equality sides, parentheses,
+immediate commutative operands, harmless identities, and Boolean association,
+but avoids transformations requiring stronger arithmetic assumptions.  Unique
+zero-coverage clauses are not penalized because they may support another clause
+or the hidden target.
 
 The generation reward is
 \begin{equation}
 \label{eq:generation-reward}
-r_{\mathrm{gen}}(A)=
-w_c\,\mathrm{coverage}(A)
-+w_g\,\mathrm{bonus}(A)
--w_d\,d_{\mathrm{dup}}(A)
--w_o\,o(A),
+r_{\mathrm{gen}}(A_i)=
+w_c\,\mathrm{coverage}(A_i)
++w_g\,\mathrm{bonus}(A_i)
+-w_d\,d_{\mathrm{dup}}(A_i)
+-w_o\,o(A_i),
 \end{equation}
-with default weights \((w_c,w_g,w_d,w_o)=(1.0,0.3,0.02,0.05)\).
-Clauses after the cap \(K\) receive no coverage and incur the overflow cost.
-Malformed and non-inductive clauses are removed before reward computation, so
-one failed clause does not erase useful clauses in the same response.
+with \((w_c,w_g,w_d,w_o)=(1.0,0.3,0.02,0.05)\).  Clauses beyond \(K\)
+receive no coverage and incur overflow cost.  Houdini removes failures before
+scoring, so one bad clause does not erase useful clauses in the response.
 
-The union also receives the diagnostic rejection rate
-\(|\mathrm{rej}(X_0)|/|\mathcal N|\), which is used to decide whether another
-group should be sampled.  If no negative examples can be constructed safely,
-the reward falls back to binary inductiveness: a nonempty response receives one
-only when all of its retained clauses pass Houdini.
+We also compute the rejection rate of
+\(\mathsf{Filter}_{\mathcal L}(X_0)\) for the combined pool.  It
+controls group re-sampling but is not copied to every response.  With no safe
+negatives, reward falls back to binary inductiveness for a nonempty response.
 
-Repair is trained separately.  For a current candidate set \(X\) and capped
-repair response \(R_i\), its reward is the improvement in negative rejection:
-\begin{align}
-  \mathrm{gain}_i
-  &=\mathrm{coverage}(X\cup R_i)-\mathrm{coverage}(X),\\
-  r_{\mathrm{ref},i}
-  &=\mathrm{gain}_i-w_o\,o(R_i).
-\end{align}
-The existing set \(X\) is not truncated.  Generation and repair examples are
-mixed in the same policy update, training the two model actions used during
-deployment.
+\paragraph{Group-relative policy update.}
+Each masked loop \(\mathcal L\) samples a group of \(G\) token sequences
+\(o_{1:G}\sim\pi_{\theta_{\mathrm{old}}}(\cdot\mid\mathcal L)\) from the
+current policy; parsing, splitting, and capping
+(\S\ref{sec:method:core}) turn \(o_i\) into the scored response \(A_i\).  We
+normalize \(r_{\mathrm{gen}}\) within its own sampling group to obtain a
+group-relative advantage,
+\[
+  \hat A_i=
+  \frac{r_{\mathrm{gen}}(A_i)-\operatorname{mean}_{1\le j\le G} r_{\mathrm{gen}}(A_j)}
+       {\operatorname{std}_{1\le j\le G} r_{\mathrm{gen}}(A_j)+10^{-6}},
+\]
+shared by every token of \(o_i\), and update \(\theta\) with the clipped GRPO
+objective~\citep{shao2024deepseekmath}
+\begin{equation}
+\label{eq:grpo}
+  \mathcal J(\theta)=\mathbb E\Biggl[
+    \frac{1}{G}\sum_{i=1}^{G}\frac{1}{|o_i|}\sum_{t=1}^{|o_i|}
+    \min\Bigl(\rho_{i,t}(\theta)\,\hat A_i,\;
+      \operatorname{clip}(\rho_{i,t}(\theta),1{-}\varepsilon,1{+}\varepsilon)\,\hat A_i\Bigr)
+    -\beta\, D_{\mathrm{KL}}\bigl(\pi_\theta\,\Vert\,\pi_{\mathrm{ref}}\bigr)
+  \Biggr],
+\end{equation}
+where \(\rho_{i,t}(\theta)=\pi_\theta(o_{i,t}\mid\mathcal L,o_{i,<t})\big/
+\pi_{\theta_{\mathrm{old}}}(o_{i,t}\mid\mathcal L,o_{i,<t})\) and
+\(\pi_{\mathrm{ref}}\) is the frozen reference policy.
+
+Group-relative normalization is why the bonus term matters for training, not
+only for evaluation.  Coverage alone is bounded, so once sampling collapses
+onto one easiest clause every response in the group reports nearly the same
+reward, the group standard deviation shrinks, and \(\hat A_i\) becomes an
+uninformative, high-variance signal for every member of the group, exactly
+the collapse a per-response objective invites.  The bonus breaks these ties
+before normalization: a response that only repeats a peer's rejections is
+pushed toward \(\hat A_i\approx0\) even though its raw coverage is positive,
+while a response exposing a rejection no peer in the group produced keeps a
+positive advantage.  Group-relative policy optimization therefore rewards a
+rollout for what it adds to its own group, which is the same quantity that
+determines whether the rollout helps combine@\(k\).
 
 %% ------------------------------------------------------------
-\subsection{Inference}
+\subsection{Deployment and the Fixed-Budget Objective}
 \label{sec:method:inference}
 
-At inference, the model receives the target-masked program and returns \(n\)
-candidate responses.  Each is capped at \(K\) clauses, and the normalized
-clauses are combined into \(X_0\).  Inference does not construct positive or
-negative execution examples.
+At deployment, the model samples \(k\) masked responses, splits and normalizes
+their clauses, combines them, and runs the syntax and Houdini filters.  No
+execution examples are constructed.  Only then are the
+retained clauses and \(Q\) inserted into the untouched program for the final
+verifier proof.
 
-When repair is enabled, Frama-C/WP reports target-independent syntax, scope,
-establishment, and preservation failures.  A stateless prompt asks the model
-to repair failed clauses or add supporting invariants.  Each repair is capped
-before it is added to the candidate set.  Repair stops when all clauses pass,
-the set reaches a fixed point, or the round budget is exhausted.
-
-Finally, \(\mathsf H_P\) filters the accumulated candidates on the
-target-masked program.  The retained invariants are inserted into the untouched
-full program, \(Q\) is restored, and Frama-C/WP checks every invariant and
-target obligation.  If verification fails, the system may sample another
-response group up to its configured retry budget.  No sampled state or
-training reward participates in this final decision.
+The retained clause set and the invariant predicate produced by one inference
+invocation are therefore
+\[
+  X_k=\bigcup_{i=1}^{k}\bar A_i,
+  \qquad
+  C_k=\mathsf{Filter}_{\mathcal L}(X_k),
+  \qquad
+  I_k=\bigwedge_{a\in C_k}a,
+  \qquad A_i\sim\pi(\cdot\mid\mathcal L),
+\]
+rather than the best standalone response.  SFT compresses a large candidate
+pool into stronger responses; RL improves their coverage and complementarity.
+Combine@\(k\) and \(k_{95}\) measure how few trained-policy responses are
+needed to match a much larger base-model sample.

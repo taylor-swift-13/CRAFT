@@ -156,13 +156,6 @@ br = RewardCalculator().compute(source, rollouts)
 br.to_dict()   # rewards, hardness, duplicate/overflow costs, batch_score
 ```
 
-**Refine reward** — `rl_pipeline/reward/refine.py` scores a refine group (n
-LLM repairs of one merged pool) as each refinement's incremental contribution:
-`delta_base[i] = base(Houdini(pool ∪ refined_i)) − base(Houdini(pool))`.
-Δ ≥ 0 by construction; trivial / copied / broken refinements score 0 for free.
-Train on `refine_rewards`, which equals `delta_base` minus the same per-line
-overflow penalty after the 20-line response cap.
-
 **HTTP service** (the training interface — see
 [docs/training_integration.md](docs/training_integration.md) for the full
 turnkey contract):
@@ -171,12 +164,6 @@ python -m rl_pipeline.reward.service --host 0.0.0.0 --port 8000
 # generation reward
 curl -s localhost:8000/reward -H 'content-type: application/json' \
      -d '{"program":"<C src>","rollouts":[{"invariants":["z==x*y","x>=0"]}]}'
-# refine prompt construction (verdict table + assembled prompt, server-side frama-c)
-curl -s localhost:8000/refine_feedback -H 'content-type: application/json' \
-     -d '{"program":"<C src>","pool":["x >= y","y >= 0"]}'
-# refine reward (Δbase per sampled refinement)
-curl -s localhost:8000/refine_reward -H 'content-type: application/json' \
-     -d '{"program":"<C src>","pool":["x >= y"],"refinements":[["y >= 0","x >= 1"]]}'
 ```
 
 Offline JSONL/Parquet groups can be scored with
@@ -187,35 +174,25 @@ Parquet additionally requires `pandas` and `pyarrow`.
 
 ```python
 from rl_pipeline.inference import InferenceFramework, VLLMRolloutProvider
-inf = InferenceFramework(source, rollout_provider=VLLMRolloutProvider(model="..."),
-                         m_refine=2)   # m_refine=0 (default) = plain pipeline
-res = inf.run()   # generate → union → m refine rounds → Houdini → Frama-C verify
-res.final_invariants, res.verified, res.refine_rounds
+inf = InferenceFramework(
+    source,
+    rollout_provider=VLLMRolloutProvider(model="..."),
+)
+res = inf.run()   # generate → union → Houdini → Frama-C verify
+res.final_invariants, res.verified
 ```
-- **Strict closed-book inference**: generation, refinement, WP prechecks, and
-  Houdini pruning all use a program with `assert`/`ensures` removed. Only the
+- **Strict closed-book inference**: generation and Houdini pruning use a
+  program with `assert`/`ensures` removed. Only the
   final Frama-C verification inserts the surviving invariants into the original
   target-bearing program.
-- **m-round refine**: each round runs a cheap WP precheck (syntax + at most two
-  WP passes, no fixpoint) over the merged pool, renders a per-invariant verdict table
-  (`filters.Verdict` — syntax errors quote frama-c, WP failures say whether
-  establishment or preservation broke), and asks the model to repair; refined
-  candidates JOIN the pool (originals kept — a later companion invariant can
-  rescue an earlier reject).  Early stops: nothing rejected / pool fixpoint /
-  round budget.  The final full-Houdini + verify gate means refine can never
-  make the accepted output worse than `m_refine=0`.
-- CLI: `python -m rl_pipeline.inference --model <hf-or-dir> --inputs '<glob>'
-  --m-refine 2`.
+- CLI: `python -m rl_pipeline.inference --model <hf-or-dir> --inputs '<glob>'`.
 
 ## 4. Prompts — `prompt/` (single source of truth)
 
 All static LLM prompt templates live in `prompt/`:
-`generate_prompt.txt`, `refine_prompt.txt`, `system_prompt.txt`.  Loaded by
-`rl_pipeline/common/prompts.py`; both Docker images COPY the directory.  The
-refine prompt is **stateless by design** (program + current pool verdicts only,
-no round number, no history) so a policy trained on single-round refine groups
-transfers to multi-round inference unchanged.  Training and inference format
-the SAME template — edit the file, both sides follow.
+`generate_prompt.txt`, `naive_prompt.txt`, and `system_prompt.txt`.
+They are loaded by `rl_pipeline/common/prompts.py`; both Docker images COPY
+the directory. Training and inference format the same generation template.
 
 `prompts.system_prompt()` returns this canonical prompt in a fixed rule order
 for both training and inference.
@@ -253,7 +230,7 @@ Both bundle frama-c/z3/why3, so a deployment host needs **no local frama-c**.
 
 ```
 rl_pipeline/          sampler / reward / inference / common
-prompt/               ALL LLM prompts (generate / refine / system) — edit here
+prompt/               ALL LLM prompts (generate / naive / system) — edit here
 src/                  reused engine deps (config, llm, houdini_pruner,
                       output_verify, syntax_checker)
                       + input/ (benchmark C programs)

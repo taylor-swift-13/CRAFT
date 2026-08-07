@@ -113,7 +113,6 @@ def _run_loopgym(task: Task, root: Path) -> dict:
             rollout_provider=provider,
             n_rollouts=4,
             max_rerolls=1,
-            m_refine=0,
         ).run()
         expected_calls = 4 * (result.reroll_count + 1)
         status = "completed" if len(recorder.records) == expected_calls else "failed"

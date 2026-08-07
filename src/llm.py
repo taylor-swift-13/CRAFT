@@ -134,7 +134,7 @@ class OpenAILLM(BaseChatModel):
 
     def generate_response(self, user_input: str) -> str:
         try:
-            # Every rollout/refine call is stateless by contract.
+            # Every rollout call is stateless by contract.
             messages = [self.system_message, {"role": "user", "content": user_input}]
 
             def _call_chat(max_tokens: int):

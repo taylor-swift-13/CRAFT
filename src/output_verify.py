@@ -23,8 +23,6 @@ class OutputVerifier:
         self.verify_error_list: List[Tuple[str, str, str]] = []
         self.verify_result: List[bool] = []
         self.validate_result: List[bool] = []
-        # Source line -> establishment/preservation results, used by refine feedback.
-        self.goal_status_by_line: Dict[int, Dict[str, bool]] = {}
 
     @staticmethod
     def print_errors(error_list) -> None:
@@ -107,7 +105,6 @@ class OutputVerifier:
             )
             status[goal_type] = self._is_content_valid(goal)
 
-        self.goal_status_by_line = status_by_line
         return [
             status_by_line[line]["Establishment"]
             and status_by_line[line]["Preservation"]

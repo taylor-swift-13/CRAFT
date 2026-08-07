@@ -240,7 +240,6 @@ def run_sespec(
             "root_dir": f"{protocol_tag}/{task.suite}",
             "function_name": function_name,
             "auto_annotation": True,
-            "refine_count": 3,
             "pass_count": 1,
             "think": False,
             "use_se": True,

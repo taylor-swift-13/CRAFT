@@ -13,32 +13,39 @@ templates trade generality for increasingly difficult algebraic search.
 Dynamic approaches instead infer likely relations from execution traces and
 then filter or prove them~\citep{daikon,nguyen2012using,garg2016learning}.
 \sam{} also uses executions, but only to construct a training signal; final
-soundness is established independently by Frama-C/WP.
+soundness is established independently by the verifier.
+Target-directed software model checkers constitute a related but distinct
+setting.  For example, \textsc{Ultimate Automizer} (UAuto) uses trace
+abstraction and interpolation to verify a supplied safety property
+~\citep{heizmann2013automizer}.  Although its correctness witnesses may contain
+inductive assertions, they are synthesized with the verification target
+visible.  UAuto therefore does not address our target-hidden setting, in which
+the assertion is withheld throughout invariant generation, and we do not
+include it in the experimental comparison.
 
 \paragraph{Neural and LLM-based invariant generation.}
 Learned methods broaden the candidate language by using neural generators,
 counterexamples, or verifier feedback
 ~\citep{si2018learning,si2020code2inv,ryan2020cln2inv,yao2020gcln}.
-\textsc{Loopy} generates ACSL clauses, filters them with Houdini, and repairs
-failures using Frama-C feedback~\citep{kamath2023finding}.
+\textsc{Loopy} generates candidate clauses, filters them with Houdini, and
+repairs failures using verifier feedback~\citep{kamath2023finding}.
 \textsc{Clause2Inv} combines generated clauses under counterexample guidance,
 and \textsc{iRank} learns to rank LLM-generated invariants before expensive
 verifier calls~\citep{cao2025clause2inv,chakraborty2023ranking}.
-These systems solve a supplied verification problem.  Our setting instead
-withholds its target throughout generation and training, then restores it only
-for final evaluation.
+These systems solve a supplied target and commonly evaluate whether one
+response proves it.  We hide the target during generation and training, and
+train for the filtered combination of compatible clauses from multiple
+responses.
 
 \paragraph{Specification generation.}
 LLM-based tools also synthesize broader program specifications.
-\textsc{AutoSpec} repeatedly proposes and verifies ACSL annotations;
+\textsc{AutoSpec} repeatedly proposes and verifies annotations;
 \textsc{SpecGen} combines LLM proposals with mutation in Java/JML; and
 \textsc{SESpec} uses symbolic execution to generate goal-independent
 specifications for C
 ~\citep{wen2024enchanting,ma2024specgen,yang2026sespec}.
-Such systems may generate preconditions, postconditions, predicates, and loop
-annotations.  We study the narrower output of loop invariants and measure
-whether they are sufficient for a held-out target rather than whether they
-form a general behavioral specification.
+We study only loop invariants and ask whether they prove a held-out target,
+rather than evaluating a general behavioral specification.
 
 \paragraph{Reinforcement learning from formal feedback.}
 Verifier-guided reinforcement learning has been used for program synthesis and
@@ -46,7 +53,9 @@ formal reasoning.  \textsc{Re:Form} uses scalable curation and verifier-guided
 RL for Dafny, while \textsc{SpecRL} generates impossible input--output pairs
 and rewards specifications that reject them
 ~\citep{yan2025reform,huang2026specrl}.
-The latter shares our motivation that validity alone does not distinguish a
-useful specification from a weak one.  \sam{} specializes this idea to loops:
-the target is unavailable as a reward label, synthetic negative states provide
-a strength signal, and Frama-C/WP separately proves inductiveness.
+Validity alone does not distinguish a useful specification from a weak one.
+We specialize this idea to loops: synthetic negative states measure strength,
+while the verifier proves inductiveness.  Verifiable-reward RL can also improve
+small-budget accuracy while narrowing extensive-sampling coverage
+~\citep{yue2025rlcapacity}.  Because deployment unions samples, our reward adds
+group-relative credit for less common behavior that survives Houdini.

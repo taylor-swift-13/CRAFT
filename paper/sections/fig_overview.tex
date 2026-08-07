@@ -36,15 +36,15 @@
 %% -----------------------------------------------------------------
 \draw[panel] (0.10,3.72) rectangle (15.90,6.48);
 \node[tag, fill=codeblue, anchor=west] at (0.40,6.16)
-  {ONE PIPELINE FOR SFT DATA, RL TRAINING, AND INFERENCE};
+  {ROLLOUT--COMBINE--FILTER};
 \node[font=\scriptsize, text=codegray, anchor=east]
-  at (15.58,6.16) {target-hidden candidate processing};
+  at (15.58,6.16) {shared candidate processing};
 
 %% masked program card
 \node[card, draw=paperink!30, text width=1.58cm]
   (masked) at (1.35,4.92)
-  {\textbf{Masked program}\\[-1pt]
-   \(P=(\phi_{\rm pre},B,S)\)\\[-2pt]
+  {\textbf{Masked loop}\\[-1pt]
+   \(\mathcal L=(P,B,S)\)\\[-2pt]
    {\scriptsize\textcolor{codered}{target \(Q\) hidden}}};
 
 %% rollout stack
@@ -60,46 +60,54 @@
 \node[font=\tiny, text=codegray] at (4.00,4.18)
   {responses \(A_1,\ldots,A_G\); cap \(K\)};
 
-%% union + repair pool
-\node[heading] at (7.00,5.57) {UNION};
+%% combined clause pool
+\node[heading] at (7.00,5.57) {COMBINE};
 \node[clause] at (6.40,5.04) {};
 \node[clause] at (6.40,4.72) {};
 \node[clause] at (7.00,4.88) {};
 \node[clause] at (7.60,5.04) {};
 \node[clause] at (7.60,4.72) {};
 \node[font=\tiny, text=codegray] at (7.00,4.18)
-  {candidate set \(X\) \quad optional repair \(\circlearrowleft\)};
+  {split; normalize; union};
 
-%% Houdini filter
-\node[heading] at (9.80,5.57) {HOUDINI};
+%% iterative syntax filter
+\node[heading] at (8.92,5.57) {SYNTAX FILTER};
+\node[circle, draw=codeblue!58, fill=white, text=codeblue,
+  minimum size=0.72cm, font=\bfseries] (syntax) at (8.92,4.88) {F};
+\node[font=\tiny, text=codegray] at (8.92,4.18)
+  {parse; AST dedup};
+
+%% Houdini fixed point
+\node[heading] at (10.62,5.57) {HOUDINI};
 \node[circle, draw=codeblue!74, fill=codeblue!84, text=white,
-  minimum size=0.88cm, font=\bfseries] (houdini) at (9.80,4.88) {H};
-\node[font=\tiny, text=codegray] at (9.80,4.18)
-  {syntax + inductiveness};
+  minimum size=0.88cm, font=\bfseries] (houdini) at (10.62,4.88) {H};
+\node[font=\tiny, text=codegray] at (10.62,4.18)
+  {establish + preserve};
 
 %% inductive clauses
-\node[heading] at (12.20,5.57) {INDUCTIVE CLAUSES};
-\node[survivor] at (11.72,5.08) {};
-\node[survivor] at (12.22,4.84) {};
-\node[survivor] at (12.72,5.08) {};
-\node[survivor] at (11.72,4.60) {};
-\node[survivor] at (12.72,4.60) {};
+\node[heading] at (12.65,5.57) {INDUCTIVE CLAUSES};
+\node[survivor] at (12.00,5.08) {};
+\node[survivor] at (12.50,4.84) {};
+\node[survivor] at (13.00,5.08) {};
+\node[survivor] at (12.00,4.60) {};
+\node[survivor] at (13.00,4.60) {};
 \node[card, draw=codegreen!64, fill=codegreen!10,
   text width=1.38cm] (survivors) at (14.42,4.88)
-  {\textbf{Houdini output}\\[-1pt] \(\mathsf H_P(X)\)};
+  {\textbf{Filter output}\\[-1pt] \(C\)};
 
 \draw[flow] (masked) -- (3.44,4.88);
 \draw[flow] (4.66,4.88) -- (5.78,4.88);
-\draw[flow] (8.12,4.88) -- (houdini);
-\draw[flow] (houdini) -- (11.12,4.88);
-\draw[flow] (13.20,4.88) -- (survivors);
+\draw[flow] (8.12,4.88) -- (syntax);
+\draw[flow] (syntax) -- (houdini);
+\draw[flow] (houdini) -- (11.60,4.88);
+\draw[flow] (13.35,4.88) -- (survivors);
 
 %% -----------------------------------------------------------------
 %% A single clean distribution bus replaces duplicated core rows
 %% -----------------------------------------------------------------
 \draw[bus] (14.42,4.28) -- (14.42,3.42) -- (2.10,3.42);
 \fill[codeblue!72] (2.10,3.42) circle (1.8pt);
-\fill[codeblue!72] (7.55,3.42) circle (1.8pt);
+\fill[codeblue!72] (7.40,3.42) circle (1.8pt);
 \fill[codeblue!72] (13.55,3.42) circle (1.8pt);
 
 %% -----------------------------------------------------------------
@@ -107,21 +115,21 @@
 %% -----------------------------------------------------------------
 \draw[rounded corners=5pt, fill=codepurple!2, draw=codepurple!34,
   line width=0.8pt] (0.10,-2.10) rectangle (4.10,3.05);
-\node[tag, fill=codepurple!84, anchor=west] at (0.40,2.75)
-  {SYNTHETIC SFT DATA};
 
 \node[card, draw=codepurple!58, fill=white, text width=2.55cm]
   (sftpair) at (2.10,1.78)
-  {\textbf{Build a teaching pair}\\[-1pt]
-   {\scriptsize input: target-masked \(P\)}\\[-2pt]
-   {\scriptsize target: \(\mathsf H_P(X)\)}};
+  {\textbf{Compress group result}\\[-1pt]
+   {\scriptsize input: target-masked \(\mathcal L\)}\\[-2pt]
+   {\scriptsize target: clause set \(C\)}};
+\draw[dataflow] (2.10,3.42) -- (sftpair.north);
+\node[tag, fill=codepurple!84, anchor=west] at (0.40,2.75)
+  {SYNTHETIC SFT DATA};
 \node[card, draw=codepurple!64, fill=codepurple!7, text width=2.55cm]
   (sftdata) at (2.10,0.02)
-  {\textbf{Canonical ACSL response}\\[-1pt]
+  {\textbf{Canonical response}\\[-1pt]
    {\scriptsize verified invariant set}};
 \node[tag, fill=codepurple!84] (sftcorpus) at (2.10,-0.95)
   {SFT CORPUS \(\mathcal D_{\rm SFT}\)};
-\draw[dataflow] (2.10,3.42) -- (sftpair.north);
 \draw[dataflow] (sftpair) -- (sftdata);
 \draw[dataflow] (sftdata) -- (sftcorpus);
 
@@ -132,40 +140,35 @@
 
 %% Execution examples are an RL reward signal, not the synthetic SFT corpus.
 \node[card, draw=codeblue!52, fill=white, text width=1.00cm,
-  inner xsep=3pt] (execute) at (5.08,1.40)
-  {{\tiny\bfseries Execute}\\[-1pt]{\tiny loop \(P\)}};
+  inner xsep=3pt] (execute) at (5.08,2.00)
+  {{\tiny\bfseries Execute}\\[-1pt]{\tiny loop \(\mathcal L\)}};
 \node[card, draw=codegreen!58, fill=codegreen!8, text width=1.25cm,
-  inner xsep=3pt] (positives) at (6.48,1.40)
+  inner xsep=3pt] (positives) at (6.48,2.00)
   {{\tiny\bfseries Reachable}\\[-1pt]{\tiny states \(\mathcal P\)}};
-\node[card, draw=codeblue!58, fill=white, text width=2.45cm,
-  inner ysep=4pt] (negsampler) at (9.32,1.65)
+\node[card, draw=codeblue!58, fill=white, text width=3.05cm,
+  inner ysep=4pt] (negsampler) at (9.32,2.00)
   {{\scriptsize\bfseries NEGATIVE SAMPLER}\\[-1pt]
-   {\tiny\textcolor{codeblue!90}{RELATIONAL}\enspace
-    \(\pm\{1,2\}\) on 1--2 variables}\\[-1pt]
-   {\tiny\textcolor{codeblue!90}{POST-EXIT}\enspace
-    continue the real body}\\[-1pt]
-   {\tiny\textcolor{codeblue!90}{RANGE}\enspace
-    outside sampled span}};
-\node[card, draw=codered!48, fill=codered!3, text width=2.55cm,
-  inner xsep=3pt, inner ysep=3pt] (audit) at (9.32,0.00)
+   {\tiny relational \(\cdot\) post-exit \(\cdot\) range}};
+\node[card, draw=codered!48, fill=codered!3, text width=3.05cm,
+  inner xsep=3pt, inner ysep=3pt] (audit) at (9.32,0.45)
   {{\tiny\bfseries CONSERVATIVE FILTER}\\[-1pt]
-   {\tiny collisions \(\bullet\) fresh entries \(\bullet\) unsafe state}};
-\draw[trainflow] (execute) -- (positives);
-\draw[trainflow] (positives) -- (negsampler);
-\draw[trainflow] (negsampler) -- (audit);
+   {\tiny collisions, fresh entries,\\[-1pt] unsupported state}};
+\draw[trainflow] (execute.east) -- (positives.west);
+\draw[trainflow] (positives.east) -- (negsampler.west);
+\draw[trainflow] (negsampler.south) -- (audit.north);
 
 \node[card, draw=codeblue!52, fill=white, text width=1.55cm,
   inner xsep=3pt] (trainin) at (6.70,-1.25)
-  {{\tiny\bfseries SCORE CLAUSES}\\[-1pt]
-   {\tiny \(\mathsf H_P(X)\)}\\[-2pt]
+  {{\tiny\bfseries SCORE RESPONSES}\\[-1pt]
+   {\tiny after Houdini}\\[-2pt]
    {\tiny with \((\mathcal P,\mathcal N)\)}};
 \node[card, draw=codeblue!62, fill=algobg!78, text width=1.55cm,
   inner xsep=3pt] (score) at (8.62,-1.25)
   {{\scriptsize\bfseries Reward}\\[-1pt]
-   {\tiny rejection + group bonus}};
+   {\tiny strength + complementarity}};
 \node[tag, fill=codeblue!84] (grpo) at (10.35,-1.25) {GRPO};
-\draw[trainflow] (7.55,3.42) -- (7.55,-0.76) --
-  (6.70,-0.76) -- (trainin.north);
+\draw[trainflow] (7.40,3.42) -- (7.40,-0.58) --
+  (6.70,-0.58) -- (trainin.north);
 \draw[trainflow] (trainin) -- (score);
 \draw[trainflow] (score) -- (grpo);
 \draw[dataflow] (audit.south) -- (9.32,-0.76) --
@@ -176,7 +179,7 @@
 \node[tag, fill=codered!80, anchor=west] at (11.55,2.75)
   {INFERENCE};
 \node[font=\scriptsize, text=codered!76, anchor=east]
-  at (15.58,2.75) {\(Q\) enters only here};
+  at (15.58,2.75) {fixed-budget};
 
 \node[card, draw=codered!52, fill=white, text width=2.55cm]
   (inferin) at (13.55,1.70)
@@ -184,8 +187,8 @@
    {\scriptsize restore held-out target \(Q\)}};
 \node[card, draw=codered!64, fill=codered!5, text width=2.55cm]
   (wp) at (13.55,0.10)
-  {\textbf{Final Frama-C/WP}\\[-1pt]
-   {\scriptsize \(\mathsf H_P(X)\wedge\neg B\Rightarrow Q\)}};
+  {\textbf{Final Proof}\\[-1pt]
+   {\scriptsize \((\bigwedge C)\wedge\neg B\Rightarrow Q\)}};
 \node[card, draw=codegreen!64, fill=codegreen!10, text width=2.55cm]
   (pass) at (13.55,-1.10)
   {\textbf{\textcolor{codegreen!82}{\cmark\ VERIFIED}}};
@@ -195,12 +198,13 @@
 
 \end{tikzpicture}
 }%
-\caption{\textbf{Synthetic SFT data, RL training, and inference use the same
-candidate-processing pipeline.}
-Responses are capped, normalized, combined, optionally repaired, and filtered
-by Houdini on the target-masked program.  The filtered invariant set becomes
-the target of an SFT pair.  Separately, program executions provide positive and
-negative examples for the RL reward; these are not SFT data.  Inference restores
-\(Q\) only for the final Frama-C/WP proof.}
+\caption{\textbf{Training is organized around rollout--combine--filter
+inference.}
+Multiple target-hidden responses are split into clauses, capped, normalized,
+and combined.  The filter iteratively removes syntax
+failures, optionally performs AST deduplication, then uses Houdini to
+iteratively remove clauses that fail establishment or preservation.  SFT
+compresses the result into one supervised response; RL rewards strong and
+complementary responses.  Deployment restores \(Q\) only after filtering.}
 \label{fig:overview}
 \end{figure}

@@ -175,10 +175,11 @@
 \newcommand{\cmark}{\ding{51}}
 \newcommand{\xmark}{\ding{55}}
 \newcommand{\sam}{\textsc{LoopGym}}
+\newcommand{\denote}[1]{\left[\!\left[#1\right]\!\right]}
 
 %% Meta
-\title{\sam{}: Learning Loop Invariants\\
-without Seeing the Verification Target}
+\title{\sam{}: Training for Combined Inference\\
+in Target-Hidden Loop Verification}
 
 \author{
   Anonymous authors\\
@@ -191,34 +192,37 @@ without Seeing the Verification Target}
 \maketitle
 
 \begin{abstract}
-Loop-invariant generators are commonly given the assertion or postcondition
-that their output must prove.  This can simplify generation to copying or
-specializing to the target rather than recovering the behavior of the loop.
-We study \emph{target-hidden loop verification}: the generator sees the
-precondition, guard, and loop body but not the verification target \(Q\).
-It produces ACSL invariants \(I\), and a result succeeds only when Frama-C/WP
-proves both that \(I\) is inductive and that
-\(I\wedge\neg B\Rightarrow Q\).
-\sam{} trains the generator without querying \(Q\).  For supervised
-fine-tuning, multiple target-hidden responses are combined, optionally
-repaired, and filtered by Houdini; the verified invariant set becomes the
-target paired with the masked program.  Reinforcement learning uses a separate
-execution signal: reachable states and three conservatively filtered kinds of
-synthetic negative examples.  Rewards measure which negatives are rejected by
-the inductive clauses in each response, with an additional group-relative
-bonus for less common contributions.  SFT data synthesis, RL, and inference
-use the same candidate normalization, union, optional repair, and
-Frama-C/WP-based Houdini filtering; only inference restores \(Q\) for the final
-proof.  On 832 C programs, five-rollout inference verifies 74.76\% of tasks,
-compared with 61.18\% for the strongest external baseline.  Reinforcement
-learning raises combine@10 from 52.40\% to 56.97\% and reduces the rollouts
-needed to reach 95\% of the measured maximum from 30 to 10.
+Loop-invariant generation is compositional: one response may contain a useful
+bound, another a relational equality, and neither need prove the target alone.
+This makes pass@1 a poor training and evaluation objective for an inference
+procedure that can combine partial answers.  We study this problem under
+\emph{target-hidden loop verification}, where the model sees the precondition,
+guard, and body but not the assertion or postcondition \(Q\).  Our inference
+procedure samples multiple responses, splits conjunctive invariants into
+clauses, unions them, iteratively removes syntax failures, and uses
+verifier-checked Houdini pruning to retain an inductive subset before \(Q\) is
+restored for the final proof.  We align both stages of training with this
+rollout--combine--filter procedure.  First, synthetic supervised targets are
+formed by applying it to multiple target-hidden responses and serializing the
+combined verified set, thereby compressing a multi-response search result into
+one response.  Second, reinforcement learning rewards two properties needed
+by the same inference procedure: the behavioral strength of each response and
+its complementary contribution within a rollout group.  The reward uses
+reachable executions and conservatively filtered synthetic negative examples,
+never \(Q\).  The resulting objective is not to maximize standalone proof
+rate, but to train responses that combine into a stronger verified set under a
+fixed inference budget.  On 832 C programs, five-rollout inference verifies
+74.76\% of tasks, compared with 61.78\% for the strongest external baseline.
+Reinforcement learning raises combine@10 from 52.40\% to 56.97\% even as
+pass@1 decreases, and reduces the rollouts needed to reach 95\% of the measured
+maximum from 30 to 10.  Thus ten trained-model responses outperform the
+combination of one hundred base-model responses.
 \end{abstract}
 
 %% ============================================================
 \input{sections/introduction}
+\input{sections/preliminaries}
 \input{sections/related}
-\input{sections/overview}
 \input{sections/method}
 \input{sections/experiments}
 \input{sections/conclusion}

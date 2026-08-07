@@ -1,7 +1,7 @@
 # LoopGym — Inference image (testing): vLLM + Frama-C, self-contained.
 #
 # Deploys a TRAINED model to an in-process vLLM engine and runs inference over a
-# set of C programs: generate (vLLM) → optional refine → combine → Houdini →
+# set of C programs: generate (vLLM) → combine → Houdini →
 # Frama-C/WP verify. Inference does not run the reward sampler.
 #
 # Frama-C + z3 + why3 are bundled, so a GPU host needs no local Frama-C.
@@ -37,7 +37,7 @@ COPY rl_pipeline/reward/__init__.py rl_pipeline/reward/annotate.py \
 # --- src modules the HoudiniFilter / verifier reuse ---
 COPY src/__init__.py src/config.py src/houdini_pruner.py \
      src/output_verify.py src/syntax_checker.py /app/src/
-# --- prompts (single source of truth: generate/refine/system) ---
+# --- prompts (single source of truth: generate/system) ---
 COPY prompt/ /app/prompt/
 
 # Build-time check: inference stays sampler-free and real Houdini is wired.

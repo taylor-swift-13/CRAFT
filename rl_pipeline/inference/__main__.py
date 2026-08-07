@@ -3,8 +3,8 @@
     python -m rl_pipeline.inference --model <hf-or-local> \
         --inputs 'src/input/NLA_lipus/*.c' --n-rollouts 8 --output results.jsonl
 
-Inference does not sample reward examples.  It generates with vLLM, optionally
-refines the merged pool, then runs Houdini and Frama-C/WP verification.
+Inference does not sample reward examples. It generates with vLLM, combines
+the rollouts, then runs Houdini and Frama-C/WP verification.
 """
 from __future__ import annotations
 
@@ -49,10 +49,6 @@ def main():
                     help="parallel programs; API backend only")
     ap.add_argument("--n-rollouts", type=int, default=8)
     ap.add_argument("--max-rerolls", type=int, default=1)
-    ap.add_argument("--m-refine", type=int, default=0,
-                    help="maximum verifier-feedback refinement rounds")
-    ap.add_argument("--refine-samples", type=int, default=1,
-                    help="model samples requested in each refinement round")
     ap.add_argument("--temperature", type=float, default=1.0)
     ap.add_argument("--top-p", type=float, default=1.0)
     ap.add_argument("--max-tokens", type=int, default=2048)
@@ -115,8 +111,8 @@ def main():
     def run_one(path):
         src = open(path).read()
         fw = InferenceFramework(src, rollout_provider=provider(),
-                                n_rollouts=args.n_rollouts, max_rerolls=args.max_rerolls,
-                                m_refine=args.m_refine, refine_samples=args.refine_samples)
+                                n_rollouts=args.n_rollouts,
+                                max_rerolls=args.max_rerolls)
         res = fw.run()
         return {
             "input": path,
@@ -129,7 +125,6 @@ def main():
             "rollouts": res.rollouts,
             "n_rollouts": res.n_rollouts,
             "reroll_count": res.reroll_count,
-            "refine_rounds": res.refine_rounds,
         }
 
     output_handle = open(args.output, "a" if args.resume else "w") if args.output else None
@@ -149,9 +144,9 @@ def main():
             if output_handle:
                 output_handle.write(json.dumps(row) + "\n")
                 output_handle.flush()
-            logging.info("[%d/%d] %s  verified=%s  refinements=%d",
+            logging.info("[%d/%d] %s  verified=%s",
                          i, len(files), os.path.basename(path),
-                         row["verified"], row["refine_rounds"])
+                         row["verified"])
     finally:
         if args.workers > 1 and "executor" in locals():
             executor.shutdown(wait=True)

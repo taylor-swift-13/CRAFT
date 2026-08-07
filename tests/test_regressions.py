@@ -34,7 +34,6 @@ from rl_pipeline.inference import inference as inference_module
 from rl_pipeline.reward import annotate
 from rl_pipeline.reward.filters import HoudiniFilter, PositiveFilter
 from rl_pipeline.reward.reward_calculator import RewardCalculator
-from rl_pipeline.reward.refine import refine_group_delta_base
 from rl_pipeline.reward import service
 from rl_pipeline.reward import io as reward_io
 from rl_pipeline.reward.score_file import score_file
@@ -905,38 +904,6 @@ class RewardPatchRegressionTests(unittest.TestCase):
         self.assertEqual(score.redundant_clauses, 0)
         self.assertEqual(score.redundancy_penalty, 0.0)
 
-    def test_refine_reward_caps_response_and_returns_trainable_overflow_penalty(self):
-        source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
-        examples = ExampleSet(
-            program=parse_program(source),
-            positives={0: [State(vars={"x": 0})]},
-            negatives={0: [State(vars={"x": -100})]},
-            neg_groups={0: [[0]]},
-        )
-        calculator = RewardCalculator(
-            invariant_filter=self._IdentityFilter(),
-            w_base=1.0,
-            w_redundancy=0.0,
-            w_overflow=0.0,
-            n_jobs=1,
-        )
-
-        result = refine_group_delta_base(
-            source,
-            [],
-            [[f"x >= {-index}" for index in range(25)]],
-            examples=examples,
-            calculator=calculator,
-        )
-
-        self.assertEqual(result["delta_base"], [1.0])
-        self.assertEqual(result["generated"], [25])
-        self.assertEqual(result["accepted"], [20])
-        self.assertEqual(result["overflow"], [5])
-        self.assertEqual(result["overflow_penalty"], [0.25])
-        self.assertEqual(result["refine_rewards"], [0.75])
-
-
 @unittest.skipUnless(shutil.which("gcc"), "gcc is required for sampler tests")
 class SamplerIntegrationRegressionTests(unittest.TestCase):
     def test_escape_uses_only_nearest_step_per_axis_and_direction(self):
@@ -1416,21 +1383,7 @@ class InferenceRegressionTests(unittest.TestCase):
                 seen["generate"] = program
                 return [["x >= 0"]]
 
-            @staticmethod
-            def refine(program, _feedback, _n):
-                seen["refine"] = program
-                return [["x <= limit"]]
-
         class RecordingFilter:
-            @staticmethod
-            def precheck(program, _loop_idx, invariants):
-                seen["precheck"] = program
-                return [
-                    inference_module.filters.Verdict(
-                        invariants[0], False, "wp", "needs a companion"
-                    )
-                ]
-
             @staticmethod
             def filter(program, _loop_idx, invariants, positives=None):
                 seen["filter"] = program
@@ -1442,13 +1395,12 @@ class InferenceRegressionTests(unittest.TestCase):
             invariant_filter=RecordingFilter(),
             n_rollouts=1,
             max_rerolls=0,
-            m_refine=1,
         )
         framework._verify = mock.Mock(return_value=True)
 
         result = framework.run()
 
-        for stage in ("generate", "precheck", "refine", "filter"):
+        for stage in ("generate", "filter"):
             with self.subTest(stage=stage):
                 program = seen[stage]
                 self.assertNotIn("assert x == limit", program.source)
@@ -1458,7 +1410,6 @@ class InferenceRegressionTests(unittest.TestCase):
         self.assertEqual(verified_source, result.annotated_code)
         self.assertIn("assert x == limit", verified_source)
         self.assertIn("loop invariant x >= 0;", verified_source)
-        self.assertIn("loop invariant x <= limit;", verified_source)
 
     def test_reroll_count_reports_attempts_even_when_first_result_stays_best(self):
         class Provider:
@@ -1560,24 +1511,6 @@ class CommandAndPackagingRegressionTests(unittest.TestCase):
             set(supported_ids) | {row["id"] for row in float_manifest},
             set(range(1, 470)),
         )
-
-    def test_refine_reward_rejects_an_out_of_range_loop_index(self):
-        source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
-        service._EXAMPLE_CACHE.clear()
-        with mock.patch.object(service, "_SHARED_FILTER", PositiveFilter()):
-            response = TestClient(service.build_app()).post(
-                "/refine_reward",
-                json={
-                    "program": source,
-                    "pool": ["x >= 0"],
-                    "refinements": [["x <= 1"]],
-                    "loop_idx": 1,
-                    "sampler": {"n_runs": 1, "seed": 0},
-                },
-            )
-
-        self.assertEqual(response.status_code, 400)
-        self.assertIn("loop_idx 1 is out of range", response.json()["detail"])
 
     def test_score_file_accepts_valid_options_and_reports_failed_batches(self):
         score_module = importlib.import_module("rl_pipeline.reward.score_file")

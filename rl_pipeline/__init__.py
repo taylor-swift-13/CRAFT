@@ -10,8 +10,8 @@ reward and inference additionally share the Frama-C adapter:
                 base/hardness reward, duplicate/overflow costs, and a batch
                 score.
                 Exposed as a FastAPI HTTP service.
-  * inference — generate rollouts -> optional refine -> combine -> Houdini ->
-                verify. It does not sample reward examples.
+  * inference — generate rollouts -> combine -> Houdini -> verify. It does not
+                sample reward examples.
 
 See the root README and docs/training_integration.md for the current contracts.
 """

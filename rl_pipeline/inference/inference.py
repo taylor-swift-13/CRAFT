@@ -1,4 +1,4 @@
-"""Closed-book generation, optional refinement, Houdini pruning, and verification.
+"""Closed-book generation, Houdini pruning, and verification.
 
 Inference is independent of reward sampling and scoring.  Rollouts come from a
 swappable provider:
@@ -29,26 +29,15 @@ from ..reward import filters
 # ── rollout providers ────────────────────────────────────────────────────────
 
 class MockRolloutProvider:
-    """Returns pre-baked invariant sets; cycles if asked for more than provided.
-    `refinements` (optional) are consumed one per refine() call, for tests."""
+    """Returns pre-baked invariant sets; cycles if asked for more than provided."""
 
-    def __init__(self, rollouts: List[List[str]], refinements: Optional[List[List[str]]] = None):
+    def __init__(self, rollouts: List[List[str]]):
         self.rollouts = rollouts
-        self.refinements = list(refinements or [])
-        self._refine_calls = 0
 
     def __call__(self, prog: Program, n: int) -> List[List[str]]:
         if not self.rollouts:
             return [[] for _ in range(n)]
         return [list(self.rollouts[i % len(self.rollouts)]) for i in range(n)]
-
-    def refine(self, prog: Program, feedback: str, n: int = 1) -> List[List[str]]:
-        if self._refine_calls >= len(self.refinements):
-            return [[] for _ in range(n)]
-        out = [list(self.refinements[self._refine_calls]) for _ in range(n)]
-        self._refine_calls += 1
-        return out
-
 
 class LLMRolloutProvider:
     """Queries an LLM for invariants. `chat_fn` maps a prompt string -> response string.
@@ -73,12 +62,6 @@ class LLMRolloutProvider:
     def __call__(self, prog: Program, n: int) -> List[List[str]]:
         source = strip_postcondition(prog.source)
         return self._chat_n(prompts.GENERATE_PROMPT.format(program=source), n)
-
-    def refine(self, prog: Program, feedback: str, n: int = 1) -> List[List[str]]:
-        source = strip_postcondition(prog.source)
-        return self._chat_n(
-            prompts.REFINE_PROMPT.format(program=source, feedback=feedback), n
-        )
 
     def _chat_n(self, prompt: str, n: int) -> List[List[str]]:
         out: List[List[str]] = []
@@ -119,12 +102,6 @@ class VLLMRolloutProvider:
         source = strip_postcondition(prog.source)
         return self._chat_n(prompts.GENERATE_PROMPT.format(program=source), n)
 
-    def refine(self, prog: Program, feedback: str, n: int = 1) -> List[List[str]]:
-        source = strip_postcondition(prog.source)
-        return self._chat_n(
-            prompts.REFINE_PROMPT.format(program=source, feedback=feedback), n
-        )
-
     def _chat_n(self, prompt: str, n: int) -> List[List[str]]:
         messages = [{"role": "user", "content": prompt}]
         if self.system_prompt:
@@ -156,20 +133,15 @@ class InferenceResult:
     reroll_count: int
     n_rollouts: int
     rollouts: List[List[str]] = field(default_factory=list)
-    refine_rounds: int = 0        # LLM refine rounds actually run (<= m_refine)
 
 
 # ── framework ─────────────────────────────────────────────────────────────────
 
 class InferenceFramework:
-    """loop -> invariants.  Generate rollouts, union them, optionally run m LLM
-    refine rounds on the merged pool (cheap WP precheck -> feedback -> refined
-    candidates JOIN the pool, originals kept), then prune with real Houdini
-    (Frama-C/WP) and verify with Frama-C.  m_refine=0 reproduces the plain
-    pipeline exactly.  INDEPENDENT of the reward component — it does NOT sample
-    positives/negatives (that is only the reward's job). Every stage through
-    Houdini uses target-free source; only final verification restores the
-    original assertions/ensures."""
+    """loop -> invariants. Generate rollouts, union them, prune with real
+    Houdini (Frama-C/WP), and verify with Frama-C. The framework is independent
+    of reward sampling. Every stage through Houdini uses target-free source;
+    only final verification restores the original assertions/ensures."""
 
     def __init__(
         self,
@@ -178,8 +150,6 @@ class InferenceFramework:
         invariant_filter=None,
         n_rollouts: int = 4,
         max_rerolls: int = 1,
-        m_refine: int = 0,
-        refine_samples: int = 1,
         logger: Optional[logging.Logger] = None,
     ):
         self.original_prog = parse_program(source)
@@ -191,15 +161,11 @@ class InferenceFramework:
         self.filter = invariant_filter or filters.auto_filter(logger)
         self.n_rollouts = n_rollouts
         self.max_rerolls = max_rerolls
-        self.m_refine = m_refine
-        self.refine_samples = refine_samples
         self.log = logger or logging.getLogger("rl_pipeline.inference")
         if self.n_rollouts < 1:
             raise ValueError("n_rollouts must be at least 1")
-        if self.max_rerolls < 0 or self.m_refine < 0:
-            raise ValueError("max_rerolls and m_refine must be non-negative")
-        if self.refine_samples < 1:
-            raise ValueError("refine_samples must be at least 1")
+        if self.max_rerolls < 0:
+            raise ValueError("max_rerolls must be non-negative")
 
     def _verify(self, annotated_code: str) -> Optional[bool]:
         """Frama-C verify the final annotated code (None if frama-c unavailable)."""
@@ -244,43 +210,6 @@ class InferenceFramework:
         finally:
             shutil.rmtree(tmpdir, ignore_errors=True)
 
-    def _refine_loop(self, pool: List[str], loop_idx: int) -> tuple:
-        """m rounds of: WP precheck (syntax + at most two WP passes) -> feedback ->
-        LLM refine -> refined candidates join the pool (originals kept: a later
-        companion can rescue an iron reject; the final full Houdini adjudicates).
-        Stops early when nothing is rejected or the pool reaches a fixpoint."""
-        stage = filters.precheck_stage(self.filter)
-        if stage is None:
-            self.log.warning("m_refine=%d but filter has no WP precheck stage "
-                             "(frama-c unavailable?); skipping refine", self.m_refine)
-            return pool, 0
-        refine_fn = getattr(self.provider, "refine", None)
-        if refine_fn is None:
-            self.log.warning("m_refine=%d but provider has no refine(); skipping",
-                             self.m_refine)
-            return pool, 0
-        rounds = 0
-        for _ in range(self.m_refine):
-            if not pool:
-                break
-            verdicts = stage.precheck(self.masked_prog, loop_idx, pool)
-            if not any(not v.kept for v in verdicts):
-                break                                  # nothing to refine
-            feedback = filters.build_feedback(verdicts)
-            refined = [
-                list(response)[:MAX_INVARIANTS_PER_RESPONSE]
-                for response in refine_fn(
-                    self.masked_prog, feedback, self.refine_samples
-                )
-            ]
-            rounds += 1
-            new_pool = dedup_normalized(list(pool) + [c for r in refined for c in r])
-            if len(new_pool) == len(pool):
-                break                                  # fixpoint: no new candidates
-            self.log.info("refine round %d: pool %d -> %d", rounds, len(pool), len(new_pool))
-            pool = new_pool
-        return pool, rounds
-
     def _attempt(self):
         loop_idx = 0
         rollouts = [
@@ -290,9 +219,6 @@ class InferenceFramework:
         # combine (union) across all rollouts, then prune with real Houdini
         # (Frama-C/WP).  No positives -> no lite pre-filter; Houdini is the judge.
         union = dedup_normalized(c for r in rollouts for c in r)
-        refine_rounds = 0
-        if self.m_refine > 0:
-            union, refine_rounds = self._refine_loop(union, loop_idx)
         survivors = self.filter.filter(
             self.masked_prog, loop_idx, union, positives=None
         )
@@ -310,7 +236,6 @@ class InferenceFramework:
             reroll_count=0,
             n_rollouts=self.n_rollouts,
             rollouts=rollouts,
-            refine_rounds=refine_rounds,
         )
 
     def run(self) -> InferenceResult:

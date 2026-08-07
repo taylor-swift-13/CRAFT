@@ -2,24 +2,14 @@
 \section{Conclusion and Limitations}\label{sec:conclusion}
 %% ============================================================
 
-We studied loop-invariant generation when the assertion or postcondition is
-hidden from the generator.  \sam{} uses the same verified candidate pipeline
-to synthesize SFT pairs, train with execution-based rewards, and perform
-inference.  SFT targets are Houdini-filtered invariant sets paired with masked
-programs.  Separately, reachable executions and conservatively filtered
-negative states provide the reinforcement-learning signal.  The original
-target is restored only for final verification.
+Because clauses compose across responses, our objective is the filtered
+combination, not pass@1.  Inference uses rollout--combine--filter before
+restoring the target.  SFT distills a verified combination into one response;
+target-independent RL rewards response strength and behavior not covered by
+peers.  Consequently, ten trained-policy responses
+outperform one hundred base-model responses even as pass@1 decreases.
 
-The experiments show that combining multiple target-hidden responses is
-substantially more effective than relying on a single complete response, and
-that reinforcement learning improves both the attainable combined verification
-rate and response efficiency.  These results support evaluating learned
-invariant generators under the candidate-combination procedure actually used
-at deployment, rather than by standalone pass rate alone.
-
-The current implementation is limited to one loop over scalar integer state.
-Its synthetic negatives are conservatively checked training examples, not
-proofs of global unreachability, and final soundness still depends on
-Frama-C/WP.  Extending the approach to multiple loops, arrays, heaps, richer
-assertion languages, and inter-loop properties remains future work
-~\citep{liu2024towards}.
+The implementation supports one scalar-integer loop.  Negative examples are
+training signals, the group bonus approximates contribution after union, and
+soundness depends on the verifier.  Multiple loops and richer state remain future
+work~\citep{liu2024towards}.

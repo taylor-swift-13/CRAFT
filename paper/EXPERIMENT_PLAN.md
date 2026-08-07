@@ -81,7 +81,7 @@ The controlled adaptations are:
   verifier outcomes from ranker inputs and features.
 - **Direct-no-\(Q\):** generate once from the masked program, then restore
   \(Q\) only for final scoring.
-- **LoopGym:** use target-free rollout, Houdini, and refinement throughout;
+- **LoopGym:** use target-free rollout and Houdini throughout;
   restore \(Q\) only for the final WP check.
 
 Target-visible executions may be reported in a separate diagnostic table to
@@ -100,16 +100,12 @@ temperature, and total number of sampled responses.
 | Clause2Inv-no-\(Q\) | no | target-free clause generation and combination | Adapts Clause2Inv to the same information boundary. |
 | iRank-no-\(Q\) | no | rank the same \(G\) target-hidden rollouts, then score with restored \(Q\) | Tests ordering without target leakage. |
 | Union+Houdini | no | merge \(G\) rollouts and run \(\mathsf H_P\) | Isolates complementary clauses and pruning. |
-| Re-generation | no | Union+Houdini plus \(m\) fresh generation calls | Equal-call control for refinement. |
-| Shuffled feedback | no | refine with verdicts from another program | Tests whether repair uses semantic feedback. |
-| Full LoopGym | no | Union+Houdini plus \(m\) target-free refinement rounds | Main inference system. |
+| Full LoopGym | no | target-free generation, union, and Houdini | Main inference system. |
 
 Recommended primary budget:
 
 - \(G=8\) initial rollouts, because Loopy reports saturation beginning around
   eight completions and the repository CLI already defaults to eight.
-- \(m\in\{0,1,2,4\}\) refinement rounds with one response per round.
-- Equal-call re-generation uses exactly \(m\) additional responses.
 - Three generation seeds per checkpoint; three independent RL training seeds
   for the primary trained-system comparison.
 - Per-program limits: 600 s total, 30 s per WP goal, fixed maximum output
@@ -154,24 +150,22 @@ invariant generation and target-hidden loop verification.
 
 Use the same training prompts and data order.
 
-| Variant | \(w_b\) | \(w_h\) | \(w_r\) | \(w_o\) | Refine groups | Expected diagnostic |
-|---|---:|---:|---:|---:|---:|---|
-| Base checkpoint | -- | -- | -- | -- | -- | Pre-training reference |
-| Inductiveness-only RL | binary | 0 | 0 | 0 | no | Shows why soundness alone is weak |
-| Base-only RL | 1.0 | 0 | 0 | 0 | no | Standalone discrimination only |
-| No-hardness RL | 1.0 | 0 | 0.02 | 0.05 | no | Removes explicit rare-trace exploration credit |
-| No-redundancy-cost RL | 1.0 | 0.3 | 0 | 0.05 | no | Tests conservative semantic-duplicate control |
-| No-overflow-cost RL | 1.0 | 0.3 | 0.02 | 0 | no | Keeps the 20-clause cap but removes its excess-length gradient |
-| Generation RL | 1.0 | 0.3 | 0.02 | 0.05 | no | Complete generation contribution |
-| Full LoopGym | 1.0 | 0.3 | 0.02 | 0.05 | 20--30% of batch | Shared generation+repair training |
-| No negative family | 1.0 | 0.3 | 0.02 | 0.05 | yes | Repeat for relation, over-run, and escape |
+| Variant | \(w_b\) | \(w_h\) | \(w_r\) | \(w_o\) | Expected diagnostic |
+|---|---:|---:|---:|---:|---|
+| Base checkpoint | -- | -- | -- | -- | Pre-training reference |
+| Inductiveness-only RL | binary | 0 | 0 | 0 | Shows why soundness alone is weak |
+| Base-only RL | 1.0 | 0 | 0 | 0 | Standalone discrimination only |
+| No-hardness RL | 1.0 | 0 | 0.02 | 0.05 | Removes explicit rare-trace exploration credit |
+| No-redundancy-cost RL | 1.0 | 0.3 | 0 | 0.05 | Tests conservative semantic-duplicate control |
+| No-overflow-cost RL | 1.0 | 0.3 | 0.02 | 0 | Keeps the 20-clause cap but removes its excess-length gradient |
+| Full LoopGym | 1.0 | 0.3 | 0.02 | 0.05 | Complete generation objective |
+| No negative family | 1.0 | 0.3 | 0.02 | 0.05 | Repeat for relation, over-run, and escape |
 
 Primary training plots:
 
 - verified rate versus training step;
 - mean target-free reward and hidden-target verified rate on validation;
-- reward variance / all-zero GRPO groups;
-- generation groups versus refinement groups consumed.
+- reward variance / all-zero GRPO groups.
 
 ## 7. Result-table templates
 
@@ -184,9 +178,7 @@ Primary training plots:
 | Clause2Inv-no-\(Q\) | original training | TBD | TBD | TBD | TBD | fixed budget | TBD |
 | iRank-no-\(Q\) | original ranker | TBD | TBD | TBD | TBD | 8.0 | TBD |
 | Base Union+Houdini | none | TBD | TBD | TBD | TBD | 8.0 | TBD |
-| Generation RL | base+hardness-costs | TBD | TBD | TBD | TBD | 8.0 | TBD |
-| Full LoopGym, \(m=0\) | mixed GRPO | TBD | TBD | TBD | TBD | 8.0 | TBD |
-| Full LoopGym, \(m=2\) | mixed GRPO | TBD | TBD | TBD | TBD | 10.0 | TBD |
+| Full LoopGym | base+hardness-costs | TBD | TBD | TBD | TBD | 8.0 | TBD |
 
 ### Target visibility diagnostic
 
@@ -213,17 +205,16 @@ Write one JSONL row per `(system, checkpoint, seed, program)`:
   "suite": "core366",
   "program_id": "linear/10",
   "source_sha256": "...",
-  "system": "union_houdini_refine2",
+  "system": "loopgym",
   "checkpoint": "...",
   "seed": 0,
   "target_visible": false,
   "n_rollouts": 8,
-  "m_refine": 2,
   "rollouts": [],
   "final_invariants": [],
   "verified": false,
   "failure_bucket": "exit_gap",
-  "llm_calls": 10,
+  "llm_calls": 8,
   "input_tokens": 0,
   "output_tokens": 0,
   "precheck_calls": 0,

@@ -2,80 +2,82 @@
 \section{Introduction}\label{sec:intro}
 %% ============================================================
 
-Loop invariants summarize an unbounded computation in a finite assertion.
-For a loop \(\mathtt{while}\,(B)\,S\) with precondition
-\(\phi_{\mathrm{pre}}\) and target
-\(Q\), an invariant \(I\) must hold initially, be preserved by the loop body,
-and retain enough information at the exit to prove \(Q\)
-~\citep{floyd1967assigning,hoare1969axiomatic}:
-\[
-  \phi_{\mathrm{pre}}\Rightarrow I,\qquad
-  \{I\wedge B\}\,S\,\{I\},\qquad
-  I\wedge\neg B\Rightarrow Q.
-\]
-The first two conditions establish inductiveness, but they do not guarantee
-usefulness: \(\mathit{true}\) is often inductive and proves nothing about the
-loop exit.
+Verifying any program with a loop requires finding an adequate invariant: no
+proof can otherwise cover arbitrarily many iterations, and writing invariants
+by hand remains a central bottleneck to verifying real software.  Loop
+invariants summarize an unbounded computation in a finite assertion.  They
+must be inductive while retaining enough program knowledge to establish
+the desired property at loop exit.  A weak predicate such as \(\mathit{true}\)
+can satisfy inductiveness but prove nothing useful.  We formalize soundness,
+logical strength, and target sufficiency in
+Section~\ref{sec:preliminaries}.
 
-Most invariant-synthesis systems are given \(Q\) during generation.
-Template search, counterexample-guided methods, and recent neural systems can
-therefore use the target or its failed proof obligations to guide the search
+Invariant generation is compositional: one response may provide a bound and
+another a relational equality, so their union can prove a target that neither
+proves alone.  Pass@1 discards this partial progress.  We instead sample
+multiple responses and retain a verified subset of their combined clauses with
+our rollout--combine--filter framework (Section~\ref{sec:method:core}).
+
+This procedure needs both \emph{strength} and \emph{exploration}: each response
+should contain useful clauses, while different responses should cover different
+relations.  Optimizing standalone success instead encourages repetition and
+ignores partial answers.  Our objective is the filtered combination at a fixed
+rollout budget, ideally compressing large-budget exploration into one
+practical deployment run.
+
+We study this alignment problem under \emph{target-hidden loop verification},
+where the target is withheld until after the invariant set has been fixed
+(Section~\ref{sec:preliminaries}).  Existing methods can use the target, failed
+obligations, or counterexamples to guide search
 ~\citep{gulwani2008program,gupta2009invgen,dillig2013inductive,
 alur2013sygus,garg2014ice,garg2016learning,si2020code2inv,
-kamath2023finding,cao2025clause2inv}.
-This is appropriate when the verification target is already known, but it also
-creates a shortcut: when \(Q\) is itself inductive, a generator can copy it
-into the loop without recovering the relations that explain the program.
+kamath2023finding,cao2025clause2inv}.  Hiding \(Q\) prevents copying an
+inductive postcondition.  Final success is unchanged: the verifier must prove
+soundness and sufficiency for the restored target.
 
-We study \emph{target-hidden loop verification}.  The generator sees the
-precondition, loop guard, body, and in-scope variables, but all assertions and
-postconditions are removed.  The original target \(Q\) is restored only after
-the invariant set has been fixed.  Success still requires the complete
-Frama-C/WP proof above, so hiding the target changes the information available
-to generation without weakening the final criterion
-(\S\ref{sec:overview}).
+\sam{} aligns both training stages with this structure.  For SFT, it applies
+the same framework, then serializes the verified set as
+one target for the masked program.  This distills multi-response search into a
+stronger response for later combined inference.
 
-This setting removes the most direct training signal.  Inductiveness alone
-cannot distinguish a strong loop summary from a tautology or a loose bound,
-while using final proof success as a reward would expose the held-out target.
-\sam{} instead executes the loop to collect reachable states and constructs
-three kinds of synthetic negative examples without consulting \(Q\):
-relational perturbations of observed traces, continuations after genuine loop
-exits, and values outside sampled ranges.  Conservative checks remove
-candidates that collide with observed executions, may be valid fresh entries,
-or depend on unsupported state.
-
-Training has two distinct data paths.  To construct synthetic SFT data,
-multiple target-hidden responses are normalized, merged, optionally repaired,
-and filtered with Houdini over Frama-C/WP.  The masked program is paired with
-the resulting verified invariant set as a supervised example.  Reinforcement
-learning uses the execution-derived positives and negatives described above to
-reward clauses that are both inductive and behaviorally informative.  The same
-candidate-processing steps are used at inference, where \(Q\) is restored only
-for the final proof.
+Within loop-invariant generation specifically, prior systems search, filter
+counterexamples, or rank candidates, but none trains a generation policy with
+reinforcement learning (Section~\ref{sec:related}).  A usable reward is
+itself hard to define once \(Q\) is hidden: binary inductiveness cannot
+separate a useful invariant from a weak one such as \(\mathit{true}\), and
+querying \(Q\) during training would defeat the target-hidden setting.  For
+RL, executions provide reachable states and conservative negative examples
+without querying \(Q\).  After Houdini, negative coverage rewards response
+strength; a group-relative bonus gives more credit to behavior not covered by
+peer responses.  Together they approximate the strength and complementarity
+needed after combination.
 
 \input{sections/fig_overview}
 
-Our evaluation separates inference quality from the effect of reinforcement
-learning.  On 832 integer C programs, five target-hidden responses with
-candidate union and Houdini verify 622 programs (74.76\%), compared with 509
-(61.18\%) for the strongest external baseline.  On the Qwen3-8B study,
-reinforcement learning increases combine@10 from 52.40\% to 56.97\% and
-reduces \(k_{95}\), the number of responses needed to reach 95\% of measured
-combine@100, from 30 to 10.  A separate audit of 486,302 generated negative
-states finds no hard pair-level collision under an expanded execution check.
+Our experiments deliberately separate standalone success from combined
+inference.  On 832 integer C programs, five target-hidden responses with union
+and Houdini verify 622 programs (74.76\%), compared with 514 (61.78\%) for the
+strongest external baseline.  On Qwen3-8B, reinforcement learning decreases
+direct pass@1 from 9.30\% to 4.88\% but increases combine@10 from 52.40\% to
+56.97\%.  Ten responses from the trained policy exceed combine@100 of the base
+model, reducing the rollouts needed to reach 95\% of the measured maximum from
+30 to 10.  Training thus compresses broad base-model exploration into a much
+smaller deployment budget rather than optimizing one standalone
+target-proving answer.
 
 \paragraph{Contributions.}
 This paper makes three contributions:
 \begin{itemize}
-  \item We formulate target-hidden loop verification and an evaluation
-  protocol in which \(Q\) is unavailable to generation, feedback, and reward,
-  but remains the final acceptance criterion.
-  \item We use one verified candidate-processing pipeline to synthesize SFT
-  pairs, compute execution-based RL rewards, and perform inference.  The SFT
-  targets are verified invariant sets; the separate RL signal uses
-  conservatively filtered synthetic negatives.
-  \item We evaluate inference, reinforcement learning, and negative-example
-  quality separately, showing higher verification rates and substantially
-  better rollout efficiency.
+  \item We formulate target-hidden loop verification as a compositional
+  generation problem and evaluate the filtered combination of multiple
+  responses,
+  rather than treating pass@1 as the deployment objective.
+  \item We align training with rollout--combine--filter inference.  Synthetic
+  SFT targets distill filtered combinations into individual
+  responses, while an execution-based RL reward balances per-response strength
+  with complementary contributions across a rollout group without observing
+  \(Q\).
+  \item We show that this alignment improves both combined verification and
+  rollout efficiency, and audit the synthetic negative examples that support
+  the reward.
 \end{itemize}

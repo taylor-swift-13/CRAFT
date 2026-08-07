@@ -42,9 +42,8 @@ python3 -m rl_pipeline.inference \
 ```
 
 This creates one in-process `VLLMRolloutProvider` and batches all rollouts for a
-program in one vLLM call. Generation, refinement, WP prechecks, and Houdini
-pruning never receive the assertion; only final verification uses the original
-target-bearing program.
+program in one vLLM call. Generation and Houdini pruning never receive the
+assertion; only final verification uses the original target-bearing program.
 
 The inference Docker image provides the containerized vLLM environment:
 
@@ -132,6 +131,5 @@ print(result.final_invariants, result.verified)
 
 `LLMRolloutProvider` also accepts any custom `chat_fn: str -> str`, so an
 existing trainer or serving client can be connected without using `src/llm.py`.
-The provider formats `prompt/generate_prompt.txt` and
-`prompt/refine_prompt.txt`; the bundled chat backends load
-`prompt/system_prompt.txt` as the system message.
+The provider formats `prompt/generate_prompt.txt`; the bundled chat
+backends load `prompt/system_prompt.txt` as the system message.

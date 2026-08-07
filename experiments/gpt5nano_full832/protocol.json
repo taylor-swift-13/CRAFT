@@ -27,14 +27,13 @@
   },
   "methods": {
     "naive": {
-      "definition": "one target-hidden response; no candidate pruning or refinement",
+      "definition": "one target-hidden response; no candidate pruning",
       "rollouts": 1
     },
     "loopgym": {
       "definition": "four target-hidden responses per attempt; union then Frama-C/WP Houdini",
       "rollouts": 4,
-      "max_rerolls": 1,
-      "refine_rounds": 0
+      "max_rerolls": 1
     },
     "autospec": {
       "definition": "native AutoSpec one-shot pipeline on a target-hidden source"

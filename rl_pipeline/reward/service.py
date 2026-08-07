@@ -2,34 +2,27 @@
 Reward service — Component 2 exposed over HTTP (FastAPI).
 
   POST /reward           {program, rollouts, ...}       -> per-rollout reward + batch score
-  POST /refine_feedback  {program, pool, ...}           -> verdicts + assembled refine prompt
-  POST /refine_reward    {program, pool, refinements}   -> delta_base[] per refinement
   POST /sample           {program, ...}                 -> example-set stats (debug)
   GET  /health
 
 The example set (positives/negative candidates) is expensive to sample, so it is cached
-per (program, sampler-config).  Any RL trainer can POST batches here — the two
-refine endpoints make refine-group training turnkey: the trainer never needs a
-local frama-c or an rl_pipeline import.
+per (program, sampler-config). Any RL trainer can POST rollout batches here
+without a local frama-c or an rl_pipeline import.
 
 Run:  python -m rl_pipeline.reward.service --host 0.0.0.0 --port 8000
 """
 from __future__ import annotations
 
-import dataclasses
 import hashlib
 import logging
 from typing import Any, Dict, List
 
 from pydantic import BaseModel, Field
 
-from ..common import prompts
-from ..common.program import parse_program, strip_postcondition
-from ..common.state import MAX_INVARIANTS_PER_RESPONSE, dedup_normalized
+from ..common.state import MAX_INVARIANTS_PER_RESPONSE
 from ..sampler import ExampleSampler, ExampleSet
 from ..sampler.example_sampler import DEFAULT_N_RUNS, DEFAULT_SEED
 from . import filters
-from .refine import refine_group_delta_base
 from .reward_calculator import RewardCalculator
 
 log = logging.getLogger("rl_pipeline.reward.service")
@@ -67,22 +60,6 @@ class RewardRequest(BaseModel):
         le=MAX_INVARIANTS_PER_RESPONSE,
     )
     reroll_threshold: float = Field(0.6, ge=0.0, le=1.0)
-    sampler: SamplerCfg = Field(default_factory=SamplerCfg)
-
-
-class RefineFeedbackRequest(BaseModel):
-    program: str = Field(..., description="C program source (full, with assert)")
-    pool: List[str] = Field(..., description="merged invariant pool: the union of the group's rollouts")
-    loop_idx: int = Field(0, ge=0)
-    hide_assert: bool = True   # closed-book: the assembled prompt strips the assert
-
-
-class RefineRewardRequest(BaseModel):
-    program: str
-    pool: List[str] = Field(..., description="the SAME pool the refine prompt showed")
-    refinements: List[List[str]] = Field(..., description="one invariant list per sampled refine response")
-    loop_idx: int = Field(0, ge=0)
-    w_overflow: float = Field(0.05, ge=0.0)
     sampler: SamplerCfg = Field(default_factory=SamplerCfg)
 
 
@@ -129,52 +106,6 @@ def build_app():
             )
             br = rc.compute(req.program, req.rollouts, examples=examples)
             return br.to_dict()
-        except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
-
-    @app.post("/refine_feedback")
-    def refine_feedback(req: RefineFeedbackRequest):
-        """Build a refine group's prompt: syntax scrub + at most two WP rounds
-        over the pool -> verdict table -> prompt/refine_prompt.txt assembled.
-        `n_rejected == 0` means there is nothing to refine (skip the group)."""
-        stage = filters.precheck_stage(_get_filter())
-        if stage is None:
-            raise HTTPException(status_code=503,
-                                detail="no WP precheck stage (frama-c unavailable)")
-        try:
-            prog = parse_program(req.program)
-            if req.loop_idx >= len(prog.loops):
-                raise ValueError(
-                    f"loop_idx {req.loop_idx} is out of range for {len(prog.loops)} loops"
-                )
-            pool = dedup_normalized(req.pool)
-            verdicts = stage.precheck(prog, req.loop_idx, pool)
-            feedback = filters.build_feedback(verdicts)
-            source = strip_postcondition(req.program) if req.hide_assert else req.program
-            return {
-                "pool": pool,
-                "verdicts": [dataclasses.asdict(v) for v in verdicts],
-                "feedback": feedback,
-                "prompt": prompts.REFINE_PROMPT.format(program=source, feedback=feedback),
-                "n_rejected": sum(1 for v in verdicts if not v.kept),
-            }
-        except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
-
-    @app.post("/refine_reward")
-    def refine_reward(req: RefineRewardRequest):
-        """Score one refine group: delta_base[i] = base(Houdini(pool ∪ refined_i))
-        − base(Houdini(pool)); base_before computed once and shared."""
-        try:
-            examples = _get_examples(req.program, req.sampler)
-            calc = RewardCalculator(invariant_filter=_get_filter(),
-                                    w_base=1.0,
-                                    w_redundancy=0.0, w_overflow=0.0,
-                                    logger=log)
-            return refine_group_delta_base(
-                req.program, req.pool, req.refinements,
-                examples=examples, calculator=calc, loop_idx=req.loop_idx,
-                w_overflow=req.w_overflow)
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
 

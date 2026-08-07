@@ -43,7 +43,6 @@ class HoudiniPruner:
         code: str,
         verifier,
         c_file_path: str,
-        record: Optional[dict] = None,
     ) -> Tuple[Optional[str], bool]:
         """Iteratively remove failed invariants until the remaining set verifies."""
         if not code or not code.strip():
@@ -63,12 +62,6 @@ class HoudiniPruner:
             verifier.run(c_file_path)
             results = list(verifier.validate_result or [])
             invariants = self._extract_invariants_from_code(current_code)
-
-            if record is not None:
-                record.setdefault("rounds", []).append({
-                    "invariants": invariants,
-                    "validate_result": results,
-                })
 
             if not invariants or len(results) != len(invariants):
                 self.logger.error(

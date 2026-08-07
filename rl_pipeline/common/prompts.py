@@ -1,14 +1,10 @@
 """Single source of truth for every LLM prompt: <repo-root>/prompt/*.txt.
 
-Edit the .txt files — never inline prompt text in code.  Templates use
-str.format placeholders ({program}, {feedback}) filled at call sites.
+Edit the .txt files — never inline prompt text in code. Templates use
+str.format placeholders ({program}) filled at call sites.
 
   generate_prompt.txt  — rollout generation (always closed-book)
-  refine_prompt.txt    — m-round refine; STATELESS by design: it sees only
-                         program + current pool verdicts (no round number, no
-                         history), so "train one round, infer many" stays
-                         in-distribution.  Shared VERBATIM by inference and RL
-                         training — both must format THIS template.
+  naive_prompt.txt     — deliberately minimal one-shot baseline prompt
   system_prompt.txt    — chat system prompt (vLLM / src.llm.Chatbot)
 """
 from __future__ import annotations
@@ -26,7 +22,7 @@ def load(name: str) -> str:
 
 
 GENERATE_PROMPT = load("generate_prompt.txt")
-REFINE_PROMPT = load("refine_prompt.txt")
+NAIVE_PROMPT = load("naive_prompt.txt")
 
 
 def system_prompt() -> str:

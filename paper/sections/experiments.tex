@@ -2,132 +2,98 @@
 \section{Experiments}\label{sec:experiments}
 %% ============================================================
 
-We organize the evaluation around five questions.  RQ1 probes how direct
-pass@\(k\) and combined inference scale with the sampling budget.  RQ2 compares
-pass@1 and combine@1 across model families.  RQ3 compares the resulting system
-with specialized invariant-generation tools.  RQ4 isolates the improvement
-from RL under both zero-shot and SFT initialization.  RQ5 ablates the reward
-terms and negative-example sampler.
+We ask how combination scales with sampling (RQ1), transfers across models
+(RQ2), compares with specialized tools (RQ3), changes after RL (RQ4), and
+depends on reward and sampler design (RQ5).
 
 \subsection{Experimental Setup}
 \label{sec:exp:setup}
 
-\paragraph{Data sources and benchmarks.}
-Training uses a separate pool of 37,958 target-hidden, scalar-integer,
-single-loop program records drawn primarily from SV-COMP and SyGuS; the 3,454
-programs used to construct SFT targets are a subset of this pool.
-Appendix~\ref{app:data-leakage} audits overlap between this training pool and
-evaluation.  We evaluate 832 integer C programs.  From the \textsc{Clause2Inv}
-release, we use 316 linear programs (133 from \textsc{Code2Inv}, 84 from SyGuS
-2019, and 99 from SV-COMP 2024) and 50 nonlinear programs (30 from LIPuS and 20
-from SV-COMP 2024)~\citep{yu2023lipus,cao2025clause2inv}.  The remaining
-466 programs are the integer fragment of Loopy's
-original 469-program corpus; three floating-point programs are excluded
-because they fall outside our scalar-integer predicate language.  Unsupported
-inputs remain failures in the common denominator.  Because these collections
-reuse benchmarks from earlier work, 832 denotes the common file-level
-evaluation workload rather than 832 independently sourced problems.
+\paragraph{Data and judge.}
+The cleaned training artifacts contain 37,481 target-masked scalar-integer
+single-loop RL records; 3,200 form SFT targets.  Evaluation contains 832 C programs: 316 linear and 50
+nonlinear-arithmetic (NLA) programs from the \textsc{Clause2Inv} release,
+plus 466 integer
+programs from Loopy~\citep{yu2023lipus,cao2025clause2inv,kamath2023finding}.
+The overlap and prompt-sanitation audits
+are in Appendix~\ref{app:data-leakage}.  We remove non-contract comments and
+mask all target predicates before generation, then restore the untouched
+source only after invariants are fixed.
+Success requires Frama-C/WP~\citep{framac}, under a 5-second per-obligation
+prover budget, to prove establishment, preservation, and every restored
+target; all failures count as zero.
 
-\paragraph{Target-hidden evaluation.}
-Before any model-facing step, we remove \texttt{assert} and
-\texttt{ensures} predicates, executable assertion calls, and conventional
-error-label names.  Preconditions and executable loop semantics remain
-visible.  After a method fixes its invariants, they are inserted into the
-untouched original program.  A task succeeds only if the source parses,
-Frama-C/WP proves establishment and preservation for every retained
-invariant, and every restored target goal succeeds.  Failures, timeouts,
-malformed outputs, and unsupported programs count as zero.
-
-\paragraph{Verifier and inference.}
-All final checks use Frama-C 31.0 (Gallium)~\citep{framac}, WP, and Z3
-4.13.3.  Neural experiments use the same target-hiding code, generation
-template, clause splitter, semantic deduplication, and Houdini implementation.
-We use each model's serving interface and chat template.  API models use the
-service's default reasoning configuration; we do not override their reasoning
-effort at inference time.  For checkpoints participating in our SFT or RL
-training pipeline, explicit thinking is disabled during evaluation to match
-the synthetic-data and training-rollout configuration.  Unless an RQ varies
-\(k\), generation
-uses temperature 1.0, top-\(p\) 1.0, at most 2,048 new tokens, and no re-roll
-or target-conditioned feedback.  We do not set an additional top-\(k\) cutoff
-or repetition penalty beyond the serving-interface defaults.  For the
-\(k\)-sweep, one
-batched request draws 100 responses per program, and every pass@\(k\) and
-combine@\(k\) point reuses that same saved response pool.  We do not fix a
-per-response sampling seed; the 100 outputs are stochastic draws from that
-single batch.
+\paragraph{Inference protocol.}
+All \sam{} evaluation runs share target masking, the canonical prompt, clause
+processing, and Houdini; external tools retain their own target-hidden orchestration.  Within
+\sam{}, API models retain service-default reasoning; all locally served
+checkpoints use non-thinking decoding to match data synthesis and training.  Decoding uses
+temperature 1.0 and top-\(p\) 1.0.  API calls cap completions at 16,384 tokens,
+including provider-internal reasoning tokens; local vLLM calls cap each
+response at 2,048 emitted tokens.  We use no re-roll or target feedback.  RQ1
+reuses one saved batch of 100 stochastic responses per task.
+Appendix~\ref{app:experimental-protocol} gives benchmark provenance, serving,
+and training details.
 
 \paragraph{Metrics.}
-Pass@\(k\) is the probability that at least one of \(k\) responses proves
-\(Q\).  Given \(c\) successful responses among \(n=100\), we estimate it as
-\(\widehat{\operatorname{pass@}k}=1-\binom{n-c}{k}/\binom{n}{k}\).
+Throughout evaluation, success means \(Q\)-sufficiency under the final
+verifier.  Pass@\(k\) is the probability that at least one of \(k\) responses
+proves \(Q\).  Whenever a saved pool contains \(c\) successful responses among
+\(n=100\), we use the unbiased estimator
+\(\widehat{\operatorname{pass@}k}=1-\binom{n-c}{k}/\binom{n}{k}\) for that
+program and average it over programs.
 Only responses that prove \(Q\) count as successes.  Combine@\(k\) is the
 fraction of programs proved by unioning the first \(k\) responses and applying
 Houdini.  Pass@\(k\) requires one response to contain the whole proof, whereas
-combine@\(k\) can combine clauses from different responses.  We also report
-\(k_{95}=\min\{k:C_\pi(k)\geq0.95\,C_\pi(100)\}\), the smallest rollout
-budget that reaches 95\% of combine@100.  A smaller \(k_{95}\) means higher
-sampling efficiency.
-
-\paragraph{Pending-result convention.}
-Unfinished result cells below are marked \emph{TBD} and remain empty until the
-corresponding common-protocol run is complete; populated cells come only from
-completed runs, and we do not extrapolate missing values from pilots.
+combine@\(k\) can combine clauses from different responses.  We do not compute
+the exact all-subset analogue for combine@\(k\), because it would require
+filtering \(\binom{100}{k}\) unions per program; we evaluate the fixed saved
+prefix instead.  For the measured budget grid
+\(\mathcal K=\{1,10,30,50,100\}\), we report
+\(k_{95}=\min\{k\in\mathcal K:C_\pi(k)\geq0.95\,C_\pi(100)\}\).  A smaller
+\(k_{95}\) means the retained pool reaches its large-budget performance
+sooner.
 
 % ---------------------------------------------------------------------------
 \subsection{RQ1: How Do pass@k and combine@k Scale?}
 \label{sec:exp:probe}
 
-We sample 100 target-hidden responses per task from four base checkpoints:
-Qwen3-4B, Qwen3-8B, Qwen3-14B, and Qwen3-30B-A3B
-~\citep{yang2025qwen3}.  All points for one checkpoint are computed from the
-same saved response pool.  We evaluate every recorded prefix; the complete
-numeric results, including \(k_{95}\), appear in
+We sample 100 target-hidden responses per task from five base checkpoints:
+Qwen3-4B, Qwen3-8B, Qwen3-14B, Qwen3-30B-A3B
+~\citep{yang2025qwen3}, and Llama.  Complete values and \(k_{95}\) appear in
 Appendix~\ref{tab:probe-complete}.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.86\textwidth]{figures/qwen_official_probe.pdf}
-\caption{Scaling of pass@\(k\) and combine@\(k\), shown together in a
-separate panel for each base checkpoint.  Pass@\(k\) uses the unbiased
-estimator, whereas combine@\(k\) evaluates the saved response prefix;
-markers denote measured budgets rather than interpolated evaluations.
-Combination provides a large early gain and is nearly saturated by
-\(k=30\), while pass@\(k\) continues to grow at larger budgets.}
+\includegraphics[width=0.94\textwidth]{figures/base_model_probe.pdf}
+\caption{Pass@\(k\) (unbiased estimate) and prefix combine@\(k\).
+Combination saturates by \(k=30\), while pass@\(k\) keeps growing.}
 \label{fig:base-model-probe}
 \end{figure}
 
-\paragraph{Combination is effective and saturates early.}
-Already at \(k=1\), combine@1 exceeds pass@1 by 31.36, 15.58, 39.23, and
-35.84 percentage points for the 4B, 8B, 14B, and 30B-A3B checkpoints,
-respectively.  This large gap shows that splitting, filtering, and recombining
-clauses recovers proofs even when the original response is not independently
-\(Q\)-sufficient.  Yet almost all of this benefit is obtained quickly: every
-checkpoint reaches at least 95\% of its combine@100 value by \(k=30\), and
-the largest additional gain from \(k=30\) to \(k=100\) is only 0.60 points.
-Thus, approximately 30 responses capture the practical combination ceiling
-in this probe.
-
-\paragraph{Direct pass converges more slowly.}
-At \(k=30\), pass@\(k\) has reached only 71.8--85.0\% of its pass@100 value
-across the four checkpoints.  Increasing the budget from 30 to 100 still
-adds 4.41--6.60 percentage points, in clear contrast to the nearly flat
-combine@\(k\) curves.  Combination therefore front-loads useful proof
-coverage, whereas finding a single complete response continues to benefit
-from substantially wider sampling.
-
-The small non-monotonicity in the 8B combine curve reflects the deployed
-metric: finite Frama-C/WP timeouts count as failures, and a larger clause pool
-can increase proof cost.  We therefore interpret combine@\(k\) as an
-operational success curve rather than assuming mathematical monotonicity.
+At \(k=1\), prefix combine is 16.45--39.23 points above the unbiased pass
+estimate across checkpoints.  Because these are different estimands rather
+than paired first-response outcomes, we treat this gap as descriptive; RQ2
+reports the paired effect of processing the same response.  In the retained
+response pools, every model
+reaches 95\% of combine@100 by \(k=30\), with at most 1.68 additional points
+through \(k=100\).  In contrast, pass@30 reaches only 71.8--85.0\% of
+pass@100 on the four Qwen checkpoints and gains another 4.41--6.60 points by
+\(k=100\).  Llama is harder in absolute terms---pass@100 is 7.33\%---but
+shows the same compositional pattern: combine rises from 16.59\% at \(k=1\)
+to 34.13\% at \(k=30\), then changes by only 0.25 points.  Combination thus
+front-loads useful coverage, whereas standalone proofs require wider sampling.
+The combine@100 ceilings (34.38--58.05\%) further suggest that these pools
+remain bottlenecked by clause quality or diversity: extending the budget to
+100 responses does not remove the gap.
 
 % ---------------------------------------------------------------------------
 \subsection{RQ2: How Strong Is combine@1 Across Models?}
 \label{sec:exp:main}
 
 The main neural experiment evaluates exactly one response per program.  Pass@1
-treats that response as one all-or-nothing invariant set.  Combine@1 splits
-conjunctions into clauses, removes duplicates, and runs Houdini on the
+treats that response as one all-or-nothing invariant set.  Combine@1 extracts
+invariant annotations as clauses, removes duplicates, and runs Houdini on the
 resulting pool.  No pass@\(k>1\) or combine@\(k>1\) result is included in this
 RQ, so model quality is not confounded with a larger inference budget.
 
@@ -138,62 +104,54 @@ RQ, so model quality is not confounded with a larger inference budget.
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{lrrrrr}
 \toprule
-Model & pass@1 & combine@1 & \(\Delta\) & Time / task & Avg. tokens \\
+Model & pass@1 & combine@1 & Gain / regress. & Time / task & Avg. tokens \\
 \midrule
 GPT-5-nano & 452 (54.33\%) & 504 (60.58\%)
-  & +52 (+6.25 pp) & 66.60 s & 6,928.30 \\
+  & 123 / 71 & 66.60 s & 6,928.30 \\
 GPT-5-mini & 462 (55.53\%) & 604 (72.60\%)
-  & +142 (+17.07 pp) & 58.36 s & 4,509.32 \\
+  & 157 / 15 & 58.36 s & 4,509.32 \\
 GPT-5 & 628 (75.48\%) & 636 (76.44\%)
-  & +8 (+0.96 pp) & 82.88 s & 5,289.00 \\
+  & 23 / 15 & 82.88 s & 5,289.00 \\
 Claude Sonnet-4.6 & 467 (56.13\%) & 528 (63.46\%)
-  & +61 (+7.33 pp) & 59.88 s\(^{\dagger}\) & 1,193.55\(^{\dagger}\) \\
+  & TBD & 59.88 s & 1,193.55 \\
 DeepSeek-V4-Flash & 428 (51.44\%) & 454 (54.57\%)
-  & +26 (+3.13 pp) & 166.98 s & 11,084.44 \\
+  & 32 / 6 & 166.98 s & 11,084.44 \\
 Qwen3-14B & TBD & TBD & TBD & TBD & TBD \\
 Qwen3-8B & TBD & TBD & TBD & TBD & TBD \\
 Qwen3-4B & TBD & TBD & TBD & TBD & TBD \\
 Llama (checkpoint TBD) & TBD & TBD & TBD & TBD & TBD \\
 \bottomrule
 \end{tabular}}
-\caption{Main cross-model experiment.  RQ2 records only pass@1 and combine@1;
-\(\Delta\) gives the gain in verified programs and percentage points.  Time is
-the mean end-to-end combine@1 pipeline time, and tokens are the exact mean API
-usage of the single response shared by pass@1 and combine@1.}
-\(^{\dagger}\)Mean over a fixed, seed-0 stratified sample of 20 programs
-(8 linear, 1 nonlinear, and 11 Loopy); all 20 calls have exact API token
-counts.  The pass@1 and combine@1 values still use all 832 programs.
+\caption{Single-response cross-model results.  Gain/regression counts pair the
+same response before and after clause processing.  Time covers the end-to-end
+combine@1 pipeline; tokens cover the shared response.}
 \label{tab:cross-model-main}
 \end{table}
 
-As a reasoning-control diagnostic, we also ran GPT-5 with
-\texttt{reasoning\_effort=none}.  Under that setting, pass@1 is
-251/832 (30.17\%) and combine@1 is 477/832 (57.33\%), at 1,028.12 mean
-tokens per task.  We retain this run as an ablation rather than mixing it into
-the provider-default main row.
-
-Combine@1 isolates a useful property of the framework: even with one model
-call, a response need not be accepted or rejected as a monolithic object.
-Houdini can retain its sound clauses while removing a failing clause.  The
-comparison tests whether this lightweight inference step gives particularly
-large gains to open models, whose raw responses may be less reliable.
+Because pass@1 and combine@1 reuse the same response, their paired change
+isolates the net effect of clause extraction, normalization, and Houdini
+without additional model calls.  The regression counts show that the realized
+pipeline is not monotone under finite verifier budgets, preventing a positive
+net change from being mistaken for uniform per-task improvement.  API rows use provider-reported tokens and
+local rows use serving-tokenizer counts.  Claude's time and token means come
+from a fixed seed-0 stratified sample of 20 programs (8 linear, 1 nonlinear,
+and 11 Loopy); its accuracy still uses all 832 programs.  A separate
+non-reasoning GPT-5 diagnostic
+appears in Appendix~\ref{tab:main-complete}.
 
 % ---------------------------------------------------------------------------
 \subsection{RQ3: How Does \sam{} Compare with Specialized Tools?}
 \label{sec:exp:tools}
 
-We compare against the native target-hidden pipelines of
+We compare against the target-hidden pipelines of
 \textsc{AutoSpec}, \textsc{SESpec}, and \textsc{Clause2Inv}, and against
 Daikon 5.8.24
 ~\citep{wen2024enchanting,yang2026sespec,cao2025clause2inv,daikon}.
-We additionally include a naive \texttt{gpt-5-nano} baseline that makes one
-target-hidden model call with a minimal prompt and applies no clause filtering,
-rerolling, or refinement.
-\textsc{Clause2Inv} supports only the 366 programs with transition
-verification conditions; all other inputs remain failures in the
-832-program denominator.  The four \sam{} rows fix their model and inference
-budgets before the comparison rather than selecting the best result per
-benchmark.
+All LLM-based rows use \texttt{gpt-5-nano}.  Naive makes one call without
+filtering or refinement.
+\textsc{Clause2Inv}'s unsupported inputs remain failures in the common
+832-program denominator.  Budgets are fixed before comparison but not matched:
+each system retains its predeclared native orchestration.
 
 \begin{table}[H]
 \centering
@@ -236,147 +194,98 @@ Frama-C/WP final judge.  Tokens are mean totals per task.}
 \label{tab:tool-comparison}
 \end{table}
 
-\paragraph{Efficiency and orchestration.}
-\sam{} does not maintain a multi-turn repair conversation, workflow state, or
-growing context history.  Its orchestration state is only a set of independent
-clauses: generate, split, normalize, union, and filter.  We report generated
-tokens, verifier invocations, wall time, and peak prompt length so
-that effectiveness is not separated from workflow cost.  This RQ tests whether
-the simple framework is competitive with specialized systems without their
-context management, and whether its gains remain substantial on open models.
-With the same \texttt{gpt-5-nano} backbone, \sam{} improves the naive baseline
-from 45.55\% to 54.33\% at pass@1 and to 60.58\% at combine@1.
+\textsc{AutoSpec} is the strongest external row at 61.78\%.  \sam{} combine@1
+comes within 1.20 points while using 72.5\% fewer tokens; combine@5 reaches
+74.76\% (+12.98 points) with 32.8\% more tokens and substantially higher
+latency.  The fixed rollout budget therefore exposes an explicit
+accuracy--cost trade-off.  With the same \texttt{gpt-5-nano} backbone,
+combine@1 also improves the one-call Naive baseline from 45.55\% to 60.58\%
+without a repair conversation or growing context.
 
 % ---------------------------------------------------------------------------
 \subsection{RQ4: How Much Does Reinforcement Learning Improve Inference?}
 \label{sec:exp:rl}
 
-We use Qwen3-8B and separate two paired training paths.  The zero-shot path
-compares the base checkpoint with RL-Zero.  The supervised path compares the
-SFT checkpoint immediately before RL with the checkpoint obtained by
-continuing from it under the same RL objective.  Each after-RL model therefore
-has a matched before-RL initialization, preventing SFT gains from being
-misattributed to RL.
+We evaluate matched Qwen3-8B before--after RL paths from base and SFT
+initializations.  Inference is fixed within each pair; RQ1 is not used to
+estimate the RL effect.
 
 \begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{4pt}
 \resizebox{\textwidth}{!}{%
-\begin{tabular}{llrrrrrr}
+\begin{tabular}{llrrrrr}
 \toprule
 Initialization & Training stage & pass@1 & combine@1 & combine@10
-  & combine@100 & \(k_{95}\) & Verified / 832 \\
+  & combine@100 & \(k_{95}\) \\
 \midrule
-Base 8B & before RL (Zero) & TBD & TBD & TBD & TBD & TBD & TBD \\
-Base 8B & after RL (RL-Zero) & TBD & TBD & TBD & TBD & TBD & TBD \\
-SFT 8B & before RL (SFT) & TBD & TBD & TBD & TBD & TBD & TBD \\
-SFT 8B & after RL (SFT+RL) & TBD & TBD & TBD & TBD & TBD & TBD \\
+Base 8B & before RL (Zero) & 9.30\% & 41.23\% & 52.76\% & 58.05\% & 30 \\
+Base 8B & after RL (RL-Zero) & 4.88\% & 43.15\% & 56.97\% & 58.77\% & 10 \\
+SFT 8B & before RL (SFT) & TBD & TBD & TBD & TBD & TBD \\
+SFT 8B & after RL (SFT+RL) & TBD & TBD & TBD & TBD & TBD \\
 \bottomrule
 \end{tabular}}
-\caption{Paired evaluation of RL from zero-shot and SFT initialization.  All
-four rows use identical rollout budgets and the same inference code.}
+\caption{Matched Qwen3-8B evaluation before and after RL.}
 \label{tab:rl-before-after}
 \end{table}
 
-RL is useful only if the after-RL checkpoint improves over its matched
-before-RL checkpoint.  We report pass@1 as a diagnostic, but the primary
-outcomes are combine@\(k\) and \(k_{95}\): the objective is designed to make a
-small group contain stronger and more complementary clauses, not merely to
-increase standalone proofs.
+RL-Zero trades lower pass@1 (9.30\% to 4.88\%) for higher combine@10 (52.76\%
+to 56.97\%).  The within-policy \(k_{95}\) falls from 30 to 10, matching the
+deployed composition objective.
 
 % ---------------------------------------------------------------------------
 \subsection{RQ5: What Drives the Training Gain?}
 \label{sec:exp:ablations}
 
-Both ablation studies use Qwen3-8B and hold prompts, data order, rollout-group
-size, update budget, seeds, and inference code fixed.
+Both ablations use Qwen3-8B and three matched seeds with all other training
+and inference settings fixed; Appendix~\ref{app:ablation-definitions} reports per-seed combine@10.
 
 \paragraph{Reward-function ablation.}
-We separate the two axes of our credit assignment from the density of the
-strength signal.  The conventional baseline assigns a binary verifier reward
-to a complete response.  The second row replaces this binary outcome with
-negative coverage, but remains all-or-nothing: it receives coverage only when
-every admitted clause survives the positive-example and Houdini filters,
-\[
-  r_i^{\mathrm{whole}}
-  =\mathbf 1[S_i=\bar A_i]\,\frac{|R_i|}{|\mathcal N|}
-  -w_o o(A_i).
-\]
-The third row computes the same coverage on the surviving clause subset
-\(S_i\), isolating \emph{intra-rollout decomposition}.  The fourth row adds
-Shapley allocation across \(R_{1:G}\), isolating \emph{inter-rollout
-composition}.  The final row adds only the duplicate regularizer.  The
-response cap and overflow cost are held fixed across all
-four coverage-based rows.  Thus each adjacent comparison introduces one
-design decision.
-The rows select \texttt{reward\_variant}=\texttt{binary},
-\texttt{whole\_coverage}, \texttt{base}, \texttt{base\_shapley}, and
-\texttt{full}, respectively.  We call these variants \emph{Binary
-Verification}, \emph{Whole-Rollout Strength}, \emph{Clause-Decomposed
-Strength}, \emph{Compositional Credit}, and \emph{Regularized Compositional
-Credit}.
+Variants progress from binary inductiveness to whole-response coverage, then
+add clause salvage, Shapley credit, and duplicate regularization.  All use a
+20-clause cap; coverage variants share the overflow cost, while the binary
+control remains \(\{0,1\}\).
 
 \begin{table}[H]
 \centering
 \small
-\setlength{\tabcolsep}{3pt}
+\setlength{\tabcolsep}{5pt}
 \resizebox{\textwidth}{!}{%
-\begin{tabular}{lllrrrrrr}
+\begin{tabular}{lrrrrr}
 \toprule
-Variant & Within-rollout unit & Across-rollout credit
-  & pass@1 & combine@1 & combine@5 & combine@10 & combine@100 & \(k_{95}\) \\
+Variant & pass@1 & combine@1 & combine@10 & combine@100 & \(k_{95}\) \\
 \midrule
-Binary Verification & Complete response & Independent
-  & TBD & TBD & TBD & TBD & TBD & TBD \\
-Whole-Rollout Strength & Complete response & Independent
-  & TBD & TBD & TBD & TBD & TBD & TBD \\
-Clause-Decomposed Strength & Sound subset \(S_i\) & Independent
-  & TBD & TBD & TBD & TBD & TBD & TBD \\
-Compositional Credit (ours) & Sound subset \(S_i\) & Shapley
-  & TBD & TBD & TBD & TBD & TBD & TBD \\
-Regularized Compositional Credit & Sound subset \(S_i\) & Shapley + redundancy
-  & TBD & TBD & TBD & TBD & TBD & TBD \\
+Binary Inductiveness & TBD & TBD & TBD & TBD & TBD \\
+Whole-Rollout Strength & TBD & TBD & TBD & TBD & TBD \\
+Clause-Decomposed Strength & TBD & TBD & TBD & TBD & TBD \\
+Compositional Credit & TBD & TBD & TBD & TBD & TBD \\
+Regularized Compositional Credit (ours) & TBD & TBD & TBD & TBD & TBD \\
 \bottomrule
 \end{tabular}}
-\caption{Credit-assignment ablation on Qwen3-8B.  Adjacent rows isolate dense
-strength, intra-rollout decomposition, inter-rollout composition, and
-structural regularization, respectively.}
+\caption{Reward ablation on Qwen3-8B (three-seed means).}
 \label{tab:reward-ablation}
 \end{table}
 
 \paragraph{Negative-sampling ablation.}
-We compare only the two externally exposed samplers.  Both use the same
-executions, reachable bases, safety filters, seed, and 512-trace total cap.
-\emph{Random} perturbs one or two variables with uniformly sampled local
-offsets.  \emph{Structured} combines relational perturbations, post-exit
-continuations, and range violations under fixed family budgets.  This
-cap-matched comparison tests whether loop-specific structure matters beyond
-the number of sampled negatives.  The rows select
-\texttt{negative\_sampler}=\texttt{random} and \texttt{structured}.
+\emph{Random} uses uniform local perturbations; \emph{Structured} uses
+relational, post-exit, and range families.  Both share executions, filters,
+seed, and a 512-trace maximum; cleaning may leave different realized sizes.
 
 \begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{3.5pt}
 \resizebox{\textwidth}{!}{%
-\begin{tabular}{lrrrrrr}
+\begin{tabular}{lrrrrrrr}
 \toprule
-Negative sampler & Reward variance & Hard-collision rate & pass@1
-  & combine@1 & combine@10 & Verified / 832 \\
+Negative sampler & Reward var. & Collision & pass@1
+  & combine@1 & combine@10 & combine@100 & \(k_{95}\) \\
 \midrule
-Random perturbation (same trace budget) & TBD & TBD & TBD & TBD & TBD & TBD \\
-Structured sampler (ours) & TBD & TBD & TBD & TBD & TBD & TBD \\
+Random & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
+Structured (ours) & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \bottomrule
 \end{tabular}}
-\caption{Negative-example sampling ablation under fixed execution and sampler
-caps.}
+\caption{Negative-sampler ablation under a shared maximum budget.}
 \label{tab:sampler-ablation}
 \end{table}
-
-Besides final verification, we report reward variance and hard-collision
-audits.  Reward variance tests whether a sampler supplies enough
-discrimination for group-relative RL.  The collision audit checks whether a
-generated negative is also observed as reachable under expanded execution
-sampling, guarding against gains obtained from systematically incorrect
-negative labels.

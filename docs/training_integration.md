@@ -7,13 +7,43 @@ need a local Frama-C installation.
 Keep two program forms in the trainer or dataset:
 
 - `visible_program`: the closed-book function used in the generation prompt,
-  with `assert`/`ensures` hidden;
-- `full_program`: the original function sent to the reward service,
-  including its contract and assertion.
+  with `assert`/`ensures` and non-contract comments hidden;
+- `full_program`: the original function retained for the final judge. It may be
+  sent to the reward endpoint for convenience; the service strips
+  `assert`/`ensures` before both sampling and inductiveness filtering.
 
 The trainer loads `prompt/generate_prompt.txt`, formats its
 `{program}` field with `visible_program`, and uses
 `prompt/system_prompt.txt` as the system message.
+
+## 0. Build the canonical training datasets
+
+The original `0803` archives predate the current prompt and invariant
+interface. Generate new inputs before retraining; the script never overwrites
+its inputs. Initialize the Frama-C opam switch, then run:
+
+```bash
+eval "$(opam env --switch=frama-c.27.1 --set-switch)"
+LOOPGYM_WP_PAR=2 conda run -n ASGSE \
+  python paper/scripts/sanitize_training_prompts.py \
+  --verify-rl-syntax --rl-syntax-jobs 32 \
+  --verify-sft --wp-timeout 5 --jobs 16
+```
+
+This writes `traindata/loopgym_rl_clean.parquet` and
+`traindata/loopgym_sft_clean.json`. Both use the current system and generation
+prompts and contain only supported target-hidden scalar-integer, single-loop
+programs. For archived `power` clauses, fixed exponents are expanded into
+explicit multiplication. When two equations contain the same symbolic power,
+the cleaner attempts to eliminate it and derive a power-free polynomial
+relation; symbolic powers are never approximated by a finite expansion. SFT
+answers additionally remove remaining helper calls, malformed or out-of-scope
+clauses, conservative duplicates, obvious tautologies, weaker dominated
+constant bounds, and clauses that do not survive the deployed Frama-C/WP
+Houdini filter. Each answer is capped at 20 clauses. The 5-second setting is
+per WP proof obligation, not per training record. Per-problem power rewrite
+decisions are saved in `paper/artifacts/power_rewrite_audit.json`. Train only
+from these clean outputs.
 
 ## 1. Start the service
 
@@ -77,7 +107,6 @@ The response is order-aligned with the submitted rollouts:
   "negative_sampler": "structured",
   "reward_mode": "negative_coverage",
   "batch_score": 0.83,
-  "should_reroll": false,
   "n_negatives": 118,
   "filter_mode": "cascade(positive->houdini)"
 }
@@ -113,7 +142,8 @@ For each RL step:
 1. Load `prompt/generate_prompt.txt` and format
    `{program}=visible_program`.
 2. Sample a group of responses from the policy.
-3. Send `full_program` and the group to `POST /reward`.
+3. Send `full_program` and the group to `POST /reward`; the service enforces
+   target hiding internally.
 4. Use `rollout_rewards` as the group rewards, normalize them inside
    the group, and update the policy.
 
@@ -130,10 +160,11 @@ result = InferenceFramework(source).run()
 print(result.final_invariants, result.verified)
 ```
 
-Each attempt generates rollouts, unions their candidates, applies the full
-Houdini fixpoint, and performs final Frama-C verification. Generation and
-Houdini see only the target-free program; final verification uses the original
-target-bearing source.
+Each inference call generates one fixed-budget rollout group, unions its
+candidates, applies the full Houdini fixpoint, and performs final Frama-C
+verification. Generation and Houdini see only the target-free program; final
+verification uses the original target-bearing source. A failed final proof
+does not trigger another model call.
 
 ## 5. Offline scoring
 
@@ -155,6 +186,8 @@ Parquet additionally requires `pandas` and `pyarrow`.
 ## 6. Gotchas
 
 - Do not expose `assert` or `ensures` in the model prompt.
+- Do not expose source-provenance or other non-contract comments in the model
+  prompt; the shared masking function removes them.
 - A `positive`-only health mode is a degraded fallback, not the
   production reward configuration.
 - Keep the generation and system prompts file-backed; do not maintain divergent

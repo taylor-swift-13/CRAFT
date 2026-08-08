@@ -33,7 +33,6 @@ from .run import _score_fixed_task, event_path, new_attempt_dir, save_hidden_sou
 METHOD = "loopgym_r10_houdini"
 SOURCE_METHOD = "loopgym_r4_houdini"
 N_ROLLOUTS = 10
-MAX_REROLLS = 0
 EXTENSION_PROTOCOL = "loopgym_r10_houdini_no_reroll_reuse_r4_v2"
 
 
@@ -131,9 +130,8 @@ def _run_one(task: Task, root: Path, source_row: dict | None) -> dict:
             task.source_path.read_text(errors="ignore"),
             rollout_provider=provider,
             n_rollouts=N_ROLLOUTS,
-            max_rerolls=MAX_REROLLS,
         ).run()
-        expected_calls = N_ROLLOUTS * (result.reroll_count + 1)
+        expected_calls = N_ROLLOUTS
         status = "completed" if len(provider.records) == expected_calls else "failed"
         error = None if status == "completed" else (
             f"expected {expected_calls} total calls, recorded {len(provider.records)}"
@@ -161,9 +159,7 @@ def _run_one(task: Task, root: Path, source_row: dict | None) -> dict:
         "rollouts": rollouts,
         "invariants": invariants,
         "native_verified": native_verified,
-        "reroll_count": result.reroll_count if result is not None else None,
         "n_rollouts": N_ROLLOUTS,
-        "max_rerolls": MAX_REROLLS,
         "extension_protocol": EXTENSION_PROTOCOL,
         "api_calls_artifact": str(calls_path),
         "reuse_source_method": SOURCE_METHOD if reused_count else None,
@@ -189,16 +185,12 @@ def generate_all(root: Path, workers: int, retry_failed: bool) -> None:
     for task in tasks:
         old = existing.get(task.key(METHOD))
         if old and old.get("generation_status") == "completed":
-            compatible = (
-                int(old.get("reroll_count") or 0) == 0
-                and int(old.get("api_call_count") or 0) == N_ROLLOUTS
-            )
+            compatible = int(old.get("api_call_count") or 0) == N_ROLLOUTS
             if compatible:
                 if old.get("extension_protocol") != EXTENSION_PROTOCOL:
                     updated = dict(old)
                     updated.update({
                         "extension_protocol": EXTENSION_PROTOCOL,
-                        "max_rerolls": MAX_REROLLS,
                     })
                     append_jsonl(destination, updated)
                     existing[task.key(METHOD)] = updated
@@ -238,7 +230,6 @@ def generate_all(root: Path, workers: int, retry_failed: bool) -> None:
         "method": METHOD,
         "extension_protocol": EXTENSION_PROTOCOL,
         "rollouts_per_attempt": N_ROLLOUTS,
-        "max_rerolls": MAX_REROLLS,
         "houdini": True,
         "reuse_source_method": SOURCE_METHOD,
         "target_hidden": True,

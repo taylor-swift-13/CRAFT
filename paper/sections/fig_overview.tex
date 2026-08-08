@@ -38,7 +38,7 @@
 \node[tag, fill=codeblue, anchor=west] at (0.40,6.16)
   {ROLLOUT--COMBINE--FILTER};
 \node[font=\scriptsize, text=codegray, anchor=east]
-  at (15.58,6.16) {the compositional training--inference backbone};
+  at (15.58,6.16) {the compositional deployment objective};
 
 %% masked program card
 \node[card, draw=paperink!30, text width=1.58cm]
@@ -68,7 +68,7 @@
 \node[clause] at (7.60,5.04) {};
 \node[clause] at (7.60,4.72) {};
 \node[font=\tiny, text=codegray] at (7.00,4.18)
-  {split within; union across};
+  {extract within; union across};
 
 %% iterative syntax filter
 \node[heading] at (8.92,5.57) {SYNTAX};
@@ -85,7 +85,7 @@
   {prove + prune};
 
 %% inductive clauses
-\node[heading] at (12.65,5.57) {SURVIVING CLAUSES};
+\node[heading] at (12.65,5.57) {VALID CLAUSES};
 \node[survivor] at (12.00,5.08) {};
 \node[survivor] at (12.50,4.84) {};
 \node[survivor] at (13.00,5.08) {};
@@ -126,7 +126,7 @@
 \node[card, draw=codepurple!64, fill=codepurple!7, text width=2.55cm]
   (sftdata) at (2.10,0.02)
   {\textbf{Canonical response}\\[-1pt]
-   {\scriptsize verified invariant set}};
+   {\scriptsize inductive invariant set}};
 \node[tag, fill=codepurple!84] (sftcorpus) at (2.10,-0.95)
   {SFT CORPUS \(\mathcal D_{\rm SFT}\)};
 \draw[dataflow] (sftpair) -- (sftdata);
@@ -167,9 +167,11 @@
    {\tiny coverage \(R_i\)}};
 \node[card, draw=codepurple!62, fill=codepurple!6, text width=1.48cm,
   inner xsep=3pt] (groupcredit) at (8.95,-1.25)
-  {{\tiny\bfseries COMPOSE GROUP}\\[-1pt]
-   {\tiny union + Shapley}};
+  {{\tiny\bfseries GROUP CREDIT}\\[-1pt]
+   {\tiny Shapley over \(R_{1:G}\)}};
 \node[tag, fill=codeblue!84] (grpo) at (10.35,-1.25) {GRPO};
+\draw[trainflow] (4.00,4.48) -- (4.00,3.23) --
+  (4.42,3.23) -- (4.42,-1.25) -- (trainin.west);
 \draw[trainflow] (trainin) -- (score);
 \draw[trainflow] (score) -- (groupcredit);
 \draw[trainflow] (groupcredit) -- (grpo);
@@ -187,12 +189,12 @@
 
 \node[card, draw=codered!52, fill=white, text width=2.55cm]
   (inferin) at (13.55,1.70)
-  {\textbf{Inductive clauses}\\[-1pt]
+  {\textbf{Valid clauses}\\[-1pt]
    {\scriptsize restore held-out target \(Q\)}};
 \node[card, draw=codered!64, fill=codered!5, text width=2.55cm]
   (wp) at (13.55,0.10)
   {\textbf{Final Proof}\\[-1pt]
-   {\scriptsize \((\bigwedge C)\wedge\neg B\Rightarrow Q\)}};
+   {\scriptsize \(\operatorname{Verify}(\mathcal L,\bigwedge C,Q)\)}};
 \node[card, draw=codegreen!64, fill=codegreen!10, text width=2.55cm]
   (pass) at (13.55,-1.10)
   {\textbf{\textcolor{codegreen!82}{\cmark\ VERIFIED}}};
@@ -203,11 +205,10 @@
 \end{tikzpicture}
 }%
 \caption{\textbf{Rollout--combine--filter is the organizing principle.}
-Multiple target-hidden rollouts explore independently; their clauses are split
-within responses, unioned across responses, and filtered into one combined
-invariant.  SFT distills this composition.  RL mirrors it by rewarding the
-sound subset inside each rollout and its complementary contribution across the
-group; during training, reachable positive examples pre-filter clauses before
-Houdini.  Deployment restores \(Q\) only after the same composition is fixed.}
+Target-hidden rollouts are parsed, unioned, and Houdini-filtered.  SFT distills
+the combined set; RL rewards retained clauses within each rollout and
+complementary negative coverage across the group.  Executions construct and
+clean only training-time reward signals; deployment restores \(Q\) only for
+the final proof.}
 \label{fig:overview}
 \end{figure}

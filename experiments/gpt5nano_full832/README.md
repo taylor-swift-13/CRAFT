@@ -13,6 +13,14 @@ comparison on the same 832 LoopGym programs:
 8. LoopGym-R10-H: ten rollouts, union, Houdini, no re-roll
 9. Daikon: native dynamic invariant mining, no Houdini
 
+Loopy is installed separately at `/home/yangfp/Loopy` and evaluated by the
+target-hidden extension in `loopy_adapter.py`.  The adapter retains Loopy's
+published 15-completion prompt/union/Houdini orchestration, omits its explicit
+chain-of-thought request, exposes only the hidden source during generation,
+and uses the common final judge after restoring the original target.  It
+records provider-reported token usage and generation/filter/judge time per
+task.
+
 The original frozen seven-method run contained LoopGym-R4-H. Its artifacts
 remain available for provenance and call reuse, but R4-H is intentionally
 excluded from the current final table and is replaced by the clean no-reroll
@@ -99,6 +107,18 @@ an explicit `unsupported` row with zero API calls instead of silently changing
 Clause2Inv into a different method or spending tokens on unverifiable output.
 
 ## Commands
+
+Run or resume the Loopy extension (start with a one-task smoke test):
+
+```bash
+python3 -m experiments.gpt5nano_full832.loopy_adapter generate --max-tasks 1 --workers 1
+python3 -m experiments.gpt5nano_full832.loopy_adapter all --workers 1
+```
+
+The extension writes append-only events to `events/loopy.jsonl`, per-task API
+artifacts under `artifacts/loopy/`, and `loopy_summary.json`.  It requires
+`OPENAI_API_KEY`; `OPENAI_BASE_URL` defaults to the same OpenAI-compatible
+endpoint used by the frozen GPT-5-nano evaluation.
 
 Build and audit the task manifest:
 
@@ -203,7 +223,7 @@ evaluation under `events/daikon.jsonl` and
 ## R10-H extension
 
 `loopgym_r10_houdini` evaluates exactly ten target-hidden rollouts, their
-union, and Frama-C/WP Houdini, with `max_rerolls=0`. Compatible first-attempt
+union, and Frama-C/WP Houdini, without re-roll. Compatible first-attempt
 R4-H responses are reused when their complete per-call artifacts and prompt
 hashes are available; their original tokens and measured call latency remain
 part of R10-H's algorithmic cost. Missing responses are sampled normally.
@@ -222,7 +242,7 @@ The extension writes `events/loopgym_r10_houdini.jsonl`,
 ## R5-H no-reroll result
 
 `loopgym_r5_houdini` uses exactly five target-hidden rollouts, union, and
-Frama-C/WP Houdini with `max_rerolls=0`. To avoid redundant model spending,
+Frama-C/WP Houdini without re-roll. To avoid redundant model spending,
 the completed evaluation replays the exact first five stored R10-H responses
 for each task. It does not reuse the R10-H candidate union or proof result:
 response parsing, union, Houdini, restored-target validation, and fixed-sample

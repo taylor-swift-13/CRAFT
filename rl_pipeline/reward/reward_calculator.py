@@ -10,14 +10,13 @@ each rollout and the batch, using synthetic negative candidates from the sampler
   reward[A]   = w_base * base[A] + w_shapley * shapley[A]
                 - redundancy_penalty[A] - overflow_penalty[A]
   batch_score = fraction of candidates rejected by Houdini(union)    (batch performance)
-  should_reroll = batch_score < reroll_threshold
 
 Scoring uses ONE canonical example set; soundness is delegated entirely to the
 filter cascade, which ends in real Houdini (Frama-C/WP).
 
 A candidate set "rejects" a negative valuation s iff some (Houdini-surviving)
 invariant evaluates to False at s — a cheap pure-Python check on states.  When
-no safe negatives exist, the fallback is binary: one iff every candidate in a
+the sampler retains no negatives, the fallback is binary: one iff every candidate in a
 non-empty rollout survives Frama-C/WP validation, otherwise zero.
 """
 from __future__ import annotations
@@ -29,7 +28,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from typing import List, Optional, Set
 
-from ..common.program import parse_program
+from ..common.program import parse_program, strip_postcondition
 from ..common.state import (
     MAX_INVARIANTS_PER_RESPONSE,
     State,
@@ -72,7 +71,6 @@ class BatchReward:
     n_positives: int
     n_negatives: int
     batch_score: float
-    should_reroll: bool
     filter_mode: str
     rollouts: List[RolloutScore] = field(default_factory=list)
     # Kept after the historical fields for positional-constructor compatibility.
@@ -85,7 +83,6 @@ class BatchReward:
             "n_positives": self.n_positives,
             "n_negatives": self.n_negatives,
             "batch_score": self.batch_score,
-            "should_reroll": self.should_reroll,
             "filter_mode": self.filter_mode,
             "reward_variant": self.reward_variant,
             "negative_sampler": self.negative_sampler,
@@ -176,7 +173,6 @@ class RewardCalculator:
         w_redundancy: float = 0.02,
         w_overflow: float = 0.05,
         max_invariants: int = MAX_INVARIANTS_PER_RESPONSE,
-        reroll_threshold: float = 0.6,
         n_jobs: Optional[int] = None,     # parallel frama-c filter calls per group
         logger: Optional[logging.Logger] = None,
         sampler_kwargs: Optional[dict] = None,
@@ -194,7 +190,6 @@ class RewardCalculator:
         self.w_redundancy = w_redundancy
         self.w_overflow = w_overflow
         self.max_invariants = max_invariants
-        self.reroll_threshold = reroll_threshold
         self.n_jobs = n_jobs or min(16, (os.cpu_count() or 8))
         self.sampler_kwargs = sampler_kwargs or {}
         self.reward_variant = reward_variant
@@ -210,8 +205,6 @@ class RewardCalculator:
                 "max_invariants must be between 1 and "
                 f"{MAX_INVARIANTS_PER_RESPONSE}"
             )
-        if not 0.0 <= self.reroll_threshold <= 1.0:
-            raise ValueError("reroll_threshold must be between 0 and 1")
 
     # ── negative-rejection bookkeeping ───────────────────────────────────────
     @staticmethod
@@ -232,7 +225,12 @@ class RewardCalculator:
                 examples: Optional[ExampleSet] = None,
                 loop_idx: int = 0,
                 cap_responses: bool = True) -> BatchReward:
-        """Score rollouts against one example set (sampled canonically if omitted)."""
+        """Score rollouts without exposing the held-out target to the reward path."""
+        # Trainers may submit the original benchmark record so that one payload
+        # can also be archived for final evaluation.  Neither trace sampling nor
+        # inductiveness filtering needs its assertion/ensures clause, so enforce
+        # the target-hidden boundary here rather than relying on every caller.
+        source = strip_postcondition(source)
         if examples is None:
             examples = ExampleSampler(source, **self.sampler_kwargs).sample()
         return self._compute_one(
@@ -427,7 +425,6 @@ class RewardCalculator:
             n_positives=len(positives),
             n_negatives=n_neg,
             batch_score=batch_score,
-            should_reroll=batch_score < self.reroll_threshold,
             filter_mode=getattr(self.filter, "name", "unknown"),
             reward_variant=self.reward_variant,
             negative_sampler=getattr(

@@ -162,8 +162,12 @@ class OutputVerifier:
         wp_parallel = os.environ.get("LOOPGYM_WP_PAR", "8")
         if not wp_parallel.isdigit() or int(wp_parallel) < 1:
             wp_parallel = "8"
+        wp_timeout = os.environ.get("LOOPGYM_WP_TIMEOUT", "5")
+        if not wp_timeout.isdigit() or int(wp_timeout) < 1:
+            wp_timeout = "5"
         command = [
-            "frama-c", "-wp", "-wp-print", "-wp-timeout", "30", "-wp-par", wp_parallel,
+            "frama-c", "-wp", "-wp-print", "-wp-timeout", wp_timeout,
+            "-wp-par", wp_parallel,
             "-wp-prover", "alt-ergo", "-wp-model", "Typed",
             "-wp-prop=-@terminates", file_path,
         ]

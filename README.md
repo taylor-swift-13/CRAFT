@@ -198,7 +198,8 @@ res = inf.run()   # generate → union → Houdini → Frama-C verify
 res.final_invariants, res.verified
 ```
 - **Strict closed-book inference**: generation and Houdini pruning use a
-  program with `assert`/`ensures` removed. Only the
+  program with `assert`/`ensures`, executable assertion calls, and non-contract
+  comments removed. Only the
   final Frama-C verification inserts the surviving invariants into the original
   target-bearing program.
 - CLI: `python -m rl_pipeline.inference --model <hf-or-dir> --inputs '<glob>'`.

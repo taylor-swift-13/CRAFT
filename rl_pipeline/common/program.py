@@ -103,6 +103,58 @@ def _strip_comments(src: str) -> str:
     return "".join(out)
 
 
+def strip_noncontract_comments(source: str) -> str:
+    """Blank ordinary C comments while preserving ACSL ``/*@``/``//@``.
+
+    Evaluation files may carry source-provenance comments whose paths encode
+    benchmark identities or outcome labels.  They are not program semantics
+    and must not enter a target-hidden model prompt.  A small lexical scanner
+    avoids mistaking comment markers inside string or character literals for
+    comments and preserves line/character positions for downstream parsing.
+    """
+    out = list(source)
+    index = 0
+    quote = None
+    escaped = False
+    while index < len(source):
+        char = source[index]
+        if quote is not None:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == quote:
+                quote = None
+            index += 1
+            continue
+        if char in {'"', "'"}:
+            quote = char
+            index += 1
+            continue
+        if source.startswith("//@", index) or source.startswith("/*@", index):
+            marker = "\n" if source.startswith("//@", index) else "*/"
+            end = source.find(marker, index + 3)
+            index = len(source) if end < 0 else end + len(marker)
+            continue
+        if source.startswith("//", index):
+            end = source.find("\n", index + 2)
+            end = len(source) if end < 0 else end
+            for position in range(index, end):
+                out[position] = " "
+            index = end
+            continue
+        if source.startswith("/*", index):
+            end = source.find("*/", index + 2)
+            end = len(source) if end < 0 else end + 2
+            for position in range(index, end):
+                if out[position] != "\n":
+                    out[position] = " "
+            index = end
+            continue
+        index += 1
+    return "".join(out)
+
+
 _ACSL_BINDER_RE = re.compile(r"\\(?:forall|exists|lambda|let)\b")
 
 
@@ -126,7 +178,7 @@ def _acsl_clause_end(source: str, expression_start: int) -> int:
     return len(source)
 
 
-def _iter_acsl_clauses(source: str, keyword: str):
+def iter_acsl_clauses(source: str, keyword: str):
     for match in re.finditer(rf"\b{re.escape(keyword)}\b", source):
         end = _acsl_clause_end(source, match.end())
         stop = end + 1 if end < len(source) else end
@@ -194,7 +246,7 @@ def _extract_requires(src: str) -> str:
     """All `requires <expr>;` clauses conjoined — a precondition may span several
     clauses (`requires x>0; requires y>0;`) and dropping any of them lets
     out-of-contract inputs poison the sampled positives."""
-    clauses = [expression for _, _, expression in _iter_acsl_clauses(src, "requires")]
+    clauses = [expression for _, _, expression in iter_acsl_clauses(src, "requires")]
     if len(clauses) > 1:
         return " && ".join(f"({c})" for c in clauses)
     if not clauses:
@@ -207,8 +259,9 @@ def strip_postcondition(source: str) -> str:
 
     Shown to the invariant-GENERATING model so it never sees the goal it must
     prove — it must synthesise invariants from the loop semantics, not read off
-    (or restate) the assertion. The reward caller retains the full source for
-    verification, while the sampler ignores the target. `requires` is kept."""
+    (or restate) the assertion. A trainer may retain the full source in archival
+    metadata, but the reward boundary strips it before sampling or filtering.
+    `requires` is kept."""
     # Preserve input contracts when `requires` and `ensures` share one block.
     def _strip_target_clauses(match):
         body = _strip_acsl_targets(match.group(1))
@@ -229,7 +282,7 @@ def strip_postcondition(source: str) -> str:
     # all gotos are renamed with it, so control flow is unchanged.
     if re.search(r"\bERROR\s*:", out):
         out = re.sub(r"\bERROR\b", "__loopgym_label_0", out)
-    return out
+    return strip_noncontract_comments(out)
 
 
 def _function_contract(src: str, signature_start: int) -> str:
@@ -250,11 +303,11 @@ def _function_contract(src: str, signature_start: int) -> str:
 def _extract_post(src: str, after: int, before: int, contract: str = "") -> str:
     """Find an `assert <expr>;` (preferred, after the loop) or an `ensures`."""
     # assert after the loop
-    for start, _, expression in _iter_acsl_clauses(src, "assert"):
+    for start, _, expression in iter_acsl_clauses(src, "assert"):
         if after <= start < before:
             return re.sub(r"\s+", " ", expression).strip()
     # ensures clause
-    for _, _, expression in _iter_acsl_clauses(contract, "ensures"):
+    for _, _, expression in iter_acsl_clauses(contract, "ensures"):
         return re.sub(r"\s+", " ", expression).strip()
     return ""
 

@@ -316,7 +316,6 @@ def _canonical_ast_key(node: ast.AST) -> Hashable:
         exact_operators = {
             ast.FloorDiv: "div",
             ast.Mod: "mod",
-            ast.Pow: "pow",
         }
         for operator_type, name in exact_operators.items():
             if isinstance(node.op, operator_type):
@@ -389,21 +388,6 @@ def _c_div(a, b):
 
 def _c_mod(a, b):
     return a - _c_div(a, b) * b
-
-
-def _logic_power(base, exponent):
-    base, exponent = int(base), int(exponent)
-    return 1 if exponent <= 0 else base ** exponent
-
-
-def _logic_factorial(value):
-    value = int(value)
-    if value <= 0:
-        return 1
-    result = 1
-    for factor in range(2, value + 1):
-        result *= factor
-    return result
 
 
 class _CDivTransformer(ast.NodeTransformer):
@@ -540,7 +524,7 @@ def eval_predicate(expr: str, state: "State") -> Optional[bool]:
     except AttributeError:
         names = ()
     allowed = set(ns.keys()) | {
-        "True", "False", "None", "bool", "abs", "power", "factorial",
+        "True", "False", "None", "bool", "abs",
         "__cdiv__", "__cmod__",
     }
     for nm in names:
@@ -548,8 +532,6 @@ def eval_predicate(expr: str, state: "State") -> Optional[bool]:
             return None
     ns["abs"] = abs
     ns["bool"] = bool
-    ns["power"] = _logic_power
-    ns["factorial"] = _logic_factorial
     ns["__cdiv__"] = _c_div
     ns["__cmod__"] = _c_mod
     try:
@@ -579,7 +561,7 @@ def first_falsifying_state(expr: str, states: List[State]) -> Optional[State]:
 
         code = _compile_vector(expr)
         function_names = {
-            "abs", "power", "factorial", "__cdiv__", "__cmod__", "__logical_and__",
+            "abs", "__cdiv__", "__cmod__", "__logical_and__",
             "__logical_or__", "__logical_not__",
         }
         columns = {}
@@ -622,8 +604,6 @@ def first_falsifying_state(expr: str, states: List[State]) -> Optional[State]:
         namespace = {
             **columns,
             "abs": np.abs,
-            "power": np.vectorize(_logic_power, otypes=[object]),
-            "factorial": np.vectorize(_logic_factorial, otypes=[object]),
             "__cdiv__": cdiv,
             "__cmod__": cmod,
             "__logical_and__": np.logical_and,

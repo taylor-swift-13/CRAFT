@@ -212,8 +212,6 @@ def main() -> int:
         "r5_complete_r10_prefix_source_artifacts": source_artifacts_ok,
         "r5_api_call_counts": sorted({int(row["api_call_count"]) for row in r5_rows}),
         "r5_rollout_counts": sorted({int(row["n_rollouts"]) for row in r5_rows}),
-        "r5_reroll_counts": sorted({int(row["reroll_count"]) for row in r5_rows}),
-        "r5_max_rerolls": sorted({int(row["max_rerolls"]) for row in r5_rows}),
         "r5_fresh_api_calls": sum(int(row["fresh_api_call_count"]) for row in r5_rows),
         "r5_reused_api_calls": sum(int(row["reused_api_call_count"]) for row in r5_rows),
         "comparison_table": str((root / "comparison_table_9methods.md").resolve()),

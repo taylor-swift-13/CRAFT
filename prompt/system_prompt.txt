@@ -7,32 +7,31 @@ A loop invariant is a property that:
 2. Is preserved by every loop iteration when the loop guard is true (inductiveness).
 3. Combined with loop exit (`!guard`), helps establish required loop-exit facts.
 
-## AVAILABLE LOGIC FUNCTIONS
-
-You may use these pre-declared ACSL logic functions without defining them:
-
-- `power(b, e)` — integer exponentiation, returns b multiplied by itself e times (`logic integer power(integer b, integer e) = e <= 0 ? 1 : b * power(b, e-1)`).
-- `factorial(n)` — integer factorial, returns `1*2*...*n` (`logic integer factorial(integer n) = n <= 0 ? 1 : n * factorial(n-1)`).
-
-Use `power(base, exp)` instead of writing `base*base*...*base`, and `factorial(n)` instead of writing `1*2*3*...*n` or inventing axioms/axiomatics.
-
-
 ## RULES
 
 - MUST NOT modify or rewrite any `unknown()`/`unknownN()` call.
 - `\at(v, Pre)` refers to function entry and can ONLY be used with function parameters, never with local variables initialized inside the function.
 - `\at(v, LoopEntry)` refers to the value of any in-scope scalar when the loop is first reached. Use it for locals initialized before the loop, especially `int v = unknown();`.
 - `unknown()`/`unknownN()` returns an arbitrary unconstrained value of its declared C type; assume no sign, range, concrete value, or relation between calls unless the program or contract establishes it.
-- Let `ENTER` mean that the loop guard holds at `LoopEntry`. Split unconstrained initial values with implications: `ENTER ==> <entered-case property>` and `!ENTER ==> x == \at(x,LoopEntry)`.
+- Conceptually, let `ENTER` mean that the loop guard holds at `LoopEntry`.
+  Split unconstrained initial values into entered and skipped-loop cases with
+  implications. In the emitted invariant, expand `ENTER` into the actual guard
+  by replacing every program variable `v` in the guard with
+  `\at(v,LoopEntry)`; never emit `ENTER` as an ACSL identifier. For example,
+  for `while (x < n)`, write
+  `(\at(x,LoopEntry) < \at(n,LoopEntry)) ==> <entered-case property>` and
+  `!(\at(x,LoopEntry) < \at(n,LoopEntry)) ==> x == \at(x,LoopEntry)`.
 - Add one core conservation/relational equality that explains loop updates (state transition law).
 - Add minimal progress bounds for loop counters and key arithmetic variables.
 - Prefer strong invariants; avoid weak/tautological ones.
 - Do not add unrelated invariants just to increase count.
 - Loop guard is NOT an invariant; weaken strict guards to non-strict bounds at exit.
 - Parenthesize mixed equality and relational expressions so their grouping is explicit.
-- Emit scalar invariant expressions only; do not declare predicates, logic functions, axioms, or lemmas (use the pre-declared logic functions above instead).
+- Emit scalar invariant expressions only; do not call or declare helper predicates,
+  logic functions, axioms, or lemmas. Express fixed-degree polynomial relations
+  directly with scalar arithmetic, for example `x*x*x` for x cubed.
 - Do NOT use the ternary `? :` operator; split cases with `==>` instead.
-- `^` is bitwise XOR in C/ACSL, not exponentiation — write `x*x*x` for x cubed.
+- `^` is bitwise XOR in C/ACSL, not exponentiation. Do not use it.
 - Do NOT place a C boolean directly in arithmetic (`x + (a > b)` is invalid); use `==>` to split cases.
 - Only use variables declared in the given function.
 - Operators: comparison `==` `!=` `<` `<=` `>` `>=`; logical `&&` `||` `!` `==>` `<==>`; arithmetic `+` `-` `*` `/` `%`.

@@ -1,11 +1,11 @@
 %%
 %% LoopGym: Target-Hidden Loop Verification
-%% ICLR 2026 submission format
+%% ICLR 2027 submission format
 %%
 \documentclass{article}
 
 %% Official ICLR style; keep \iclrfinalcopy disabled for anonymous review.
-\usepackage{iclr2026_conference,times}
+\usepackage{iclr2027_conference,times}
 
 %% Packages
 \usepackage{booktabs}
@@ -37,6 +37,7 @@
 \newtheorem{definition}[theorem]{Definition}
 
 %% ---- Compact algorithm environment ----
+\floatstyle{ruled}
 \newfloat{algorithm}{tbp}{loa}
 \floatname{algorithm}{Algorithm}
 
@@ -178,8 +179,8 @@
 \newcommand{\denote}[1]{\left[\!\left[#1\right]\!\right]}
 
 %% Meta
-\title{\sam{}: Training for Rollout--Combine--Filter Inference\\
-in Target-Hidden Loop Verification}
+\title{\sam{}: Rollout--Combine--Filter Training\\
+for Target-Hidden Loop Verification}
 
 \author{
   Anonymous authors\\
@@ -192,34 +193,23 @@ in Target-Hidden Loop Verification}
 \maketitle
 
 \begin{abstract}
-Loop-invariant generation is compositional: one response may contain a useful
-bound, another a relational equality, and neither need prove the target alone.
-This makes pass@1 a poor training and evaluation objective for an inference
-procedure that can combine partial answers.  We study this problem under
-\emph{target-hidden loop verification}, where the model sees the precondition,
-guard, and body but not the assertion or postcondition \(Q\).  Our inference
-procedure samples multiple responses, splits conjunctive invariants into
-clauses, unions them, iteratively removes syntax failures, and uses
-verifier-checked Houdini pruning to retain an inductive subset before \(Q\) is
-restored for the final proof.  We align both stages of training with this
-rollout--combine--filter procedure.  First, synthetic supervised targets are
-formed by applying it to multiple target-hidden responses and serializing the
-combined verified set, thereby compressing a multi-response search result into
-one response.  Second, reinforcement learning replaces an independent
-verifier reward with credit assignment at two levels.  Within a rollout, the
-verifier projects its clauses onto a sound subset, and we reward the strength
-of that subset rather than whole-response correctness.  Across rollouts, a
-joint group reward credits what each subset contributes beyond its peers.  The
-reward uses
-reachable executions and conservatively filtered synthetic negative examples,
-never \(Q\).  The resulting objective is not to maximize standalone proof
-rate, but to train responses that combine into a stronger verified set under a
-fixed inference budget.  On 832 C programs, five-rollout inference verifies
-74.76\% of tasks, compared with 61.78\% for the strongest external baseline.
-Reinforcement learning raises combine@10 from 52.40\% to 56.97\% even as
-pass@1 decreases, and reduces the rollouts needed to reach 95\% of the measured
-maximum from 30 to 10.  Thus ten trained-model responses outperform the
-combination of one hundred base-model responses.
+Valid loop invariants are closed under conjunction: useful clauses from
+different responses can prove a target even when no response does so alone.
+Yet standard training scores each response as an indivisible answer.  We
+study this mismatch under \emph{target-hidden loop verification}, where target
+assertions and postconditions \(Q\) are withheld during generation and
+training.  LoopGym aligns both stages through rollout--combine--filter (RCF).
+At inference, RCF extracts and unions clauses, then uses syntax filtering and
+Houdini to retain an inductive subset before restoring \(Q\).  SFT distills a
+filtered multi-response union into one response.  RL assigns credit within a
+rollout to its verifier-retained subset and across rollouts to complementary
+coverage beyond peers.  Its target-independent strength signal comes from
+reachable executions and conservatively filtered synthetic negatives.  On
+832 C programs, five \texttt{gpt-5-nano} rollouts verify 74.76\% of tasks,
+versus 61.78\% for the strongest external baseline under each system's fixed
+native budget.  In a paired Qwen3-8B evaluation, RL raises combine@10 from
+52.76\% to 56.97\% despite lower pass@1 and reduces the rollouts needed to
+reach 95\% of each policy's measured maximum performance from 30 to 10.
 \end{abstract}
 
 %% ============================================================
@@ -229,11 +219,12 @@ combination of one hundred base-model responses.
 \input{sections/method}
 \input{sections/experiments}
 \input{sections/conclusion}
+\input{sections/statements}
 
 %% ============================================================
 %% References
 %% ============================================================
-\bibliographystyle{iclr2026_conference}
+\bibliographystyle{iclr2027_conference}
 \bibliography{references}
 
 %% ============================================================

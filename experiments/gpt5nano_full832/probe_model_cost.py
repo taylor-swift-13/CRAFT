@@ -83,7 +83,6 @@ def main() -> int:
             args.results_root,
             method="loopgym_r1_houdini",
             n_rollouts=1,
-            max_rerolls=0,
         )
 
     with ThreadPoolExecutor(max_workers=args.workers) as pool:

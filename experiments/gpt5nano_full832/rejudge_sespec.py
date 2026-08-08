@@ -190,7 +190,7 @@ def run_one(
             "-wp",
             "-wp-print",
             "-wp-timeout",
-            "30",
+            "5",
             "-wp-par",
             "8",
             "-wp-prover",

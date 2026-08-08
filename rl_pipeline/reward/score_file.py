@@ -24,7 +24,7 @@ from .reward_calculator import REWARD_VARIANTS, RewardCalculator
 def score_file(input_path: str, output_path: str, cfg: io.IOConfig,
                sampler_kwargs: Optional[dict] = None,
                w_base: float = 1.0,
-               reroll_threshold: float = 0.6, include_program: bool = False,
+               include_program: bool = False,
                logger: Optional[logging.Logger] = None,
                w_shapley: float = 0.3,
                w_redundancy: float = 0.02,
@@ -40,7 +40,6 @@ def score_file(input_path: str, output_path: str, cfg: io.IOConfig,
                           w_shapley=w_shapley,
                           w_redundancy=w_redundancy,
                           w_overflow=w_overflow,
-                          reroll_threshold=reroll_threshold,
                           reward_variant=reward_variant,
                           logger=logger)
 
@@ -55,7 +54,6 @@ def score_file(input_path: str, output_path: str, cfg: io.IOConfig,
         return es
 
     out_rows = []
-    n_reroll = 0
     n_failed = 0
     for bi, batch in enumerate(batches):
         try:
@@ -65,8 +63,6 @@ def score_file(input_path: str, output_path: str, cfg: io.IOConfig,
             logger.warning("batch %s failed: %s", batch.group_id, e)
             n_failed += 1
             continue
-        if br.should_reroll:
-            n_reroll += 1
         out_rows.extend(io.batch_reward_to_rows(batch, br, include_program=include_program))
         logger.info("batch %d/%d (%s): batch_score=%.3f rewards=%s",
                     bi + 1, len(batches), batch.group_id, br.batch_score,
@@ -77,7 +73,6 @@ def score_file(input_path: str, output_path: str, cfg: io.IOConfig,
         "batches": len(batches),
         "failed": n_failed,
         "rows": len(out_rows),
-        "reroll": n_reroll,
         "programs": len(example_cache),
     }
     logger.info("wrote %d reward rows -> %s  (%s)", len(out_rows), output_path, stats)
@@ -96,7 +91,6 @@ def main() -> int:
     ap.add_argument("--w-shapley", type=float, default=0.3)
     ap.add_argument("--w-redundancy", type=float, default=0.02)
     ap.add_argument("--w-overflow", type=float, default=0.05)
-    ap.add_argument("--reroll-threshold", type=float, default=0.6)
     ap.add_argument(
         "--reward-variant", choices=REWARD_VARIANTS, default="full"
     )
@@ -125,8 +119,7 @@ def main() -> int:
     }
     stats = score_file(
         args.input, args.output, cfg, sampler_kwargs,
-        args.w_base, args.reroll_threshold,
-        args.include_program, logger,
+        args.w_base, args.include_program, logger,
         w_shapley=args.w_shapley,
         w_redundancy=args.w_redundancy,
         w_overflow=args.w_overflow,

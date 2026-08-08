@@ -31,7 +31,6 @@ from .run import _score_fixed_task, event_path, new_attempt_dir, save_hidden_sou
 METHOD = "loopgym_r5_houdini"
 SOURCE_METHOD = "loopgym_r10_houdini"
 N_ROLLOUTS = 5
-MAX_REROLLS = 0
 EXTENSION_PROTOCOL = "loopgym_r5_houdini_no_reroll_r10_prefix_v1"
 
 
@@ -98,7 +97,6 @@ def _run_one(task: Task, root: Path, source_row: dict) -> dict:
             task.source_path.read_text(errors="ignore"),
             rollout_provider=MockRolloutProvider(rollouts),
             n_rollouts=N_ROLLOUTS,
-            max_rerolls=MAX_REROLLS,
         ).run()
         status, error = "completed", None
         invariants = result.final_invariants
@@ -119,9 +117,7 @@ def _run_one(task: Task, root: Path, source_row: dict) -> dict:
         "rollouts": rollouts,
         "invariants": invariants,
         "native_verified": native_verified,
-        "reroll_count": 0,
         "n_rollouts": N_ROLLOUTS,
-        "max_rerolls": MAX_REROLLS,
         "extension_protocol": EXTENSION_PROTOCOL,
         "api_calls_artifact": str(calls_path),
         "reuse_source_method": SOURCE_METHOD,
@@ -177,7 +173,6 @@ def generate_all(root: Path, workers: int, retry_failed: bool) -> None:
         "method": METHOD,
         "extension_protocol": EXTENSION_PROTOCOL,
         "rollouts": N_ROLLOUTS,
-        "max_rerolls": MAX_REROLLS,
         "houdini": True,
         "source_method": SOURCE_METHOD,
         "source_prefix_length": N_ROLLOUTS,

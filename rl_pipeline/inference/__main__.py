@@ -48,7 +48,6 @@ def main():
     ap.add_argument("--workers", type=int, default=1,
                     help="parallel programs; API backend only")
     ap.add_argument("--n-rollouts", type=int, default=8)
-    ap.add_argument("--max-rerolls", type=int, default=1)
     ap.add_argument("--temperature", type=float, default=1.0)
     ap.add_argument("--top-p", type=float, default=1.0)
     ap.add_argument("--max-tokens", type=int, default=2048)
@@ -111,8 +110,7 @@ def main():
     def run_one(path):
         src = open(path).read()
         fw = InferenceFramework(src, rollout_provider=provider(),
-                                n_rollouts=args.n_rollouts,
-                                max_rerolls=args.max_rerolls)
+                                n_rollouts=args.n_rollouts)
         res = fw.run()
         return {
             "input": path,
@@ -124,7 +122,6 @@ def main():
             "invariants": res.final_invariants,
             "rollouts": res.rollouts,
             "n_rollouts": res.n_rollouts,
-            "reroll_count": res.reroll_count,
         }
 
     output_handle = open(args.output, "a" if args.resume else "w") if args.output else None

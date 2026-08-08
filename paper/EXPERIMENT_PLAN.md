@@ -1,234 +1,126 @@
-# LoopGym end-to-end experiment plan
+# LoopGym experiment and evidence plan
 
-This document is the execution plan behind the paper's empirical section. It
-separates **measured reward checks**, **target-visibility diagnostics**, and
-**TBD target-hidden runs**. Numbers marked TBD must not be reported as results
-until the corresponding raw JSONL and Frama-C logs exist.
+This file tracks the empirical claims in the paper. A number may enter the
+paper only when a program-level artifact records the target-hidden input,
+rollouts, final Frama-C/WP judgment, protocol hash, and failure status.
+**TBD is not evidence.**
 
-## 1. Claims and research questions
+## Research questions
 
-| RQ | Claim to test | Primary evidence |
+| RQ | Question | Primary evidence |
 |---|---|---|
-| RQ1 | Small models explore too few proof-relevant strategies, while combine+Houdini can exploit only clauses the model actually emits. | Direct pass@\(k\) and combine@\(k\) curves for four official Qwen3 checkpoints. |
-| RQ2 | The rollout--combine--Houdini inference framework improves target-hidden verification at a measurable token/time cost. | Fixed-model comparison with external tools and controlled one/five/ten-rollout inference variants. |
-| RQ3 | Framework-aligned RL should improve the grouped inference curve rather than optimize pass@1 alone. | Qwen3-8B versus 8B-RL-Zero direct and combine curves. |
+| RQ1 | How do pass@\(k\) and combine@\(k\) scale? | One saved 100-response pool per task for Qwen3-4B, 8B, 14B, and 30B-A3B; report \(k\in\{1,10,30,50,100\}\). |
+| RQ2 | How much does combine@1 recover from one response across model families? | Paired pass@1/combine@1 judgments of the same response on all 832 tasks. |
+| RQ3 | How does LoopGym compare with specialized tools? | Target-hidden adaptations, fixed native budgets, common 832-task denominator, and common restored-target judge. |
+| RQ4 | Does RL improve the deployed combined inference curve? | Matched before/after-RL checkpoints for Zero and SFT initializations. |
+| RQ5 | Which reward and sampler mechanisms matter? | Three training seeds per reward or sampler variant, with all other settings fixed. |
 
-The primary endpoint is **target-hidden verification accuracy**, not the number
-of clauses accepted by Houdini:
+## Common information boundary and judge
 
-\[
-\mathrm{Acc}_{\mathrm{hidden}}(M)=\frac{1}{|\mathcal D|}
-\sum_{(P,Q)\in\mathcal D}
-\mathbf 1[\mathrm{WP}(P,I_M(P\setminus Q),Q)=\mathrm{valid}].
-\]
+The model sees function preconditions, the executable prefix, loop guard, and
+body, but not target set \(Q\) or non-contract comments. Target-derived verifier failures are never fed back before
+the invariant set is fixed. The original source is then restored and
+Frama-C/WP checks establishment, preservation, and \(Q\)-sufficiency under the
+same 5-second per-obligation budget. Parse errors, timeouts, unsupported
+attempted inputs, and missing rows are failures.
 
-Here the method fixes \(I_M\) without seeing \(Q\); \(Q\) is restored exactly
-once for final evaluation. Parse errors, timeouts, and unsupported attempted
-inputs are failures, so every method uses the same denominator.
+LoopGym evaluation runs share masking, prompting, response caps, splitting,
+normalization, and Houdini. External tools retain their fixed native
+orchestration; their budgets are fixed but not claimed to be call- or
+token-matched. LLM-based RQ3 rows use gpt-5-nano.
 
-## 2. Corpora and leakage control
+## Metrics
 
-### Linear and nonlinear
+- Pass@k: for a pool of \(n=100\) responses with \(c\) successes, compute
+  \(1-\binom{n-c}{k}/\binom{n}{k}\) per program and average over programs.
+- Combine@k: union the first \(k\) saved responses, apply Houdini, restore
+  \(Q\), and report the verified fraction. It is a fixed-prefix measurement,
+  not an all-subset unbiased estimate.
+- \(k_{95}\): the smallest measured \(k\) whose combine@\(k\) reaches 95% of
+  that pool's combine@100.
+- Efficiency: mean total tokens and end-to-end time per attempted task.
+  Provider usage is used for APIs; serving-tokenizer counts are used locally.
 
-- 316 linear programs in `src/input/linear`.
-  - 133 from Code2Inv.
-  - 84 from SyGuS 2019.
-  - 99 from SV-COMP 2024.
-- 50 nonlinear programs in `src/input/NLA_lipus`.
-  - 30 from LIPuS.
-  - 20 from SV-COMP 2024.
-- This is the primary test suite because it matches the benchmark boundary used
-  by Clause2Inv.
+RQ2 must retain paired outcomes (both, filter gain, filter regression,
+neither) because the net rate difference alone cannot reveal operational
+regressions caused by verifier timeouts.
 
-### Loopy
+## RQ5 variants
 
-- 466 normalized integer programs in `src/input/Loopy`.
-- Use as a transfer/comparison suite, not as 466 additional independent tasks.
-- The three official floating-point cases are out of scope.
+Reward variants map directly to the released service:
 
-These collections reuse benchmarks from prior work. A random file split is
-therefore insufficient. Before training:
+| Paper name | Service value | Difference |
+|---|---|---|
+| Binary Inductiveness | binary | all-or-nothing inductiveness |
+| Whole-Rollout Strength | whole_coverage | dense coverage only if the whole response survives |
+| Clause-Decomposed Strength | base | coverage of the independently retained clause subset |
+| Compositional Credit | base_shapley | add cross-rollout Shapley allocation |
+| Regularized Compositional Credit | full | add duplicate and overflow costs |
 
-1. recover the upstream source family for every program;
-2. normalize the target-hidden program to an AST/skeleton signature;
-3. cluster exact matches, alpha-renamings, and control-flow clones;
-4. assign whole clusters to train/validation/test;
-5. publish the cluster manifest and hashes.
+The sampler contrast is random versus structured, with identical execution,
+cleaning, seed, family-independent trace cap, and reward. Primary
+effectiveness is combine@10; also report pass@1, combine@1, combine@100,
+\(k_{95}\), pre-normalization within-group reward variance, and expanded-sweep
+reachability collision.
 
-The standard 366-program linear and nonlinear table should remain an evaluation
-table. If these examples are used for RL training, report a separate held-out
-split and never compare that trained-on subset with published zero-shot
-baseline counts.
+## Evidence status
 
-## 3. Target-hidden baseline protocol
+| Evidence block | Current status |
+|---|---|
+| RQ1 four-checkpoint curves | Values present; raw pool location must be recorded in the final artifact manifest. |
+| RQ2 GPT-5-nano/mini/default and DeepSeek paired results | Program-level artifacts present. |
+| RQ2 Claude paired accuracy | Aggregate values are in the manuscript, but the 832-task program-level artifact location is missing; only the disclosed 20-task cost sample is present. |
+| RQ2 local Qwen/Llama rows | Missing. |
+| RQ3 common tool comparison | Program-level LoopGym/tool artifacts present; Clause2Inv token count is estimated and limited to supported tasks. |
+| RQ4 Zero to RL-Zero | The finalized pre-RL aggregate now uses the same Qwen3-8B base curve as RQ1. The canonical program-level pool artifact and training manifest must still be archived before submission. |
+| RQ4 SFT to SFT+RL | Missing. |
+| RQ5 reward ablation | Missing. |
+| RQ5 sampler ablation | Missing. |
+| Training configuration | Optimizer, learning rate, batch/group sizes, update count, checkpoint IDs, seeds, and hardware manifest missing. |
+| Training--test overlap | Reproducible via paper/scripts/audit_train_test_overlap.py; input hashes are in paper/artifacts/train_test_overlap.json. |
+| Prompt provenance sanitation | **Submission rerun required.** The old model-facing transform preserved non-contract comments in 478 evaluation files: all 466 Loopy sources contain a `// Source:` path (98 encode an outcome label such as `true-unreach-call`, `safe`, or `ok`), and 12 NLA files contain generic section comments. The shared masking code now removes ordinary comments while retaining ACSL contracts. Every affected generation result predating this fix must be regenerated or supported by a predeclared sensitivity study. |
+| Training-prompt sanitation | **Clean artifacts generated; retraining required.** `paper/scripts/sanitize_training_prompts.py` rebuilds one canonical prompt revision, checks every unique RL source with the Frama-C kernel, and filters SFT clauses with the deployed 5-second-per-obligation Houdini judge. The final artifacts contain 37,481 RL and 3,205 SFT rows; sanitation, per-program power rewrites, and hashes are recorded under `paper/artifacts/`. Retrain from these outputs before reporting RQ4/RQ5. |
 
-Published Loopy, Clause2Inv, and symbolic-solver scores are excluded from the
-main table. They solve a target-visible problem and therefore answer a
-different question. A baseline is eligible only if all of the following hold:
+An artifact sweep finds non-contract comments in 6,971 of 11,717 saved
+`results/**/input.hidden.c` files, including complete GPT-5, GPT-5-mini,
+DeepSeek, AutoSpec, and gpt-5-nano result directories. These file counts include
+retries and pilots and are not task denominators; they establish that the issue
+is present in saved model-facing inputs rather than only in raw benchmark files.
 
-1. generation receives \(P\setminus Q\), never the assertion or postcondition;
-2. ranking, combination, counterexample construction, and repair receive no
-   target text, target-derived constraint, or safety verdict;
-3. the invariant set is fixed before \(Q\) is restored;
-4. correctness is measured by the same final Frama-C/WP command and timeout;
-5. every attempted benchmark input remains in the denominator.
+## Required artifact schema
 
-The controlled adaptations are:
+Store one JSONL row per (RQ, system, checkpoint, seed, program, k):
 
-- **Loopy-no-\(Q\):** mask \(Q\) in both generation and repair prompts. During
-  search, expose only invariant initiation and preservation failures. Do not
-  expose a final-safety failure until the candidate is fixed and scored.
-- **Clause2Inv-no-\(Q\):** run the clause generator on the masked program.
-  Permit only initiation and consecution constraints when filtering or
-  combining clauses; remove safety counterexamples and every constraint
-  derived from \(Q\).
-- **iRank-no-\(Q\):** generate the same fixed target-hidden candidate pool used
-  by the unranked control. Remove \(Q\), assertion text, and target-derived
-  verifier outcomes from ranker inputs and features.
-- **Direct-no-\(Q\):** generate once from the masked program, then restore
-  \(Q\) only for final scoring.
-- **LoopGym:** use target-free rollout and Houdini throughout;
-  restore \(Q\) only for the final WP check.
-
-Target-visible executions may be reported in a separate diagnostic table to
-measure shortcut size, but never as competing baselines or as evidence of
-target-hidden accuracy.
-
-## 4. Controlled systems
-
-All neural rows must use the same base checkpoint, prompt token budget,
-temperature, and total number of sampled responses.
-
-| System | Target visible during search? | Candidate processing | Purpose |
-|---|---:|---|---|
-| Direct-1-no-\(Q\) | no | one rollout, then restored-\(Q\) verification | Single-sample target-hidden baseline. |
-| Loopy-no-\(Q\) | no | independent generation and target-free repair | Adapts Loopy to the same information boundary. |
-| Clause2Inv-no-\(Q\) | no | target-free clause generation and combination | Adapts Clause2Inv to the same information boundary. |
-| iRank-no-\(Q\) | no | rank the same \(G\) target-hidden rollouts, then score with restored \(Q\) | Tests ordering without target leakage. |
-| Union+Houdini | no | merge \(G\) rollouts and run \(\mathsf H_P\) | Isolates complementary clauses and pruning. |
-| Full LoopGym | no | target-free generation, union, and Houdini | Main inference system. |
-
-Recommended primary budget:
-
-- \(G=8\) initial rollouts, because Loopy reports saturation beginning around
-  eight completions and the repository CLI already defaults to eight.
-- Three generation seeds per checkpoint; three independent RL training seeds
-  for the primary trained-system comparison.
-- Per-program limits: 600 s total, 30 s per WP goal, fixed maximum output
-  tokens, and no re-roll in the headline table. Report re-roll separately.
-
-## 5. Metrics and failure taxonomy
-
-### Effectiveness
-
-- `Verified@budget`: original target restored and every Frama-C/WP goal proved.
-- `Inductive`: at least one nontrivial clause survives Houdini.
-- `Exit gap`: inductive survivors exist, but the restored target fails.
-- `Copy rate`: a generated clause is an exact normalized copy of the target.
-- `pass@k`: only for independent sampling rows; do not use it for pooled
-  systems where candidates interact.
-
-Report Wilson 95% confidence intervals for per-program proportions and paired
-bootstrap intervals for differences on the same program set.
-
-### Efficiency
-
-- model calls and generated tokens;
-- syntax/precheck/full-Houdini/final-WP invocations;
-- wall time and peak memory;
-- verified programs per 100 full verifier calls;
-- average values over solved tasks and over all attempted tasks, clearly
-  distinguished.
-
-### Failure buckets
-
-1. no parseable invariant;
-2. syntax/scope failure;
-3. initiation failure;
-4. preservation failure;
-5. inductive but insufficient for \(Q\);
-6. timeout/tool failure.
-
-The fifth bucket is the key evidence for the paper's distinction between loop
-invariant generation and target-hidden loop verification.
-
-## 6. Training ablations
-
-Use the same training prompts and data order.
-
-| Variant | \(w_b\) | \(w_s\) | \(w_r\) | \(w_o\) | Expected diagnostic |
-|---|---:|---:|---:|---:|---|
-| Base checkpoint | -- | -- | -- | -- | Pre-training reference |
-| Inductiveness-only RL | binary | 0 | 0 | 0 | Shows why soundness alone is weak |
-| Base-only RL | 1.0 | 0 | 0 | 0 | Standalone discrimination only |
-| No-Shapley RL | 1.0 | 0 | 0.02 | 0.05 | Removes group coverage allocation |
-| No-redundancy-cost RL | 1.0 | 0.3 | 0 | 0.05 | Tests conservative semantic-duplicate control |
-| No-overflow-cost RL | 1.0 | 0.3 | 0.02 | 0 | Keeps the 20-clause cap but removes its excess-length gradient |
-| Full LoopGym | 1.0 | 0.3 | 0.02 | 0.05 | Complete generation objective |
-| No negative family | 1.0 | 0.3 | 0.02 | 0.05 | Repeat for relation, over-run, and escape |
-
-Primary training plots:
-
-- verified rate versus training step;
-- mean target-free reward and hidden-target verified rate on validation;
-- reward variance / all-zero GRPO groups.
-
-## 7. Result-table templates
-
-### Main target-hidden result (all entries currently TBD)
-
-| System | Train signal | Linear / 316 | NLA / 50 | All / 366 | Exit gap | Calls | WP calls |
-|---|---|---:|---:|---:|---:|---:|---:|
-| Direct-1-no-\(Q\) | none | TBD | TBD | TBD | TBD | 1.0 | TBD |
-| Loopy-no-\(Q\) | none | TBD | TBD | TBD | TBD | fixed budget | TBD |
-| Clause2Inv-no-\(Q\) | original training | TBD | TBD | TBD | TBD | fixed budget | TBD |
-| iRank-no-\(Q\) | original ranker | TBD | TBD | TBD | TBD | 8.0 | TBD |
-| Base Union+Houdini | none | TBD | TBD | TBD | TBD | 8.0 | TBD |
-| Full LoopGym | base+Shapley-costs | TBD | TBD | TBD | TBD | 8.0 | TBD |
-
-### Target visibility diagnostic
-
-| Model and budget | Visible verified | Hidden verified | Copy rate visible | Copy rate hidden |
-|---|---:|---:|---:|---:|
-| Base, Direct-1 | TBD | TBD | TBD | TBD |
-| Base, Best-of-8 | TBD | TBD | TBD | TBD |
-| Full LoopGym, \(m=2\) | -- | TBD | -- | TBD |
-
-### Current measured reward checks
-
-| Check | Coverage | Measured result |
-|---|---:|---:|
-| Discrimination specifications | 10 | 0 violations; minimum gold base 0.996 |
-| Negative-label audit | 366 programs, 486,302 candidate states | 0 hard pair-level collisions |
-| Soft audit diagnostic | 366 programs | 269 variable-only overlaps in 18 programs |
-
-## 8. Required raw artifact
-
-Write one JSONL row per `(system, checkpoint, seed, program)`:
-
-```json
+~~~json
 {
-  "suite": "core366",
-  "program_id": "linear/10",
+  "rq": "RQ4",
+  "suite": "linear",
+  "program_id": "10",
   "source_sha256": "...",
+  "hidden_source_sha256": "...",
+  "protocol_sha256": "...",
   "system": "loopgym",
   "checkpoint": "...",
   "seed": 0,
-  "target_visible": false,
-  "n_rollouts": 8,
+  "target_hidden": true,
+  "k": 10,
   "rollouts": [],
   "final_invariants": [],
   "verified": false,
-  "failure_bucket": "exit_gap",
-  "llm_calls": 8,
-  "input_tokens": 0,
-  "output_tokens": 0,
-  "precheck_calls": 0,
-  "houdini_calls": 0,
-  "final_wp_calls": 0,
+  "failure_status": "target_not_proved",
+  "prompt_tokens": 0,
+  "completion_tokens": 0,
   "wall_seconds": 0.0
 }
-```
+~~~
 
-Every number in the paper should be regenerated from this artifact. Do not
-populate the main comparison from published target-visible baseline tables.
+Every aggregate table must be regenerated from these rows, retain the common
+denominator, and record the exact script and input hashes used to produce it.
+
+## RQ1--RQ4 consistency gate
+
+RQ1 and the pre-RL side of RQ4 now share one finalized Qwen3-8B base curve.
+Before submission, archive the corresponding 100-response pool, checkpoint
+revision, prompt hash, serving settings, extraction/Houdini configuration, and
+program-level judgments so the shared aggregate is reproducible rather than
+only synchronized in the manuscript and plotting code.

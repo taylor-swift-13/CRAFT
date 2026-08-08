@@ -35,7 +35,6 @@ _ACSL_STOPWORDS = {
     "at", "Pre", "Post", "LoopEntry", "LoopCurrent", "old", "result",
     "true", "false",
     "True", "False", "None", "and", "or", "not", "bool", "abs",
-    "power", "factorial",
     "integer", "int", "long", "short", "unsigned", "signed", "real",
 }
 

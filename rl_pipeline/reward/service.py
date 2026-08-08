@@ -19,6 +19,7 @@ from typing import Any, Dict, List, Literal
 
 from pydantic import BaseModel, Field
 
+from ..common.program import strip_postcondition
 from ..common.state import MAX_INVARIANTS_PER_RESPONSE
 from ..sampler import ExampleSampler, ExampleSet
 from ..sampler.example_sampler import DEFAULT_N_RUNS, DEFAULT_SEED
@@ -51,7 +52,10 @@ class SamplerCfg(BaseModel):
 
 
 class RewardRequest(BaseModel):
-    program: str = Field(..., description="C program source with requires/loop/assert")
+    program: str = Field(
+        ...,
+        description="C program source; held-out targets are stripped by the service",
+    )
     rollouts: List[Any] = Field(..., description="each: {'invariants':[...]} or {'code': '...'}")
     w_base: float = Field(1.0, ge=0.0)
     w_shapley: float = Field(0.3, ge=0.0)
@@ -62,7 +66,6 @@ class RewardRequest(BaseModel):
         ge=1,
         le=MAX_INVARIANTS_PER_RESPONSE,
     )
-    reroll_threshold: float = Field(0.6, ge=0.0, le=1.0)
     reward_variant: Literal[
         "binary", "whole_coverage", "base", "base_shapley", "full"
     ] = "full"
@@ -87,6 +90,7 @@ def _cache_key(
 
 
 def _get_examples(program: str, cfg: SamplerCfg):
+    program = strip_postcondition(program)
     key = _cache_key(
         program, cfg.n_runs, cfg.seed, cfg.negative_sampler
     )
@@ -122,7 +126,6 @@ def build_app():
                 w_redundancy=req.w_redundancy,
                 w_overflow=req.w_overflow,
                 max_invariants=req.max_invariants,
-                reroll_threshold=req.reroll_threshold,
                 reward_variant=req.reward_variant,
                 logger=log,
             )

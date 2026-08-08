@@ -130,7 +130,6 @@ class InferenceResult:
     final_invariants: List[str]
     annotated_code: str
     verified: Optional[bool]
-    reroll_count: int
     n_rollouts: int
     rollouts: List[List[str]] = field(default_factory=list)
 
@@ -149,7 +148,6 @@ class InferenceFramework:
         rollout_provider=None,
         invariant_filter=None,
         n_rollouts: int = 4,
-        max_rerolls: int = 1,
         logger: Optional[logging.Logger] = None,
     ):
         self.original_prog = parse_program(source)
@@ -160,12 +158,9 @@ class InferenceFramework:
         self.provider = rollout_provider or LLMRolloutProvider(logger=logger)
         self.filter = invariant_filter or filters.auto_filter(logger)
         self.n_rollouts = n_rollouts
-        self.max_rerolls = max_rerolls
         self.log = logger or logging.getLogger("rl_pipeline.inference")
         if self.n_rollouts < 1:
             raise ValueError("n_rollouts must be at least 1")
-        if self.max_rerolls < 0:
-            raise ValueError("max_rerolls must be non-negative")
 
     def _verify(self, annotated_code: str) -> Optional[bool]:
         """Frama-C verify the final annotated code (None if frama-c unavailable)."""
@@ -233,29 +228,9 @@ class InferenceFramework:
             final_invariants=survivors,
             annotated_code=annotated,
             verified=verified,
-            reroll_count=0,
             n_rollouts=self.n_rollouts,
             rollouts=rollouts,
         )
 
     def run(self) -> InferenceResult:
-        best: Optional[InferenceResult] = None
-        rerolls = 0
-        for attempt in range(self.max_rerolls + 1):
-            res = self._attempt()
-            rerolls = attempt
-            if best is None or _better(res, best):
-                best = res
-            if res.verified is True:
-                break
-            if attempt < self.max_rerolls:
-                self.log.info("re-rolling (attempt %d, verified=%s)", attempt + 1, res.verified)
-        assert best is not None
-        best.reroll_count = rerolls
-        return best
-
-
-def _better(a: InferenceResult, b: InferenceResult) -> bool:
-    ra = (1 if a.verified else 0, len(a.final_invariants))
-    rb = (1 if b.verified else 0, len(b.final_invariants))
-    return ra > rb
+        return self._attempt()

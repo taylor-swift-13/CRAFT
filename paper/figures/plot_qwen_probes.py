@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the Qwen exploration and RL-Zero figures used by the paper."""
+"""Generate the base-checkpoint exploration and RL-Zero figures."""
 
 from pathlib import Path
 
@@ -26,7 +26,7 @@ OFFICIAL = {
     },
     "Qwen3-8B": {
         "direct": [9.30, 22.87, 28.30, 30.47, 33.29],
-        "combine": [24.88, 32.21, 33.65, 33.29, 32.93, 34.25],
+        "combine": [41.23, 52.76, 56.37, 57.09, 57.57, 58.05],
         "color": "#4f8a6b",
         "marker": "s",
         "style": "--",
@@ -45,14 +45,20 @@ OFFICIAL = {
         "marker": "D",
         "style": ":",
     },
+    "Llama (base)": {
+        "direct_k": [1, 2, 5, 10, 20, 50, 100],
+        "direct": [0.14, 0.28, 0.66, 1.23, 2.21, 4.46, 7.33],
+        "combine": [16.59, 30.41, 34.13, 34.38, 34.38, 34.38],
+        "color": "#75618f",
+        "marker": "v",
+        "style": "-",
+    },
 }
 
 RL_COMPARISON = {
     "Qwen3-8B": {
-        # This is the matched pre-RL baseline from the RL experiment, not the
-        # separately served RQ1 probe above. Keep the two artifacts independent.
         "direct": [9.30, 22.87, 28.30, 30.47, 33.29],
-        "combine": [40.26, 52.40, 55.05, 55.17, 55.41],
+        "combine": [41.23, 52.76, 56.37, 57.09, 58.05],
         "color": "#5b7185",
         "marker": "s",
         "style": "--",
@@ -91,7 +97,7 @@ def style_axis(ax: plt.Axes, display_ticks: list[int]) -> None:
     ax.set_xticks(display_ticks)
     ax.set_xticklabels([str(k) for k in display_ticks])
     ax.set_xlabel("Number of responses, $k$")
-    ax.set_ylabel("Programs verified (\%)")
+    ax.set_ylabel("Verification rate (\%)")
     ax.grid(True, which="major", alpha=0.8)
     ax.spines[["top", "right"]].set_visible(False)
 
@@ -113,13 +119,12 @@ def plot_lines(ax: plt.Axes, data: dict, metric: str, ks: list[int]) -> None:
 
 
 def official_probe() -> None:
-    fig, axes = plt.subplots(2, 2, figsize=(6.3, 3.75), sharex=True, sharey=True)
-    panel_names = ["(a)", "(b)", "(c)", "(d)"]
-    positions = list(range(len(PROBE_K)))
+    fig, axes = plt.subplots(2, 3, figsize=(7.2, 3.75), sharex=True, sharey=True)
+    panel_names = ["(a)", "(b)", "(c)", "(d)", "(e)"]
     for panel, (model, values) in enumerate(OFFICIAL.items()):
         ax = axes.flat[panel]
         ax.plot(
-            positions,
+            values.get("direct_k", PROBE_K),
             values["direct"],
             label="Pass@$k$",
             color="#9d6652",
@@ -131,7 +136,7 @@ def official_probe() -> None:
             markeredgecolor="white",
         )
         ax.plot(
-            positions,
+            PROBE_K,
             [values["combine"][i] for i in (0, 1, 2, 3, 5)],
             label="Combine@$k$",
             color="#2d7053",
@@ -142,24 +147,28 @@ def official_probe() -> None:
             markeredgewidth=0.5,
             markeredgecolor="white",
         )
-        ax.set_xticks(positions)
+        ax.set_xscale("log")
+        ax.set_xticks(PROBE_K)
         ax.set_xticklabels([str(k) for k in PROBE_K])
         ax.set_xlabel("Number of responses, $k$")
-        ax.set_ylabel("Programs verified (\%)")
+        ax.set_ylabel("Verification rate (\%)")
         ax.grid(True, which="major", alpha=0.8)
         ax.spines[["top", "right"]].set_visible(False)
         ax.set_title(f"{panel_names[panel]} {model}")
         ax.set_ylim(0, 62)
 
+    axes.flat[-1].remove()
+
     # Shared labels keep the four model-specific panels compact.
     axes[0, 0].set_xlabel("")
     axes[0, 1].set_xlabel("")
     axes[0, 1].set_ylabel("")
+    axes[0, 2].set_ylabel("")
     axes[1, 1].set_ylabel("")
     handles, labels = axes[0, 0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="upper center", ncol=2, frameon=False)
     fig.tight_layout(rect=(0, 0, 1, 0.90), h_pad=0.9, w_pad=1.0)
-    fig.savefig(OUT / "qwen_official_probe.pdf", bbox_inches="tight")
+    fig.savefig(OUT / "base_model_probe.pdf", bbox_inches="tight")
     plt.close(fig)
 
 
@@ -173,9 +182,8 @@ def rlzero_probe() -> None:
     axes[1].set_title("(b) Combined responses")
     axes[0].set_ylim(0, 36)
     axes[1].set_ylim(39, 61)
-    axes[1].axhline(55.41, color="#9aa8a0", linewidth=0.8, linestyle=":")
     axes[1].annotate(
-        "RL-Zero@$10$ = 56.97\%\nBase@$100$ = 55.41\%",
+        "Base@$10$ = 52.76\%\nRL-Zero@$10$ = 56.97\%",
         xy=(10, 56.97),
         xytext=(16, 48.2),
         fontsize=7.4,

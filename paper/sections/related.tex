@@ -2,88 +2,54 @@
 \section{Related Work}\label{sec:related}
 %% ============================================================
 
-\paragraph{Programmatic invariant synthesis.}
-Classical methods infer invariants with abstract interpretation, affine
-equalities, templates, interpolation, recurrences, or constraint solving
-~\citep{karr1976affine,cousot1977abstract,cousot1978automatic,
-sankaranarayanan2004non,colon2003linear,mcmillan2003interpolation,
-kincaid2017compositional}.  These methods provide strong guarantees for
-selected languages, especially affine transition systems, but nonlinear
-templates trade generality for increasingly difficult algebraic search.
-More generally, proving inductiveness certifies that an invariant is a sound
-over-approximation of reachable loop states, but does not say how precise that
-over-approximation is.  Many weak invariants are therefore correct, while a
-strongest invariant may be unavailable or inexpressible in the chosen
-language.  Dynamic approaches infer likely relations from execution traces and
-then filter or prove them~\citep{daikon,nguyen2012using,garg2016learning}.
-\sam{} instead uses executions to construct a graded, target-independent
-training signal for precision; final soundness is still established
-independently by the verifier.
-Target-directed software model checkers constitute a related but distinct
-setting.  For example, \textsc{Ultimate Automizer} (UAuto) uses trace
-abstraction and interpolation to verify a supplied safety property
-~\citep{heizmann2013automizer}.  Although its correctness witnesses may contain
-inductive assertions, they are synthesized with the verification target
-visible.  Our setting withholds that target until the candidate set is fixed,
-so neither goal-directed refinement nor target counterexamples can provide the
-strength signal.
+\paragraph{Candidate generation, filtering, and prompt-time composition.}
+Classical invariant synthesis uses abstract interpretation, affine relations,
+templates, interpolation, recurrences, syntax-guided search, or
+counterexamples; execution-driven systems instead mine likely properties from
+traces~\citep{cousot1977abstract,karr1976affine,colon2003linear,
+mcmillan2003interpolation,kincaid2017compositional,alur2013sygus,
+garg2014ice,daikon}.  Houdini iteratively removes invalid candidates to retain
+an inductive subset~\citep{flanagan2001houdini}.  LLM workflows reuse this
+pattern: \textsc{Loopy} couples proposals with Houdini and repair,
+\textsc{iRank} ranks candidates, and \textsc{Clause2Inv} combines retained
+clauses while iteratively accumulating counterexamples
+~\citep{kamath2023finding,chakraborty2023ranking,cao2025clause2inv}.
+\textsc{LaM4Inv}, \textsc{ACInv}, \textsc{AutoSpec}, \textsc{SpecGen},
+\textsc{SESpec}, \textsc{LEMUR}, and \textsc{Baldur} similarly organize
+generation with static analysis, symbolic execution, verification, or repair
+~\citep{wu2024lam4inv,liu2024acinv,wen2024enchanting,ma2024specgen,
+yang2026sespec,wu2024lemur,first2023baldur}.  These are inference workflows;
+\sam{} fixes all target-hidden rollouts before joint filtering, receives no
+verifier feedback between calls, and trains responses for fixed-group
+composition.
 
-\paragraph{Neural and LLM-based invariant generation.}
-Learned methods broaden the candidate language by using neural generators,
-counterexamples, or verifier feedback
-~\citep{si2018learning,si2020code2inv,ryan2020cln2inv,yao2020gcln}.
-In particular, \textsc{Code2Inv} learns a sequential invariant-construction
-policy from sparse verifier reward~\citep{si2018learning,si2020code2inv}.
-\textsc{Loopy} generates candidate clauses, filters them with Houdini, and
-repairs failures using verifier feedback~\citep{kamath2023finding}.
-\textsc{Clause2Inv} iteratively combines clauses using historical
-counterexamples and failed checks to guide later generation, while
-\textsc{iRank} learns to rank LLM-generated invariants before expensive
-verifier calls~\citep{cao2025clause2inv,chakraborty2023ranking}.
-Thus, clause generation, combination, Houdini filtering, and learned invariant
-policies are not individually new.  Unlike counterexample-guided iterative
-repair, our inference procedure receives no feedback between rollouts: it
-samples a fixed group once and applies union and Houdini only after generation.
-The target remains hidden throughout generation and training.
+\paragraph{Specialized neural invariant learning.}
+\textsc{Code2Inv} learns a construction policy from solver feedback;
+\textsc{CLN2INV} and G-CLN learn continuous representations of linear and
+nonlinear relations; and \textsc{LIPuS} combines RL-based pruning with SMT
+solving~\citep{si2018learning,si2020code2inv,ryan2020cln2inv,
+yao2020gcln,yu2023lipus}.  These task-specific models optimize one candidate
+or construction trajectory.  We instead post-train a general language model
+so independently sampled responses contribute jointly under a fixed budget.
 
-\paragraph{Specification generation.}
-LLM-based tools also synthesize broader program specifications.
-\textsc{AutoSpec} repeatedly proposes and verifies annotations;
-\textsc{SpecGen} combines LLM proposals with mutation in Java/JML; and
-\textsc{SESpec} uses symbolic execution to generate goal-independent
-specifications for C
-~\citep{wen2024enchanting,ma2024specgen,yang2026sespec}.
-We study only loop invariants and ask whether they prove a held-out target,
-rather than evaluating a general behavioral specification.  This restriction
-exposes a useful compositional structure: invariant responses can be split into
-clauses, verified independently or jointly, and recombined without asking a
-model to merge natural-language rationales or rewrite a complete contract.
+\paragraph{Behavioral-example objectives for specification strength.}
+\textsc{COINS} assesses specifications using trusted positive and
+mutation-derived negative input--output cases~\citep{yang2026coins};
+\textsc{SpecRL} rewards complete method-level specifications that reject
+impossible input--output pairs~\citep{huang2026specrl}; it neither targets
+loop invariants nor derives negatives from loop dynamics.  Both show that
+behavioral examples distinguish weak but valid specifications from stronger
+ones.  \sam{} supplies that loop-specific construction, filters each imperfect
+response to an inductive clause subset, and conditions its credit on negative
+states already rejected by peer rollouts.
 
-\paragraph{Reinforcement learning from formal feedback.}
-Verifier-guided reinforcement learning has been used for program synthesis and
-formal reasoning.  \textsc{Re:Form} uses scalable curation and verifier-guided
-RL for Dafny, while \textsc{SpecRL} generates impossible input--output pairs
-and rewards specifications that reject them
-~\citep{yan2025reform,huang2026specrl}.
-Validity alone does not distinguish a useful specification from a weak one.
-\textsc{SpecRL} is closest to our negative-example signal: it measures the
-strength of each generated specification by the impossible behaviors that the
-specification excludes.  Its negative examples are generic method-level
-input--output pairs: the model proposes inputs, execution supplies outputs,
-and output mutation constructs impossible pairs.  Our sampler instead targets
-loop-head state space with relational perturbations, post-exit continuations,
-and range perturbations.  Moreover, \textsc{SpecRL} scores a complete generated
-specification independently.  We instead compute rewards jointly across a
-rollout group: one rollout's credit depends on the verified behaviors already
-covered by its peers.  We also use verification to retain and reward a sound
-clause subset inside an imperfect response, rather than assigning correctness
-to the response as one indivisible object.  \textsc{SpecRL} does not split loop
-invariants into clauses or optimize the cross-rollout union selected by
-Houdini.
-
-Verifiable-reward RL can improve small-budget accuracy while reducing the
-coverage available from extensive sampling~\citep{yue2025rlcapacity}.  This
-tension also motivates evaluating both standalone and multi-sample coverage.
-Our method-level response is described in Section~\ref{sec:method}: SFT and RL
-are trained around the same fixed-group union-and-Houdini operator used at
-deployment, rather than extending a standalone verifier reward.
+\paragraph{Language-model training from formal feedback.}
+\textsc{InvBench} and Wonda use verified data for invariant fine-tuning;
+\textsc{CodeRL} uses execution signals; and \textsc{Re:Form} applies
+verifier-guided RL to individual Dafny proofs
+~\citep{wei2025invbench,pinto2026notall,le2022coderl,yan2025reform}.
+Unlike whole-output verifier rewards, \sam{} trains toward a filtered clause
+pool by salvaging the inductive part of an imperfect response and rewarding
+its strength and complementary group coverage.
+This distinction matters because verifiable-reward RL can improve small-budget
+accuracy without expanding broad-sampling coverage~\citep{yue2025rlcapacity}.

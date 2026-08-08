@@ -125,7 +125,6 @@ def _run_loopgym_no_houdini(task: Task, root: Path) -> dict:
         "raw_responses": [response] if response else [],
         "rollouts": [invariants],
         "invariants": invariants,
-        "reroll_count": 0,
         "generation_seconds": time.perf_counter() - started,
         "api_calls_artifact": str(calls_path),
         **recorder.usage(),
@@ -139,7 +138,6 @@ def _run_loopgym_houdini(
     *,
     method: str,
     n_rollouts: int,
-    max_rerolls: int,
 ) -> dict:
     row = base_row(method, task)
     directory = new_attempt_dir(root, method, task)
@@ -154,9 +152,8 @@ def _run_loopgym_houdini(
             source,
             rollout_provider=provider,
             n_rollouts=n_rollouts,
-            max_rerolls=max_rerolls,
         ).run()
-        expected_calls = n_rollouts * (result.reroll_count + 1)
+        expected_calls = n_rollouts
         status = "completed" if len(recorder.records) == expected_calls else "failed"
         error = None if status == "completed" else (
             f"expected {expected_calls} API calls, recorded {len(recorder.records)}"
@@ -178,7 +175,6 @@ def _run_loopgym_houdini(
         "rollouts": rollouts,
         "invariants": invariants,
         "native_verified": native_verified,
-        "reroll_count": result.reroll_count if result is not None else None,
         "generation_seconds": time.perf_counter() - started,
         "api_calls_artifact": str(calls_path),
         **recorder.usage(),
@@ -193,7 +189,6 @@ def _run_loopgym(task: Task, root: Path) -> dict:
         root,
         method="loopgym_r4_houdini",
         n_rollouts=4,
-        max_rerolls=1,
     )
 
 
@@ -208,7 +203,6 @@ def _neural_runner(method: str):
             root,
             method=method,
             n_rollouts=1,
-            max_rerolls=0,
         )
     if method == "loopgym_r4_houdini":
         return lambda task, root: _run_loopgym_houdini(
@@ -216,7 +210,6 @@ def _neural_runner(method: str):
             root,
             method=method,
             n_rollouts=4,
-            max_rerolls=1,
         )
     raise ValueError(f"not a neural method: {method}")
 

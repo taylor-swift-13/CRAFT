@@ -167,7 +167,6 @@ def _certify(row: dict) -> dict:
             source,
             rollout_provider=MockRolloutProvider([[]]),
             n_rollouts=1,
-            max_rerolls=0,
         )
         verified = framework._verify(annotated)
         result.update(

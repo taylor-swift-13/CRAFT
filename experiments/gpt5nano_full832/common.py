@@ -255,7 +255,6 @@ def judge_invariants(task: Task, invariants: list[str]) -> dict:
             original,
             rollout_provider=MockRolloutProvider([[]]),
             n_rollouts=1,
-            max_rerolls=0,
         )
         verified = framework._verify(annotated)
         error = None if verified is not None else "frama_c_unavailable_or_failed"

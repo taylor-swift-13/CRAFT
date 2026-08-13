@@ -35,9 +35,14 @@ METHODS = (
 )
 
 
+def craft_env(name: str) -> Optional[str]:
+    """Read the CRAFT setting, with the pre-rename key as a compatibility alias."""
+    return os.environ.get(f"CRAFT_{name}") or os.environ.get(f"LOOPGYM_{name}")
+
+
 def ensure_frama_c_available() -> Path:
     """Resolve the pinned local Frama-C toolchain and fail closed if absent."""
-    configured = os.environ.get("LOOPGYM_FRAMA_C_BIN")
+    configured = craft_env("FRAMA_C_BIN")
     candidates = [
         Path(configured) if configured else None,
         Path("/home/yangfp/.opam/frama-c.27.1/bin"),
@@ -54,7 +59,7 @@ def ensure_frama_c_available() -> Path:
         return Path(resolved)
     raise RuntimeError(
         "Frama-C is required for the common judge and negative scorer; "
-        "set LOOPGYM_FRAMA_C_BIN to its bin directory"
+        "set CRAFT_FRAMA_C_BIN to its bin directory"
     )
 
 
@@ -92,7 +97,7 @@ class Task:
             method,
             self.suite,
             self.case_id,
-            os.environ.get("LOOPGYM_MODEL") or load_protocol()["model"],
+            craft_env("MODEL") or load_protocol()["model"],
             protocol_sha256(),
         )
 
@@ -150,10 +155,10 @@ def discover_tasks(source_root: Optional[Path] = None) -> list[Task]:
 def base_row(method: str, task: Task) -> dict:
     protocol = load_protocol()
     configured_reasoning_effort = (
-        os.environ.get("LOOPGYM_REASONING_EFFORT")
+        craft_env("REASONING_EFFORT")
         or protocol["generation"].get("reasoning_effort")
     )
-    configured_enable_thinking = os.environ.get("LOOPGYM_ENABLE_THINKING")
+    configured_enable_thinking = craft_env("ENABLE_THINKING")
     enable_thinking = None
     if configured_enable_thinking is not None:
         normalized = configured_enable_thinking.strip().lower()
@@ -163,14 +168,14 @@ def base_row(method: str, task: Task) -> dict:
             enable_thinking = True
         else:
             raise ValueError(
-                "LOOPGYM_ENABLE_THINKING must be a boolean value"
+                "CRAFT_ENABLE_THINKING must be a boolean value"
             )
     return {
         "schema_version": 1,
         "protocol": protocol["name"],
         "protocol_sha256": protocol_sha256(),
         "method": method,
-        "model": os.environ.get("LOOPGYM_MODEL") or protocol["model"],
+        "model": craft_env("MODEL") or protocol["model"],
         "reasoning_effort": (
             None
             if str(configured_reasoning_effort).lower() in {"default", "omit"}

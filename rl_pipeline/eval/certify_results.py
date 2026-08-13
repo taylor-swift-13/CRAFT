@@ -2,7 +2,7 @@
 
 The generator-facing run must already have hidden the target.  This command
 extracts only the generated loop invariants, inserts them into the untouched
-LoopGym source (which still contains the original assertion), and records a
+CRAFT source (which still contains the original assertion), and records a
 common target-bearing verification result.
 
 Examples:

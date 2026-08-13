@@ -1,4 +1,4 @@
-"""LoopGym combine@5: one target-hidden request with n=5, then Houdini."""
+"""CRAFT combine@5: one target-hidden request with n=5, then Houdini."""
 from __future__ import annotations
 
 import argparse

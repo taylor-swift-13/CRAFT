@@ -26,7 +26,7 @@ then run:
 
 ```bash
 eval "$(opam env --switch=frama-c.27.1 --set-switch)"
-LOOPGYM_WP_PAR=2 conda run -n ASGSE \
+CRAFT_WP_PAR=2 conda run -n ASGSE \
   python paper/scripts/sanitize_training_prompts.py \
   --rl-input /path/to/loopgym_rl_0803.parquet \
   --sft-input /path/to/loopgym_sft_0803.json \
@@ -34,8 +34,8 @@ LOOPGYM_WP_PAR=2 conda run -n ASGSE \
   --verify-sft --wp-timeout 5 --jobs 16
 ```
 
-This writes `traindata/loopgym_rl_clean.parquet` and
-`traindata/loopgym_sft_clean.json`. Both use the current system and generation
+This writes `traindata/craft_rl_clean.parquet` and
+`traindata/craft_sft_clean.json`. Both use the current system and generation
 prompts and contain only supported target-hidden scalar-integer, single-loop
 programs. For archived `power` clauses, fixed exponents are expanded into
 explicit multiplication. When two equations contain the same symbolic power,
@@ -65,8 +65,8 @@ from these clean outputs.
 Docker:
 
 ```bash
-docker build -f deploy/Dockerfile.reward -t loopgym-reward .
-docker run -p 8000:8000 loopgym-reward
+docker build -f deploy/Dockerfile.reward -t craft-reward .
+docker run -p 8000:8000 craft-reward
 curl -s localhost:8000/health
 ```
 

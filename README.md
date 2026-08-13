@@ -1,4 +1,4 @@
-# LoopGym
+# CRAFT
 
 *(formerly SAM2INV)*
 
@@ -232,8 +232,8 @@ use the image.
 
 | Image | Build (context = repo root) | Runs |
 |-------|-----------------------------|------|
-| **reward service** | `docker build -f deploy/Dockerfile.reward -t loopgym-reward .` | `rl_pipeline.reward.service` (gcc + frama-c bundled) |
-| **inference** | `docker build -f deploy/Dockerfile.inference -t loopgym-inference .` | `rl_pipeline.inference` (vLLM + frama-c bundled) |
+| **reward service** | `docker build -f deploy/Dockerfile.reward -t craft-reward .` | `rl_pipeline.reward.service` (gcc + frama-c bundled) |
+| **inference** | `docker build -f deploy/Dockerfile.inference -t craft-inference .` | `rl_pipeline.inference` (vLLM + frama-c bundled) |
 
 Both bundle frama-c/z3/why3, so a deployment host needs **no local frama-c**.
 
@@ -259,22 +259,22 @@ deploy/               Dockerfiles + requirements
 docs/                 training_integration.md, local_model_setup.md
 paper/                current method description and reproducible evaluation
 tests/                standard-library regression tests
-unsupported/          exact upstream inputs outside LoopGym's supported model
+unsupported/          exact upstream inputs outside CRAFT's supported model
 ```
 
 ## Benchmark corpora
 
-- `src/input/{linear,NLA_lipus}/` is LoopGym's 366-program canonical sampler
+- `src/input/{linear,NLA_lipus}/` is CRAFT's 366-program canonical sampler
   suite.  It is the suite covered by the discrimination and mislabel-audit
   results reported above and in the paper.
 - `src/input/Loopy/` contains the 466 integer programs from Loopy's official
-  469-program loop-invariant corpus, normalized to LoopGym's single braced-
+  469-program loop-invariant corpus, normalized to CRAFT's single braced-
   `while`, scalar integer input model. The numeric filename-to-upstream-path
   mapping, checksums, transformations, and source notices are documented in
   [`src/input/Loopy/README.md`](src/input/Loopy/README.md).
 - [`unsupported/loopy/`](unsupported/loopy/) preserves exact upstream copies of
   official IDs 353--355. They require floating-point reasoning and are excluded
-  from every LoopGym input suite and result.
+  from every CRAFT input suite and result.
 
 The Loopy snapshot is a comparison corpus, not a disjoint or held-out set, and
 is not part of the measured 366-program sampler audit.  The imported programs

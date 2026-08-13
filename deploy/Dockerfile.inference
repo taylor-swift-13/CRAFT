@@ -1,4 +1,4 @@
-# LoopGym — Inference image (testing): vLLM + Frama-C, self-contained.
+# CRAFT — Inference image (testing): vLLM + Frama-C, self-contained.
 #
 # Deploys a TRAINED model to an in-process vLLM engine and runs inference over a
 # set of C programs: generate (vLLM) → combine → Houdini →
@@ -8,11 +8,11 @@
 # Based on the official vLLM image (CUDA + vLLM already present).
 #
 # Build (context = repo root):
-#   docker build -f deploy/Dockerfile.inference -t loopgym-inference .
+#   docker build -f deploy/Dockerfile.inference -t craft-inference .
 # Run (mount the trained model and the test programs):
 #   docker run --gpus all --rm \
 #     -v /path/to/model:/model -v /path/to/programs:/data \
-#     loopgym-inference --model /model --inputs '/data/*.c' --n-rollouts 8 --output /data/out.jsonl
+#     craft-inference --model /model --inputs '/data/*.c' --n-rollouts 8 --output /data/out.jsonl
 FROM vllm/vllm-openai:latest
 
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1

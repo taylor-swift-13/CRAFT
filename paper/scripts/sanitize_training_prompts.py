@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build canonical, target-hidden LoopGym RL and SFT training datasets.
+"""Build canonical, target-hidden CRAFT RL and SFT training datasets.
 
 The archival inputs are never overwritten.  Both datasets are rebuilt with the
 current prompt files and only supported scalar-integer, single-loop programs.
@@ -51,8 +51,8 @@ from rl_pipeline.reward.filters import out_of_scope_ids  # noqa: E402
 
 DEFAULT_RL = ROOT / "traindata" / "loopgym_rl_0803.parquet"
 DEFAULT_SFT = ROOT / "traindata" / "loopgym_sft_0803.json"
-DEFAULT_RL_OUTPUT = ROOT / "traindata" / "loopgym_rl_clean.parquet"
-DEFAULT_SFT_OUTPUT = ROOT / "traindata" / "loopgym_sft_clean.json"
+DEFAULT_RL_OUTPUT = ROOT / "traindata" / "craft_rl_clean.parquet"
+DEFAULT_SFT_OUTPUT = ROOT / "traindata" / "craft_sft_clean.json"
 PROGRAM_MARKER = "Program:\n"
 
 _FORBIDDEN_ACSL = re.compile(
@@ -1586,7 +1586,7 @@ def main() -> None:
             "artifacts as explicit inputs for a fixed-point check"
         )
     if args.verify_sft:
-        os.environ["LOOPGYM_WP_TIMEOUT"] = str(args.wp_timeout)
+        os.environ["CRAFT_WP_TIMEOUT"] = str(args.wp_timeout)
 
     rl_output = None if args.check_only else _safe_output(args.rl_input, args.rl_output)
     sft_output = None if args.check_only else _safe_output(args.sft_input, args.sft_output)

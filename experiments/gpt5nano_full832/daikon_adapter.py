@@ -72,7 +72,7 @@ class DaikonRun:
 
 
 def _safe_ppt_name(suite: str, case_id: str) -> str:
-    stem = re.sub(r"[^A-Za-z0-9_]", "_", f"loopgym_{suite}_{case_id}")
+    stem = re.sub(r"[^A-Za-z0-9_]", "_", f"craft_{suite}_{case_id}")
     return f"{stem}:::POINT"
 
 
@@ -690,7 +690,7 @@ def probe(suite: str, case_id: str, *, results_root: Path, jar: Path) -> int:
     tasks = {(task.suite, task.case_id): task for task in discover_tasks()}
     task = tasks[(suite, case_id)]
     sample = load_manifest_lightweight(results_root)[(suite, case_id)]
-    with tempfile.TemporaryDirectory(prefix="loopgym_daikon_probe_") as raw:
+    with tempfile.TemporaryDirectory(prefix="craft_daikon_probe_") as raw:
         directory = Path(raw)
         states = load_trace_states(task, sample, MAX_TRACE_STATES)
         decls, dtrace, ppt, count = write_daikon_trace(

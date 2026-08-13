@@ -11,6 +11,11 @@ from rl_pipeline.common import prompts
 from .common import load_protocol, sha256_text, token_fields
 
 
+def _craft_env(name: str) -> Optional[str]:
+    """Read the CRAFT setting, with the pre-rename key as a compatibility alias."""
+    return os.environ.get(f"CRAFT_{name}") or os.environ.get(f"LOOPGYM_{name}")
+
+
 class RecordingChat:
     """Stateless OpenAI-compatible chat callable with exact usage recording."""
 
@@ -28,7 +33,7 @@ class RecordingChat:
         retries: int = 5,
     ):
         protocol = load_protocol()
-        self.model = model or os.environ.get("LOOPGYM_MODEL") or protocol["model"]
+        self.model = model or _craft_env("MODEL") or protocol["model"]
         self.base_url = (
             base_url
             or os.environ.get("OPENAI_BASE_URL")
@@ -44,7 +49,7 @@ class RecordingChat:
         )
         configured_reasoning_effort = (
             reasoning_effort
-            or os.environ.get("LOOPGYM_REASONING_EFFORT")
+            or _craft_env("REASONING_EFFORT")
             or protocol["generation"].get("reasoning_effort")
         )
         self.reasoning_effort = (
@@ -52,7 +57,7 @@ class RecordingChat:
             if str(configured_reasoning_effort).lower() in {"default", "omit"}
             else configured_reasoning_effort
         )
-        configured_enable_thinking = os.environ.get("LOOPGYM_ENABLE_THINKING")
+        configured_enable_thinking = _craft_env("ENABLE_THINKING")
         if enable_thinking is not None:
             self.enable_thinking = bool(enable_thinking)
         elif configured_enable_thinking is None:
@@ -67,7 +72,7 @@ class RecordingChat:
             self.enable_thinking = True
         else:
             raise ValueError(
-                "LOOPGYM_ENABLE_THINKING must be a boolean value"
+                "CRAFT_ENABLE_THINKING must be a boolean value"
             )
         self.system_prompt = (
             prompts.system_prompt()

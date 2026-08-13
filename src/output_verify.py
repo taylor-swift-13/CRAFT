@@ -159,10 +159,14 @@ class OutputVerifier:
             return
 
         self.syntax_correct = True
-        wp_parallel = os.environ.get("LOOPGYM_WP_PAR", "8")
+        wp_parallel = os.environ.get(
+            "CRAFT_WP_PAR", os.environ.get("LOOPGYM_WP_PAR", "8")
+        )
         if not wp_parallel.isdigit() or int(wp_parallel) < 1:
             wp_parallel = "8"
-        wp_timeout = os.environ.get("LOOPGYM_WP_TIMEOUT", "5")
+        wp_timeout = os.environ.get(
+            "CRAFT_WP_TIMEOUT", os.environ.get("LOOPGYM_WP_TIMEOUT", "5")
+        )
         if not wp_timeout.isdigit() or int(wp_timeout) < 1:
             wp_timeout = "5"
         command = [

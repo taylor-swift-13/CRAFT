@@ -1,5 +1,5 @@
 """
-Lightweight parser for the benchmark C programs used in LoopGym.
+Lightweight parser for the benchmark C programs used in CRAFT.
 
 A program looks like:
 
@@ -203,7 +203,7 @@ def _strip_acsl_targets(body: str) -> str:
 def _strip_c_assert_calls(source: str) -> str:
     """Remove executable C assertion statements while preserving line layout.
 
-    LoopGym inputs normally encode targets as ACSL clauses, but external
+    CRAFT inputs normally encode targets as ACSL clauses, but external
     baselines also accept ``assert(...)`` and ``__VERIFIER_assert(...)``.
     Target-hidden generation must not leave either predicate in the prompt.
     Replacing the statement with ``((void)0);`` keeps constructs such as
@@ -281,7 +281,7 @@ def strip_postcondition(source: str) -> str:
     # conventional label name so it cannot act as a textual target marker;
     # all gotos are renamed with it, so control flow is unchanged.
     if re.search(r"\bERROR\s*:", out):
-        out = re.sub(r"\bERROR\b", "__loopgym_label_0", out)
+        out = re.sub(r"\bERROR\b", "__craft_label_0", out)
     return strip_noncontract_comments(out)
 
 

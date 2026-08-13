@@ -27,10 +27,10 @@ DISPLAY = {
     "clause2inv": "Clause2Inv",
     "sespec": "SESpec",
     "naive": "Naive",
-    "loopgym_r1_no_houdini": "LoopGym R1-NoH",
-    "loopgym_r1_houdini": "LoopGym R1-H",
-    "loopgym_r5_houdini": "LoopGym R5-H (no reroll)",
-    "loopgym_r10_houdini": "LoopGym R10-H (no reroll)",
+    "loopgym_r1_no_houdini": "CRAFT R1-NoH",
+    "loopgym_r1_houdini": "CRAFT R1-H",
+    "loopgym_r5_houdini": "CRAFT R5-H (no reroll)",
+    "loopgym_r10_houdini": "CRAFT R10-H (no reroll)",
     "daikon": "Daikon",
 }
 

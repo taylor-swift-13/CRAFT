@@ -1,5 +1,5 @@
 """
-LoopGym invariant-generation and reward pipeline.
+CRAFT invariant-generation and reward pipeline.
 
 Three independently usable entry points share common parsing and state code;
 reward and inference additionally share the Frama-C adapter:

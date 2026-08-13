@@ -298,7 +298,9 @@ def _generate(task: Task, root: Path, loopy_root: Path) -> dict:
     row["reasoning_effort"] = REASONING_EFFORT
     directory = new_attempt_dir(root, METHOD, task)
     hidden_path = save_hidden_source(directory, task)
-    model = os.environ.get("LOOPGYM_MODEL", "gpt-5-nano")
+    model = os.environ.get("CRAFT_MODEL") or os.environ.get(
+        "LOOPGYM_MODEL", "gpt-5-nano"
+    )
     base_url = os.environ.get("OPENAI_BASE_URL", "https://yunwu.ai/v1")
     client = openai.OpenAI(
         api_key=os.environ["OPENAI_API_KEY"],
@@ -569,7 +571,9 @@ def report(root: Path) -> None:
     summary = {
         "method": METHOD,
         "loopy_protocol": LOOPY_PROTOCOL,
-        "model": os.environ.get("LOOPGYM_MODEL", "gpt-5-nano"),
+        "model": os.environ.get("CRAFT_MODEL") or os.environ.get(
+            "LOOPGYM_MODEL", "gpt-5-nano"
+        ),
         "rows": len(selected),
         "compatible_completed": len(completed),
         "verified": sum(row.get("verified") is True for row in completed),

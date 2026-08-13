@@ -23,7 +23,7 @@ from paper.scripts.sanitize_training_prompts import (
 
 
 DEFAULT_AUDIT = ROOT / "paper" / "artifacts" / "power_rewrite_audit.json"
-DEFAULT_SFT = ROOT / "traindata" / "loopgym_sft_clean.json"
+DEFAULT_SFT = ROOT / "traindata" / "craft_sft_clean.json"
 
 
 def invariant_set(answer: str) -> set[str]:

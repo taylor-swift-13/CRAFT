@@ -1,4 +1,4 @@
-# LoopGym experiment and evidence plan
+# CRAFT experiment and evidence plan
 
 This file tracks the empirical claims in the paper. A number may enter the
 paper only when a program-level artifact records the target-hidden input,
@@ -11,7 +11,7 @@ rollouts, final Frama-C/WP judgment, protocol hash, and failure status.
 |---|---|---|
 | RQ1 | How do pass@\(k\) and combine@\(k\) scale? | One saved 100-response pool per task for Qwen3-4B, 8B, 14B, 30B-A3B, and Llama 3.1 8B; report \(k\in\{1,10,30,50,100\}\). |
 | RQ2 | How much does combine@1 recover from one response across model families? | Paired pass@1/combine@1 judgments of the same response on all 832 tasks. |
-| RQ3 | How does LoopGym compare with specialized tools? | Target-hidden adaptations, fixed native budgets, common 832-task denominator, and common restored-target judge. |
+| RQ3 | How does CRAFT compare with specialized tools? | Target-hidden adaptations, fixed native budgets, common 832-task denominator, and common restored-target judge. |
 | RQ4 | Does RL improve the deployed combined inference curve? | Matched before/after-RL checkpoints for Zero and SFT initializations. |
 | RQ5 | Which reward and sampler mechanisms matter? | Three training seeds per reward or sampler variant, with all other settings fixed. |
 
@@ -24,7 +24,7 @@ Frama-C/WP checks establishment, preservation, and \(Q\)-sufficiency under the
 same 5-second per-obligation budget. Parse errors, timeouts, unsupported
 attempted inputs, and missing rows are failures.
 
-LoopGym evaluation runs share masking, prompting, response caps, splitting,
+CRAFT evaluation runs share masking, prompting, response caps, splitting,
 normalization, and Houdini. External tools retain their fixed native
 orchestration; their budgets are fixed but not claimed to be call- or
 token-matched. LLM-based RQ3 rows use gpt-5-nano.
@@ -70,7 +70,7 @@ reachability collision.
 | RQ2 GPT-5-nano/mini/default and DeepSeek paired results | Program-level artifacts present. |
 | RQ2 Claude paired accuracy | Aggregate values are in the manuscript, but the 832-task program-level artifact location is missing; only the disclosed 20-task cost sample is present. |
 | RQ2 local Qwen/Llama rows | Missing. |
-| RQ3 common tool comparison | Program-level LoopGym/tool artifacts present; Clause2Inv token count is estimated and limited to supported tasks. |
+| RQ3 common tool comparison | Program-level CRAFT/tool artifacts present; Clause2Inv token count is estimated and limited to supported tasks. |
 | RQ4 Zero to RL-Zero | The finalized pre-RL aggregate now uses the same Qwen3-8B base curve as RQ1. The canonical program-level pool artifact and training manifest must still be archived before submission. |
 | RQ4 SFT to SFT+RL | Missing. |
 | RQ5 reward ablation | Missing. |
@@ -98,7 +98,7 @@ Store one JSONL row per (RQ, system, checkpoint, seed, program, k):
   "source_sha256": "...",
   "hidden_source_sha256": "...",
   "protocol_sha256": "...",
-  "system": "loopgym",
+  "system": "craft",
   "checkpoint": "...",
   "seed": 0,
   "target_hidden": true,

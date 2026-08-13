@@ -304,7 +304,7 @@ class ParserAndAnnotationRegressionTests(unittest.TestCase):
 
         self.assertNotIn("ERROR", stripped)
         self.assertNotIn(r"\false", stripped)
-        self.assertEqual(stripped.count("__loopgym_label_0"), 2)
+        self.assertEqual(stripped.count("__craft_label_0"), 2)
 
     def test_parser_skips_helper_before_loop_function(self):
         source = (
@@ -510,7 +510,7 @@ class Full832ExperimentRegressionTests(unittest.TestCase):
             )
             self.assertNotIn("// Source:", task.hidden_source)
 
-    def test_loopgym_batch_runner_hides_target_before_model_call(self):
+    def test_craft_batch_runner_hides_target_before_model_call(self):
         source = (
             "void f(int x) {\n"
             "  while (x > 0) { x--; }\n"
@@ -592,6 +592,7 @@ class SyntaxScrubRegressionTests(unittest.TestCase):
             with mock.patch("src.output_verify.SyntaxChecker", return_value=SyntaxCorrect()), \
                     mock.patch("src.output_verify.subprocess.run", return_value=completed) as run, \
                     mock.patch.dict(os.environ, {}, clear=False):
+                os.environ.pop("CRAFT_WP_TIMEOUT", None)
                 os.environ.pop("LOOPGYM_WP_TIMEOUT", None)
                 OutputVerifier().run(source_file.name)
                 default_command = run.call_args.args[0]
@@ -599,7 +600,7 @@ class SyntaxScrubRegressionTests(unittest.TestCase):
                     default_command[default_command.index("-wp-timeout") + 1], "5"
                 )
 
-                os.environ["LOOPGYM_WP_TIMEOUT"] = "9"
+                os.environ["CRAFT_WP_TIMEOUT"] = "9"
                 OutputVerifier().run(source_file.name)
                 override_command = run.call_args.args[0]
                 self.assertEqual(

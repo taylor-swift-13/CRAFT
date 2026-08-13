@@ -109,7 +109,7 @@ def _get_examples(program: str, cfg: SamplerCfg):
 def build_app():
     from fastapi import FastAPI, HTTPException
 
-    app = FastAPI(title="LoopGym Reward Service", version="1.0")
+    app = FastAPI(title="CRAFT Reward Service", version="1.0")
 
     @app.get("/health")
     def health():

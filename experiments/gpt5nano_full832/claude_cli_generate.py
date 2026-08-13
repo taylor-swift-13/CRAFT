@@ -190,7 +190,7 @@ def generate(root: Path, workers: int, retry_failed: bool, max_tasks: int | None
     ensure_frama_c_available()
     if not (os.environ.get("ANTHROPIC_AUTH_TOKEN") or os.environ.get("ANTHROPIC_API_KEY")):
         raise RuntimeError("ANTHROPIC_AUTH_TOKEN or ANTHROPIC_API_KEY is required")
-    os.environ["LOOPGYM_MODEL"] = MODEL
+    os.environ["CRAFT_MODEL"] = MODEL
     tasks = discover_tasks()
     destination = event_path(root, METHOD)
     existing = latest_rows([destination])

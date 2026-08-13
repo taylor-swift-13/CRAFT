@@ -1,4 +1,4 @@
-# loopGym Patches
+# CRAFT Patches
 
 ## 2026-07-23: ExampleSampler — relax negative generation for unknown() programs
 

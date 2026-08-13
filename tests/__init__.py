@@ -1,1 +1,1 @@
-"""Regression tests for LoopGym."""
+"""Regression tests for CRAFT."""

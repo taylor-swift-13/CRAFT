@@ -40,9 +40,9 @@ def main() -> int:
     parser.add_argument("--run-limit", type=int)
     args = parser.parse_args()
 
-    model = os.environ.get("LOOPGYM_MODEL")
+    model = os.environ.get("CRAFT_MODEL") or os.environ.get("LOOPGYM_MODEL")
     if not model:
-        raise RuntimeError("LOOPGYM_MODEL is required")
+        raise RuntimeError("CRAFT_MODEL is required")
     if not os.environ.get("OPENAI_API_KEY"):
         raise RuntimeError("OPENAI_API_KEY is required")
     ensure_frama_c_available()

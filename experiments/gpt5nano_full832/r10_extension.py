@@ -1,4 +1,4 @@
-"""Resumable LoopGym R10-H extension for the frozen Full-832 evaluation."""
+"""Resumable CRAFT R10-H extension for the frozen Full-832 evaluation."""
 from __future__ import annotations
 
 import argparse

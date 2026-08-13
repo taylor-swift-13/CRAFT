@@ -1,5 +1,5 @@
 %%
-%% LoopGym: Target-Hidden Loop Verification
+%% CRAFT: Compositional Reward Alignment for Target-Hidden Loop Verification
 %% ICLR 2027 submission format
 %%
 \documentclass{article}
@@ -183,12 +183,12 @@
 %% Shorthand commands
 \newcommand{\cmark}{\ding{51}}
 \newcommand{\xmark}{\ding{55}}
-\newcommand{\sam}{\textsc{LoopGym}}
+\newcommand{\sam}{\textsc{Craft}}
 \newcommand{\denote}[1]{\left[\!\left[#1\right]\!\right]}
 \newcommand{\acc}[2]{\shortstack[r]{#1\\(#2)}}
 
 %% Meta
-\title{\sam{}: Rollout--Combine--Filter Training\\
+\title{\sam{}: Compositional Reward Alignment\\
 for Target-Hidden Loop Verification}
 
 \author{
@@ -207,7 +207,7 @@ different responses can prove a target even when no response does so alone.
 Yet standard training scores each response as an indivisible answer.  We
 study this mismatch under \emph{target-hidden loop verification}, where target
 assertions and postconditions \(Q\) are withheld during generation and
-training.  LoopGym aligns both stages through rollout--combine--filter (RCF).
+training.  CRAFT aligns both stages through rollout--combine--filter (RCF).
 At inference, RCF extracts and unions clauses, then uses syntax filtering and
 Houdini to retain an inductive subset before restoring \(Q\).  SFT distills a
 filtered multi-response union into one response.  RL assigns credit within a

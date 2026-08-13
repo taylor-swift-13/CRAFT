@@ -1,16 +1,16 @@
 # GPT-5-nano full-832 reproduction
 
 This directory is the executable protocol for the current nine-method final
-comparison on the same 832 LoopGym programs:
+comparison on the same 832 CRAFT programs:
 
 1. AutoSpec
 2. Clause2Inv
 3. SESpec
-4. True Naive: one call with the trivial prompt and no LoopGym framework
-5. LoopGym-R1-NoH: the LoopGym prompt, one rollout, no Houdini
-6. LoopGym-R1-H: the LoopGym prompt, one rollout, with Houdini
-7. LoopGym-R5-H: five rollouts, union, Houdini, no re-roll
-8. LoopGym-R10-H: ten rollouts, union, Houdini, no re-roll
+4. True Naive: one call with the trivial prompt and no CRAFT framework
+5. CRAFT-R1-NoH: the CRAFT prompt, one rollout, no Houdini
+6. CRAFT-R1-H: the CRAFT prompt, one rollout, with Houdini
+7. CRAFT-R5-H: five rollouts, union, Houdini, no re-roll
+8. CRAFT-R10-H: ten rollouts, union, Houdini, no re-roll
 9. Daikon: native dynamic invariant mining, no Houdini
 
 Loopy is installed separately at `/home/yangfp/Loopy` and evaluated by the
@@ -21,7 +21,7 @@ and uses the common final judge after restoring the original target.  It
 records provider-reported token usage and generation/filter/judge time per
 task.
 
-The original frozen seven-method run contained LoopGym-R4-H. Its artifacts
+The original frozen seven-method run contained CRAFT-R4-H. Its artifacts
 remain available for provenance and call reuse, but R4-H is intentionally
 excluded from the current final table and is replaced by the clean no-reroll
 R5-H configuration.
@@ -246,11 +246,11 @@ The extension writes `events/loopgym_r10_houdini.jsonl`,
 `loopgym_r5_houdini` uses exactly five target-hidden rollouts, union, and
 Frama-C/WP Houdini without re-roll. The five rollouts are returned by one
 model request with `n=5`; all subsequent inference and scoring logic is the
-same as for the existing LoopGym pipeline.
+same as for the existing CRAFT pipeline.
 
 ```bash
-LOOPGYM_WP_PAR=2 python3 -m experiments.gpt5nano_full832.r5_extension generate --workers 16
-LOOPGYM_WP_PAR=2 python3 -m experiments.gpt5nano_full832.r5_extension score --workers 12
+CRAFT_WP_PAR=2 python3 -m experiments.gpt5nano_full832.r5_extension generate --workers 16
+CRAFT_WP_PAR=2 python3 -m experiments.gpt5nano_full832.r5_extension score --workers 12
 python3 -m experiments.gpt5nano_full832.r5_extension report
 python3 -m experiments.gpt5nano_full832.finalize_r5
 ```
@@ -294,4 +294,4 @@ groups and terminate the whole group on timeout or interruption. This prevents
 `conda`, Python, Frama-C, Alt-Ergo, or Z3 descendants from surviving a timed-out
 task. The external-source changes are preserved in
 `autospec_runtime_guard.patch`; apply it from the AutoSpec repository root with
-`patch -p1 < /home/yangfp/loopGym/experiments/gpt5nano_full832/autospec_runtime_guard.patch`.
+`patch -p1 < /home/yangfp/CRAFT/experiments/gpt5nano_full832/autospec_runtime_guard.patch`.

@@ -210,7 +210,7 @@ def _autospec_worker_root(source_root: Path) -> Path:
     root = getattr(_autospec_local, "root", None)
     if root is not None:
         return root
-    parent = Path(tempfile.mkdtemp(prefix="loopgym_autospec_worker_"))
+    parent = Path(tempfile.mkdtemp(prefix="craft_autospec_worker_"))
     root = parent / "autospec"
     shutil.copytree(
         source_root,
@@ -250,7 +250,7 @@ def run_autospec(
     artifact_dir.mkdir(parents=True, exist_ok=True)
     hidden = artifact_dir / "input.hidden.c"
     hidden.write_text(task.hidden_source)
-    bench = worker / "benchmark" / "loopgym_full832_hidden" / task.suite
+    bench = worker / "benchmark" / "craft_full832_hidden" / task.suite
     bench.mkdir(parents=True, exist_ok=True)
     staged = bench / f"{task.case_id}.c"
     shutil.copyfile(hidden, staged)
@@ -383,7 +383,7 @@ def run_sespec(
     # hidden source, and copied outputs remain addressable from that cwd.
     artifact_dir = artifact_dir.resolve()
     src = sespec_root / "src"
-    protocol_tag = "loopgym_full832_hidden_v1"
+    protocol_tag = "craft_full832_hidden_v1"
     staged_dir = src / "input" / protocol_tag / task.suite
     staged_dir.mkdir(parents=True, exist_ok=True)
     staged = staged_dir / f"{task.case_id}.c"

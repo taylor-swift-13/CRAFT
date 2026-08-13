@@ -2,7 +2,7 @@
 
 This directory contains the 466 integer, single-method, single-loop programs
 from the 469-program corpus used by *Finding Inductive Loop Invariants using
-Large Language Models*. They are normalized for LoopGym instead of being stored
+Large Language Models*. They are normalized for CRAFT instead of being stored
 as a second raw corpus.
 
 ## Provenance
@@ -37,10 +37,10 @@ and applies these source-level changes:
 - all functions use unique `loopy_<id>` names and contain exactly one braced
   `while` loop.
 
-Official IDs 353--355 require floating-point reasoning, which neither LoopGym's
+Official IDs 353--355 require floating-point reasoning, which neither CRAFT's
 sampler nor its predicate evaluator supports. Their exact upstream sources are
 kept in [`unsupported/loopy/`](../../../unsupported/loopy/) and are excluded
-from this manifest, suite discovery, sampling, and reported LoopGym results.
+from this manifest, suite discovery, sampling, and reported CRAFT results.
 IDs are intentionally not renumbered so every remaining filename still matches
 the official Loopy order.
 

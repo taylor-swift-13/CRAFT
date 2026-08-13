@@ -48,11 +48,11 @@ assertion; only final verification uses the original target-bearing program.
 The inference Docker image provides the containerized vLLM environment:
 
 ```bash
-docker build -f deploy/Dockerfile.inference -t loopgym-inference .
+docker build -f deploy/Dockerfile.inference -t craft-inference .
 docker run --gpus all --rm \
   -v /path/to/model:/model \
   -v /path/to/programs:/data \
-  loopgym-inference \
+  craft-inference \
   --model /model --inputs '/data/*.c' --output /data/results.jsonl
 ```
 

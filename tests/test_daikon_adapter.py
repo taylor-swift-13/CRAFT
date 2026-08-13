@@ -63,14 +63,14 @@ class DaikonAdapterTests(unittest.TestCase):
     def test_parser_reads_only_requested_program_point(self):
         output = """Daikon version 5.8.24
 ===========================================================================
-loopgym_linear_1:::POINT
+craft_linear_1:::POINT
 x >= 0
 x <= pre__n
 x one of { 0, 1 }
 Exiting Daikon.
 """
         self.assertEqual(
-            parse_daikon_invariants(output, "loopgym_linear_1:::POINT", SOURCE),
+            parse_daikon_invariants(output, "craft_linear_1:::POINT", SOURCE),
             ["x >= 0", "x <= \\at(n, Pre)"],
         )
 

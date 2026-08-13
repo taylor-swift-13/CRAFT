@@ -4,10 +4,10 @@ Invariant filters — reduce a candidate invariant set to the ones that "survive
   * HoudiniFilter  : real inductive filtering via src/houdini_pruner.HoudiniPruner
                      + src/output_verify.OutputVerifier (needs frama-c on PATH).
                      This is the authoritative inductive filter.
-  * PositiveFilter : drop invariants that are unsound on the sampled positive
-                     (reachable) states.  A cheap proxy used (a) as the fast
-                     pre-filter in the inference framework, and (b) as a fallback
-                     when frama-c is unavailable.
+  * PreFramaFilter : syntax/scope filtering, conservative semantic de-duplication,
+                     and sampled-positive checking before any Frama-C process.
+  * PositiveFilter : the sampled-positive component, retained as a small public
+                     filter for tests and callers that explicitly request it.
 
 Both expose the same interface:
 filter(prog, loop_idx, invariants, positives) -> List[str].
@@ -85,12 +85,57 @@ class PositiveFilter:
             kept.append(cond)
         return kept
 
+
+class PreFramaFilter:
+    """Cheap, conservative candidate reduction before any Frama-C invocation.
+
+    The order matters: malformed clauses are removed first, semantic duplicates
+    are collapsed next, and only then are survivors evaluated on every sampled
+    reachable state.  Unknown evaluator results are retained for Frama-C, so
+    this stage cannot replace the authoritative kernel/WP checks.
+    """
+
+    name = "pre-frama"
+
+    def __init__(self, logger: Optional[logging.Logger] = None):
+        self.log = logger or logging.getLogger("rl_pipeline.reward.pre_frama")
+        self._positive = PositiveFilter()
+
+    def filter(self, prog: Program, loop_idx: int, invariants: List[str],
+               positives: Optional[List[State]] = None) -> List[str]:
+        normalized = [
+            condition
+            for invariant in invariants
+            if (condition := normalize_invariant(invariant))
+        ]
+        syntactic, syntax_dropped = lightweight_syntax_filter(prog, normalized)
+        unique = dedup_normalized(syntactic)
+        kept = self._positive.filter(prog, loop_idx, unique, positives)
+        duplicate_count = len(syntactic) - len(unique)
+        positive_count = len(unique) - len(kept)
+        if syntax_dropped or duplicate_count or positive_count:
+            self.log.debug(
+                "pre-Frama filter: %d input, %d malformed, %d duplicate, "
+                "%d positive-unsound, %d kept",
+                len(normalized),
+                len(syntax_dropped),
+                duplicate_count,
+                positive_count,
+                len(kept),
+            )
+        return kept
+
 class HoudiniFilter:
     """Inductive filtering with Frama-C/WP (reuses src/ HoudiniPruner + OutputVerifier)."""
 
     name = "houdini"
 
-    def __init__(self, logger: Optional[logging.Logger] = None, prefilter_positives: bool = True):
+    def __init__(
+        self,
+        logger: Optional[logging.Logger] = None,
+        prefilter_positives: bool = True,
+        lightweight_prefilter: bool = True,
+    ):
         from src.houdini_pruner import HoudiniPruner
         from src.output_verify import OutputVerifier
 
@@ -98,17 +143,33 @@ class HoudiniFilter:
         self._OutputVerifier = OutputVerifier
         self.log = logger or logging.getLogger("rl_pipeline.reward.houdini")
         self._positive = PositiveFilter()
+        self._pre_frama = PreFramaFilter(logger=self.log)
         self.prefilter_positives = prefilter_positives
+        self.lightweight_prefilter = lightweight_prefilter
 
     def filter(self, prog: Program, loop_idx: int, invariants: List[str],
                positives: Optional[List[State]] = None) -> List[str]:
         invs = [cond for i in invariants if (cond := normalize_invariant(i))]
-        # cheap positive pre-filter first (mirrors the inference pipeline)
-        if self.prefilter_positives and positives:
+        # Direct HoudiniFilter callers get the same cheap front-end as the
+        # production cascade.  The cascade disables both switches because its
+        # explicit PreFramaFilter stage has already done this work.
+        if self.lightweight_prefilter:
+            invs = self._pre_frama.filter(
+                prog,
+                loop_idx,
+                invs,
+                positives if self.prefilter_positives else None,
+            )
+        elif self.prefilter_positives and positives:
             invs = self._positive.filter(prog, loop_idx, invs, positives)
         if not invs:
             return []
-        invs = self._syntax_scrub(prog, loop_idx, invs)
+        invs = self._syntax_scrub(
+            prog,
+            loop_idx,
+            invs,
+            lightweight_prefilter=False,
+        )
         if not invs:
             return []
         code = annotate.build_annotated(prog, invs, loop_idx)
@@ -216,7 +277,7 @@ class HoudiniFilter:
 
 
 class CascadeFilter:
-    """Run cheap-to-expensive filters: positive first, then real Houdini.
+    """Run cheap-to-expensive filters: pre-Frama first, then real Houdini.
 
     The lite stage drops out-of-scope or sampled-unsound invariants, so Frama-C
     sees fewer WP goals and usually needs fewer pruning iterations.
@@ -236,14 +297,19 @@ class CascadeFilter:
         return invs
 
 def auto_filter(logger: Optional[logging.Logger] = None):
-    """Cascade (Houdini-lite → real Houdini) if frama-c is available, else lite only."""
+    """Use the pre-Frama reducer before Houdini, or alone without Frama-C."""
+    pre_frama = PreFramaFilter(logger=logger)
     if frama_c_available():
         # A broken Frama-C integration must fail loudly rather than silently
         # changing production rewards to the lite approximation.
         return CascadeFilter([
-            PositiveFilter(),
-            HoudiniFilter(logger=logger, prefilter_positives=False),
+            pre_frama,
+            HoudiniFilter(
+                logger=logger,
+                prefilter_positives=False,
+                lightweight_prefilter=False,
+            ),
         ])
     (logger or logging.getLogger("rl_pipeline.reward")).warning(
-        "frama-c not available; using PositiveFilter (Houdini-lite) only")
-    return PositiveFilter()
+        "frama-c not available; using PreFramaFilter (Houdini-lite) only")
+    return pre_frama

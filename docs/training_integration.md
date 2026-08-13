@@ -67,8 +67,10 @@ curl -s localhost:8000/health
 ```
 
 The production `filter_mode` should be
-`cascade(positive->houdini)`. A plain `positive` mode means Frama-C is
-not available and proof filtering is disabled.
+`cascade(pre-frama->houdini)`. A plain `pre-frama` mode means Frama-C is
+not available and proof filtering is disabled. The pre-Frama stage rejects
+malformed/out-of-scope clauses, removes conservative semantic duplicates, and
+checks sampled positive states before any Frama-C process is launched.
 
 Native:
 
@@ -119,7 +121,7 @@ The response is order-aligned with the submitted rollouts:
   "reward_mode": "negative_coverage",
   "batch_score": 0.83,
   "n_negatives": 118,
-  "filter_mode": "cascade(positive->houdini)"
+  "filter_mode": "cascade(pre-frama->houdini)"
 }
 ```
 

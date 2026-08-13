@@ -145,7 +145,9 @@ units — one fake continuation is ONE negative, not twenty-four):
 - `reward[A]`   = `1.0·base[A] + 0.3·shapley_credit[A]
   − redundancy_penalty[A] − overflow_penalty[A]` by default.
   Soundness is not a scoring patch: when Frama-C is
-  available it comes from `PositiveFilter → Frama-C/WP fixpoint`. Unsound
+  available it comes from `PreFramaFilter → Frama-C/WP fixpoint`. The cheap
+  stage removes malformed and duplicate clauses before checking sampled
+  reachable states; Frama-C remains the authoritative inductiveness check. Unsound
   clauses are pruned without zeroing the whole response. A unique clause with
   no sampled negative coverage is not charged: it may support another
   survivor or an unseen proof target;
@@ -216,11 +218,13 @@ for both training and inference.
 
 ## Houdini / Frama-C
 
-The reward filter and inference verify use a **cascade**: lite `PositiveFilter`
-(pure Python) → real inductive **Houdini** via Frama-C/WP + z3. With `frama-c` on
-`PATH`, `filters.auto_filter()` resolves to `cascade(positive->houdini)`; without
-it, the lite filter remains useful for development, but results are approximate
-and are not Frama-C certified; production reward training should use the image.
+The reward filter and inference verify use a **cascade**: lite `PreFramaFilter`
+(pure Python syntax/scope filtering, semantic de-duplication, and positive-state
+checking) → real inductive **Houdini** via Frama-C/WP + z3. With `frama-c` on
+`PATH`, `filters.auto_filter()` resolves to `cascade(pre-frama->houdini)`;
+without it, the lite filter remains useful for development, but results are
+approximate and are not Frama-C certified; production reward training should
+use the image.
 
 ---
 

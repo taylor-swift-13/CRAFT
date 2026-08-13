@@ -25,6 +25,7 @@ _TYPE_CAST = re.compile(
     r"(?:char|short|int|long(?:\s+long)?|integer|real)\s*\)"
 )
 _FUNCTION_CALL = re.compile(r"(?<!\\)\b[A-Za-z_]\w*\s*\(")
+_DIRECT_UNKNOWN_CALL = re.compile(r"unknown\w*\s*\(\s*\)\s*")
 
 
 @dataclass(frozen=True)
@@ -120,11 +121,18 @@ def parse_scalar_invariant(expression: str, program: Program) -> ParseVerdict:
         return ParseVerdict(False, "type_cast")
 
     at_names: set[str] = set()
+    loop_entry_locals = {
+        name
+        for name, initializer in program.local_inits
+        if _DIRECT_UNKNOWN_CALL.fullmatch(initializer)
+    }
 
     def replace_at(match: re.Match[str]) -> str:
         variable, label = match.groups()
-        if variable not in program.pre_vars:
-            raise _InvalidExpression("at_out_of_scope")
+        if label == "Pre" and variable not in program.params:
+            raise _InvalidExpression("pre_requires_parameter")
+        if label == "LoopEntry" and variable not in loop_entry_locals:
+            raise _InvalidExpression("loopentry_requires_unknown_local")
         name = f"__at_{label}_{variable}"
         at_names.add(name)
         return name

@@ -6,7 +6,8 @@ from unittest import mock
 
 from rl_pipeline.common.acsl_parser import parse_scalar_invariant
 from rl_pipeline.common.program import parse_program
-from rl_pipeline.reward.filters import HoudiniFilter
+from rl_pipeline.common.state import State, first_falsifying_state
+from rl_pipeline.reward.filters import HoudiniFilter, PreFramaFilter, auto_filter
 
 
 class LightweightAcslParserTests(unittest.TestCase):
@@ -50,6 +51,46 @@ class LightweightAcslParserTests(unittest.TestCase):
                 self.assertFalse(
                     parse_scalar_invariant(expression, self.program).valid
                 )
+
+    def test_at_labels_follow_the_model_facing_contract(self):
+        valid = [r"n == \at(n,Pre)", r"a == \at(a,LoopEntry)"]
+        invalid = [r"i == \at(i,Pre)", r"n == \at(n,LoopEntry)"]
+
+        for expression in valid:
+            with self.subTest(expression=expression):
+                self.assertTrue(parse_scalar_invariant(expression, self.program).valid)
+        for expression in invalid:
+            with self.subTest(expression=expression):
+                self.assertFalse(parse_scalar_invariant(expression, self.program).valid)
+
+    def test_pre_frama_filter_deduplicates_before_positive_evaluation(self):
+        positives = [State(vars={"n": 2, "a": 7, "i": 0})]
+        with mock.patch(
+            "rl_pipeline.reward.filters.first_falsifying_state",
+            wraps=first_falsifying_state,
+        ) as evaluate:
+            survivors = PreFramaFilter().filter(
+                self.program,
+                0,
+                ["i >= 0", "0 <= i", "i <= n", "i > n", "i >= 0 +"],
+                positives,
+            )
+
+        self.assertEqual(survivors, ["i >= 0", "i <= n"])
+        self.assertEqual(evaluate.call_count, 3)
+
+    def test_auto_filter_places_one_lightweight_stage_before_houdini(self):
+        with mock.patch(
+            "rl_pipeline.reward.filters.frama_c_available", return_value=True
+        ):
+            selected = auto_filter()
+
+        self.assertEqual(
+            [stage.name for stage in selected.stages],
+            ["pre-frama", "houdini"],
+        )
+        self.assertFalse(selected.stages[1].prefilter_positives)
+        self.assertFalse(selected.stages[1].lightweight_prefilter)
 
     def test_syntax_scrub_filters_and_deduplicates_before_frama_c(self):
         calls = []

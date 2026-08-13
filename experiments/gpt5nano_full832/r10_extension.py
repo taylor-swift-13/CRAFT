@@ -9,10 +9,7 @@ import json
 from pathlib import Path
 import time
 
-from rl_pipeline.common import prompts
-from rl_pipeline.common.program import strip_postcondition
-from rl_pipeline.common.state import MAX_INVARIANTS_PER_RESPONSE, extract_invariants
-from rl_pipeline.inference import InferenceFramework
+from rl_pipeline.inference import BatchedLLMRolloutProvider, InferenceFramework
 
 from .api import RecordingChat
 from .common import (
@@ -23,106 +20,47 @@ from .common import (
     discover_tasks,
     ensure_frama_c_available,
     latest_rows,
-    sha256_text,
-    token_fields,
 )
 from .daikon_adapter import load_manifest_lightweight
 from .run import _score_fixed_task, event_path, new_attempt_dir, save_hidden_source
 
 
 METHOD = "loopgym_r10_houdini"
-SOURCE_METHOD = "loopgym_r4_houdini"
 N_ROLLOUTS = 10
-EXTENSION_PROTOCOL = "loopgym_r10_houdini_no_reroll_reuse_r4_v2"
+REQUESTS_PER_TASK = 2
+ROLLOUTS_PER_REQUEST = 5
+EXTENSION_PROTOCOL = "loopgym_r10_houdini_two_requests_n5x2_v4"
 
 
-def _usage(records: list[dict]) -> dict:
-    exact = bool(records) and all(
-        record.get("token_accounting") == "exact" for record in records
+def _compatible_completed(row: dict | None) -> bool:
+    return bool(
+        row
+        and row.get("generation_status") == "completed"
+        and row.get("extension_protocol") == EXTENSION_PROTOCOL
+        and int(row.get("api_call_count") or 0) == REQUESTS_PER_TASK
+        and int(row.get("fresh_api_call_count") or 0) == REQUESTS_PER_TASK
+        and int(row.get("n_rollouts") or 0) == N_ROLLOUTS
+        and int(row.get("rollout_count") or 0) == N_ROLLOUTS
+        and isinstance(row.get("raw_responses"), list)
+        and len(row["raw_responses"]) == N_ROLLOUTS
     )
 
-    def total(field: str):
-        values = [record.get(field) for record in records]
-        return sum(values) if values and all(value is not None for value in values) else None
 
-    return token_fields(
-        prompt=total("prompt_tokens"),
-        completion=total("completion_tokens"),
-        total=total("total_tokens"),
-        calls=len(records),
-        accounting="exact" if exact else "unavailable",
-    )
-
-
-def _reusable_batches(task: Task, source_row: dict | None) -> tuple[list[list[dict]], str | None]:
-    if not source_row or source_row.get("generation_status") != "completed":
-        return [], None
-    artifact = source_row.get("api_calls_artifact")
-    if not artifact or not Path(artifact).is_file():
-        return [], None
-    try:
-        records = json.loads(Path(artifact).read_text())
-    except Exception:
-        return [], None
-    expected_prompt = prompts.GENERATE_PROMPT.format(program=task.hidden_source)
-    prompt_hash = sha256_text(expected_prompt)
-    if (
-        len(records) not in (4, 8)
-        or any(record.get("prompt_sha256") != prompt_hash for record in records)
-        or any(not isinstance(record.get("response"), str) for record in records)
-    ):
-        return [], None
-    # R10-H has exactly one attempt, so only R4's first attempt is compatible.
-    return [records[:4]], artifact
-
-
-class _HybridProvider:
-    """Reuse four compatible R4 responses per attempt and request the other six."""
-
-    def __init__(self, recorder: RecordingChat, batches: list[list[dict]], source: str | None):
-        self.recorder = recorder
-        self.batches = batches
-        self.source = source
-        self.attempt = 0
-        self.records: list[dict] = []
-
-    def __call__(self, program, n: int) -> list[list[str]]:
-        if n != N_ROLLOUTS:
-            raise ValueError(f"R10 provider expected {N_ROLLOUTS} rollouts, got {n}")
-        source = strip_postcondition(program.source)
-        prompt = prompts.GENERATE_PROMPT.format(program=source)
-        reusable = self.batches[self.attempt] if self.attempt < len(self.batches) else []
-        outputs: list[list[str]] = []
-        for record in reusable:
-            copied = dict(record)
-            copied.update({
-                "reused": True,
-                "reuse_source": self.source,
-                "reuse_method": SOURCE_METHOD,
-            })
-            self.records.append(copied)
-            outputs.append(extract_invariants(
-                copied["response"], max_invariants=MAX_INVARIANTS_PER_RESPONSE
-            ))
-        for _ in range(n - len(reusable)):
-            response = self.recorder.chat(prompt)
-            copied = dict(self.recorder.records[-1])
-            copied["reused"] = False
-            self.records.append(copied)
-            outputs.append(extract_invariants(
-                response, max_invariants=MAX_INVARIANTS_PER_RESPONSE
-            ))
-        self.attempt += 1
-        return outputs
-
-
-def _run_one(task: Task, root: Path, source_row: dict | None) -> dict:
+def _run_one(task: Task, root: Path) -> dict:
     row = base_row(METHOD, task)
     directory = new_attempt_dir(root, METHOD, task)
     hidden_path = save_hidden_source(directory, task)
     recorder = RecordingChat()
-    batches, reuse_source = _reusable_batches(task, source_row)
-    provider = _HybridProvider(recorder, batches, reuse_source)
+
+    def chat_two_batches(prompt: str, n: int) -> list[str]:
+        if n != N_ROLLOUTS:
+            raise ValueError(f"expected {N_ROLLOUTS} rollouts, got {n}")
+        responses = []
+        for _ in range(REQUESTS_PER_TASK):
+            responses.extend(recorder.chat_n(prompt, ROLLOUTS_PER_REQUEST))
+        return responses
+
+    provider = BatchedLLMRolloutProvider(chat_two_batches)
     wall_started = time.perf_counter()
     result = None
     try:
@@ -131,10 +69,17 @@ def _run_one(task: Task, root: Path, source_row: dict | None) -> dict:
             rollout_provider=provider,
             n_rollouts=N_ROLLOUTS,
         ).run()
-        expected_calls = N_ROLLOUTS
-        status = "completed" if len(provider.records) == expected_calls else "failed"
+        valid_batch = (
+            len(recorder.records) == REQUESTS_PER_TASK
+            and all(
+                record.get("choice_count") == ROLLOUTS_PER_REQUEST
+                for record in recorder.records
+            )
+        )
+        status = "completed" if valid_batch else "failed"
         error = None if status == "completed" else (
-            f"expected {expected_calls} total calls, recorded {len(provider.records)}"
+            f"expected {REQUESTS_PER_TASK} n={ROLLOUTS_PER_REQUEST} calls, "
+            f"recorded {len(recorder.records)}"
         )
         invariants = result.final_invariants
         rollouts = result.rollouts
@@ -144,33 +89,33 @@ def _run_one(task: Task, root: Path, source_row: dict | None) -> dict:
         error = f"{type(exc).__name__}: {exc}"
         invariants, rollouts, native_verified = [], [], None
     observed_wall = time.perf_counter() - wall_started
-    reused_seconds = sum(
-        float(record.get("seconds") or 0.0)
-        for record in provider.records if record.get("reused") is True
-    )
     calls_path = directory / "api_calls.json"
-    calls_path.write_text(json.dumps(provider.records, indent=2, ensure_ascii=False))
-    reused_count = sum(record.get("reused") is True for record in provider.records)
+    calls_path.write_text(json.dumps(recorder.records, indent=2, ensure_ascii=False))
+    raw_responses = [
+        response
+        for record in recorder.records
+        for response in (record.get("responses") or [])
+    ]
     row.update({
         "generation_status": status,
         "generation_error": error,
         "hidden_source": str(hidden_path),
-        "raw_responses": [record.get("response", "") for record in provider.records],
+        "raw_responses": raw_responses,
         "rollouts": rollouts,
         "invariants": invariants,
         "native_verified": native_verified,
         "n_rollouts": N_ROLLOUTS,
+        "rollout_count": len(raw_responses),
         "extension_protocol": EXTENSION_PROTOCOL,
         "api_calls_artifact": str(calls_path),
-        "reuse_source_method": SOURCE_METHOD if reused_count else None,
-        "reuse_source_artifact": reuse_source if reused_count else None,
-        "reused_api_call_count": reused_count,
-        "fresh_api_call_count": len(provider.records) - reused_count,
+        "reuse_source_method": None,
+        "reuse_source_artifact": None,
+        "reused_api_call_count": 0,
+        "fresh_api_call_count": len(recorder.records),
         "observed_extension_wall_seconds": observed_wall,
-        # R10 algorithmic cost includes reused calls' original measured latency.
-        "generation_seconds": observed_wall + reused_seconds,
-        "generation_time_accounting": "observed_wall_plus_reused_call_wall",
-        **_usage(provider.records),
+        "generation_seconds": observed_wall,
+        "generation_time_accounting": "observed_wall",
+        **recorder.usage(),
     })
     return row
 
@@ -180,21 +125,11 @@ def generate_all(root: Path, workers: int, retry_failed: bool) -> None:
     tasks = discover_tasks()
     destination = event_path(root, METHOD)
     existing = latest_rows([destination])
-    source_rows = latest_rows([event_path(root, SOURCE_METHOD)])
     pending = []
     for task in tasks:
         old = existing.get(task.key(METHOD))
-        if old and old.get("generation_status") == "completed":
-            compatible = int(old.get("api_call_count") or 0) == N_ROLLOUTS
-            if compatible:
-                if old.get("extension_protocol") != EXTENSION_PROTOCOL:
-                    updated = dict(old)
-                    updated.update({
-                        "extension_protocol": EXTENSION_PROTOCOL,
-                    })
-                    append_jsonl(destination, updated)
-                    existing[task.key(METHOD)] = updated
-                continue
+        if _compatible_completed(old):
+            continue
         if old and not retry_failed and old.get("generation_status") in {
             "failed", "timeout"
         }:
@@ -206,12 +141,7 @@ def generate_all(root: Path, workers: int, retry_failed: bool) -> None:
         RecordingChat()
     with ThreadPoolExecutor(max_workers=workers) as pool:
         futures = {
-            pool.submit(
-                _run_one,
-                task,
-                root,
-                source_rows.get(task.key(SOURCE_METHOD)),
-            ): task
+            pool.submit(_run_one, task, root): task
             for task in pending
         }
         for index, future in enumerate(as_completed(futures), 1):
@@ -230,8 +160,10 @@ def generate_all(root: Path, workers: int, retry_failed: bool) -> None:
         "method": METHOD,
         "extension_protocol": EXTENSION_PROTOCOL,
         "rollouts_per_attempt": N_ROLLOUTS,
+        "api_calls_per_attempt": REQUESTS_PER_TASK,
+        "api_n": ROLLOUTS_PER_REQUEST,
+        "request_schedule": [ROLLOUTS_PER_REQUEST] * REQUESTS_PER_TASK,
         "houdini": True,
-        "reuse_source_method": SOURCE_METHOD,
         "target_hidden": True,
     }
     (root / "r10_protocol.json").write_text(

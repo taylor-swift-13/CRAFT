@@ -25,8 +25,9 @@
 \usepackage{enumitem}
 \usepackage{multirow}
 \usepackage{float}
+\usepackage{etoolbox}
 \usepackage{tikz}
-\usetikzlibrary{calc,arrows.meta,positioning}
+\usetikzlibrary{calc,arrows.meta,positioning,shapes.geometric}
 
 %% tcolorbox setup
 \tcbuselibrary{skins,breakable}
@@ -61,7 +62,7 @@
 %% Muted green/gray palette
 \definecolor{codeblue}{RGB}{45,112,83}
 \definecolor{codegray}{RGB}{92,110,101}
-\definecolor{codepurple}{RGB}{88,132,111}
+\definecolor{codepurple}{RGB}{52,128,120}
 \definecolor{codered}{RGB}{157,91,73}
 \definecolor{codegreen}{RGB}{72,137,104}
 \definecolor{promptbg}{RGB}{247,250,248}
@@ -69,6 +70,8 @@
 \definecolor{algobg}{RGB}{237,246,241}
 \definecolor{algoframe}{RGB}{129,174,150}
 \definecolor{paperink}{RGB}{31,49,40}
+\definecolor{wrongred}{RGB}{224,150,138}
+\definecolor{codeolive}{RGB}{140,126,55}
 
 %% Restrained green accents; structural typography comes from the ICLR style.
 \hypersetup{
@@ -78,6 +81,11 @@
 \setlist[enumerate]{leftmargin=1.45em,itemsep=2pt,topsep=3pt,parsep=0pt}
 \renewcommand{\arraystretch}{1.08}
 \arrayrulecolor{promptframe}
+
+%% Keep every data table at one fixed font size.  Table width is handled by
+%% column spacing and line breaks, never by scaling the tabular contents.
+\AtBeginEnvironment{tabular}{\small}
+\AtBeginEnvironment{tabular*}{\small}
 
 %% Listings style for C / ACSL
 \lstdefinestyle{cstyle}{
@@ -177,6 +185,7 @@
 \newcommand{\xmark}{\ding{55}}
 \newcommand{\sam}{\textsc{LoopGym}}
 \newcommand{\denote}[1]{\left[\!\left[#1\right]\!\right]}
+\newcommand{\acc}[2]{\shortstack[r]{#1\\(#2)}}
 
 %% Meta
 \title{\sam{}: Rollout--Combine--Filter Training\\

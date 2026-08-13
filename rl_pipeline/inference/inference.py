@@ -77,6 +77,35 @@ class LLMRolloutProvider:
         return out
 
 
+class BatchedLLMRolloutProvider:
+    """Requests all ``n`` HTTP choices in one call while keeping targets hidden."""
+
+    def __init__(self, chat_n_fn: Callable[[str, int], List[str]], logger=None):
+        self.log = logger or logging.getLogger("rl_pipeline.inference.llm_batch")
+        self.chat_n_fn = chat_n_fn
+
+    def __call__(self, prog: Program, n: int) -> List[List[str]]:
+        source = strip_postcondition(prog.source)
+        prompt = prompts.GENERATE_PROMPT.format(program=source)
+        try:
+            responses = list(self.chat_n_fn(prompt, n))
+        except Exception as e:
+            self.log.warning("Batched LLM call failed: %s", e)
+            return [[] for _ in range(n)]
+        if len(responses) != n:
+            self.log.warning(
+                "Batched LLM call returned %d choices; expected %d",
+                len(responses), n,
+            )
+            return [[] for _ in range(n)]
+        return [
+            extract_invariants(
+                response, max_invariants=MAX_INVARIANTS_PER_RESPONSE
+            )
+            for response in responses
+        ]
+
+
 class VLLMRolloutProvider:
     """Batched rollout generation with an IN-PROCESS vLLM engine — all n samples
     for a program are produced in ONE call (high-throughput RL path, no HTTP).

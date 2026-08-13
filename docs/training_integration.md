@@ -19,13 +19,17 @@ The trainer loads `prompt/generate_prompt.txt`, formats its
 ## 0. Build the canonical training datasets
 
 The original `0803` archives predate the current prompt and invariant
-interface. Generate new inputs before retraining; the script never overwrites
-its inputs. Initialize the Frama-C opam switch, then run:
+interface. They are provenance inputs and are not included in the tracked
+release; pass their paths explicitly when regenerating the clean artifacts.
+The script never overwrites its inputs. Initialize the Frama-C opam switch,
+then run:
 
 ```bash
 eval "$(opam env --switch=frama-c.27.1 --set-switch)"
 LOOPGYM_WP_PAR=2 conda run -n ASGSE \
   python paper/scripts/sanitize_training_prompts.py \
+  --rl-input /path/to/loopgym_rl_0803.parquet \
+  --sft-input /path/to/loopgym_sft_0803.json \
   --verify-rl-syntax --rl-syntax-jobs 32 \
   --verify-sft --wp-timeout 5 --jobs 16
 ```
@@ -36,11 +40,18 @@ prompts and contain only supported target-hidden scalar-integer, single-loop
 programs. For archived `power` clauses, fixed exponents are expanded into
 explicit multiplication. When two equations contain the same symbolic power,
 the cleaner attempts to eliminate it and derive a power-free polynomial
-relation; symbolic powers are never approximated by a finite expansion. SFT
+relation; symbolic powers are never approximated by a finite expansion.
+Reducible product equalities and guarded copies of an already-unconditional
+conclusion are discarded as weak or redundant. SFT
 answers additionally remove remaining helper calls, malformed or out-of-scope
 clauses, conservative duplicates, obvious tautologies, weaker dominated
 constant bounds, and clauses that do not survive the deployed Frama-C/WP
-Houdini filter. Each answer is capped at 20 clauses. The 5-second setting is
+Houdini filter.  The cleaner also minimizes entry labels: `\at(v,LoopEntry)`
+is retained only when `v` is a local whose final pre-loop assignment is directly
+`unknown()`/`unknownN()`.  Parameters are rewritten to `Pre`, and deterministic
+local initializers are recursively inlined; a clause is rejected if a remaining
+entry value cannot be represented under this rule. Each answer is capped at 20
+clauses. The 5-second setting is
 per WP proof obligation, not per training record. Per-problem power rewrite
 decisions are saved in `paper/artifacts/power_rewrite_audit.json`. Train only
 from these clean outputs.

@@ -22,8 +22,10 @@ import tempfile
 from typing import List, Optional, Tuple
 
 from ..common.program import Program
+from ..common.acsl_parser import lightweight_syntax_filter
 from ..common.state import (
     State,
+    dedup_normalized,
     extract_invariants,
     first_falsifying_state,
     normalize_invariant,
@@ -127,7 +129,8 @@ class HoudiniFilter:
         return survivors
 
     def _syntax_scrub(self, prog: Program, loop_idx: int, invs: List[str],
-                      dropped: Optional[List[Tuple[str, str]]] = None) -> List[str]:
+                      dropped: Optional[List[Tuple[str, str]]] = None,
+                      lightweight_prefilter: bool = True) -> List[str]:
         """Drop `loop invariant` entries FRAMA-C rejects (parse/typecheck): one
         kernel-only run per round; the error's line number maps back to the
         offending entry (each sits on its own line).  An unmappable error falls
@@ -164,7 +167,21 @@ class HoudiniFilter:
             if dropped is not None:
                 dropped.append((inv, msg or "parse/typecheck error"))
 
+        # Keep the expensive kernel stage strictly last: reject malformed
+        # clauses first, then collapse exact/conservatively equivalent forms.
+        # The stable de-duplicator preserves the first spelling for diagnostics.
         invs = list(invs)
+        if lightweight_prefilter:
+            invs, light_dropped = lightweight_syntax_filter(prog, invs)
+            for invariant, reason in light_dropped:
+                self.log.info(
+                    "syntax scrub (lightweight): dropping %r (%s)",
+                    invariant,
+                    reason,
+                )
+                if dropped is not None:
+                    dropped.append((invariant, reason))
+            invs = dedup_normalized(invs)
         for _ in range(len(invs) + 1):
             if not invs:
                 return []

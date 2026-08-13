@@ -41,7 +41,6 @@ mismatch.
 
 \begin{table}[t]
 \centering
-\small
 \begin{tabular}{lp{3.2cm}p{6.2cm}}
 \toprule
 \rowcolor{algobg}
@@ -181,17 +180,28 @@ SFT answers are parsed into clauses, conservatively deduplicated, stripped of
 malformed, out-of-scope, tautological, and dominated constant-bound clauses,
 then checked by the same Frama-C/WP Houdini filter used by the method.  The
 5-second limit applies to each proof obligation.  This reduces 32,883 archived
-clauses to 25,781 verified, non-tautological clauses, with at most 20 clauses
+clauses to 24,090 verified, non-tautological clauses, with at most 20 clauses
 per answer.  A final conservative theorem-prover pass removes 431 universally
 true clauses from the verified set; five answers then become empty.  For
 archived helper calls, 65 fixed-exponent occurrences are expanded into explicit
-multiplication; 22 resulting clauses remain in 20 final examples.  Symbolic
+multiplication; 14 resulting clauses remain in 14 final examples.  Symbolic
 exponents are never approximated by finite expansion.  Instead, when two
 equations share the same symbolic power, we eliminate that term to derive a
 power-free polynomial relation and verify it on the corresponding program;
-175 such relations remain in 104 examples.  The remaining 2,083 symbolic-power
+70 irreducible, non-redundant relations remain in 68 examples.  We reject
+reducible product equalities, which encode weak disjunctions and are often
+vacuous under initialization, and remove guarded copies when the same answer
+already contains their unconditional conclusion.  The remaining 2,083 symbolic-power
 clauses cannot be represented equivalently under the released scalar interface
 and are removed.  The artifact records every per-program rewrite and verdict.
+We also minimize loop-entry labels: an occurrence of
+\texttt{\textbackslash at(v,LoopEntry)} is retained only when \(v\) is a local whose
+final pre-loop assignment is directly an \texttt{unknown*()} call.  Parameters
+are rewritten to \texttt{\textbackslash at(v,Pre)}, deterministic local initializers are
+recursively expanded, and the rewritten clauses are rechecked by Houdini.  This
+rewrites 4,214 unnecessary references and leaves 2,137 necessary references in
+1,807 clauses across 348 answers; an independent audit finds no violation of
+the rule.
 
 Contract-level audits find no target clause or non-contract comment in any
 final RL or SFT model prompt, and all rows contain the same current system and
@@ -214,6 +224,13 @@ Program:
 {program}
 \end{lstlisting}
 \end{promptbox}
+
+The accompanying system prompt defines the accepted scalar ACSL forms,
+including bounds, relational and polynomial equalities, implications, modular
+constraints, conjunctions, and power-of-two bitshifts.  It restricts
+\texttt{Pre} to function parameters and \texttt{LoopEntry} to locals initialized
+before the loop by a direct \texttt{unknown*()} assignment; the full verbatim
+prompt is released in \texttt{prompt/system\_prompt.txt}.
 
 \section{Training Interface}
 \label{app:service}
@@ -244,7 +261,7 @@ rollout dumps.
 \section{Training--Evaluation Overlap Audit}
 \label{app:data-leakage}
 
-The 37,481 cleaned training records contain 35,838 unique source strings after
+The 37,481 cleaned training records contain 35,824 unique source strings after
 whitespace normalization and include every program used for SFT.  We compare
 this pool against all 832 evaluation files after removing \(Q\), exactly as it
 is removed before model inference.
@@ -284,7 +301,6 @@ and the complete evaluation corpus.
 
 \begin{table}[H]
 \centering
-\small
 \setlength{\tabcolsep}{3.5pt}
 \begin{tabular}{lrr}
 \toprule
@@ -351,13 +367,12 @@ predicates, executable assertion calls, conventional error-label names, and
 non-contract comments, including source-provenance paths; preconditions and
 executable semantics remain visible.  \sam{} evaluation
 runs use the canonical generation template, extractor, semantic deduplication,
-and Houdini implementation; external tools retain their own orchestration.  Each model
-retains its serving interface and chat template.  In \sam{}, API calls do not
-override \texttt{reasoning\_effort},
-\texttt{thinking}, or equivalents; all locally served checkpoints disable
-thinking.
+and Houdini implementation; external tools retain their own orchestration.
+Each model retains its serving interface and chat template.  In \sam{}, API
+calls set \texttt{reasoning\_effort=none}; all locally served checkpoints
+disable thinking.
 We set temperature 1.0 and top-\(p\) 1.0, without an additional top-\(k\),
-repetition penalty, re-roll, or target feedback.  The cap is 16,384
+repetition penalty, re-roll, or target feedback.  The cap is 8,192
 completion tokens for API models, including any
 provider-internal reasoning tokens, and 2,048 emitted tokens for local vLLM
 models.  Each RQ1 curve reuses the same stochastic 100-response batch per
@@ -371,7 +386,6 @@ sampler constants are already reported in Table~\ref{tab:constants}.
 
 \begin{table}[H]
 \centering
-\small
 \setlength{\tabcolsep}{4pt}
 \begin{tabular}{lp{3.0cm}p{6.0cm}}
 \toprule
@@ -405,44 +419,64 @@ evaluation artifacts; no missing value is used in the analysis.
 
 \begin{table}[H]
 \centering
+\setlength{\tabcolsep}{3pt}
 \caption{Complete probe results.  \(k_{95}\) is the smallest measured
-\(k\in\{1,10,30,50,75,100\}\) at which combine@\(k\) reaches \(95\%\) of its
+\(k\in\{1,10,30,50,100\}\) at which combine@\(k\) reaches \(95\%\) of its
 value at \(k=100\).}
 \label{tab:probe-complete}
-\resizebox{\textwidth}{!}{
-\begin{tabular}{lrrrrrrrrrrrr}
+\textit{Whole-response pass rates}\\[2pt]
+\begin{tabular}{lrrrrr}
 \toprule
-Model & pass@1 & pass@10 & pass@30 & pass@50 & pass@100 &
-combine@1 & combine@10 & combine@30 & combine@50 &
-combine@75 & combine@100 & \(k_{95}\) \\
+Model & pass@1 & pass@10 & pass@30 & pass@50 & pass@100 \\
 \midrule
+Qwen3-0.6B & 0.70\% & 4.09\% & 7.12\% & 9.00\% & 12.26\%
+  \\
 Qwen3-4B & 2.53\% & 7.56\% & 11.21\% & 13.10\% & 15.62\%
-  & 33.89\% & 45.31\% & 47.24\% & 47.60\% & 47.72\% & 47.84\% & 30 \\
+  \\
 Qwen3-8B & 9.30\% & 22.87\% & 28.30\% & 30.47\% & 33.29\%
-  & 41.23\% & 52.76\% & 56.37\% & 57.09\% & 57.57\% & 58.05\% & 30 \\
+  \\
 Qwen3-14B & 10.29\% & 25.45\% & 33.55\% & 36.78\% & 39.90\%
-  & 49.52\% & 57.33\% & 57.81\% & 57.81\% & 57.93\% & 58.05\% & 10 \\
+  \\
 Qwen3-30B-A3B & 7.43\% & 19.27\% & 25.13\% & 27.88\% & 31.73\%
-  & 43.27\% & 50.12\% & 50.96\% & 51.08\% & 51.20\% & 51.32\% & 10 \\
-Llama (checkpoint TBD) & 0.14\% & 1.23\% & -- & 4.46\% & 7.33\%
-  & 16.59\% & 30.41\% & 34.13\% & 34.38\% & 34.38\% & 34.38\% & 30 \\
+  \\
+Llama 3.1 8B & 0.14\% & 1.23\% & 3.03\% & 4.46\% & 7.33\%
+  \\
 \bottomrule
-\end{tabular}}
-The retained Llama artifact reports pass@2, pass@5, and pass@20 as 0.28\%,
-0.66\%, and 2.21\%, respectively; pass@30 was not included in the supplied
-summary.  Its combine numerators at \(k=1,10,30,50,75,100\) are
-138, 253, 284, 286, 286, and 286 out of 832 tasks.
+\end{tabular}
+\vspace{5pt}
+
+\textit{Clause-combination rates}\\[2pt]
+\begin{tabular}{lrrrrrr}
+\toprule
+Model & combine@1 & combine@10 & combine@30 & combine@50 & combine@100 & \(k_{95}\) \\
+\midrule
+Qwen3-0.6B & 6.61\% & 24.16\% & 25.00\% & 25.00\% & 25.00\% & 10 \\
+Qwen3-4B & 33.89\% & 45.31\% & 47.24\% & 47.60\% & 47.84\% & 30 \\
+Qwen3-8B & 41.23\% & 52.76\% & 56.37\% & 57.09\% & 58.05\% & 30 \\
+Qwen3-14B & 49.52\% & 57.33\% & 57.81\% & 57.81\% & 58.05\% & 10 \\
+Qwen3-30B-A3B & 43.27\% & 50.12\% & 50.96\% & 51.08\% & 51.32\% & 10 \\
+Llama 3.1 8B & 16.59\% & 30.41\% & 34.13\% & 34.38\% & 34.38\% & 30 \\
+\bottomrule
+\end{tabular}
+For Qwen3-0.6B, pass@\(k\) at \(k=1,2,5,10,20,30,50,75,100\) is
+0.70\%, 1.30\%, 2.64\%, 4.09\%, 5.87\%, 7.12\%, 9.00\%, 10.79\%, and
+12.26\%, respectively; 102/832 programs have at least one successful
+response.  Prefix combine numerators at \(k=1,10,30,50,75,100\) are 55,
+201, 208, 208, 208, and 208 out of 832 tasks.
+The unrounded Llama 3.1 8B pass@30 estimate is 3.0345\%.  Its combine
+numerators at \(k=1,10,30,50,100\) are 138, 253, 284, 286, and 286 out of
+832 tasks.
 \end{table}
 
 \subsection{Reinforcement-Learning Results}
 
 \begin{table}[H]
 \centering
+\setlength{\tabcolsep}{5pt}
 \caption{Complete comparison before and after RL.  The Zero and SFT
 initializations are evaluated under the same decoding and verification
 configuration.}
 \label{tab:rl-complete}
-\resizebox{\textwidth}{!}{
 \begin{tabular}{llrrrrrrr}
 \toprule
 Path & Model & pass@1 & combine@1 & combine@10 &
@@ -453,7 +487,7 @@ Zero & Base 8B + RL & 4.88\% & 43.15\% & 56.97\% & 58.77\% & 58.77\% & 10 \\
 SFT  & SFT 8B       & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
 SFT  & SFT 8B + RL  & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
 \bottomrule
-\end{tabular}}
+\end{tabular}
 \end{table}
 
 \subsection{Ablation Results}
@@ -485,7 +519,6 @@ subtracts \(w_d d_{\rm dup}(A_i)\), yielding the full reward.  These are
 \caption{Per-seed reward-ablation results on the 8B model.  Seed columns and
 summary statistics report combine@10 verification rates.}
 \label{tab:reward-ablation-complete}
-\resizebox{\textwidth}{!}{
 \begin{tabular}{lrrrrr}
 \toprule
 Reward & Seed 1 & Seed 2 & Seed 3 & Mean & Std. \\
@@ -496,7 +529,7 @@ Clause-Decomposed Strength          & \textsc{TBD} & \textsc{TBD} & \textsc{TBD}
 Compositional Credit                & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
 Regularized Compositional Credit    & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
 \bottomrule
-\end{tabular}}
+\end{tabular}
 \end{table}
 
 \begin{table}[H]
@@ -504,7 +537,6 @@ Regularized Compositional Credit    & \textsc{TBD} & \textsc{TBD} & \textsc{TBD}
 \caption{Per-seed negative-trace sampler ablation on the 8B model.  Seed
 columns and summary statistics report combine@10 verification rates.}
 \label{tab:sampler-ablation-complete}
-\resizebox{\textwidth}{!}{
 \begin{tabular}{lrrrrr}
 \toprule
 Sampler & Seed 1 & Seed 2 & Seed 3 & Mean & Std. \\
@@ -512,93 +544,109 @@ Sampler & Seed 1 & Seed 2 & Seed 3 & Mean & Std. \\
 Random perturbation                 & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
 Structured sampler                  & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
 \bottomrule
-\end{tabular}}
+\end{tabular}
 \end{table}
 
 \subsection{Cross-Model Main Results}
 
 \begin{table}[H]
 \centering
+\setlength{\tabcolsep}{4.5pt}
 \caption{Complete main results by evaluation stratum.  Each benchmark column
 reports the number verified by pass@1/combine@1.}
 \label{tab:main-complete}
-\resizebox{\textwidth}{!}{
 \begin{tabular}{lccccrr}
 \toprule
 Model & Linear / 316 & NLA / 50 & Loopy / 466 & All / 832 &
 Time / task & Total tokens / task \\
 \midrule
-GPT-5-nano        & 193/203 & 7/7 & 252/294 & 452/504 & 66.60\,s & 6,928.30 \\
-GPT-5-mini        & 176/246 & 2/5 & 284/353 & 462/604 & 58.36\,s & 4,509.32 \\
-GPT-5             & 246/254 & 7/7 & 375/375 & 628/636 & 82.88\,s & 5,289.00 \\
-Claude Sonnet-4.6 & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & 467/528
-  & 59.88\,s & 1,193.55 \\
-DeepSeek-V4-Flash & 183/196 & 2/4 & 243/254 & 428/454 & 166.98\,s & 11,084.44 \\
-Qwen3-14B         & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
-Qwen3-8B          & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
-Qwen3-4B          & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
-Llama (checkpoint TBD) & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+GPT-5-nano        & 8/157 & 0/4 & 22/213 & 30/374 & 29.66\,s & 1,135.83 \\
+GPT-5-mini        & 57/187 & 1/4 & 101/280 & 159/471 & 22.98\,s & 1,271.78 \\
+GPT-5             & 76/196 & 1/5 & 114/296 & 191/497 & 18.22\,s & 1,230.92 \\
+Claude Sonnet-4.6 & 168/230 & 4/5 & 259/353 & 431/588 & 19.86\,s & 4,010.26 \\
+DeepSeek-V4-Flash & 51/198 & 3/6 & 101/287 & 155/491 & 35.90\,s & 1,209.49 \\
 \bottomrule
-\end{tabular}}
+\end{tabular}
 \end{table}
-Claude timing and tokens use a fixed seed-0 stratified sample of 20 programs
-(8 linear, 1 nonlinear, and 11 Loopy); accuracy uses all 832.
-For the rows with retained paired artifacts, filter gain/regression counts are
-123/71 (GPT-5-nano), 157/15 (GPT-5-mini), 23/15 (GPT-5), and 32/6
-(DeepSeek-V4-Flash).  These counts compare the same response before and after
-clause processing; they expose operational regressions hidden by the net rate.
-
-As a reasoning-control diagnostic, GPT-5 with
-\texttt{reasoning\_effort=none} obtains pass@1 of 251/832 (30.17\%) and
-combine@1 of 477/832 (57.33\%), using 1,028.12 mean tokens per task.  The main
-table retains the provider-default run.
+All timing and token columns are full-workload means over 832 programs.  Each
+pass@1/combine@1 pair is certified from the same saved response.
 
 \subsection{Comparison with Specialized Tools}
 
 \begin{table}[H]
 \centering
-\caption{Complete target-hidden tool-comparison results.  Each cell reports
-verified programs and rate under the common file-level denominator.}
+\setlength{\tabcolsep}{3pt}
+\caption{Archived target-hidden tool-comparison results with
+\texttt{reasoning\_effort=medium} for every LLM-based row; Daikon makes no
+model call.  Each cell reports verified programs and rate under the common
+file-level denominator.}
 \label{tab:tools-complete}
-\resizebox{\textwidth}{!}{
 \begin{tabular}{lrrrrrr}
 \toprule
 Method & Linear / 316 & NLA / 50 & Loopy / 466 & Overall / 832 &
 Tokens / task & Time / task \\
 \midrule
-AutoSpec & 208 (65.82\%) & 4 (8.00\%) & 302 (64.81\%)
-  & 514 (61.78\%) & 25,154.54 & 54.77\,s \\
-SESpec & 180 (56.96\%) & 3 (6.00\%) & 231 (49.57\%)
-  & 414 (49.76\%) & 44,807.05 & 117.31\,s \\
-Clause2Inv & 63 (19.94\%) & 1 (2.00\%) & 0 (0.00\%)
-  & 64 (7.69\%) & 385.80 & 29.04\,s \\
-Daikon & 73 (23.10\%) & 0 (0.00\%) & 101 (21.67\%)
-  & 174 (20.91\%) & 0 & 4.89\,s \\
+AutoSpec & \acc{208}{65.82\%} & \acc{4}{8.00\%} & \acc{302}{64.81\%}
+  & \acc{514}{61.78\%} & 25,154.54 & 54.77\,s \\
+SESpec & \acc{180}{56.96\%} & \acc{3}{6.00\%} & \acc{231}{49.57\%}
+  & \acc{414}{49.76\%} & 44,807.05 & 117.31\,s \\
+Clause2Inv & \acc{63}{19.94\%} & \acc{1}{2.00\%} & \acc{0}{0.00\%}
+  & \acc{64}{7.69\%} & 385.80 & 29.04\,s \\
+Daikon & \acc{73}{23.10\%} & \acc{0}{0.00\%} & \acc{101}{21.67\%}
+  & \acc{174}{20.91\%} & 0 & 4.89\,s \\
 \midrule
 Naive
-  & 154 (48.73\%) & 4 (8.00\%) & 221 (47.42\%)
-  & 379 (45.55\%) & 4,493.37 & 28.87\,s \\
+  & \acc{154}{48.73\%} & \acc{4}{8.00\%} & \acc{221}{47.42\%}
+  & \acc{379}{45.55\%} & 4,493.37 & 28.87\,s \\
 \sam{} (pass@1)
-  & 193 (61.08\%) & 7 (14.00\%) & 252 (54.08\%)
-  & 452 (54.33\%) & 6,928.30 & 53.52\,s \\
+  & \acc{193}{61.08\%} & \acc{7}{14.00\%} & \acc{252}{54.08\%}
+  & \acc{452}{54.33\%} & 6,928.30 & 53.52\,s \\
 \sam{} (combine@1)
-  & 203 (64.24\%) & 7 (14.00\%) & 294 (63.09\%)
-  & 504 (60.58\%) & 6,928.30 & 66.60\,s \\
+  & \acc{203}{64.24\%} & \acc{7}{14.00\%} & \acc{294}{63.09\%}
+  & \acc{504}{60.58\%} & 6,928.30 & 66.60\,s \\
 \sam{} (combine@5)
-  & 250 (79.11\%) & 7 (14.00\%) & 365 (78.33\%)
-  & 622 (74.76\%) & 33,404.56 & 284.81\,s \\
+  & \acc{250}{79.11\%} & \acc{7}{14.00\%} & \acc{365}{78.33\%}
+  & \acc{622}{74.76\%} & 33,404.56 & 114.95\,s \\
 \sam{} (combine@10)
-  & 255 (80.70\%) & 7 (14.00\%) & 376 (80.69\%)
-  & 638 (76.68\%) & 68,953.35 & 536.81\,s \\
+  & \acc{255}{80.70\%} & \acc{7}{14.00\%} & \acc{376}{80.69\%}
+  & \acc{638}{76.68\%} & 68,953.35 & 143.67\,s \\
+\textsc{Loopy}
+  & \acc{230}{72.78\%} & \acc{6}{12.00\%} & \acc{330}{70.82\%}
+  & \acc{566}{68.03\%} & 111,973.15 & 381.01\,s \\
 \bottomrule
-\end{tabular}}
+\end{tabular}
+\end{table}
+
+The non-reasoning main comparison uses each tool's own sampling schedule with
+the shared model-call parameters summarized separately in
+Table~\ref{tab:tool-sampling-parameters}.
+
+\begin{table}[H]
+\centering
+\setlength{\tabcolsep}{4pt}
+\caption{Sampling parameters used in the non-reasoning target-hidden tool comparison.}
+\label{tab:tool-sampling-parameters}
+\begin{tabular}{lllll}
+\toprule
+Method & Sampling budget / task & Temperature / top-\(p\) & Completion cap & Reasoning \\
+\midrule
+AutoSpec & 8 & 1.0 / 1.0 & 8,192 & none \\
+SESpec & 1 initial + up to 3 refinements per phase & 1.0 / 1.0 & 8,192 & none \\
+Clause2Inv & adaptive; 1 per call & 1.0 / 1.0 & 8,192 & none \\
+Daikon & no model call & -- & -- & -- \\
+Naive & 1 & 1.0 / 1.0 & 8,192 & none \\
+\sam{} & 1, 5, or \(2\!\times\!5\) & 1.0 / 1.0 & 8,192 & none \\
+\textsc{Loopy} & 15 initial + up to 7 repairs & 0.7 / 1.0 & 8,192 & none \\
+\bottomrule
+\end{tabular}
 \end{table}
 
 Token totals are means per task, with three accounting qualifications.
-\textsc{SESpec} has exact token usage for 830 tasks.
-\textsc{Clause2Inv} token and time means use its 366 supported tasks, and its
-token count is estimated; its accuracy retains the 832-task denominator.
-The retained \sam{} pass@1 timing covers the 466 Loopy tasks.  Pass@1 and
+\textsc{AutoSpec}, \textsc{SESpec}, and \textsc{Clause2Inv} have token totals
+for 828, 826, and 821 tasks, respectively; their accuracy retains the
+832-task denominator.  The 466 unsupported \textsc{Clause2Inv} tasks make no
+model call and contribute zero tokens.
+The retained \sam{} pass@1 timing covers the 466 Loopy tasks.  pass@1 and
 combine@1 reuse the same first model response.
 
 \clearpage
@@ -621,8 +669,9 @@ verification rates under vLLM than under alternative backends despite
 nominally matched decoding settings.  We nevertheless use vLLM for all local
 base and trained checkpoints because its throughput makes broad sampling
 practical and its consistent use avoids an additional train--test mismatch.
-API models retain service defaults.  Local-model success rates may therefore
-be conservative rather than engine-independent ceilings.
+API models retain their provider serving interfaces and chat templates under
+the explicitly reported decoding and reasoning controls.  Local-model success
+rates may therefore be conservative rather than engine-independent ceilings.
 
 \paragraph{Verifier and specification language.}
 Our filtering and all final judgments use Frama-C/WP, and candidates use ACSL.
@@ -658,11 +707,13 @@ target-directed repair.
 \section{Why Thinking Is Disabled for Local Models}
 \label{app:no-thinking}
 
-For API models, all thinking and reasoning settings are left at the service
-default; we do not send \texttt{reasoning\_effort}, \texttt{thinking}, or an
-equivalent override.  For all locally served checkpoints, including the base
-probes and models trained in our pipeline, we disable chain-of-thought (CoT)
-during synthetic data construction, training rollouts, and evaluation.  Applying the
+For the non-reasoning API experiments reported in the main paper, GPT-family
+requests set \texttt{reasoning\_effort=none}, compatible endpoints disable
+thinking explicitly, and Claude Sonnet disables adaptive thinking with a zero
+thinking budget.  The archived reasoning-enabled tool results are labeled
+separately.  For all locally served checkpoints, including the base probes and
+models trained in our pipeline, we disable chain-of-thought (CoT) during
+synthetic data construction, training rollouts, and evaluation.  Applying the
 same setting at all three stages avoids a train--test distribution shift.  This
 choice has two practical motivations.
 

@@ -144,6 +144,14 @@ class OpenAILLM(BaseChatModel):
                     temperature=self.temperature,
                     max_tokens=max_tokens,
                 )
+                reasoning_effort = getattr(
+                    self.config, "api_reasoning_effort", None
+                )
+                if (
+                    reasoning_effort is not None
+                    and str(reasoning_effort).lower() not in {"default", "omit"}
+                ):
+                    kwargs["reasoning_effort"] = reasoning_effort
                 if self.top_p < 1.0:
                     kwargs["top_p"] = self.top_p
                 enable_thinking = getattr(

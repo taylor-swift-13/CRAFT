@@ -1,4 +1,4 @@
-"""LoopGym R5-H/no-reroll replay from the exact R10 rollout prefix."""
+"""LoopGym combine@5: one target-hidden request with n=5, then Houdini."""
 from __future__ import annotations
 
 import argparse
@@ -9,10 +9,9 @@ import json
 from pathlib import Path
 import time
 
-from rl_pipeline.common import prompts
-from rl_pipeline.common.state import MAX_INVARIANTS_PER_RESPONSE, extract_invariants
-from rl_pipeline.inference import InferenceFramework, MockRolloutProvider
+from rl_pipeline.inference import BatchedLLMRolloutProvider, InferenceFramework
 
+from .api import RecordingChat
 from .common import (
     DEFAULT_RESULTS_ROOT,
     Task,
@@ -21,113 +20,86 @@ from .common import (
     discover_tasks,
     ensure_frama_c_available,
     latest_rows,
-    sha256_text,
-    token_fields,
 )
 from .daikon_adapter import load_manifest_lightweight
 from .run import _score_fixed_task, event_path, new_attempt_dir, save_hidden_source
 
 
 METHOD = "loopgym_r5_houdini"
-SOURCE_METHOD = "loopgym_r10_houdini"
 N_ROLLOUTS = 5
-EXTENSION_PROTOCOL = "loopgym_r5_houdini_no_reroll_r10_prefix_v1"
+EXTENSION_PROTOCOL = "loopgym_r5_houdini_single_request_n5_v2"
 
 
-def _usage(records: list[dict]) -> dict:
-    exact = bool(records) and all(
-        record.get("token_accounting") == "exact" for record in records
-    )
-
-    def total(field: str):
-        values = [record.get(field) for record in records]
-        return sum(values) if values and all(value is not None for value in values) else None
-
-    return token_fields(
-        prompt=total("prompt_tokens"),
-        completion=total("completion_tokens"),
-        total=total("total_tokens"),
-        calls=len(records),
-        accounting="exact" if exact else "unavailable",
+def _compatible_completed(row: dict | None) -> bool:
+    return bool(
+        row
+        and row.get("generation_status") == "completed"
+        and row.get("extension_protocol") == EXTENSION_PROTOCOL
+        and int(row.get("api_call_count") or 0) == 1
+        and int(row.get("fresh_api_call_count") or 0) == 1
+        and int(row.get("n_rollouts") or 0) == N_ROLLOUTS
+        and int(row.get("rollout_count") or 0) == N_ROLLOUTS
+        and isinstance(row.get("raw_responses"), list)
+        and len(row["raw_responses"]) == N_ROLLOUTS
     )
 
 
-def _load_prefix(task: Task, source_row: dict) -> tuple[list[dict], str]:
-    if source_row.get("generation_status") != "completed":
-        raise RuntimeError("R10 source row is not completed")
-    artifact = Path(source_row["api_calls_artifact"])
-    records = json.loads(artifact.read_text())
-    prompt_hash = sha256_text(
-        prompts.GENERATE_PROMPT.format(program=task.hidden_source)
-    )
-    if (
-        len(records) != 10
-        or any(record.get("prompt_sha256") != prompt_hash for record in records)
-        or any(not isinstance(record.get("response"), str) for record in records)
-    ):
-        raise RuntimeError(f"incompatible R10 call artifact: {artifact}")
-    return records[:N_ROLLOUTS], str(artifact.resolve())
-
-
-def _run_one(task: Task, root: Path, source_row: dict) -> dict:
+def _run_one(task: Task, root: Path) -> dict:
     row = base_row(METHOD, task)
     directory = new_attempt_dir(root, METHOD, task)
     hidden_path = save_hidden_source(directory, task)
     started = time.perf_counter()
-    records: list[dict] = []
-    source_artifact = None
+    recorder = RecordingChat()
+    provider = BatchedLLMRolloutProvider(recorder.chat_n)
     result = None
     try:
-        source_records, source_artifact = _load_prefix(task, source_row)
-        records = []
-        rollouts = []
-        for record in source_records:
-            copied = dict(record)
-            copied.update({
-                "reused": True,
-                "reuse_source": source_artifact,
-                "reuse_method": SOURCE_METHOD,
-                "reuse_prefix_position": len(records),
-            })
-            records.append(copied)
-            rollouts.append(extract_invariants(
-                copied["response"], max_invariants=MAX_INVARIANTS_PER_RESPONSE
-            ))
         result = InferenceFramework(
             task.source_path.read_text(errors="ignore"),
-            rollout_provider=MockRolloutProvider(rollouts),
+            rollout_provider=provider,
             n_rollouts=N_ROLLOUTS,
         ).run()
-        status, error = "completed", None
+        valid_batch = (
+            len(recorder.records) == 1
+            and recorder.records[0].get("choice_count") == N_ROLLOUTS
+        )
+        status = "completed" if valid_batch else "failed"
+        error = None if status == "completed" else (
+            f"expected one n={N_ROLLOUTS} call, recorded {len(recorder.records)}"
+        )
         invariants = result.final_invariants
+        rollouts = result.rollouts
         native_verified = result.verified
     except Exception as exc:
         status = "failed"
         error = f"{type(exc).__name__}: {exc}"
         rollouts, invariants, native_verified = [], [], None
-    replay_wall = time.perf_counter() - started
-    call_seconds = sum(float(record.get("seconds") or 0.0) for record in records)
-    calls_path = directory / "api_calls.reused.json"
-    calls_path.write_text(json.dumps(records, indent=2, ensure_ascii=False))
+    observed_wall = time.perf_counter() - started
+    calls_path = directory / "api_calls.json"
+    calls_path.write_text(json.dumps(recorder.records, indent=2, ensure_ascii=False))
+    raw_responses = (
+        list(recorder.records[0].get("responses") or [])
+        if recorder.records else []
+    )
     row.update({
         "generation_status": status,
         "generation_error": error,
         "hidden_source": str(hidden_path),
-        "raw_responses": [record.get("response", "") for record in records],
+        "raw_responses": raw_responses,
         "rollouts": rollouts,
         "invariants": invariants,
         "native_verified": native_verified,
         "n_rollouts": N_ROLLOUTS,
+        "rollout_count": len(raw_responses),
         "extension_protocol": EXTENSION_PROTOCOL,
         "api_calls_artifact": str(calls_path),
-        "reuse_source_method": SOURCE_METHOD,
-        "reuse_source_artifact": source_artifact,
-        "reused_api_call_count": len(records),
-        "fresh_api_call_count": 0,
-        "observed_replay_wall_seconds": replay_wall,
-        "generation_seconds": replay_wall + call_seconds,
-        "generation_time_accounting": "replay_wall_plus_original_call_wall",
-        **_usage(records),
+        "reuse_source_method": None,
+        "reuse_source_artifact": None,
+        "reused_api_call_count": 0,
+        "fresh_api_call_count": len(recorder.records),
+        "observed_extension_wall_seconds": observed_wall,
+        "generation_seconds": observed_wall,
+        "generation_time_accounting": "observed_wall",
+        **recorder.usage(),
     })
     return row
 
@@ -137,34 +109,29 @@ def generate_all(root: Path, workers: int, retry_failed: bool) -> None:
     tasks = discover_tasks()
     destination = event_path(root, METHOD)
     existing = latest_rows([destination])
-    source = latest_rows([event_path(root, SOURCE_METHOD)])
     pending = []
     for task in tasks:
         old = existing.get(task.key(METHOD))
-        if old and old.get("generation_status") == "completed":
+        if _compatible_completed(old):
             continue
         if old and not retry_failed and old.get("generation_status") == "failed":
             continue
         pending.append(task)
-    print(f"R5-H replay reusable={len(tasks)-len(pending)} pending={len(pending)}")
-    work = []
-    for task in pending:
-        source_row = source.get(task.key(SOURCE_METHOD))
-        if source_row is None:
-            raise RuntimeError(f"missing R10 source row: {task.suite}/{task.case_id}")
-        work.append((task, source_row))
+    print(f"R5-H generation reusable={len(tasks)-len(pending)} pending={len(pending)}")
+    if pending:
+        RecordingChat()
     # WP/Houdini is CPU-heavy, so process isolation is preferable to threads.
     with ProcessPoolExecutor(max_workers=workers) as pool:
         futures = {
-            pool.submit(_run_one, task, root, source_row): task
-            for task, source_row in work
+            pool.submit(_run_one, task, root): task
+            for task in pending
         }
         for index, future in enumerate(as_completed(futures), 1):
             task = futures[future]
             row = future.result()
             append_jsonl(destination, row)
             print(
-                f"[{index}/{len(work)}] {task.suite}/{task.case_id} "
+                f"[{index}/{len(pending)}] {task.suite}/{task.case_id} "
                 f"{row['generation_status']} verified={row.get('native_verified')} "
                 f"seconds={row.get('generation_seconds', 0):.2f}",
                 flush=True,
@@ -173,9 +140,9 @@ def generate_all(root: Path, workers: int, retry_failed: bool) -> None:
         "method": METHOD,
         "extension_protocol": EXTENSION_PROTOCOL,
         "rollouts": N_ROLLOUTS,
+        "api_calls_per_attempt": 1,
+        "api_n": N_ROLLOUTS,
         "houdini": True,
-        "source_method": SOURCE_METHOD,
-        "source_prefix_length": N_ROLLOUTS,
         "target_hidden": True,
     }
     (root / "r5_protocol.json").write_text(
@@ -233,10 +200,6 @@ def report(root: Path) -> dict:
     rejected = sum(int(row.get("rejected_negative_count") or 0) for row in negative)
     traces = sum(int(row.get("negative_trace_count") or 0) for row in negative)
     timed = [float(row["generation_seconds"]) for row in rows if row.get("generation_seconds") is not None]
-    replay_timed = [
-        float(row["observed_replay_wall_seconds"])
-        for row in rows if row.get("observed_replay_wall_seconds") is not None
-    ]
     tokens = [int(row["total_tokens"]) for row in rows if row.get("total_tokens") is not None]
     prompt_tokens = [int(row["prompt_tokens"]) for row in rows if row.get("prompt_tokens") is not None]
     completion_tokens = [
@@ -251,15 +214,7 @@ def report(root: Path) -> dict:
         "verified": verified,
         "accuracy": verified / 832,
         "mean_generation_seconds": sum(timed) / len(timed) if timed else None,
-        "mean_observed_replay_wall_seconds": (
-            sum(replay_timed) / len(replay_timed) if replay_timed else None
-        ),
-        "mean_original_api_call_seconds": (
-            (sum(timed) - sum(replay_timed)) / len(timed)
-            if timed and len(timed) == len(replay_timed) else None
-        ),
         "time_rows": len(timed),
-        "replay_time_rows": len(replay_timed),
         "mean_prompt_tokens": (
             sum(prompt_tokens) / len(prompt_tokens) if prompt_tokens else None
         ),
@@ -270,7 +225,7 @@ def report(root: Path) -> dict:
         "mean_total_tokens": sum(tokens) / len(tokens) if tokens else None,
         "token_rows": len(tokens),
         "reused_api_calls": sum(int(row.get("reused_api_call_count") or 0) for row in rows),
-        "fresh_api_calls": 0,
+        "fresh_api_calls": sum(int(row.get("fresh_api_call_count") or 0) for row in rows),
         "negative_micro_rejection": rejected / traces if traces else None,
         "negative_macro_rejection": (
             sum(float(row["negative_rejection_score"]) for row in negative) / len(negative)

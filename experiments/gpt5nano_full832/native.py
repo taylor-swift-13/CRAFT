@@ -8,6 +8,7 @@ import re
 import signal
 import shutil
 import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -79,6 +80,125 @@ def _run(
     except BaseException:
         stop_process_group()
         raise
+
+
+def _result_json(stdout: str) -> dict | None:
+    for line in reversed(stdout.splitlines()):
+        if line.startswith("RESULT_JSON:"):
+            try:
+                return json.loads(line[len("RESULT_JSON:"):])
+            except json.JSONDecodeError:
+                return None
+    return None
+
+
+def run_clause2inv(
+    task: Task,
+    artifact_dir: Path,
+    *,
+    clause2inv_root: Path,
+    timeout: int = 7200,
+) -> dict:
+    """Run native Clause2Inv with the postcondition hidden from the model/search."""
+    if task.suite == "Loopy":
+        return {
+            "generation_status": "unsupported",
+            "generation_error": (
+                "native Clause2Inv requires precomputed Code2Inv SMT transition "
+                "VCs; the Loopy corpus has no compatible VCs"
+            ),
+            "invariants": [],
+            "generation_seconds": 0.0,
+            "target_hidden": True,
+            **token_fields(
+                prompt=0, completion=0, total=0, calls=0,
+                accounting="not_called",
+            ),
+        }
+
+    combinator = clause2inv_root / "combinator"
+    if task.suite == "linear":
+        code = combinator / "Benchmarks" / "Linear" / "c" / f"{task.case_id}.c"
+        graph = combinator / "Benchmarks" / "Linear" / "c_graph" / f"{task.case_id}.c.json"
+        vcs = combinator / "Benchmarks" / "Linear" / "c_smt2" / f"{task.case_id}.c.smt"
+    elif task.suite == "NLA_lipus":
+        code = combinator / "Benchmarks" / "NL" / "c" / f"NL{task.case_id}.c"
+        graph = combinator / "Benchmarks" / "NL" / "c_graph" / f"NL{task.case_id}.c.json"
+        vcs = combinator / "Benchmarks" / "NL" / "c_smt" / f"NL{task.case_id}.c_smt"
+    else:
+        raise ValueError(f"unsupported Clause2Inv suite: {task.suite}")
+
+    # The upstream CLI keeps ``-input_graph`` for compatibility, but its
+    # checker never reads that path.  Some distributions therefore omit the
+    # graph directory entirely; code and SMT VCs are the required inputs.
+    missing = [str(path) for path in (code, vcs) if not path.is_file()]
+    if missing:
+        raise FileNotFoundError("missing Clause2Inv input: " + ", ".join(missing))
+
+    artifact_dir = artifact_dir.resolve()
+    artifact_dir.mkdir(parents=True, exist_ok=True)
+    hidden = artifact_dir / "input.hidden.c"
+    hidden.write_text(task.hidden_source)
+    clause2inv_python = Path(os.environ.get(
+        "CLAUSE2INV_PYTHON",
+        "/home/yangfp/miniconda3/envs/clause2inv/bin/python",
+    ))
+    if not clause2inv_python.is_file():
+        clause2inv_python = Path(sys.executable)
+    command = [
+        str(clause2inv_python), "-u", str(combinator / "main.py"),
+        "-input_code", str(hidden),
+        "-input_graph", str(graph),
+        "-input_vcs", str(vcs),
+        "-target_hidden",
+        "-model", "gpt-5-nano",
+    ]
+    env = os.environ.copy()
+    env.update({
+        "CLAUSE2INV_MODEL": "gpt-5-nano",
+        "REASONING_EFFORT": "none",
+    })
+    returncode, timed_out, stdout, stderr, wall = _run(
+        command, cwd=combinator, env=env, timeout=timeout
+    )
+    (artifact_dir / "command.log").write_text(
+        redact_secrets(
+            f"$ {' '.join(command)}\n\n[stdout]\n{stdout}\n\n[stderr]\n{stderr}"
+        )
+    )
+    parsed = _result_json(stdout)
+    usage = parsed.get("api_usage") if parsed else None
+    invariant = parsed.get("invariant") if parsed else None
+    return {
+        "generation_status": (
+            "timeout" if timed_out
+            else "completed" if returncode == 0 and parsed is not None
+            else "failed"
+        ),
+        "generation_error": (
+            "timeout" if timed_out
+            else "missing_result_json" if returncode == 0 and parsed is None
+            else None if returncode == 0
+            else f"returncode_{returncode}"
+        ),
+        "returncode": returncode,
+        "timeout": timed_out,
+        "target_hidden": True,
+        "hidden_source": str(hidden),
+        "native_candidate_found": bool(parsed and parsed.get("candidate_found")),
+        "native_verified": parsed.get("target_verified") if parsed else None,
+        "invariants": [invariant] if invariant else [],
+        "generation_seconds": wall,
+        "generation_timeout_seconds": timeout,
+        "reasoning_tokens": usage.get("reasoning_tokens") if usage else None,
+        **token_fields(
+            prompt=usage.get("prompt_tokens") if usage else None,
+            completion=usage.get("completion_tokens") if usage else None,
+            total=usage.get("total_tokens") if usage else None,
+            calls=usage.get("api_calls") if usage else None,
+            accounting="exact" if usage else "unavailable",
+        ),
+    }
 
 
 _autospec_local = threading.local()
@@ -153,6 +273,8 @@ def run_autospec(
         "VERI_LIB_PATH": str(worker / "llvm"),
         "AUTOSPEC_FRAMAC_MAX_ATTEMPTS": "16",
         "AUTOSPEC_FRAMAC_WALL_TIMEOUT": "60",
+        "AUTOSPEC_MAX_TOKENS": "8192",
+        "REASONING_EFFORT": "none",
         "PATH": (
             f"/home/yangfp/.opam/frama-c.27.1/bin:"
             f"{worker / 'llvm'}:{worker / 'llvm' / 'bin'}:"
@@ -174,7 +296,17 @@ def run_autospec(
         merged.read_text(errors="ignore") if merged else ""
     )
     usage_matches = re.findall(r"AUTOSPEC_API_USAGE=(\{[^\n]+\})", stdout)
-    api_usage = json.loads(usage_matches[-1]) if usage_matches else None
+    api_usage_rows = [json.loads(match) for match in usage_matches]
+    api_usage = (
+        {
+            name: sum(int(row.get(name) or 0) for row in api_usage_rows)
+            for name in (
+                "prompt_tokens", "completion_tokens", "reasoning_tokens",
+                "total_tokens",
+            )
+        }
+        if api_usage_rows else None
+    )
     token_match = re.search(r"tokens_usage\s*=\s*([\d,]+)", stdout)
     native_tokens = int(token_match.group(1).replace(",", "")) if token_match else None
     if api_usage:
@@ -182,7 +314,7 @@ def run_autospec(
             prompt=api_usage.get("prompt_tokens"),
             completion=api_usage.get("completion_tokens"),
             total=api_usage.get("total_tokens"),
-            calls=1,
+            calls=len(api_usage_rows),
             accounting="exact",
         )
         token_estimate_kind = None
@@ -246,6 +378,10 @@ def run_sespec(
     sespec_root: Path,
     timeout: int = 7200,
 ) -> dict:
+    # SESpec changes its working directory to ``src`` before loading the
+    # configuration.  Resolve campaign artifacts up front so the config,
+    # hidden source, and copied outputs remain addressable from that cwd.
+    artifact_dir = artifact_dir.resolve()
     src = sespec_root / "src"
     protocol_tag = "loopgym_full832_hidden_v1"
     staged_dir = src / "input" / protocol_tag / task.suite
@@ -263,11 +399,19 @@ def run_sespec(
             "function_name": function_name,
             "auto_annotation": True,
             "pass_count": 1,
+            "refine_count": 3,
             "think": False,
             "use_se": True,
             "debug": False,
         },
-        "llm": {"api_model": "gpt-5-nano"},
+        "llm": {
+            "api_model": "gpt-5-nano",
+            "api_temperature": 1.0,
+            "api_top_p": 1.0,
+            "max_completion_tokens": 8192,
+            "reasoning_effort": "none",
+            "think_mode_enabled": False,
+        },
         "preconditions": {function_name: "emp"},
     }
     config_path = artifact_dir / "config.json"

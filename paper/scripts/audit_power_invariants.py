@@ -42,7 +42,11 @@ def power_calls(expression: str):
         base, exponent = arguments
         exponent = _strip_outer_parentheses(exponent)
         if re.fullmatch(r"\+?\d+", exponent):
-            kind = "fixed_expandable" if int(exponent) <= 8 else "fixed_too_large"
+            kind = (
+                "fixed_expandable"
+                if int(exponent) <= 20
+                else "fixed_too_large"
+            )
         elif re.fullmatch(r"[A-Za-z_]\w*", exponent):
             kind = "symbolic_variable"
         else:
@@ -90,6 +94,11 @@ def main() -> None:
     parser.add_argument("--sft", type=Path, default=DEFAULT_SFT)
     parser.add_argument("--examples", type=int, default=5)
     args = parser.parse_args()
+
+    if not args.sft.is_file():
+        parser.error(
+            f"archival SFT input not found: {args.sft}; pass it explicitly with --sft"
+        )
 
     records = json.loads(args.sft.read_text(encoding="utf-8"))
     kinds: Counter[str] = Counter()

@@ -5,15 +5,19 @@ import unittest
 
 from paper.scripts.sanitize_training_prompts import (
     _derive_power_free_relations,
+    _minimize_loop_entry,
+    _remove_guarded_copies,
     _remove_subsumed_constant_bounds,
     _rewrite_fixed_powers,
     _sanitize_visible_source,
+    _unnecessary_loop_entry_references,
     _universally_true,
     sanitize_rl_rows,
     sanitize_sft_records,
 )
 from rl_pipeline.common import prompts
-from rl_pipeline.common.program import strip_postcondition
+from rl_pipeline.common.program import parse_program, strip_postcondition
+from rl_pipeline.common.state import eval_predicate, invariant_dedup_key, State
 
 
 FULL_SOURCE = """int f(int n) {
@@ -81,6 +85,22 @@ class TrainingPromptSanitizerTests(unittest.TestCase):
             ],
         )
 
+    def test_reducible_product_from_symbolic_power_is_not_kept(self):
+        derived = _derive_power_free_relations(
+            [
+                "y == power(z, c)",
+                "y == \\at(y,LoopEntry) * power(z, c)",
+            ]
+        )
+        self.assertEqual(derived, [])
+
+    def test_guarded_copy_is_removed_when_unconditional_clause_exists(self):
+        clauses, removed = _remove_guarded_copies(
+            ["x*z - x - y + 1 == 0", "c < k ==> (x*z - x - y + 1 == 0)"]
+        )
+        self.assertEqual(clauses, ["x*z - x - y + 1 == 0"])
+        self.assertEqual(removed, 1)
+
     def test_fixed_power_is_expanded_but_symbolic_power_is_not_guessed(self):
         rewritten, count = _rewrite_fixed_powers(
             "z == power(x + 1, 3) + power(y, 2)"
@@ -94,6 +114,61 @@ class TrainingPromptSanitizerTests(unittest.TestCase):
             _rewrite_fixed_powers("z == power(x, i)"),
             ("z == power(x, i)", 0),
         )
+
+    def test_loopentry_is_kept_only_for_unknown_roots(self):
+        source = """int f(int n) {
+          int fixed = 3;
+          int seed = unknown();
+          int derived = seed + n;
+          int i = 0;
+          while (i < n) { i++; }
+        }"""
+        program = parse_program(source)
+        invariant = (
+            "i >= \\at(i,LoopEntry) && fixed == \\at(fixed,LoopEntry) && "
+            "seed >= \\at(seed,LoopEntry) && derived >= \\at(derived,LoopEntry) && "
+            "n == \\at(n,LoopEntry)"
+        )
+
+        rewritten, changes = _minimize_loop_entry(invariant, program)
+
+        self.assertIn("(0)", rewritten)
+        self.assertIn("(3)", rewritten)
+        self.assertIn("\\at(seed,LoopEntry)", rewritten)
+        self.assertNotIn("\\at(i,LoopEntry)", rewritten)
+        self.assertNotIn("\\at(fixed,LoopEntry)", rewritten)
+        self.assertNotIn("\\at(derived,LoopEntry)", rewritten)
+        self.assertIn("\\at(n,Pre)", rewritten)
+        self.assertEqual(changes["loopentry_required_retained"], 1)
+        self.assertEqual(changes["loopentry_rewritten"], 4)
+        self.assertEqual(_unnecessary_loop_entry_references(rewritten, program), [])
+
+    def test_parameter_overwritten_by_unknown_cannot_use_loopentry(self):
+        source = """int f(int n) {
+          n = unknown1();
+          int i = 0;
+          while (i < n) { i++; }
+        }"""
+        program = parse_program(source)
+
+        rewritten, _ = _minimize_loop_entry("i <= \\at(n,LoopEntry)", program)
+
+        self.assertEqual(rewritten, "i <= \\at(n,LoopEntry)")
+        self.assertEqual(_unnecessary_loop_entry_references(rewritten, program), ["n"])
+
+    def test_atomic_loopentry_identity_is_a_tautology(self):
+        self.assertTrue(
+            _universally_true(
+                "x == \\at(x,LoopEntry) + (x - \\at(x,LoopEntry))"
+            )
+        )
+
+    def test_bitshift_is_supported_by_runtime_and_conservative_dedup(self):
+        expression = "p == 1 << i"
+
+        self.assertTrue(eval_predicate(expression, State({"p": 8, "i": 3})))
+        self.assertNotEqual(invariant_dedup_key(expression)[0], "raw")
+        self.assertFalse(_universally_true(expression))
 
     def test_clean_rl_source_is_byte_stable_despite_terminal_newline(self):
         full = FULL_SOURCE.replace("  // x tracks completed iterations\n", "")
@@ -118,7 +193,7 @@ class TrainingPromptSanitizerTests(unittest.TestCase):
         turns = sanitized[0]["prompt"]
 
         self.assertEqual(turns[0]["content"], prompts.system_prompt())
-        self.assertIn("Conceptually, let `ENTER`", turns[0]["content"])
+        self.assertIn("can ONLY be used with local variables", turns[0]["content"])
         self.assertEqual(
             turns[1]["content"],
             prompts.GENERATE_PROMPT.format(
@@ -160,7 +235,7 @@ class TrainingPromptSanitizerTests(unittest.TestCase):
         turns = sanitized[0]["conversations"]
 
         self.assertEqual(turns[0]["value"], prompts.system_prompt())
-        self.assertIn("Conceptually, let `ENTER`", turns[0]["value"])
+        self.assertIn("can ONLY be used with local variables", turns[0]["value"])
         self.assertNotIn("tracks completed iterations", turns[1]["value"])
         self.assertEqual(turns[2]["value"], "loop invariant x >= 0;")
         self.assertEqual(stats["removed_clauses"]["duplicate"], 1)

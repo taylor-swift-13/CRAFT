@@ -24,6 +24,7 @@ class RecordingChat:
         use_default_system_prompt: bool = True,
         max_completion_tokens: Optional[int] = None,
         reasoning_effort: Optional[str] = None,
+        enable_thinking: Optional[bool] = None,
         retries: int = 5,
     ):
         protocol = load_protocol()
@@ -51,6 +52,23 @@ class RecordingChat:
             if str(configured_reasoning_effort).lower() in {"default", "omit"}
             else configured_reasoning_effort
         )
+        configured_enable_thinking = os.environ.get("LOOPGYM_ENABLE_THINKING")
+        if enable_thinking is not None:
+            self.enable_thinking = bool(enable_thinking)
+        elif configured_enable_thinking is None:
+            self.enable_thinking = None
+        elif configured_enable_thinking.strip().lower() in {
+            "0", "false", "no", "off",
+        }:
+            self.enable_thinking = False
+        elif configured_enable_thinking.strip().lower() in {
+            "1", "true", "yes", "on",
+        }:
+            self.enable_thinking = True
+        else:
+            raise ValueError(
+                "LOOPGYM_ENABLE_THINKING must be a boolean value"
+            )
         self.system_prompt = (
             prompts.system_prompt()
             if use_default_system_prompt
@@ -77,6 +95,12 @@ class RecordingChat:
         return str(content)
 
     def chat(self, user_prompt: str) -> str:
+        return self.chat_n(user_prompt, 1)[0]
+
+    def chat_n(self, user_prompt: str, n: int) -> list[str]:
+        """Return ``n`` choices from one API request and record usage once."""
+        if n < 1:
+            raise ValueError("n must be at least 1")
         messages = []
         if self.system_prompt:
             messages.append({"role": "system", "content": self.system_prompt})
@@ -87,9 +111,14 @@ class RecordingChat:
             "temperature": load_protocol()["generation"]["temperature"],
             "top_p": load_protocol()["generation"]["top_p"],
             "max_tokens": self.max_completion_tokens,
+            "n": n,
         }
         if self.reasoning_effort:
             kwargs["reasoning_effort"] = self.reasoning_effort
+        if self.enable_thinking is not None:
+            kwargs["extra_body"] = {
+                "enable_thinking": self.enable_thinking,
+            }
         started = time.perf_counter()
         last_error = None
         response = None
@@ -109,21 +138,30 @@ class RecordingChat:
                 f"{last_error}"
             )
 
-        choice = response.choices[0]
-        text = self._content(choice.message).strip()
+        choices = list(response.choices)
+        if len(choices) != n:
+            raise RuntimeError(
+                f"OpenAI-compatible request asked for {n} choices but returned "
+                f"{len(choices)}"
+            )
+        texts = [self._content(choice.message).strip() for choice in choices]
+        finish_reasons = [getattr(choice, "finish_reason", None) for choice in choices]
         usage = getattr(response, "usage", None)
         prompt_tokens = getattr(usage, "prompt_tokens", None) if usage else None
         completion_tokens = getattr(usage, "completion_tokens", None) if usage else None
         total_tokens = getattr(usage, "total_tokens", None) if usage else None
-        self.records.append({
+        record = {
             "prompt_sha256": sha256_text(user_prompt),
             "system_prompt_present": bool(self.system_prompt),
             "system_prompt_sha256": (
                 sha256_text(self.system_prompt) if self.system_prompt else None
             ),
             "reasoning_effort": self.reasoning_effort,
-            "response": text,
-            "finish_reason": getattr(choice, "finish_reason", None),
+            "enable_thinking": self.enable_thinking,
+            "requested_n": n,
+            "choice_count": len(texts),
+            "responses": texts,
+            "finish_reasons": finish_reasons,
             "seconds": time.perf_counter() - started,
             **token_fields(
                 prompt=prompt_tokens,
@@ -132,8 +170,15 @@ class RecordingChat:
                 calls=1,
                 accounting="exact" if usage else "unavailable",
             ),
-        })
-        return text
+        }
+        # Preserve the historical scalar fields for existing n=1 consumers.
+        if n == 1:
+            record.update({
+                "response": texts[0],
+                "finish_reason": finish_reasons[0],
+            })
+        self.records.append(record)
+        return texts
 
     def usage(self) -> dict:
         exact = bool(self.records) and all(

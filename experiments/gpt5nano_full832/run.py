@@ -36,7 +36,7 @@ from .common import (
     token_fields,
     write_manifest,
 )
-from .native import run_autospec, run_sespec
+from .native import run_autospec, run_clause2inv, run_sespec
 from .samples import load_sample, load_sample_manifest, materialize_samples
 
 
@@ -262,6 +262,7 @@ def generate_native(
     retry_failed: bool,
     *,
     autospec_root: Path,
+    clause2inv_root: Path,
     sespec_root: Path,
     timeout: int,
 ) -> None:
@@ -278,44 +279,16 @@ def generate_native(
         pending.append(task)
     print(f"{method}: reusable={len(tasks)-len(pending)} pending={len(pending)}")
 
-    if method == "clause2inv":
-        for index, task in enumerate(pending, 1):
-            row = base_row(method, task)
-            if task.suite != "Loopy":
-                row.update({
-                    "generation_status": "failed",
-                    "generation_eligible": True,
-                    "generation_error": "missing reusable native Clause2Inv result",
-                    "invariants": [],
-                    "generation_seconds": 0.0,
-                    **token_fields(accounting="not_called"),
-                })
-            else:
-                row.update({
-                    "generation_status": "unsupported",
-                    "generation_eligible": True,
-                    "generation_error": (
-                        "native Clause2Inv requires precomputed Code2Inv SMT "
-                        "transition VCs; the Loopy corpus has no compatible VCs"
-                    ),
-                    "invariants": [],
-                    "generation_seconds": 0.0,
-                    **token_fields(
-                        prompt=0, completion=0, total=0, calls=0,
-                        accounting="not_called",
-                    ),
-                })
-            append_jsonl(path, row)
-            print(f"[{index}/{len(pending)}] clause2inv {task.suite}/{task.case_id} "
-                  f"{row['generation_status']}")
-        return
-
     if not os.environ.get("OPENAI_API_KEY"):
         raise RuntimeError("OPENAI_API_KEY is required for native tool generation")
 
     def run_one(task: Task):
         directory = new_attempt_dir(root, method, task)
-        if method == "autospec":
+        if method == "clause2inv":
+            generated = run_clause2inv(
+                task, directory, clause2inv_root=clause2inv_root, timeout=timeout
+            )
+        elif method == "autospec":
             generated = run_autospec(
                 task, directory, autospec_root=autospec_root, timeout=timeout
             )
@@ -1250,6 +1223,9 @@ def main() -> int:
         default=Path("/home/yangfp/TRASH/SESpecTrash/represent/external/autospec"),
     )
     generate.add_argument(
+        "--clause2inv-root", type=Path, default=Path("/home/yangfp/Clause2Inv"),
+    )
+    generate.add_argument(
         "--sespec-root", type=Path, default=Path("/home/yangfp/SESpec"),
     )
     score = sub.add_parser("score")
@@ -1267,6 +1243,9 @@ def main() -> int:
     run_all.add_argument(
         "--autospec-root", type=Path,
         default=Path("/home/yangfp/TRASH/SESpecTrash/represent/external/autospec"),
+    )
+    run_all.add_argument(
+        "--clause2inv-root", type=Path, default=Path("/home/yangfp/Clause2Inv"),
     )
     run_all.add_argument(
         "--sespec-root", type=Path, default=Path("/home/yangfp/SESpec"),
@@ -1306,6 +1285,7 @@ def main() -> int:
                 args.workers,
                 args.retry_failed,
                 autospec_root=args.autospec_root,
+                clause2inv_root=args.clause2inv_root,
                 sespec_root=args.sespec_root,
                 timeout=timeout,
             )
@@ -1319,6 +1299,7 @@ def main() -> int:
         generate_native(
             "clause2inv", args.results_root, args.workers, args.retry_failed,
             autospec_root=args.autospec_root,
+            clause2inv_root=args.clause2inv_root,
             sespec_root=args.sespec_root,
             timeout=args.timeout if args.timeout is not None else 7200,
         )
@@ -1340,6 +1321,7 @@ def main() -> int:
             generate_native(
                 method, args.results_root, args.workers, args.retry_failed,
                 autospec_root=args.autospec_root,
+                clause2inv_root=args.clause2inv_root,
                 sespec_root=args.sespec_root,
                 timeout=timeout,
             )

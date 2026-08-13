@@ -316,6 +316,8 @@ def _canonical_ast_key(node: ast.AST) -> Hashable:
         exact_operators = {
             ast.FloorDiv: "div",
             ast.Mod: "mod",
+            ast.LShift: "lshift",
+            ast.RShift: "rshift",
         }
         for operator_type, name in exact_operators.items():
             if isinstance(node.op, operator_type):

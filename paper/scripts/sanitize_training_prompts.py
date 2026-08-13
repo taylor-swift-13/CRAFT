@@ -68,6 +68,8 @@ _MAX_EXPANDED_POWER = 20
 _C_INTEGER_CAST = re.compile(
     r"\(\s*(?:(?:unsigned|signed)\s+)?(?:char|short|int|long(?:\s+long)?)\s*\)"
 )
+_UNKNOWN_CALL = re.compile(r"\bunknown\w*\s*\(")
+_DIRECT_UNKNOWN_CALL = re.compile(r"^\s*unknown\w*\s*\(\s*\)\s*$")
 
 
 def _program_suffix(message: str) -> tuple[str, str]:
@@ -128,6 +130,163 @@ def _strip_outer_parentheses(expression: str) -> str:
             break
         result = result[1:-1].strip()
     return result
+
+
+def _preloop_region(program: Program) -> str:
+    """Return the selected function body prefix preceding its only loop."""
+    signature = re.search(
+        rf"\b{re.escape(program.func_name)}\s*\([^)]*\)\s*\{{",
+        strip_noncontract_comments(program.source),
+    )
+    if signature is None:
+        return ""
+    opening = program.source.find("{", signature.start(), signature.end())
+    return program.source[opening + 1 : program.loop.kw_start]
+
+
+def _preloop_assignment_info(program: Program) -> tuple[dict[str, str], set[str]]:
+    """Collect final unconditional assignments and variables with path-dependent writes.
+
+    The benchmark prefix is intentionally simple.  Straight-line assignments can
+    be substituted into ACSL.  A write nested in a pre-loop branch is conservatively
+    opaque, so its entry value remains nameable only through ``LoopEntry``.
+    """
+    region = strip_noncontract_comments(_preloop_region(program))
+    unconditional: dict[str, str] = {}
+    opaque: set[str] = set()
+    assignment = re.compile(r"\b([A-Za-z_]\w*)\s*=\s*([^=;][^;]*);")
+    for match in assignment.finditer(region):
+        prefix = region[: match.start()]
+        name = match.group(1)
+        value = re.sub(r"\s+", " ", match.group(2)).strip()
+        if prefix.count("{") == prefix.count("}"):
+            unconditional[name] = value
+        else:
+            opaque.add(name)
+    update = re.compile(
+        r"(?:\b([A-Za-z_]\w*)\s*(?:\+=|-=|\*=|/=|%=|\+\+|--)|"
+        r"(?:\+\+|--)\s*\b([A-Za-z_]\w*))"
+    )
+    for match in update.finditer(region):
+        opaque.add(match.group(1) or match.group(2))
+    return unconditional, opaque
+
+
+def _loop_entry_resolver(program: Program):
+    """Build exact entry-value expressions with the fewest necessary labels.
+
+    Parameters and globals begin at ``Pre``.  Deterministic local initialization
+    is recursively inlined.  Only a local assigned directly by an unknown call
+    is retained as ``\\at(v,LoopEntry)``; unrepresentable values cause their
+    containing clauses to be rejected.
+    """
+    assignments, opaque = _preloop_assignment_info(program)
+    local_initializers = dict(program.local_inits)
+    local_names = set(local_initializers)
+    definitions: dict[str, str | None] = {
+        variable: f"\\at({variable},Pre)" for variable in program.pre_vars
+    }
+    definitions.update(local_initializers)
+    for variable, value in assignments.items():
+        # ``Program.local_inits`` already incorporates the last unconditional
+        # assignment to every local.  This extra map is needed for parameters
+        # and globals overwritten before the loop.
+        if variable in definitions and variable not in local_names:
+            definitions[variable] = value
+    cache: dict[str, tuple[str | None, bool]] = {}
+
+    def resolve(variable: str, stack: tuple[str, ...] = ()) -> tuple[str | None, bool]:
+        if variable in cache:
+            return cache[variable]
+        if variable in stack or variable in opaque:
+            return None, False
+        expression = definitions.get(variable)
+        if expression is None or not str(expression).strip():
+            return None, False
+        expression = str(expression).strip()
+        if expression == f"\\at({variable},Pre)":
+            result = (expression, False)
+            cache[variable] = result
+            return result
+        if _DIRECT_UNKNOWN_CALL.fullmatch(expression):
+            if variable in local_names:
+                result = (f"\\at({variable},LoopEntry)", True)
+                cache[variable] = result
+                return result
+            return None, False
+        if _UNKNOWN_CALL.search(expression):
+            return None, False
+        if _FUNCTION_CALL.search(expression):
+            return None, False
+
+        expression = _C_INTEGER_CAST.sub("", expression)
+        unresolved = False
+        depends_on_entry = False
+
+        def replace_identifier(match: re.Match[str]) -> str:
+            nonlocal unresolved, depends_on_entry
+            name = match.group(0)
+            if name not in definitions:
+                if name in {"true", "false"}:
+                    return name
+                unresolved = True
+                return name
+            replacement, needs_entry = resolve(name, stack + (variable,))
+            if replacement is None:
+                unresolved = True
+                return name
+            depends_on_entry |= needs_entry
+            return f"({replacement})"
+
+        translated = _IDENTIFIER.sub(replace_identifier, expression)
+        if unresolved or "?" in translated or ":" in translated:
+            return None, False
+        result = (normalize_invariant(translated), depends_on_entry)
+        cache[variable] = result
+        return result
+
+    return resolve
+
+
+def _minimize_loop_entry(
+    invariant: str, program: Program
+) -> tuple[str, Counter[str]]:
+    """Rewrite every reconstructable ``LoopEntry`` reference in one clause."""
+    resolve = _loop_entry_resolver(program)
+    changes: Counter[str] = Counter()
+
+    def replace_at(match: re.Match[str]) -> str:
+        variable, label = match.groups()
+        if label != "LoopEntry":
+            return match.group(0)
+        replacement, required = resolve(variable)
+        if replacement is None:
+            changes["loopentry_forbidden_unresolved"] += 1
+            return match.group(0)
+        if replacement == f"\\at({variable},LoopEntry)" and required:
+            changes["loopentry_required_retained"] += 1
+            return match.group(0)
+        changes["loopentry_rewritten"] += 1
+        if replacement == f"\\at({variable},Pre)":
+            changes["loopentry_to_pre"] += 1
+        else:
+            changes["loopentry_initializer_inlined"] += 1
+        return f"({replacement})"
+
+    return normalize_invariant(_AT_CALL.sub(replace_at, invariant)), changes
+
+
+def _unnecessary_loop_entry_references(invariant: str, program: Program) -> list[str]:
+    """Return variables whose entry values can be reconstructed without their label."""
+    resolve = _loop_entry_resolver(program)
+    unnecessary: list[str] = []
+    for variable, label in _AT_CALL.findall(invariant):
+        if label != "LoopEntry":
+            continue
+        replacement, required = resolve(variable)
+        if replacement != f"\\at({variable},LoopEntry)" or not required:
+            unnecessary.append(variable)
+    return unnecessary
 
 
 def _matching_parenthesis(text: str, opening: int) -> int | None:
@@ -349,6 +508,24 @@ def _is_polynomial_multiple(candidate, stronger) -> bool:
     return remainder.is_zero and not quotient.is_zero
 
 
+def _has_nontrivial_product_factors(expression) -> bool:
+    """Reject weak ``f * g == 0`` consequences produced by elimination.
+
+    Cross-multiplying two equations with variable coefficients can produce a
+    disjunctive product equality.  Such a clause is often verified only because
+    an initialization-only factor is zero, so it teaches little about the loop
+    state.  Irreducible polynomial relations remain eligible for WP filtering.
+    """
+    import sympy
+
+    factors = [
+        factor
+        for factor in sympy.Mul.make_args(sympy.factor(expression))
+        if not factor.is_Number
+    ]
+    return len(factors) > 1
+
+
 def _derive_power_free_relations(invariants: Sequence[str]) -> list[dict[str, Any]]:
     """Eliminate a shared symbolic power from pairs of affine equalities."""
     import sympy
@@ -395,6 +572,8 @@ def _derive_power_free_relations(invariants: Sequence[str]) -> list[dict[str, An
             eliminated = _primitive_polynomial(sympy.simplify(eliminated))
             if eliminated == 0 or eliminated.has(power):
                 continue
+            if _has_nontrivial_product_factors(eliminated):
+                continue
             at_symbols = {**left["at_symbols"], **right["at_symbols"]}
             candidates.append(
                 {
@@ -436,6 +615,32 @@ def _derive_power_free_relations(invariants: Sequence[str]) -> list[dict[str, An
     return [first_by_clause[clause] for clause in unique]
 
 
+def _remove_guarded_copies(invariants: Sequence[str]) -> tuple[list[str], int]:
+    """Drop ``guard ==> P`` when the same answer already contains ``P``."""
+    unconditional = {
+        _strip_outer_parentheses(normalize_invariant(invariant))
+        for invariant in invariants
+        if _split_top_level_operator(
+            _strip_outer_parentheses(normalize_invariant(invariant)), "==>"
+        )
+        is None
+    }
+    kept: list[str] = []
+    removed = 0
+    for invariant in invariants:
+        normalized = _strip_outer_parentheses(normalize_invariant(invariant))
+        implication = _split_top_level_operator(normalized, "==>")
+        if (
+            implication is not None
+            and _strip_outer_parentheses(normalize_invariant(implication[1]))
+            in unconditional
+        ):
+            removed += 1
+            continue
+        kept.append(invariant)
+    return kept, removed
+
+
 def _obvious_tautology(expression: str) -> bool:
     """Recognize only reflexive scalar comparisons; never guess algebraically."""
     expression = _strip_outer_parentheses(expression)
@@ -449,7 +654,7 @@ def _obvious_tautology(expression: str) -> bool:
 
 _LOGIC_TOKEN = re.compile(
     r"\s*("
-    r"<==>|==>|&&|\|\||==|!=|<=|>=|"
+    r"<==>|==>|&&|\|\||==|!=|<=|>=|<<|>>|"
     r"\\at|[A-Za-z_]\w*|\d+|"
     r"[()+\-*/%,!<>]"
     r")"
@@ -562,12 +767,20 @@ class _LogicParser:
         return result
 
     def _sum(self) -> z3.ExprRef:
-        result = self._product()
+        result = self._shift()
         while self._peek("+", "-"):
             operator = self._take()
             left = self._integer(result)
-            right = self._integer(self._product())
+            right = self._integer(self._shift())
             result = left + right if operator == "+" else left - right
+        return result
+
+    def _shift(self) -> z3.ExprRef:
+        result = self._product()
+        while self._peek("<<", ">>"):
+            # Integer bitshift is deliberately not modeled by the conservative
+            # tautology checker; Frama-C/WP remains the authority for validity.
+            raise _LogicParseError("bitshift is not modeled")
         return result
 
     def _product(self) -> z3.ExprRef:
@@ -629,11 +842,13 @@ def _universally_true(expression: str) -> bool:
     """Prove a supported scalar clause valid; return False on any uncertainty."""
     if _obvious_tautology(expression):
         return True
-    # Most atomic invariants are intentionally informative.  Restrict the
-    # theorem-prover pass to compound propositions, where vacuous implications
-    # and exhaustive disjunctions occur, instead of invoking a solver for every
-    # arithmetic bound in the corpus.
-    if not any(operator in expression for operator in ("==>", "<==>", "||", "&&")):
+    # Most atomic invariants are intentionally informative.  Entry-value
+    # equalities are the exception: archived answers contain algebraic identities
+    # such as ``x == x0 + (x - x0)`` that are not caught by reflexive spelling.
+    if (
+        "\\at(" not in expression
+        and not any(operator in expression for operator in ("==>", "<==>", "||", "&&"))
+    ):
         return False
     try:
         proposition = _LogicParser(expression).parse()
@@ -717,8 +932,11 @@ def _rejection_reason(invariant: str, program: Program) -> str | None:
     for variable, label in _AT_CALL.findall(clause):
         if variable not in program.pre_vars:
             return "out_of_scope"
-        if label == "Pre" and variable not in program.params:
+        local_names = {name for name, _ in program.local_inits}
+        if label == "Pre" and variable in local_names:
             return "invalid_pre_label"
+    if _unnecessary_loop_entry_references(clause, program):
+        return "unnecessary_loopentry"
 
     # The current prompt exposes no user-defined or helper function calls.
     if _FUNCTION_CALL.search(without_at):
@@ -750,7 +968,9 @@ def _static_clean_invariants(
     rewritten_clauses: list[str] = []
     power_decisions: list[dict[str, Any]] = []
     for invariant in extracted:
-        rewritten, rewrite_count = _rewrite_fixed_powers(invariant)
+        minimized, loopentry_changes = _minimize_loop_entry(invariant, program)
+        transformations.update(loopentry_changes)
+        rewritten, rewrite_count = _rewrite_fixed_powers(minimized)
         if rewrite_count:
             transformations["fixed_power_calls_expanded"] += rewrite_count
             transformations["clauses_with_fixed_power_expansion"] += 1
@@ -781,6 +1001,8 @@ def _static_clean_invariants(
             item["rejected_before_frama_c"] = reason
     deduplicated = dedup_normalized(accepted)
     reasons["duplicate"] += len(accepted) - len(deduplicated)
+    deduplicated, guarded_copies = _remove_guarded_copies(deduplicated)
+    reasons["guarded_copy"] += guarded_copies
     deduplicated, subsumed = _remove_subsumed_constant_bounds(deduplicated)
     reasons["subsumed_bound"] += subsumed
     retained = set(deduplicated)
@@ -1225,6 +1447,21 @@ def main() -> None:
         parser.error("--rl-syntax-jobs must be positive")
     if args.wp_timeout < 1:
         parser.error("--wp-timeout must be positive")
+    missing_inputs = [
+        f"{name}={path}"
+        for name, path in (
+            ("--rl-input", args.rl_input),
+            ("--sft-input", args.sft_input),
+        )
+        if not path.is_file()
+    ]
+    if missing_inputs:
+        parser.error(
+            "missing archival input(s): "
+            + ", ".join(missing_inputs)
+            + "; pass the original archive paths explicitly, or use the clean "
+            "artifacts as explicit inputs for a fixed-point check"
+        )
     if args.verify_sft:
         os.environ["LOOPGYM_WP_TIMEOUT"] = str(args.wp_timeout)
 
@@ -1252,7 +1489,7 @@ def main() -> None:
         outputs["sft"] = {"path": str(sft_output), "sha256": _sha256(sft_output)}
 
     report = {
-        "schema_version": 3,
+        "schema_version": 4,
         "mode": "write" if outputs else "check_only",
         "frama_c_verified_sft": args.verify_sft,
         "frama_c_verified_rl_syntax": args.verify_rl_syntax,
@@ -1277,8 +1514,9 @@ def main() -> None:
                 "schema_version": 1,
                 "policy": (
                     "expand fixed exponents; derive power-free polynomial relations "
-                    "by eliminating shared symbolic powers; retain only Frama-C/WP "
-                    "Houdini survivors"
+                    "by eliminating shared symbolic powers; reject reducible product "
+                    "equalities and guarded copies of unconditional conclusions; "
+                    "retain only Frama-C/WP Houdini survivors"
                 ),
                 "rows": power_audit,
             },

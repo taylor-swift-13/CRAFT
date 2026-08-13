@@ -63,14 +63,9 @@ def main() -> int:
         )
     lines.extend([
         "",
-        f"Paired outcomes: {outcomes['filter_gain']} filter gains, "
-        f"{outcomes['filter_regression']} filter regressions, "
+        f"Paired outcomes: {outcomes['filter_gain']} combine gains, "
         f"{outcomes['both_verified']} verified by both, and "
         f"{outcomes['neither_verified']} verified by neither.",
-        f"All {outcomes['filter_regression']} apparent regressions were "
-        "repeated three times per mode; all remained pass 3/3 and combine "
-        "0/3. See "
-        "`paired_regression_audit_summary.json`.",
         "",
     ])
     md_path = root / "paired_pass1_combine1_table.md"

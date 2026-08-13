@@ -140,9 +140,8 @@ def main() -> int:
         "",
         "Correctness is direct common Frama-C validation against each restored hidden target.",
         "R5-H and R10-H use exactly five and ten target-hidden rollouts, respectively,",
-        "followed by union and Houdini, with reroll disabled. R5-H replays the exact first",
-        "five R10-H responses and independently recomputes union, Houdini, and validation;",
-        "its reported cost includes the original response latency and exact token usage.",
+        "returned by one n=5 request and two n=5 requests, respectively, followed by the",
+        "unchanged response parsing, union, Houdini, and restored-target validation.",
         "R4-H is intentionally excluded from this final comparison.",
         "",
         "Daikon receives no assertion, postcondition, or negative traces and uses no Houdini.",
@@ -160,7 +159,6 @@ def main() -> int:
     no_negative = [row for row in r5_rows if int(row["negative_trace_count"]) == 0]
     artifacts_ok = 0
     prompt_hashes_ok = 0
-    source_artifacts_ok = 0
     for row in r5_rows:
         records = json.loads(Path(row["api_calls_artifact"]).read_text())
         expected_prompt_hash = sha256_text(
@@ -169,26 +167,16 @@ def main() -> int:
             )
         )
         if (
-            len(records) == 5
-            and all(record.get("reused") is True for record in records)
-            and all(record.get("reuse_method") == "loopgym_r10_houdini" for record in records)
-            and [record.get("reuse_prefix_position") for record in records] == list(range(5))
+            len(records) == 1
+            and records[0].get("requested_n") == 5
+            and records[0].get("choice_count") == 5
+            and isinstance(records[0].get("responses"), list)
+            and len(records[0]["responses"]) == 5
+            and records[0].get("api_call_count") == 1
         ):
             artifacts_ok += 1
         if all(record.get("prompt_sha256") == expected_prompt_hash for record in records):
             prompt_hashes_ok += 1
-        source_records = json.loads(Path(row["reuse_source_artifact"]).read_text())
-        if len(source_records) == 10 and records == [
-            {
-                **record,
-                "reused": True,
-                "reuse_source": row["reuse_source_artifact"],
-                "reuse_method": "loopgym_r10_houdini",
-                "reuse_prefix_position": index,
-            }
-            for index, record in enumerate(source_records[:5])
-        ]:
-            source_artifacts_ok += 1
     method_counts = {
         method: sum(row["method"] == method for row in final_rows)
         for method in FINAL_METHODS
@@ -207,9 +195,8 @@ def main() -> int:
         "r5_suite_counts": suite_counts,
         "r5_no_negative_rows": len(no_negative),
         "r5_no_negative_frama_c_pass": sum(float(row["binary_frama_c_validation"]) == 1.0 for row in no_negative),
-        "r5_exact_five_reused_call_artifacts": artifacts_ok,
+        "r5_single_request_n5_artifacts": artifacts_ok,
         "r5_prompt_hash_consistent_artifacts": prompt_hashes_ok,
-        "r5_complete_r10_prefix_source_artifacts": source_artifacts_ok,
         "r5_api_call_counts": sorted({int(row["api_call_count"]) for row in r5_rows}),
         "r5_rollout_counts": sorted({int(row["n_rollouts"]) for row in r5_rows}),
         "r5_fresh_api_calls": sum(int(row["fresh_api_call_count"]) for row in r5_rows),
@@ -223,7 +210,7 @@ def main() -> int:
     print(json.dumps(audit, indent=2, sort_keys=True))
     return 0 if (
         audit["complete"]
-        and artifacts_ok == prompt_hashes_ok == source_artifacts_ok == 832
+        and artifacts_ok == prompt_hashes_ok == 832
         and not audit["r4_in_final_table"]
     ) else 1
 

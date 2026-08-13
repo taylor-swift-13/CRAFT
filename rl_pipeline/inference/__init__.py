@@ -3,6 +3,7 @@ from .inference import (
     InferenceResult,
     MockRolloutProvider,
     LLMRolloutProvider,
+    BatchedLLMRolloutProvider,
     VLLMRolloutProvider,
 )
 
@@ -11,5 +12,6 @@ __all__ = [
     "InferenceResult",
     "MockRolloutProvider",
     "LLMRolloutProvider",
+    "BatchedLLMRolloutProvider",
     "VLLMRolloutProvider",
 ]

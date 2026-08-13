@@ -9,36 +9,52 @@ A loop invariant is a property that:
 
 ## RULES
 
-- MUST NOT modify or rewrite any `unknown()`/`unknownN()` call.
-- `\at(v, Pre)` refers to function entry and can ONLY be used with function parameters, never with local variables initialized inside the function.
-- `\at(v, LoopEntry)` refers to the value of any in-scope scalar when the loop is first reached. Use it for locals initialized before the loop, especially `int v = unknown();`.
-- `unknown()`/`unknownN()` returns an arbitrary unconstrained value of its declared C type; assume no sign, range, concrete value, or relation between calls unless the program or contract establishes it.
-- Conceptually, let `ENTER` mean that the loop guard holds at `LoopEntry`.
-  Split unconstrained initial values into entered and skipped-loop cases with
-  implications. In the emitted invariant, expand `ENTER` into the actual guard
-  by replacing every program variable `v` in the guard with
-  `\at(v,LoopEntry)`; never emit `ENTER` as an ACSL identifier. For example,
-  for `while (x < n)`, write
-  `(\at(x,LoopEntry) < \at(n,LoopEntry)) ==> <entered-case property>` and
-  `!(\at(x,LoopEntry) < \at(n,LoopEntry)) ==> x == \at(x,LoopEntry)`.
 - Add one core conservation/relational equality that explains loop updates (state transition law).
 - Add minimal progress bounds for loop counters and key arithmetic variables.
 - Prefer strong invariants; avoid weak/tautological ones.
 - Do not add unrelated invariants just to increase count.
+- MUST NOT modify or rewrite any `unknown()`/`unknownN()` call.
+- `\at(v, Pre)` can ONLY be used with function parameters, never with local variables initialized inside the function.
+- `\at(v, LoopEntry)` denotes the value of v at the start of the loop and can ONLY be used with local variables initialized before the loop (using v = unknown();).
 - Loop guard is NOT an invariant; weaken strict guards to non-strict bounds at exit.
 - Parenthesize mixed equality and relational expressions so their grouping is explicit.
-- Emit scalar invariant expressions only; do not call or declare helper predicates,
-  logic functions, axioms, or lemmas. Express fixed-degree polynomial relations
-  directly with scalar arithmetic, for example `x*x*x` for x cubed.
+- Use `loop invariant` only as a line prefix, never inside expressions.
+- Emit scalar invariant expressions only; do not declare predicates, logic functions, axioms, or lemmas.
 - Do NOT use the ternary `? :` operator; split cases with `==>` instead.
-- `^` is bitwise XOR in C/ACSL, not exponentiation. Do not use it.
+- `^` is bitwise XOR in C/ACSL, not exponentiation — write `x*x*x` for x cubed.
 - Do NOT place a C boolean directly in arithmetic (`x + (a > b)` is invalid); use `==>` to split cases.
 - Only use variables declared in the given function.
 - Operators: comparison `==` `!=` `<` `<=` `>` `>=`; logical `&&` `||` `!` `==>` `<==>`; arithmetic `+` `-` `*` `/` `%`.
+
+## ACSL INVARIANT SYNTAX
+
+Allowed expression forms (all verified by Frama-C/WP):
+
+1. **Bounds**: `0 <= i`, `i <= n`, `x >= 1`
+2. **Linear equality**: `i + c == n`, `2 * s == i * (i - 1)`, `x == q * y + r`
+3. **Polynomial equality**: `x == n * n * n`, `6 * s == i * (i + 1) * (2 * i + 1)`
+4. **Relational identity** (multi-var algebraic law): `1 + x * z - x - z * y == 0`, `p * s - r * q == 1`
+5. **Implication**: `i > 0 ==> s >= i`, `a != 0 ==> q >= 1`
+6. **Modular**: `i % 5 == 0`, `r >= 0 && r < y`
+7. **Bitshift** (power-of-2 only): `p == 1 << i`, `s == (1 << i) - 1`
+8. **Conjunction**: `c >= 1 && c <= k`
+9. **\at for params**: `n == \at(n, Pre)` (function parameters only)
+
+Forbidden:
+- `^` for exponentiation (it is XOR) — use repeated `*` or `<<` for powers of 2.
+- `\product`, `\sum`, `\factorial` — not ACSL scalar operators.
+- `? :` ternary — rewrite with `==>`.
+- `\old(x)` — use `\at(x, Pre)`.
+- Type casts `(int)`, `(long)` — unnecessary in ACSL logic.
+- Function calls, predicates, lemmas, axioms — emit only scalar expressions.
+
+Operators (complete list):
+  comparison: `==` `!=` `<` `<=` `>` `>=`
+  logical:    `&&` `||` `!` `==>` `<==>`
+  arithmetic: `+` `-` `*` `/` `%` `<<` `>>`
 
 ## OUTPUT
 
 Return ONLY invariant lines, one per line, formatted exactly as:
 `loop invariant <property>;`
-Use `loop invariant` only as a line prefix, never inside expressions. Do not
-return code fences, `loop assigns`, the surrounding C function, or explanations.
+Do not return code fences, `loop assigns`, the surrounding C function, or explanations.

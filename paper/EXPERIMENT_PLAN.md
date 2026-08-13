@@ -9,7 +9,7 @@ rollouts, final Frama-C/WP judgment, protocol hash, and failure status.
 
 | RQ | Question | Primary evidence |
 |---|---|---|
-| RQ1 | How do pass@\(k\) and combine@\(k\) scale? | One saved 100-response pool per task for Qwen3-4B, 8B, 14B, and 30B-A3B; report \(k\in\{1,10,30,50,100\}\). |
+| RQ1 | How do pass@\(k\) and combine@\(k\) scale? | One saved 100-response pool per task for Qwen3-4B, 8B, 14B, 30B-A3B, and Llama 3.1 8B; report \(k\in\{1,10,30,50,100\}\). |
 | RQ2 | How much does combine@1 recover from one response across model families? | Paired pass@1/combine@1 judgments of the same response on all 832 tasks. |
 | RQ3 | How does LoopGym compare with specialized tools? | Target-hidden adaptations, fixed native budgets, common 832-task denominator, and common restored-target judge. |
 | RQ4 | Does RL improve the deployed combined inference curve? | Matched before/after-RL checkpoints for Zero and SFT initializations. |
@@ -31,9 +31,9 @@ token-matched. LLM-based RQ3 rows use gpt-5-nano.
 
 ## Metrics
 
-- Pass@k: for a pool of \(n=100\) responses with \(c\) successes, compute
+- pass@k: for a pool of \(n=100\) responses with \(c\) successes, compute
   \(1-\binom{n-c}{k}/\binom{n}{k}\) per program and average over programs.
-- Combine@k: union the first \(k\) saved responses, apply Houdini, restore
+- combine@k: union the first \(k\) saved responses, apply Houdini, restore
   \(Q\), and report the verified fraction. It is a fixed-prefix measurement,
   not an all-subset unbiased estimate.
 - \(k_{95}\): the smallest measured \(k\) whose combine@\(k\) reaches 95% of
@@ -41,9 +41,8 @@ token-matched. LLM-based RQ3 rows use gpt-5-nano.
 - Efficiency: mean total tokens and end-to-end time per attempted task.
   Provider usage is used for APIs; serving-tokenizer counts are used locally.
 
-RQ2 must retain paired outcomes (both, filter gain, filter regression,
-neither) because the net rate difference alone cannot reveal operational
-regressions caused by verifier timeouts.
+RQ2 compares aggregate pass@1 and combine@1 on the same saved response, so the
+rate difference introduces no additional model calls.
 
 ## RQ5 variants
 
@@ -79,7 +78,7 @@ reachability collision.
 | Training configuration | Optimizer, learning rate, batch/group sizes, update count, checkpoint IDs, seeds, and hardware manifest missing. |
 | Training--test overlap | Reproducible via paper/scripts/audit_train_test_overlap.py; input hashes are in paper/artifacts/train_test_overlap.json. |
 | Prompt provenance sanitation | **Submission rerun required.** The old model-facing transform preserved non-contract comments in 478 evaluation files: all 466 Loopy sources contain a `// Source:` path (98 encode an outcome label such as `true-unreach-call`, `safe`, or `ok`), and 12 NLA files contain generic section comments. The shared masking code now removes ordinary comments while retaining ACSL contracts. Every affected generation result predating this fix must be regenerated or supported by a predeclared sensitivity study. |
-| Training-prompt sanitation | **Clean artifacts generated; retraining required.** `paper/scripts/sanitize_training_prompts.py` rebuilds one canonical prompt revision, checks every unique RL source with the Frama-C kernel, and filters SFT clauses with the deployed 5-second-per-obligation Houdini judge. The final artifacts contain 37,481 RL and 3,205 SFT rows; sanitation, per-program power rewrites, and hashes are recorded under `paper/artifacts/`. Retrain from these outputs before reporting RQ4/RQ5. |
+| Training-prompt sanitation | **Clean artifacts generated; retraining required.** `paper/scripts/sanitize_training_prompts.py` rebuilds one canonical prompt revision, checks every unique RL source with the Frama-C kernel, and filters SFT clauses with the deployed 5-second-per-obligation Houdini judge. The final artifacts contain 37,481 RL and 3,200 SFT rows; sanitation, per-program power rewrites, and hashes are recorded under `paper/artifacts/`. Retrain from these outputs before reporting RQ4/RQ5. |
 
 An artifact sweep finds non-contract comments in 6,971 of 11,717 saved
 `results/**/input.hidden.c` files, including complete GPT-5, GPT-5-mini,

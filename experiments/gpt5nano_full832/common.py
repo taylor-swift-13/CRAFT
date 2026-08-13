@@ -153,6 +153,18 @@ def base_row(method: str, task: Task) -> dict:
         os.environ.get("LOOPGYM_REASONING_EFFORT")
         or protocol["generation"].get("reasoning_effort")
     )
+    configured_enable_thinking = os.environ.get("LOOPGYM_ENABLE_THINKING")
+    enable_thinking = None
+    if configured_enable_thinking is not None:
+        normalized = configured_enable_thinking.strip().lower()
+        if normalized in {"0", "false", "no", "off"}:
+            enable_thinking = False
+        elif normalized in {"1", "true", "yes", "on"}:
+            enable_thinking = True
+        else:
+            raise ValueError(
+                "LOOPGYM_ENABLE_THINKING must be a boolean value"
+            )
     return {
         "schema_version": 1,
         "protocol": protocol["name"],
@@ -164,6 +176,7 @@ def base_row(method: str, task: Task) -> dict:
             if str(configured_reasoning_effort).lower() in {"default", "omit"}
             else configured_reasoning_effort
         ),
+        "enable_thinking": enable_thinking,
         **task.to_dict(),
         "target_hidden": True,
         "event_utc": datetime.now(timezone.utc).isoformat(),

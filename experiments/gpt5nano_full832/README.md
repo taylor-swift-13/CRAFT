@@ -102,9 +102,12 @@ separate `SESpec/src/input` tree that still contained the assertion.
 
 Native Clause2Inv needs a Code2Inv SMT transition-VC file for each input.
 Compatible VCs exist for the 316 linear and 50 nonlinear programs, so those
-target-hidden generations are reused. Loopy has no such VCs; the runner writes
+target-hidden generations are run through Clause2Inv's native checker. Loopy
+has no such VCs; the runner writes
 an explicit `unsupported` row with zero API calls instead of silently changing
 Clause2Inv into a different method or spending tokens on unverifiable output.
+Fresh runs persist provider-reported prompt, completion, reasoning, and total
+token counts for every native API call.
 
 ## Commands
 
@@ -223,10 +226,9 @@ evaluation under `events/daikon.jsonl` and
 ## R10-H extension
 
 `loopgym_r10_houdini` evaluates exactly ten target-hidden rollouts, their
-union, and Frama-C/WP Houdini, without re-roll. Compatible first-attempt
-R4-H responses are reused when their complete per-call artifacts and prompt
-hashes are available; their original tokens and measured call latency remain
-part of R10-H's algorithmic cost. Missing responses are sampled normally.
+union, and Frama-C/WP Houdini, without re-roll. The ten rollouts are returned
+by two model requests with `n=5` each; all subsequent parsing, union, filtering,
+Houdini, restored-target validation, and scoring are unchanged.
 Generation, scoring, and reporting are append-only and resumable:
 
 ```bash
@@ -242,13 +244,9 @@ The extension writes `events/loopgym_r10_houdini.jsonl`,
 ## R5-H no-reroll result
 
 `loopgym_r5_houdini` uses exactly five target-hidden rollouts, union, and
-Frama-C/WP Houdini without re-roll. To avoid redundant model spending,
-the completed evaluation replays the exact first five stored R10-H responses
-for each task. It does not reuse the R10-H candidate union or proof result:
-response parsing, union, Houdini, restored-target validation, and fixed-sample
-negative scoring are recomputed independently. Original per-call latency and
-exact provider token usage remain part of R5-H's algorithmic cost; the local
-replay wall time is retained separately.
+Frama-C/WP Houdini without re-roll. The five rollouts are returned by one
+model request with `n=5`; all subsequent inference and scoring logic is the
+same as for the existing LoopGym pipeline.
 
 ```bash
 LOOPGYM_WP_PAR=2 python3 -m experiments.gpt5nano_full832.r5_extension generate --workers 16
@@ -259,8 +257,8 @@ python3 -m experiments.gpt5nano_full832.finalize_r5
 
 The extension writes `events/loopgym_r5_houdini.jsonl`,
 `artifacts/loopgym_r5_houdini/`, `r5_results.csv`, `r5_summary.json`, and
-`r5_protocol.json`. All 832 final artifacts contain exactly five reused calls,
-zero rerolls, and no fresh API calls.
+`r5_protocol.json`. Each completed artifact contains one fresh API call with
+exactly five choices and zero rerolls.
 
 ## Timing and AutoSpec runtime guards
 

@@ -14,7 +14,7 @@
     line width=0.95pt},
   trainflow/.style={-{Stealth[length=2.0mm]}, draw=codeblue!88,
     line width=0.95pt},
-  inferflow/.style={-{Stealth[length=2.0mm]}, draw=codered!84,
+  inferflow/.style={-{Stealth[length=2.0mm]}, draw=codeolive!80,
     line width=0.95pt},
   panel/.style={draw=promptframe, fill=promptbg, rounded corners=5pt,
     line width=0.85pt},
@@ -23,12 +23,14 @@
   tag/.style={rounded corners=2pt, inner xsep=5pt, inner ysep=2.3pt,
     font=\scriptsize\bfseries, text=white},
   heading/.style={font=\scriptsize\bfseries, text=codegray, align=center},
-  clause/.style={rounded corners=1.5pt, draw=codeblue!45,
-    fill=algobg!82, minimum width=0.92cm, minimum height=0.27cm,
-    inner sep=1pt},
-  survivor/.style={rounded corners=1.5pt, draw=codegreen!65,
-    fill=codegreen!15, minimum width=0.82cm, minimum height=0.27cm,
-    inner sep=1pt}
+  clausebox/.style={rectangle, rounded corners=0.5pt, minimum width=0.26cm,
+    minimum height=0.26cm, inner sep=0pt, draw=paperink!20, line width=0.3pt},
+  validrow/.style={rounded corners=2.2pt, draw=codegreen!42, fill=codegreen!6,
+    line width=0.55pt},
+  wrongrow/.style={rounded corners=2.2pt, draw=codered!58, fill=wrongred!26,
+    line width=0.65pt},
+  poolbound/.style={rounded corners=3pt, draw=codeblue!40, fill=codeblue!3,
+    line width=0.6pt, dash pattern=on 2.2pt off 1.6pt}
 ]
 
 %% -----------------------------------------------------------------
@@ -37,178 +39,370 @@
 \draw[panel] (0.10,3.72) rectangle (15.90,6.48);
 \node[tag, fill=codeblue, anchor=west] at (0.40,6.16)
   {ROLLOUT--COMBINE--FILTER};
-\node[font=\scriptsize, text=codegray, anchor=east]
-  at (15.58,6.16) {the compositional deployment objective};
+
+%% legend: clause color encodes validity and, for valid clauses, strength
+\begin{scope}[shift={(10.55,5.98)}]
+  \fill[codegreen!88] (0,0) rectangle (0.16,0.16);
+  \fill[codegreen!52] (0.21,0) rectangle (0.37,0.16);
+  \fill[codegreen!28] (0.42,0) rectangle (0.58,0.16);
+  \node[font=\tiny, text=codegray, anchor=west] at (0.68,0.08)
+    {shade = strength};
+  \fill[wrongred] (2.55,0) rectangle (2.71,0.16);
+  \node[font=\tiny, text=codegray, anchor=west] at (2.81,0.08)
+    {rejected};
+\end{scope}
 
 %% masked program card
-\node[card, draw=paperink!30, text width=1.58cm]
-  (masked) at (1.35,4.92)
-  {\textbf{Masked loop}\\[-1pt]
+\node[card, draw=paperink!30, text width=1.95cm]
+  (masked) at (1.35,4.88)
+  {{\tiny\bfseries Masked loop}\\[-1pt]
    \(\mathcal L=(P,B,S)\)\\[-2pt]
    {\scriptsize\textcolor{codered}{target \(Q\) hidden}}};
 
-%% rollout stack
-\node[heading] at (4.00,5.57) {ROLLOUTS};
-\foreach \dx/\dy in {0.18/0.18,0.09/0.09,0/0}{
-  \draw[rounded corners=1.8pt, fill=white, draw=codeblue!48]
-    (3.48+\dx,4.50+\dy) rectangle (4.42+\dx,5.24+\dy);
+%% -----------------------------------------------------------------
+%% ROLLOUTS: each rollout is five colored clause boxes side by side.
+%% One rejected (light red) clause flips the whole rollout to "wrong".
+%% -----------------------------------------------------------------
+\node[heading] at (3.90,5.62) {ROLLOUTS};
+
+\node[validrow, minimum width=2.05cm, minimum height=0.42cm]
+  (rowA1) at (3.80,5.28) {};
+\node[font=\tiny, text=codegreen!70] at (2.98,5.28) {\(A_1\)};
+\foreach \i/\c in {0/codegreen!85,1/codegreen!50,2/codegreen!85,
+                    3/codegreen!35,4/codegreen!65}{
+  \node[clausebox, fill=\c] at (3.30+\i*0.30,5.28) {};
 }
-\draw[codeblue!58, line width=0.7pt]
-  (3.62,5.05)--(4.24,5.05)
-  (3.62,4.86)--(4.12,4.86)
-  (3.62,4.67)--(4.20,4.67);
-\node[font=\tiny, text=codegray] at (4.00,4.18)
-  {independent exploration: \(A_1,\ldots,A_G\)};
+\node[font=\tiny\bfseries, text=codegreen!75] at (4.70,5.28) {\cmark};
 
-%% combined clause pool
-\node[heading] at (7.00,5.57) {COMBINE};
-\node[clause] at (6.40,5.04) {};
-\node[clause] at (6.40,4.72) {};
-\node[clause] at (7.00,4.88) {};
-\node[clause] at (7.60,5.04) {};
-\node[clause] at (7.60,4.72) {};
-\node[font=\tiny, text=codegray] at (7.00,4.18)
-  {extract within; union across};
+\node[wrongrow, minimum width=2.05cm, minimum height=0.42cm]
+  (rowA2) at (3.80,4.86) {};
+\node[font=\tiny, text=codered!68] at (2.98,4.86) {\(A_2\)};
+\foreach \i/\c in {0/codegreen!70,1/wrongred,2/codegreen!45,
+                    3/codegreen!80,4/codegreen!30}{
+  \node[clausebox, fill=\c] at (3.30+\i*0.30,4.86) {};
+}
+\node[font=\tiny\bfseries, text=codered!72] at (4.70,4.86) {\xmark};
 
-%% iterative syntax filter
-\node[heading] at (8.92,5.57) {SYNTAX};
-\node[circle, draw=codeblue!58, fill=white, text=codeblue,
-  minimum size=0.72cm, font=\bfseries] (syntax) at (8.92,4.88) {F};
-\node[font=\tiny, text=codegray] at (8.92,4.18)
-  {parse + dedup};
+\node[wrongrow, minimum width=2.05cm, minimum height=0.42cm]
+  (rowA3) at (3.80,4.44) {};
+\node[font=\tiny, text=codered!68] at (2.98,4.44) {\(A_3\)};
+\foreach \i/\c in {0/wrongred,1/codegreen!60,2/wrongred,
+                    3/codegreen!40,4/codegreen!75}{
+  \node[clausebox, fill=\c] at (3.30+\i*0.30,4.44) {};
+}
+\node[font=\tiny\bfseries, text=codered!72] at (4.70,4.44) {\xmark};
 
-%% Houdini fixed point
-\node[heading] at (10.62,5.57) {HOUDINI};
-\node[circle, draw=codeblue!74, fill=codeblue!84, text=white,
-  minimum size=0.88cm, font=\bfseries] (houdini) at (10.62,4.88) {H};
-\node[font=\tiny, text=codegray] at (10.62,4.18)
-  {prove + prune};
+\node[font=\scriptsize, text=codegray!70] at (3.90,4.05) {\(\vdots\)};
 
-%% inductive clauses
-\node[heading] at (12.65,5.57) {VALID CLAUSES};
-\node[survivor] at (12.00,5.08) {};
-\node[survivor] at (12.50,4.84) {};
-\node[survivor] at (13.00,5.08) {};
-\node[survivor] at (12.00,4.60) {};
-\node[survivor] at (13.00,4.60) {};
+%% -----------------------------------------------------------------
+%% COMBINE: union of extracted clauses across all rollouts
+%% -----------------------------------------------------------------
+\node[heading] at (7.05,5.62) {COMBINE};
+\node[poolbound, minimum width=1.85cm, minimum height=1.25cm]
+  (pool) at (7.05,4.90) {};
+\foreach \dx/\dy/\c in {
+  -0.55/0.34/codegreen!85, -0.10/0.38/wrongred, 0.40/0.30/codegreen!50,
+  -0.60/-0.04/codegreen!65, -0.05/0.02/codegreen!35, 0.50/0.00/wrongred,
+  -0.45/-0.36/codegreen!80, 0.05/-0.38/codegreen!45, 0.52/-0.34/codegreen!30}{
+  \node[clausebox, fill=\c] at (7.05+\dx,4.90+\dy) {};
+}
+\node[font=\tiny, text=codegray] at (7.05,4.10) {union};
+
+%% unified clause filter: syntax + Houdini as one funnel glyph
+\node[heading] at (9.75,5.62) {FILTER};
+\draw[flow] (8.02,4.88) -- (9.52,4.88);
+\draw[flow] (9.98,4.88) -- (11.75,4.88);
+\draw[draw=codeblue!74, fill=codeblue!22, line width=0.9pt]
+  (9.28,5.16) -- (9.67,4.76) -- (9.67,4.58) -- (9.83,4.58) --
+  (9.83,4.76) -- (10.22,5.16) -- cycle;
+\draw[draw=codeblue!74, fill=codeblue!84, line width=0.7pt]
+  (9.75,5.16) ellipse (0.47 and 0.085);
+\node[font=\tiny, text=codegray] at (9.75,4.10)
+  {parse + dedup + Houdini};
+
+%% -----------------------------------------------------------------
+%% VALID CLAUSES: only the surviving green boxes, gathered together
+%% -----------------------------------------------------------------
+\node[heading] at (12.65,5.62) {VALID CLAUSES};
+\foreach \dx/\dy/\c in {
+  -0.34/0.30/codegreen!85, 0.10/0.32/codegreen!45, 0.46/0.22/codegreen!70,
+  -0.30/-0.14/codegreen!55, 0.14/-0.16/codegreen!30, 0.48/-0.14/codegreen!80}{
+  \node[clausebox, fill=\c] at (12.65+\dx,4.88+\dy) {};
+}
+\node[font=\tiny, text=codegray] at (12.65,4.10) {survivors};
+
 \node[card, draw=codegreen!64, fill=codegreen!10,
-  text width=1.38cm] (survivors) at (14.42,4.88)
-  {\textbf{Output}\\[-1pt] \(C_k\)};
+  text width=1.38cm] (survivors) at (14.60,4.88)
+  {{\tiny\bfseries Output}\\[-1pt] \(C_k\)};
 
-\draw[flow] (masked) -- (3.44,4.88);
-\draw[flow] (4.66,4.88) -- (5.78,4.88);
-\draw[flow] (8.12,4.88) -- (syntax);
-\draw[flow] (syntax) -- (houdini);
-\draw[flow] (houdini) -- (11.60,4.88);
-\draw[flow] (13.35,4.88) -- (survivors);
+\draw[flow] (5.00,4.88) -- (6.05,4.88);
+\draw[flow] (13.35,4.88) -- (13.74,4.88);
 
 %% -----------------------------------------------------------------
 %% A single clean distribution bus replaces duplicated core rows
 %% -----------------------------------------------------------------
-\draw[bus] (14.42,4.28) -- (14.42,3.42) -- (2.10,3.42);
-\fill[codeblue!72] (2.10,3.42) circle (1.8pt);
-\fill[codeblue!72] (13.55,3.42) circle (1.8pt);
+\draw[bus] (14.60,4.28) -- (14.60,3.42) -- (2.10,3.42);
+\fill[codeblue!72] (2.2125,3.42) circle (1.8pt);
+\fill[codeblue!72] (7.90,3.42) circle (1.8pt);
+\fill[codeblue!72] (13.6875,3.42) circle (1.8pt);
 
 %% -----------------------------------------------------------------
 %% Three consumers contain only what differs
 %% -----------------------------------------------------------------
 \draw[rounded corners=5pt, fill=codepurple!2, draw=codepurple!34,
-  line width=0.8pt] (0.10,-2.10) rectangle (4.10,3.05);
+  line width=0.8pt] (0.10,-2.10) rectangle (4.325,3.05);
+\begin{scope}[xshift=0.1125cm]
 
-\node[card, draw=codepurple!58, fill=white, text width=2.55cm]
-  (sftpair) at (2.10,1.78)
-  {\textbf{Compress group result}\\[-1pt]
-   {\scriptsize input: target-masked \(\mathcal L\)}\\[-2pt]
-   {\scriptsize target: clause set \(C\)}};
-\draw[dataflow] (2.10,3.42) -- (sftpair.north);
+\node[card, draw=codepurple!58, fill=white, text width=2.9cm]
+  (sftpair) at (2.10,2.05)
+  {{\tiny\bfseries Combined clauses \(C_k\)}\\[-1pt]
+   {\tiny \(k\) rollouts: union \(\to\) filter}};
+\draw[dataflow] (2.10,3.42) -- (2.10,3.05);
 \node[tag, fill=codepurple!84, anchor=west] at (0.40,2.75)
-  {DISTILL THE COMPOSITION};
-\node[card, draw=codepurple!64, fill=codepurple!7, text width=2.55cm]
-  (sftdata) at (2.10,0.02)
-  {\textbf{Canonical response}\\[-1pt]
-   {\scriptsize inductive invariant set}};
-\node[tag, fill=codepurple!84] (sftcorpus) at (2.10,-0.95)
+  {DISTILL};
+\foreach \i/\c in {0/codegreen!85,1/codegreen!45,2/codegreen!70,
+                     3/codegreen!55,4/codegreen!30,5/codegreen!80}{
+  \node[clausebox, fill=\c] at (1.50+\i*0.24,1.50) {};
+}
+
+%% serialize the filtered union as ONE canonical response
+\draw[dataflow] (2.10,1.34) -- (2.10,0.78);
+\node[font=\tiny, text=codepurple!80, anchor=west] at (2.24,1.06)
+  {serialize};
+
+%% each task contributes one (masked loop, canonical response) pair
+\draw[rounded corners=3pt, draw=codepurple!45, fill=none,
+  line width=0.6pt, dash pattern=on 2.2pt off 1.6pt]
+  (0.15,-0.30) rectangle (3.95,0.76);
+\node[font=\tiny\bfseries, text=codepurple!80] at (2.55,0.52)
+  {SFT target};
+\draw[rounded corners=2.5pt, draw=codepurple!45, fill=white,
+  line width=0.6pt] (1.62,-0.10) rectangle (3.38,0.22);
+\foreach \c [count=\i from 0] in {codegreen!85,codegreen!45,
+                                    codegreen!70,codegreen!55,
+                                    codegreen!30,codegreen!80}{
+  \node[clausebox, fill=\c] (sc\i) at (1.80+\i*0.28,0.06) {};
+}
+\node[card, draw=paperink!30, text width=1.15cm, inner xsep=2pt,
+  inner ysep=3pt, font=\tiny\bfseries] (miniloop) at (0.82,0.06)
+  {Masked \(\mathcal L\)};
+\draw[dataflow] (miniloop.east) -- (1.66,0.06);
+\node[font=\tiny, text=codegray, anchor=west] at (1.58,-0.21)
+  {one training pair per loop};
+
+%% stacked corpus = many such pairs, then fine-tune the policy
+\draw[rounded corners=2pt, draw=none, fill=codepurple!18]
+  (1.16,-0.94) rectangle (3.32,-0.66);
+\draw[rounded corners=2pt, draw=none, fill=codepurple!32]
+  (1.10,-1.00) rectangle (3.26,-0.72);
+\node[tag, fill=codepurple!84] (sftcorpus) at (2.10,-1.06)
   {SFT CORPUS \(\mathcal D_{\rm SFT}\)};
-\draw[dataflow] (sftpair) -- (sftdata);
-\draw[dataflow] (sftdata) -- (sftcorpus);
+\node[card, draw=codepurple!58, fill=white, text width=2.6cm,
+  inner ysep=3pt, font=\tiny] (sftmodel) at (2.10,-1.72)
+  {fine-tune \(\pi_\theta\): many rollouts \(\to\) one response};
+\draw[dataflow] (2.10,-0.30) -- (2.10,-0.62);
+\draw[dataflow] (sftcorpus.south) -- (sftmodel.north);
+
+\end{scope}
 
 \draw[rounded corners=5pt, fill=codeblue!3, draw=codeblue!34,
-  line width=0.8pt] (4.30,-2.10) rectangle (11.05,3.05);
+  line width=0.8pt] (4.525,-2.10) rectangle (11.275,3.05);
+\begin{scope}[xshift=0.225cm]
 \node[tag, fill=codeblue, anchor=west] at (4.60,2.75)
-  {TRAIN FOR COMPOSITION};
+  {RL};
 
-%% Execution examples are an RL reward signal, not the synthetic SFT corpus.
-\node[card, draw=codeblue!52, fill=white, text width=1.00cm,
-  inner xsep=3pt] (execute) at (5.08,2.00)
-  {{\tiny\bfseries Execute}\\[-1pt]{\tiny loop \(\mathcal L\)}};
-\node[card, draw=codegreen!58, fill=codegreen!8, text width=1.25cm,
-  inner xsep=3pt] (positives) at (6.48,2.00)
-  {{\tiny\bfseries Reachable}\\[-1pt]{\tiny states \(\mathcal P\)}};
-\node[card, draw=codeblue!58, fill=white, text width=3.05cm,
-  inner ysep=4pt] (negsampler) at (9.32,2.00)
-  {{\scriptsize\bfseries NEGATIVE SAMPLER}\\[-1pt]
-   {\tiny relational \(\cdot\) post-exit \(\cdot\) range}};
-\node[card, draw=codered!48, fill=codered!3, text width=3.05cm,
-  inner xsep=3pt, inner ysep=3pt] (audit) at (9.32,0.45)
-  {{\tiny\bfseries CONSERVATIVE FILTER}\\[-1pt]
-   {\tiny collisions, fresh entries,\\[-1pt] unsupported state}};
-\draw[trainflow] (execute.east) -- (positives.west);
-\draw[trainflow] (positives.east) -- (negsampler.west);
-\draw[trainflow] (negsampler.south) -- (audit.north);
+%% rollouts enter from the distribution bus, straight from above
+\draw[trainflow] (7.68,3.42) -- (7.68,3.05);
+\node[font=\tiny, text=codegray, anchor=west] at (7.84,3.18)
+  {rollout group \(A_{1:G}\)};
 
-\node[card, draw=codeblue!52, fill=white, text width=1.28cm,
-  inner xsep=3pt] (trainin) at (5.20,-1.25)
-  {{\tiny\bfseries SPLIT + FILTER}\\[-1pt]
-   {\tiny positive + Houdini}\\[-1pt]
-   {\tiny each \(A_i\to S_i\)}};
-\node[card, draw=codeblue!62, fill=algobg!78, text width=1.42cm,
-  inner xsep=3pt] (score) at (7.00,-1.25)
-  {{\tiny\bfseries SUBSET STRENGTH}\\[-1pt]
-   {\tiny coverage \(R_i\)}};
-\node[card, draw=codepurple!62, fill=codepurple!6, text width=1.48cm,
-  inner xsep=3pt] (groupcredit) at (8.95,-1.25)
-  {{\tiny\bfseries GROUP CREDIT}\\[-1pt]
-   {\tiny Shapley over \(R_{1:G}\)}};
-\node[tag, fill=codeblue!84] (grpo) at (10.35,-1.25) {GRPO};
-\draw[trainflow] (4.00,4.48) -- (4.00,3.23) --
-  (4.42,3.23) -- (4.42,-1.25) -- (trainin.west);
-\draw[trainflow] (trainin) -- (score);
-\draw[trainflow] (score) -- (groupcredit);
-\draw[trainflow] (groupcredit) -- (grpo);
-\draw[dataflow] (positives.south) -- (6.48,0.95) --
-  (5.20,0.95) -- (trainin.north);
-\draw[dataflow] (audit.south) -- (9.32,-0.45) --
-  (7.00,-0.45) -- (score.north);
+%% -----------------------------------------------------------------
+%% RL STAGE 1 -- DECOMPOSE (within a rollout): each response is
+%% projected onto its verifier-retained subset S_i.  Rejected clauses
+%% fail the whole response (x) but no longer erase useful clauses:
+%% the retained subset earns a dense, target-independent strength
+%% score -- coverage of the execution-derived negatives N.
+%% -----------------------------------------------------------------
+\node[tag, fill=codeblue!72, font=\tiny\bfseries, anchor=west]
+  at (4.55,2.32) {1\hspace{2pt}DECOMPOSE};
+\node[font=\tiny, text=codegray, anchor=west] at (6.48,2.32)
+  {within a rollout: keep verifier-retained clauses \(S_i\)};
 
-\draw[rounded corners=5pt, fill=codered!2, draw=codered!34,
-  line width=0.8pt] (11.25,-2.10) rectangle (15.90,3.05);
-\node[tag, fill=codered!80, anchor=west] at (11.55,2.75)
-  {DEPLOY THE COMPOSITION};
-\node[font=\scriptsize, text=codered!76, anchor=east]
-  at (15.58,2.75) {fixed-budget};
+\node[font=\tiny, text=paperink!75] at (4.70,1.88) {\(A_2\)};
+\foreach \i/\c in {0/codegreen!70,1/wrongred,2/codegreen!45,
+                    3/codegreen!80,4/codegreen!30}{
+  \node[clausebox, fill=\c] at (5.00+\i*0.26,1.88) {};
+}
+\node[font=\tiny\bfseries, text=codered!72] at (6.16,1.88) {\xmark};
+\draw[draw=codeblue!58, fill=codeblue!12, line width=0.6pt]
+  (6.44,2.02) -- (6.88,2.02) -- (6.69,1.78) -- (6.69,1.66) --
+  (6.63,1.66) -- (6.63,1.78) -- cycle;
+\draw[draw=codeblue!58, fill=codeblue!40, line width=0.5pt]
+  (6.66,2.02) ellipse (0.22 and 0.045);
+\node[font=\tiny, text=codegreen!70] at (7.04,1.88) {\(S_2\)};
+\foreach \i/\c in {0/codegreen!70,1/codegreen!45,2/codegreen!80,
+                    3/codegreen!30}{
+  \node[clausebox, fill=\c] at (7.30+\i*0.26,1.88) {};
+}
+\node[font=\tiny, text=codegray, anchor=west] at (8.42,1.88)
+  {cov \(=4/5=.80\)};
 
-\node[card, draw=codered!52, fill=white, text width=2.55cm]
-  (inferin) at (13.55,1.70)
-  {\textbf{Valid clauses}\\[-1pt]
-   {\scriptsize restore held-out target \(Q\)}};
-\node[card, draw=codered!64, fill=codered!5, text width=2.55cm]
-  (wp) at (13.55,0.10)
-  {\textbf{Final Proof}\\[-1pt]
-   {\scriptsize \(\operatorname{Verify}(\mathcal L,\bigwedge C,Q)\)}};
+\node[font=\tiny, text=paperink!75] at (4.70,1.44) {\(A_3\)};
+\foreach \i/\c in {0/wrongred,1/codegreen!60,2/wrongred,
+                    3/codegreen!40,4/codegreen!75}{
+  \node[clausebox, fill=\c] at (5.00+\i*0.26,1.44) {};
+}
+\node[font=\tiny\bfseries, text=codered!72] at (6.16,1.44) {\xmark};
+\draw[draw=codeblue!58, fill=codeblue!12, line width=0.6pt]
+  (6.44,1.58) -- (6.88,1.58) -- (6.69,1.34) -- (6.69,1.22) --
+  (6.63,1.22) -- (6.63,1.34) -- cycle;
+\draw[draw=codeblue!58, fill=codeblue!40, line width=0.5pt]
+  (6.66,1.58) ellipse (0.22 and 0.045);
+\node[font=\tiny, text=codegreen!70] at (7.04,1.44) {\(S_3\)};
+\foreach \i/\c in {0/codegreen!60,1/codegreen!40,2/codegreen!75}{
+  \node[clausebox, fill=\c] at (7.30+\i*0.26,1.44) {};
+}
+\node[font=\tiny, text=codegray, anchor=west] at (8.42,1.44)
+  {cov \(=3/5=.60\)};
+
+%% -----------------------------------------------------------------
+%% RL STAGE 2 -- COMPOSE (across the rollout group): rows score the
+%% retained subsets against the shared negatives N; a rejection
+%% supplied by several peers splits its credit (closed-form Shapley),
+%% so complementary coverage beyond peers earns more.
+%% -----------------------------------------------------------------
+\node[tag, fill=codeblue!86, font=\tiny\bfseries, anchor=west]
+  at (4.55,0.96) {2\hspace{2pt}COMPOSE};
+\node[font=\tiny, text=codegray, anchor=west] at (6.35,0.96)
+  {across the group via Shapley credit};
+
+\node[font=\tiny, text=codegray, anchor=east] at (5.10,0.60)
+  {neg.\ \(\mathcal N\)};
+\foreach \i in {0,1,2,3,4}{
+  \node[circle, draw=codegray!55, fill=codegray!20, minimum size=0.20cm,
+    inner sep=0pt] at (5.30+\i*0.30,0.60) {};
+}
+
+\node[font=\tiny, text=codegreen!70, anchor=east] at (5.10,0.24)
+  {\(S_2\)};
+\foreach \i/\s in {0/2,1/2,2/1,3/0,4/1}{
+  \pgfmathsetmacro{\bx}{5.30+\i*0.30}
+  \ifcase\s
+    \node[circle, draw=paperink!20, fill=algobg!40, minimum size=0.22cm,
+      inner sep=0pt] at (\bx,0.24) {};
+  \or
+    \node[circle, draw=codegreen!60, fill=codegreen!32, minimum size=0.22cm,
+      inner sep=0pt] at (\bx,0.24) {};
+    \draw[codegreen!90, line width=0.45pt]
+      (\bx-0.07,0.17) -- (\bx+0.07,0.31) (\bx-0.07,0.31) -- (\bx+0.07,0.17);
+  \or
+    \node[circle, draw=codegreen!90, fill=codegreen!80, minimum size=0.22cm,
+      inner sep=0pt] at (\bx,0.24) {};
+  \fi
+}
+\node[font=\tiny, text=codegray, anchor=west] at (6.90,0.24)
+  {\(\phi_2=(1{+}1{+}\tfrac12{+}\tfrac12)/5=.60\)};
+
+\node[font=\tiny, text=codegreen!70, anchor=east] at (5.10,-0.12)
+  {\(S_3\)};
+\foreach \i/\s in {0/0,1/0,2/1,3/2,4/1}{
+  \pgfmathsetmacro{\bx}{5.30+\i*0.30}
+  \ifcase\s
+    \node[circle, draw=paperink!20, fill=algobg!40, minimum size=0.22cm,
+      inner sep=0pt] at (\bx,-0.12) {};
+  \or
+    \node[circle, draw=codegreen!60, fill=codegreen!32, minimum size=0.22cm,
+      inner sep=0pt] at (\bx,-0.12) {};
+    \draw[codegreen!90, line width=0.45pt]
+      (\bx-0.07,-0.19) -- (\bx+0.07,-0.05) (\bx-0.07,-0.05) -- (\bx+0.07,-0.19);
+  \or
+    \node[circle, draw=codegreen!90, fill=codegreen!80, minimum size=0.22cm,
+      inner sep=0pt] at (\bx,-0.12) {};
+  \fi
+}
+\node[font=\tiny, text=codegray, anchor=west] at (6.90,-0.12)
+  {\(\phi_3=(\tfrac12{+}1{+}\tfrac12)/5=.40\)};
+
+\node[font=\scriptsize, text=codegray!70] at (4.72,-0.40) {\(\vdots\)};
+
+%% legend for the coverage-matrix marks (on the negatives header row)
+\node[circle, draw=codegreen!90, fill=codegreen!80, minimum size=0.22cm,
+  inner sep=0pt] at (7.05,0.60) {};
+\node[font=\tiny, text=codegray, anchor=west] at (7.24,0.60) {unique};
+\node[circle, draw=codegreen!60, fill=codegreen!32, minimum size=0.22cm,
+  inner sep=0pt] at (8.35,0.60) {};
+\draw[codegreen!90, line width=0.45pt]
+  (8.28,0.53) -- (8.42,0.67) (8.28,0.67) -- (8.42,0.53);
+\node[font=\tiny, text=codegray, anchor=west] at (8.54,0.60)
+  {shared: split};
+
+%% -- target-independent strength score (execution-derived negatives) --
+\node[card, draw=codeblue!58, fill=codeblue!3, text width=3.5cm,
+  inner xsep=4pt, inner ysep=3pt, font=\tiny] (score) at (6.45,-0.74)
+  {{\tiny\bfseries Target-independent score}\\[0pt]
+   \(\mathrm{cov}(A_i)=|\mathrm{rej}(S_i)\,|\,/\,|\mathcal N|\)};
+
+%% -----------------------------------------------------------------
+%% Group-conditioned reward -> GRPO
+%% -----------------------------------------------------------------
+\node[card, draw=codeblue!62, fill=algobg!85, text width=3.5cm,
+  inner xsep=4pt, inner ysep=3pt, font=\tiny] (rwd) at (6.45,-1.62)
+  {\(r_i=w_c\,\mathrm{cov}(A_i)+w_g\,\phi_i
+       -w_d\,d_{\rm dup}-w_o\,o(A_i)\)};
+\node[tag, fill=codeblue!84] (grpo) at (9.65,-1.62) {GRPO};
+\node[font=\tiny, text=codegray] at (9.65,-1.96)
+  {group-normalized advantage};
+\draw[trainflow] (score) -- (rwd);
+\draw[trainflow] (rwd) -- (grpo);
+
+\end{scope}
+
+\draw[rounded corners=5pt, fill=codeolive!3, draw=codeolive!38,
+  line width=0.8pt] (11.475,-2.10) rectangle (15.90,3.05);
+\begin{scope}[xshift=0.1375cm]
+\node[tag, fill=codeolive!80, anchor=west] at (11.55,2.75)
+  {DEPLOY};
+\node[font=\tiny\itshape, text=codegray, anchor=east] at (15.62,2.75)
+  {no execution states needed};
+
+\node[card, draw=codeolive!55, fill=white, text width=2.3cm]
+  (inferin) at (13.55,1.95)
+  {{\tiny\bfseries Restore target \(Q\)}};
+\node[card, draw=codeolive!64, fill=codeolive!6, text width=2.55cm]
+  (wp) at (13.55,0.30)
+  {{\tiny\bfseries Final Proof}\\[-1pt]
+   {\scriptsize \(\operatorname{Verify}(\mathcal L,I_k,Q)\)}};
+
+%% the conjoined object handed to Verify: invariant I_k = /\C_k,
+%% with the restored target Q kept separate (it is proved, not conjoined)
+\foreach \c [count=\i from 0] in {codegreen!85,codegreen!45,
+                                    codegreen!70,codegreen!55,
+                                    codegreen!30,codegreen!80}{
+  \node[clausebox, fill=\c] at (12.90+\i*0.26,1.20) {};
+}
+\node[font=\tiny, text=codeolive!80, anchor=east] at (12.65,1.20)
+  {\(I_k=\bigwedge C_k\)};
+
 \node[card, draw=codegreen!64, fill=codegreen!10, text width=2.55cm]
   (pass) at (13.55,-1.10)
-  {\textbf{\textcolor{codegreen!82}{\cmark\ VERIFIED}}};
-\draw[inferflow] (13.55,3.42) -- (inferin.north);
-\draw[inferflow] (inferin) -- (wp);
+  {{\tiny\bfseries\textcolor{codegreen!82}{\cmark\ VERIFIED}}};
+\node[font=\tiny, text=codegray] at (13.55,-1.56)
+  {measured as combine@\(k\)};
+\draw[inferflow] (13.575,3.42) -- (13.575,3.05);
+\draw[inferflow] (13.55,1.76) -- (13.55,1.37);
+\draw[inferflow] (13.55,1.05) -- (13.55,0.62);
 \draw[inferflow] (wp) -- (pass);
+\end{scope}
 
 \end{tikzpicture}
 }%
 \caption{\textbf{Rollout--combine--filter is the organizing principle.}
 Target-hidden rollouts are parsed, unioned, and Houdini-filtered.  SFT distills
-the combined set; RL rewards retained clauses within each rollout and
-complementary negative coverage across the group.  Executions construct and
-clean only training-time reward signals; deployment restores \(Q\) only for
-the final proof.}
+the combined set.  RL \emph{decomposes} each rollout onto its verifier-retained
+clauses---a dense, target-independent strength score from execution-derived
+negatives---and \emph{composes} credit across the rollout group through a
+closed-form Shapley allocation, so a rejection already supplied by peers earns
+less.  Executions construct and clean only training-time reward signals;
+deployment restores \(Q\) only for the final proof.}
 \label{fig:overview}
 \end{figure}

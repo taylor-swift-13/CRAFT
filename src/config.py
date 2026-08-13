@@ -24,7 +24,8 @@ class LLMConfig:
     # ── generation params ─────────────────────────────────────────────────────
     api_temperature: float = 1.0
     api_top_p: float = 1.0
-    api_max_tokens: int = 16384
+    api_max_tokens: int = 8192
+    api_reasoning_effort: Optional[str] = "none"
     # Qwen3's non-streaming OpenAI-compatible endpoint requires this request
     # parameter.  None keeps other providers/models untouched.
     api_enable_thinking: Optional[bool] = None

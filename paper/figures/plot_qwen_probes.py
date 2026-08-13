@@ -11,44 +11,48 @@ import matplotlib.pyplot as plt
 
 OUT = Path(__file__).resolve().parent
 
-PASS_K = [1, 10, 30, 50, 100]
-COMBINE_K = [1, 10, 30, 50, 75, 100]
-PROBE_K = [1, 10, 30, 50, 100]
+RQ1_K = [1, 10, 30, 50, 100]
 RL_K = [1, 10, 30, 50, 100]
 
 OFFICIAL = {
+    "Qwen3-0.6B": {
+        "direct": [0.70, 4.09, 7.12, 9.00, 12.26],
+        "combine": [6.61, 24.16, 25.00, 25.00, 25.00],
+        "color": "#b47a5f",
+        "marker": "P",
+        "style": "-",
+    },
     "Qwen3-4B": {
         "direct": [2.53, 7.56, 11.21, 13.10, 15.62],
-        "combine": [33.89, 45.31, 47.24, 47.60, 47.72, 47.84],
+        "combine": [33.89, 45.31, 47.24, 47.60, 47.84],
         "color": "#9d6652",
         "marker": "o",
         "style": "-",
     },
     "Qwen3-8B": {
         "direct": [9.30, 22.87, 28.30, 30.47, 33.29],
-        "combine": [41.23, 52.76, 56.37, 57.09, 57.57, 58.05],
+        "combine": [41.23, 52.76, 56.37, 57.09, 58.05],
         "color": "#4f8a6b",
         "marker": "s",
         "style": "--",
     },
     "Qwen3-14B": {
         "direct": [10.29, 25.45, 33.55, 36.78, 39.90],
-        "combine": [49.52, 57.33, 57.81, 57.81, 57.93, 58.05],
+        "combine": [49.52, 57.33, 57.81, 57.81, 58.05],
         "color": "#2d7053",
         "marker": "^",
         "style": "-.",
     },
     "Qwen3-30B-A3B": {
         "direct": [7.43, 19.27, 25.13, 27.88, 31.73],
-        "combine": [43.27, 50.12, 50.96, 51.08, 51.20, 51.32],
+        "combine": [43.27, 50.12, 50.96, 51.08, 51.32],
         "color": "#5b7185",
         "marker": "D",
         "style": ":",
     },
-    "Llama (base)": {
-        "direct_k": [1, 2, 5, 10, 20, 50, 100],
-        "direct": [0.14, 0.28, 0.66, 1.23, 2.21, 4.46, 7.33],
-        "combine": [16.59, 30.41, 34.13, 34.38, 34.38, 34.38],
+    "Llama 3.1 8B": {
+        "direct": [0.14, 1.23, 3.0345, 4.46, 7.33],
+        "combine": [16.59, 30.41, 34.13, 34.38, 34.38],
         "color": "#75618f",
         "marker": "v",
         "style": "-",
@@ -120,13 +124,13 @@ def plot_lines(ax: plt.Axes, data: dict, metric: str, ks: list[int]) -> None:
 
 def official_probe() -> None:
     fig, axes = plt.subplots(2, 3, figsize=(7.2, 3.75), sharex=True, sharey=True)
-    panel_names = ["(a)", "(b)", "(c)", "(d)", "(e)"]
+    panel_names = ["(a)", "(b)", "(c)", "(d)", "(e)", "(f)"]
     for panel, (model, values) in enumerate(OFFICIAL.items()):
         ax = axes.flat[panel]
         ax.plot(
-            values.get("direct_k", PROBE_K),
+            RQ1_K,
             values["direct"],
-            label="Pass@$k$",
+            label="pass@$k$",
             color="#9d6652",
             marker="o",
             linestyle="-",
@@ -136,9 +140,9 @@ def official_probe() -> None:
             markeredgecolor="white",
         )
         ax.plot(
-            PROBE_K,
-            [values["combine"][i] for i in (0, 1, 2, 3, 5)],
-            label="Combine@$k$",
+            RQ1_K,
+            values["combine"],
+            label="combine@$k$",
             color="#2d7053",
             marker="s",
             linestyle="--",
@@ -148,8 +152,8 @@ def official_probe() -> None:
             markeredgecolor="white",
         )
         ax.set_xscale("log")
-        ax.set_xticks(PROBE_K)
-        ax.set_xticklabels([str(k) for k in PROBE_K])
+        ax.set_xticks(RQ1_K)
+        ax.set_xticklabels([str(k) for k in RQ1_K])
         ax.set_xlabel("Number of responses, $k$")
         ax.set_ylabel("Verification rate (\%)")
         ax.grid(True, which="major", alpha=0.8)
@@ -157,14 +161,14 @@ def official_probe() -> None:
         ax.set_title(f"{panel_names[panel]} {model}")
         ax.set_ylim(0, 62)
 
-    axes.flat[-1].remove()
-
-    # Shared labels keep the four model-specific panels compact.
+    # Shared labels keep the six model-specific panels compact.
     axes[0, 0].set_xlabel("")
     axes[0, 1].set_xlabel("")
+    axes[0, 2].set_xlabel("")
     axes[0, 1].set_ylabel("")
     axes[0, 2].set_ylabel("")
     axes[1, 1].set_ylabel("")
+    axes[1, 2].set_ylabel("")
     handles, labels = axes[0, 0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="upper center", ncol=2, frameon=False)
     fig.tight_layout(rect=(0, 0, 1, 0.90), h_pad=0.9, w_pad=1.0)

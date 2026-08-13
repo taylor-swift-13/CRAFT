@@ -7,99 +7,106 @@
 \begin{tikzpicture}[
   font=\sffamily\small,
   >=Stealth,
-  flow/.style={-{Stealth[length=2.0mm]}, draw=paperink!66,
+  flow/.style={-{Stealth[length=2.0mm]}, draw=paperink!64,
     line width=0.9pt},
   branch/.style={draw=codepurple!72, line width=0.9pt},
   candidateflow/.style={-{Stealth[length=2.0mm]}, draw=codepurple!78,
     line width=0.9pt},
-  card/.style={draw=promptframe, fill=white, rounded corners=3pt,
-    line width=0.8pt, align=center, inner xsep=5pt, inner ysep=5pt},
-  family/.style={card, draw=codepurple!48, fill=codepurple!4,
-    text width=3.65cm, minimum height=0.90cm},
-  tag/.style={rounded corners=2pt, inner xsep=5pt, inner ysep=2.2pt,
+  panel/.style={draw=promptframe, fill=promptbg, rounded corners=5pt,
+    line width=0.85pt},
+  card/.style={draw=promptframe, fill=white, rounded corners=2.5pt,
+    line width=0.75pt, align=center, inner xsep=5pt, inner ysep=4pt},
+  tag/.style={rounded corners=2pt, inner xsep=5pt, inner ysep=2.3pt,
     font=\scriptsize\bfseries, text=white},
   note/.style={font=\tiny, text=codegray, align=center}
 ]
 
-%% Source execution and positives
-\node[card, draw=paperink!34, text width=1.55cm] (execute) at (0.95,2.45)
-  {\textbf{Execute}\\[-1pt]
-   {\scriptsize input sweep \(U\)}\\[-1pt]
+%% -----------------------------------------------------------------
+%% Source: concrete executions -> observed reachable states
+%% -----------------------------------------------------------------
+\node[card, draw=paperink!34, text width=1.50cm] (execute) at (1.00,2.45)
+  {{\tiny\bfseries Execute}\\[-1pt]
+   {\tiny input sweep \(U\)}\\[-1pt]
    {\tiny target \(Q\) hidden}};
 
-\node[card, draw=codegreen!58, fill=codegreen!8, text width=2.05cm]
-  (positives) at (3.18,2.45)
-  {\textbf{Observed trace}\\[-1pt]
-   \textcolor{codegreen!82}{\(\bullet\! \longrightarrow\! \bullet\!
-   \longrightarrow\! \bullet\)}\\[-1pt]
-   {\scriptsize positives \(\mathcal P\)}};
+\node[card, draw=codegreen!58, fill=codegreen!8, text width=1.95cm]
+  (positives) at (3.45,2.45)
+  {{\tiny\bfseries Observed trace}\\[-1pt]
+   {\scriptsize\textcolor{codegreen!82}{\(\bullet\!\rightarrow\!\bullet\!
+   \!\rightarrow\!\bullet\)}}\\[-1pt]
+   {\tiny positives \(\mathcal P\)}};
 
 \draw[flow] (execute) -- (positives);
 
-%% Candidate-generation panel
+%% -----------------------------------------------------------------
+%% Three candidate families (panel)
+%% -----------------------------------------------------------------
 \draw[rounded corners=5pt, fill=codepurple!2, draw=codepurple!34,
-  line width=0.8pt] (4.50,0.18) rectangle (9.12,4.72);
-
-\node[family] (rel) at (6.81,3.62)
-  {\textbf{Relational perturbation}\\[-1pt]
-   {\scriptsize \((x,y)=(2,3)\;\mapsto\;(3,3)\)}\\[-2pt]
-   {\tiny break \(x+y=5\) with a small local change}};
-
-\node[family] (post) at (6.81,2.30)
-  {\textbf{Post-exit continuation}\\[-1pt]
-   {\scriptsize \(s_{\rm exit}\xrightarrow{S}s_1^-
-   \xrightarrow{S}s_2^-\cdots\)}\\[-2pt]
-   {\tiny continue the real body after a genuine exit}};
-
-\node[family] (range) at (6.81,0.98)
-  {\textbf{Range perturbation}\\[-1pt]
-   {\scriptsize observed \(x\in[1,3]\;\mapsto\;x=8\)}\\[-2pt]
-   {\tiny move one coordinate just outside its range}};
-
-\node[tag, fill=codepurple!84, anchor=west] at (4.72,4.46)
+  line width=0.8pt] (5.10,0.30) rectangle (10.10,4.60);
+\node[tag, fill=codepurple!84, anchor=west] at (5.32,4.30)
   {THREE CANDIDATE FAMILIES};
 
-\coordinate (fork) at (4.32,2.45);
+\node[card, draw=codepurple!48, fill=codepurple!4, text width=3.70cm]
+  (rel) at (7.60,3.63)
+  {{\tiny\bfseries Relational perturbation}\\[-1pt]
+   {\scriptsize \((x,y)=(2,3)\;\mapsto\;(3,3)\)}\\[-1pt]
+   {\tiny small local edit breaks \(x{+}y{=}5\)}};
+
+\node[card, draw=codepurple!48, fill=codepurple!4, text width=3.70cm]
+  (post) at (7.60,2.45)
+  {{\tiny\bfseries Post-exit continuation}\\[-1pt]
+   {\scriptsize \(s_{\rm exit}\!\rightarrow\!s_1^-\!
+   \rightarrow\!s_2^-\cdots\)}\\[-1pt]
+   {\tiny continue past a genuine exit}};
+
+\node[card, draw=codepurple!48, fill=codepurple!4, text width=3.70cm]
+  (range) at (7.60,1.27)
+  {{\tiny\bfseries Range perturbation}\\[-1pt]
+   {\scriptsize observed \(x\in[1,3]\;\mapsto\;x=8\)}\\[-1pt]
+   {\tiny move \(x\) just outside its range}};
+
+\node[note] at (7.60,0.02)
+  {relation/range: one state \(=\) one trace\\
+   post-exit: the whole continuation \(=\) one trace};
+
+\coordinate (fork) at (4.92,2.45);
 \draw[branch] (positives.east) -- (fork);
 \draw[candidateflow] (fork) |- (rel.west);
 \draw[candidateflow] (fork) -- (post.west);
 \draw[candidateflow] (fork) |- (range.west);
 
-%% Merge and conservative filtering
-\coordinate (merge) at (9.35,2.45);
+%% -----------------------------------------------------------------
+%% Merge -> conservative cleaning -> per-family budgets -> N
+%% -----------------------------------------------------------------
+\coordinate (merge) at (10.30,2.45);
 \draw[branch] (rel.east) -| (merge);
 \draw[branch] (post.east) -- (merge);
 \draw[branch] (range.east) -| (merge);
 
-\node[card, draw=codered!48, fill=codered!3, text width=2.05cm]
-  (clean) at (10.72,2.45)
-  {\textbf{Conservative clean}\\[-1pt]
+\node[card, draw=codered!48, fill=codered!3, text width=1.85cm]
+  (clean) at (11.95,2.45)
+  {{\tiny\bfseries Conservative clean}\\[-1pt]
    {\tiny remove observed states,}\\[-2pt]
    {\tiny fresh entries, duplicates,}\\[-2pt]
    {\tiny unsupported candidates}};
 \draw[candidateflow] (merge) -- (clean);
 
-\node[card, draw=codeblue!54, fill=algobg!68, text width=1.55cm]
-  (budget) at (13.12,2.45)
-  {\textbf{Family budgets}\\[-1pt]
+\node[card, draw=codeblue!54, fill=algobg!68, text width=2.05cm]
+  (budget) at (15.00,2.45)
+  {{\tiny\bfseries Family budgets}\\[-1pt]
    {\tiny stable round-robin}\\[-2pt]
-   {\tiny relation \(\cdot\) post-exit}\\[-2pt]
-   {\tiny \(\cdot\) range}};
+   {\tiny rel \(\cdot\) post \(\cdot\) range}};
 \draw[flow] (clean) -- (budget);
 
-\node[card, draw=codegreen!62, fill=codegreen!9, text width=1.65cm]
-  (negatives) at (15.32,2.45)
-  {\textbf{Negative traces}\\[-1pt]
+\node[card, draw=codegreen!62, fill=codegreen!9, text width=1.60cm]
+  (negatives) at (17.90,2.45)
+  {{\tiny\bfseries Negative traces}\\[-1pt]
    \(\mathcal N\)\\[-1pt]
    {\tiny singleton states}\\[-2pt]
    {\tiny + continuation traces}};
 \draw[flow] (budget) -- (negatives);
 
-%% Trace-unit annotations
-\node[note] at (6.81,0.02)
-  {relation/range: one state \(=\) one trace \qquad
-   post-exit: the whole continuation \(=\) one trace};
-\node[note, text=codered!78] at (12.95,0.42)
+\node[note, text=codered!78] at (14.30,0.95)
   {reward signal only; not a proof of unreachability};
 
 \end{tikzpicture}

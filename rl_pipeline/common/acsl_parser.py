@@ -82,14 +82,18 @@ def _kind(node: ast.AST, allowed_names: set[str]) -> str:
             raise _InvalidExpression("logical_operator_on_integer")
         return "bool"
     if isinstance(node, ast.Compare):
-        if not all(
-            isinstance(operator, (ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE))
-            for operator in node.ops
-        ):
-            raise _InvalidExpression("unsupported_comparison")
-        values = [node.left, *node.comparators]
-        if any(_kind(value, allowed_names) != "int" for value in values):
-            raise _InvalidExpression("comparison_on_boolean")
+        left_kind = _kind(node.left, allowed_names)
+        for operator, right in zip(node.ops, node.comparators):
+            right_kind = _kind(right, allowed_names)
+            if isinstance(operator, (ast.Eq, ast.NotEq)):
+                if left_kind != right_kind:
+                    raise _InvalidExpression("comparison_sort_mismatch")
+            elif isinstance(operator, (ast.Lt, ast.LtE, ast.Gt, ast.GtE)):
+                if left_kind != "int" or right_kind != "int":
+                    raise _InvalidExpression("ordered_comparison_on_boolean")
+            else:
+                raise _InvalidExpression("unsupported_comparison")
+            left_kind = right_kind
         return "bool"
     if isinstance(node, ast.Call):
         # ``_acsl_to_py`` uses bool(...) only to encode <==>.

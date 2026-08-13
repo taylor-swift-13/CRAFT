@@ -72,9 +72,9 @@
     },
     "sft": {
       "path": "traindata/loopgym_sft_clean.json",
-      "sha256": "6b8a7989b3665732c8823731a47cc8ca717408c495dcd4cd1d9d9f41774e2f80",
+      "sha256": "7c76bf11cd2413305ca2228e617ce65ab038d2346e63367b34d11fa4126a4bdf",
       "rows": 3200,
-      "clauses": 24090,
+      "clauses": 23913,
       "empty_answers": 0,
       "helper_call_answers": 0,
       "max_clauses_per_answer": 20
@@ -82,13 +82,14 @@
     "quality_cleanup": {
       "guarded_copies_removed": 1000,
       "reducible_power_candidates_rejected": 67,
-      "post_cleanup_frama_c_rejected": 0,
+      "post_cleanup_frama_c_rejected": 6,
       "frama_c_errors": 0,
       "wp_timeout_per_obligation_seconds": 5,
       "loopentry_policy": "only locals whose final pre-loop assignment is directly unknown*()",
-      "loopentry_answers": 348,
+      "loopentry_answers": 349,
       "loopentry_clauses": 1807,
-      "loopentry_references": 2137
+      "loopentry_references": 2137,
+      "interface_violations": 0
     },
     "power_rewrite_summary": {
       "audited_rows": 554,
@@ -108,6 +109,36 @@
       "sft_modified_prompts": 0,
       "sft_modified_answers": 0,
       "sft_removed_clauses": {}
+    },
+    "sft_enhancement": {
+      "input_clauses": 24090,
+      "static_output_clauses": 23921,
+      "final_verified_clauses": 23913,
+      "modified_answers": 160,
+      "removed_clauses": {
+        "duplicate": 68,
+        "interface_comparison_sort_mismatch": 2,
+        "interface_logical_operator_on_integer": 2,
+        "interface_not_on_integer": 1,
+        "interface_parse_error": 2,
+        "interface_type_cast": 1,
+        "interface_unsupported_arithmetic_operator": 2,
+        "tautology": 98
+      },
+      "transformations": {
+        "integer_cast_removed": 123,
+        "loopentry_required_retained": 2137,
+        "synchronous_relations_proposed": 7,
+        "unicode_operator_normalized": 2
+      },
+      "frama_c_rejected_candidates": 6,
+      "synchronous_relations_retained": 1,
+      "post_wp_removal_only_cleanup": {
+        "modified_answers": 2,
+        "removed_clauses": {
+          "tautology": 2
+        }
+      }
     },
     "note": "The top-level sanitation statistics record the precursor archive-to-clean pass. This final_release object is authoritative for the tracked artifacts."
   },
@@ -129,5 +160,13 @@
     "prompt_mismatches": 0,
     "sft_answers_changed_by_prompt_rebuild": 0,
     "bitshift_runtime_and_dedup_supported": true
-  }
+  },
+  "release_history": [
+    {
+      "sft_sha256": "6b8a7989b3665732c8823731a47cc8ca717408c495dcd4cd1d9d9f41774e2f80",
+      "sft_rows": 3200,
+      "sft_clauses": 24090,
+      "reason": "pre-interface-alignment SFT release"
+    }
+  ]
 }

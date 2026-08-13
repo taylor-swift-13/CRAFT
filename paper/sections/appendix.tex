@@ -180,7 +180,7 @@ SFT answers are parsed into clauses, conservatively deduplicated, stripped of
 malformed, out-of-scope, tautological, and dominated constant-bound clauses,
 then checked by the same Frama-C/WP Houdini filter used by the method.  The
 5-second limit applies to each proof obligation.  This reduces 32,883 archived
-clauses to 24,090 verified, non-tautological clauses, with at most 20 clauses
+clauses to 23,913 verified, non-tautological clauses, with at most 20 clauses
 per answer.  A final conservative theorem-prover pass removes 431 universally
 true clauses from the verified set; five answers then become empty.  For
 archived helper calls, 65 fixed-exponent occurrences are expanded into explicit
@@ -202,6 +202,17 @@ recursively expanded, and the rewritten clauses are rechecked by Houdini.  This
 rewrites 4,214 unnecessary references and leaves 2,137 necessary references in
 1,807 clauses across 348 answers; an independent audit finds no violation of
 the rule.
+
+A final interface-alignment pass removes legacy integer casts, normalizes two
+Unicode comparison operators, and rechecks every clause against the deployed
+scalar parser.  Cast normalization exposes 68 duplicates and 98 algebraic
+tautologies; ten further clauses use expressions outside the released grammar.
+Two additional top-level formulas with an explicitly true implication or
+disjunction arm are removed structurally.
+For bounds-only answers, a conservative static analysis proposes seven
+two-variable conservation equalities only when both variables have a single
+unconditional constant update.  Houdini/WP retains one and rejects six.  The
+result remains 3,200 nonempty answers and has zero deployed-interface violations.
 
 Contract-level audits find no target clause or non-contract comment in any
 final RL or SFT model prompt, and all rows contain the same current system and

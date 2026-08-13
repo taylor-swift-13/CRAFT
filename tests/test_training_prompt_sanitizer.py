@@ -9,6 +9,7 @@ from paper.scripts.sanitize_training_prompts import (
     _remove_guarded_copies,
     _remove_subsumed_constant_bounds,
     _rewrite_fixed_powers,
+    _synchronous_linear_relation,
     _sanitize_visible_source,
     _unnecessary_loop_entry_references,
     _universally_true,
@@ -47,11 +48,43 @@ def _sft_record(source: str, answer: str, system: str = "legacy system"):
 
 
 class TrainingPromptSanitizerTests(unittest.TestCase):
+    def test_synchronous_updates_propose_a_verified_conservation_candidate(self):
+        program = parse_program(
+            "void f(int n) { int x = 0; int y = 1; "
+            "while (x < n) { x++; y++; } }"
+        )
+
+        relation = _synchronous_linear_relation(
+            program, ["x >= 0", "y >= 1"]
+        )
+
+        self.assertEqual(relation, "(x - (0)) == (y - (1))")
+
+    def test_synchronous_relation_rejects_conditional_or_extra_writes(self):
+        conditional = parse_program(
+            "void f(int n) { int x = 0; int y = 0; "
+            "while (x < n) { x++; if (unknown()) { y++; } } }"
+        )
+        extra = parse_program(
+            "void f(int n) { int x = 0; int y = 0; "
+            "while (x < n) { x++; y++; y++; } }"
+        )
+
+        self.assertIsNone(
+            _synchronous_linear_relation(conditional, ["x >= 0", "y >= 0"])
+        )
+        self.assertIsNone(
+            _synchronous_linear_relation(extra, ["x >= 0", "y >= 0"])
+        )
+
     def test_universal_tautologies_are_proved_conservatively(self):
         self.assertTrue(_universally_true("x <= y || x >= y"))
         self.assertTrue(_universally_true("(x > 0) ==> (x >= 1)"))
         self.assertTrue(_universally_true("q <= v ==> q < v + 1"))
         self.assertTrue(_universally_true("x * (z - 1) == x * (z - 1)"))
+        self.assertTrue(_universally_true("r * y - s * x == -b * 0 + (r * y - s * x)"))
+        self.assertTrue(_universally_true("y == z * (y / z) ==> 1 == 1"))
+        self.assertTrue(_universally_true("x == x + 1 || 1 == 1"))
         self.assertFalse(_universally_true("x <= y"))
         self.assertFalse(_universally_true("x / 2 <= x"))
 

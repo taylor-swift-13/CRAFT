@@ -28,6 +28,8 @@ class LightweightAcslParserTests(unittest.TestCase):
             "a >= \\at(a,LoopEntry)",
             "n == 1 << i",
             "i >= 0 && i <= n",
+            "(i < n) <==> (a >= 0)",
+            "(i == 0) == (a >= 0)",
         ]
         for expression in valid:
             with self.subTest(expression=expression):

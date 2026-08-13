@@ -46,7 +46,11 @@ conclusion are discarded as weak or redundant. SFT
 answers additionally remove remaining helper calls, malformed or out-of-scope
 clauses, conservative duplicates, obvious tautologies, weaker dominated
 constant bounds, and clauses that do not survive the deployed Frama-C/WP
-Houdini filter.  The cleaner also minimizes entry labels: `\at(v,LoopEntry)`
+Houdini filter. Legacy integer casts and Unicode comparison operators are
+normalized before this gate. For bounds-only answers, the cleaner may propose
+one conservation equality only for two variables with single unconditional
+constant updates; it is retained only after Houdini/WP validation. The cleaner
+also minimizes entry labels: `\at(v,LoopEntry)`
 is retained only when `v` is a local whose final pre-loop assignment is directly
 `unknown()`/`unknownN()`.  Parameters are rewritten to `Pre`, and deterministic
 local initializers are recursively inlined; a clause is rejected if a remaining

@@ -11,7 +11,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant a >= 1;\nloop invariant b >= 1;\nloop invariant a <= x + y;\nloop invariant b <= x + y;\nloop invariant a + b <= x + y;\nloop invariant r * (long long)y - s * (long long)x == -b * 0 + (r * y - s * x);\nloop invariant a <= \\at(x,Pre) + \\at(y,Pre);\nloop invariant b <= \\at(x,Pre) + \\at(y,Pre);\nloop invariant a <= x;\nloop invariant b <= y;\nloop invariant s >= 1;\nloop invariant r <= 0;"
+        "value": "loop invariant a >= 1;\nloop invariant b >= 1;\nloop invariant a <= x + y;\nloop invariant b <= x + y;\nloop invariant a + b <= x + y;\nloop invariant a <= \\at(x,Pre) + \\at(y,Pre);\nloop invariant b <= \\at(x,Pre) + \\at(y,Pre);\nloop invariant a <= x;\nloop invariant b <= y;\nloop invariant s >= 1;\nloop invariant r <= 0;"
       }
     ]
   },
@@ -123,7 +123,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant x >= 1;\nloop invariant (unsigned int)x >= 1;"
+        "value": "loop invariant x >= 1;"
       }
     ]
   },
@@ -651,7 +651,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant delta + ctr * v9 == (long long)t * cd;\nloop invariant 0 <= v9;\nloop invariant v9 <= cd;\nloop invariant ctr >= t;\nloop invariant delta >= 0;\nloop invariant delta + ctr * v9 == t * cd;\nloop invariant ctr >= 0;\nloop invariant delta <= t * cd;"
+        "value": "loop invariant delta + ctr * v9 == t * cd;\nloop invariant 0 <= v9;\nloop invariant v9 <= cd;\nloop invariant ctr >= t;\nloop invariant delta >= 0;\nloop invariant ctr >= 0;\nloop invariant delta <= t * cd;"
       }
     ]
   },
@@ -1387,7 +1387,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant x <= n;\nloop invariant y >= 0;\nloop invariant y <= n - x;\nloop invariant n == \\at(n, Pre);\nloop invariant x == n - (n - x);\nloop invariant x == \\at(n, Pre) - (n - x);\nloop invariant n - x >= 0;"
+        "value": "loop invariant x <= n;\nloop invariant y >= 0;\nloop invariant y <= n - x;\nloop invariant n == \\at(n, Pre);\nloop invariant x == \\at(n, Pre) - (n - x);\nloop invariant n - x >= 0;"
       }
     ]
   },
@@ -1691,7 +1691,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant 1 <= c;\nloop invariant x * (z - 1) + a == a * z * y;\nloop invariant x * (z - 1) + a == a * y * z;\nloop invariant (x * (z - 1)) == (a * (y * z - 1));\nloop invariant y * (z - 1) == (z - 1) * y;\nloop invariant c <= k || k <= 1;"
+        "value": "loop invariant 1 <= c;\nloop invariant x * (z - 1) + a == a * z * y;\nloop invariant x * (z - 1) + a == a * y * z;\nloop invariant (x * (z - 1)) == (a * (y * z - 1));\nloop invariant c <= k || k <= 1;"
       }
     ]
   },
@@ -1707,7 +1707,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant q3 + gh * t == (long long)v7 * m;\nloop invariant t >= 0;\nloop invariant t <= m;\nloop invariant gh * t >= 0 ==> q3 <= (long long)v7 * m;"
+        "value": "loop invariant q3 + gh * t == v7 * m;\nloop invariant t >= 0;\nloop invariant t <= m;\nloop invariant gh * t >= 0 ==> q3 <= v7 * m;"
       }
     ]
   },
@@ -1771,7 +1771,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant z + x * y == (long long)a * b;\nloop invariant x >= 0;\nloop invariant y >= 0;\nloop invariant z >= 0;\nloop invariant y <= b;\nloop invariant x >= a;\nloop invariant z + x * y == a * b;\nloop invariant z + x * y >= 0;\nloop invariant z + x * y == \\at(a, Pre) * \\at(b, Pre);\nloop invariant x >= \\at(a, Pre);\nloop invariant y <= \\at(b, Pre);\nloop invariant x >= (long long)a;\nloop invariant y <= (long long)b;"
+        "value": "loop invariant z + x * y == a * b;\nloop invariant x >= 0;\nloop invariant y >= 0;\nloop invariant z >= 0;\nloop invariant y <= b;\nloop invariant x >= a;\nloop invariant z + x * y >= 0;\nloop invariant z + x * y == \\at(a, Pre) * \\at(b, Pre);\nloop invariant x >= \\at(a, Pre);\nloop invariant y <= \\at(b, Pre);"
       }
     ]
   },
@@ -1979,7 +1979,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant v5 >= 1;\nloop invariant q3 + ab * d * v5 == s * cd * 1 + (q3 + ab * d * v5 - s * cd);\nloop invariant (v5 == 1) || (v5 >= 4 && v5 % 4 == 0);\nloop invariant q3 + ab * d * v5 == s * cd * 1 || v5 >= 1;"
+        "value": "loop invariant v5 >= 1;\nloop invariant (v5 == 1) || (v5 >= 4 && v5 % 4 == 0);\nloop invariant q3 + ab * d * v5 == s * cd * 1 || v5 >= 1;"
       }
     ]
   },
@@ -3099,7 +3099,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant gamma * (t - 1) == v7 - 1;\nloop invariant f >= 1;\nloop invariant v7 >= 1 || t <= 0;\nloop invariant gamma * (t - 1) + 1 == v7;\nloop invariant v7 == t || f >= 2;\nloop invariant v7 == f * t + (v7 - f * t);"
+        "value": "loop invariant gamma * (t - 1) == v7 - 1;\nloop invariant f >= 1;\nloop invariant v7 >= 1 || t <= 0;\nloop invariant gamma * (t - 1) + 1 == v7;\nloop invariant v7 == t || f >= 2;"
       }
     ]
   },
@@ -3259,7 +3259,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant j >= 0;\nloop invariant j <= 1000;\nloop invariant k == \\at(k, Pre);\nloop invariant (k >= 0) ==> (i <= 10 + k * j);\nloop invariant (k <= 0) ==> (i >= 10 + k * j);\nloop invariant (k >= 0) ==> (i >= 10);\nloop invariant (k <= 0) ==> (i <= 10);\nloop invariant i == 10 + (i - 10);\nloop invariant i >= 10 || k < 0 || j == 0;\nloop invariant i >= 10 || i >= 10 + k * j;\nloop invariant i <= 10 || i <= 10 + k * j;\nloop invariant (k >= 0) ==> (i >= 10 && i <= 10 + k * j);\nloop invariant (k <= 0) ==> (i <= 10 && i >= 10 + k * j);"
+        "value": "loop invariant j >= 0;\nloop invariant j <= 1000;\nloop invariant k == \\at(k, Pre);\nloop invariant (k >= 0) ==> (i <= 10 + k * j);\nloop invariant (k <= 0) ==> (i >= 10 + k * j);\nloop invariant (k >= 0) ==> (i >= 10);\nloop invariant (k <= 0) ==> (i <= 10);\nloop invariant i >= 10 || k < 0 || j == 0;\nloop invariant i >= 10 || i >= 10 + k * j;\nloop invariant i <= 10 || i <= 10 + k * j;\nloop invariant (k >= 0) ==> (i >= 10 && i <= 10 + k * j);\nloop invariant (k <= 0) ==> (i <= 10 && i >= 10 + k * j);"
       }
     ]
   },
@@ -3739,7 +3739,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant y == x;\nloop invariant y == x + (y - x);\nloop invariant y - x == (unsigned int)(y - x);\nloop invariant y >= x;"
+        "value": "loop invariant y == x;\nloop invariant y >= x;"
       }
     ]
   },
@@ -3835,7 +3835,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant i >= 1;\nloop invariant s >= 0;\nloop invariant a >= i - 1 + (a - (i - 1));\nloop invariant (a <= 0) ==> (s >= 1);"
+        "value": "loop invariant i >= 1;\nloop invariant s >= 0;\nloop invariant a >= i - 1 + (a - (i - 1));\nloop invariant (a <= 0) ==> (s >= 1);\nloop invariant (i - (1)) == (a - (\\at(a,LoopEntry)));"
       }
     ]
   },
@@ -3931,7 +3931,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant delta >= 1;\nloop invariant i >= 1;\nloop invariant delta * v - i * z == -v7;\nloop invariant z * lim - v * v2 == 1;\nloop invariant delta + i <= alpha + v7;\nloop invariant delta + i >= 2;\nloop invariant delta * 1 == delta;\nloop invariant delta <= alpha + v7 - 1;\nloop invariant i <= alpha + v7 - 1;"
+        "value": "loop invariant delta >= 1;\nloop invariant i >= 1;\nloop invariant delta * v - i * z == -v7;\nloop invariant z * lim - v * v2 == 1;\nloop invariant delta + i <= alpha + v7;\nloop invariant delta + i >= 2;\nloop invariant delta <= alpha + v7 - 1;\nloop invariant i <= alpha + v7 - 1;"
       }
     ]
   },
@@ -4843,7 +4843,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant v9 > 0;\nloop invariant v5 >= 1;\nloop invariant (unsigned int)v9 > 0;\nloop invariant (unsigned int)v5 >= 1;"
+        "value": "loop invariant v9 > 0;\nloop invariant v5 >= 1;"
       }
     ]
   },
@@ -4923,7 +4923,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant z + x * y == (long long)a * b;\nloop invariant x >= 0;\nloop invariant y >= 0;\nloop invariant z >= 0;\nloop invariant x <= (long long)a * 1024;\nloop invariant z + x * y == a * b;\nloop invariant y <= b;\nloop invariant x >= a;\nloop invariant z + x * y >= 0;\nloop invariant x * y <= 2 * a * b;\nloop invariant z + x * y <= 2 * a * b;"
+        "value": "loop invariant z + x * y == a * b;\nloop invariant x >= 0;\nloop invariant y >= 0;\nloop invariant z >= 0;\nloop invariant x <= a * 1024;\nloop invariant y <= b;\nloop invariant x >= a;\nloop invariant z + x * y >= 0;\nloop invariant x * y <= 2 * a * b;\nloop invariant z + x * y <= 2 * a * b;"
       }
     ]
   },
@@ -5019,7 +5019,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant y >= 0;\nloop invariant y <= b;\nloop invariant x >= a;\nloop invariant x >= 0;\nloop invariant z >= 0;\nloop invariant x * y <= (long long)a * b;\nloop invariant (x == 0) || (a == 0) || (x >= a && y <= b);\nloop invariant x >= 1 || a == 0;\nloop invariant x * y <= a * b;\nloop invariant y <= \\at(b, Pre);\nloop invariant x >= \\at(a, Pre);"
+        "value": "loop invariant y >= 0;\nloop invariant y <= b;\nloop invariant x >= a;\nloop invariant x >= 0;\nloop invariant z >= 0;\nloop invariant x * y <= a * b;\nloop invariant (x == 0) || (a == 0) || (x >= a && y <= b);\nloop invariant x >= 1 || a == 0;\nloop invariant y <= \\at(b, Pre);\nloop invariant x >= \\at(a, Pre);"
       }
     ]
   },
@@ -5051,7 +5051,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant alpha + r1 * q1 == j * gh;\nloop invariant q1 >= 0;\nloop invariant r1 >= 0;\nloop invariant alpha >= 0;\nloop invariant r1 >= j;\nloop invariant q1 <= gh;\nloop invariant alpha <= j * gh;\nloop invariant alpha + r1 * q1 == (long long)j * gh;\nloop invariant q1 <= 100;"
+        "value": "loop invariant alpha + r1 * q1 == j * gh;\nloop invariant q1 >= 0;\nloop invariant r1 >= 0;\nloop invariant alpha >= 0;\nloop invariant r1 >= j;\nloop invariant q1 <= gh;\nloop invariant alpha <= j * gh;\nloop invariant q1 <= 100;"
       }
     ]
   },
@@ -5355,7 +5355,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant gh >= 0;\nloop invariant v0 <= s;\nloop invariant (gh % 2) == 0;\nloop invariant 2*v0 + gh <= 2*s;\nloop invariant v0 == s - (s - v0);\nloop invariant s - v0 >= 0;\nloop invariant gh <= 2*(s - v0);\nloop invariant v0 + (s - v0) == s;"
+        "value": "loop invariant gh >= 0;\nloop invariant v0 <= s;\nloop invariant (gh % 2) == 0;\nloop invariant 2*v0 + gh <= 2*s;\nloop invariant s - v0 >= 0;\nloop invariant gh <= 2*(s - v0);"
       }
     ]
   },
@@ -5595,7 +5595,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant c >= 1;\nloop invariant c <= k || k <= 1;\nloop invariant k >= 1 ==> c <= k;\nloop invariant k < 1 ==> c == 1;\nloop invariant x * (z - 1) + 1 == z * x - x + 1;"
+        "value": "loop invariant c >= 1;\nloop invariant c <= k || k <= 1;\nloop invariant k >= 1 ==> c <= k;\nloop invariant k < 1 ==> c == 1;"
       }
     ]
   },
@@ -6187,7 +6187,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant y >= 0;\nloop invariant c <= k;\nloop invariant c <= 5;\nloop invariant k >= 0;\nloop invariant y <= k + (y - c);\nloop invariant y - c >= 0;\nloop invariant y <= (long long)k + (y - c);\nloop invariant k <= 5;"
+        "value": "loop invariant y >= 0;\nloop invariant c <= k;\nloop invariant c <= 5;\nloop invariant k >= 0;\nloop invariant y <= k + (y - c);\nloop invariant y - c >= 0;\nloop invariant k <= 5;"
       }
     ]
   },
@@ -6619,7 +6619,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant z + x * y == (long long)a * b;\nloop invariant x >= 0;\nloop invariant y >= 0;\nloop invariant z >= 0;\nloop invariant y <= b;\nloop invariant x >= a;\nloop invariant x >= (long long)a;\nloop invariant y <= (long long)b;\nloop invariant z <= (long long)a * b;\nloop invariant x * y <= (long long)a * b;"
+        "value": "loop invariant z + x * y == a * b;\nloop invariant x >= 0;\nloop invariant y >= 0;\nloop invariant z >= 0;\nloop invariant y <= b;\nloop invariant x >= a;\nloop invariant z <= a * b;\nloop invariant x * y <= a * b;"
       }
     ]
   },
@@ -6699,7 +6699,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant 1 <= c;\nloop invariant y * x == x * y;\nloop invariant c <= k || k <= 1;\nloop invariant (z - 1) * x == a * (y * z - 1);"
+        "value": "loop invariant 1 <= c;\nloop invariant c <= k || k <= 1;\nloop invariant (z - 1) * x == a * (y * z - 1);"
       }
     ]
   },
@@ -7051,7 +7051,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant 1 <= c;\nloop invariant x * (z - 1) == (z - 1) * (x);\nloop invariant (z - 1) >= 0 ==> x * (z - 1) >= z - 1;\nloop invariant (z - 1) >= 0 ==> y >= z;\nloop invariant z >= 1 ==> x * (z - 1) + 1 >= 1;\nloop invariant x * (z - 1) == z * x - x;"
+        "value": "loop invariant 1 <= c;\nloop invariant (z - 1) >= 0 ==> x * (z - 1) >= z - 1;\nloop invariant (z - 1) >= 0 ==> y >= z;\nloop invariant z >= 1 ==> x * (z - 1) + 1 >= 1;"
       }
     ]
   },
@@ -7675,7 +7675,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant x >= 0;\nloop invariant (unsigned int) x >= 0;"
+        "value": "loop invariant x >= 0;"
       }
     ]
   },
@@ -7899,7 +7899,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant ef >= 1;\nloop invariant v4 >= 1;\nloop invariant ef * 1 == ef;\nloop invariant i * v4 - cur * ef == h - 0;\nloop invariant j * ef - p1 * v4 == k;"
+        "value": "loop invariant ef >= 1;\nloop invariant v4 >= 1;\nloop invariant i * v4 - cur * ef == h - 0;\nloop invariant j * ef - p1 * v4 == k;"
       }
     ]
   },
@@ -8011,7 +8011,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant 0 <= x;\nloop invariant x <= 100;\nloop invariant x < 99 || x == 99 || x == 100;\nloop invariant (y % 2 != 0) ==> (x % 2 == 0);\nloop invariant (unsigned int)x >= 0;"
+        "value": "loop invariant 0 <= x;\nloop invariant x <= 100;\nloop invariant x < 99 || x == 99 || x == 100;\nloop invariant (y % 2 != 0) ==> (x % 2 == 0);"
       }
     ]
   },
@@ -8987,7 +8987,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant w >= 1;\nloop invariant n >= 1;\nloop invariant w <= (long long)v4 + (long long)v7 - 1;\nloop invariant n <= (long long)v4 + (long long)v7 - 1;\nloop invariant cur * n - p2 * w == (long long)v7;\nloop invariant w + n <= (long long)v4 + (long long)v7;\nloop invariant cur * n - p2 * w == v7;\nloop invariant w + n >= 2;\nloop invariant w <= (long long)v4 + (long long)v7;\nloop invariant n <= (long long)v4 + (long long)v7;\nloop invariant w + n <= v4 + v7;"
+        "value": "loop invariant w >= 1;\nloop invariant n >= 1;\nloop invariant w <= v4 + v7 - 1;\nloop invariant n <= v4 + v7 - 1;\nloop invariant cur * n - p2 * w == v7;\nloop invariant w + n <= v4 + v7;\nloop invariant w + n >= 2;\nloop invariant w <= v4 + v7;\nloop invariant n <= v4 + v7;"
       }
     ]
   },
@@ -9051,7 +9051,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant lim == 2 * p2;\nloop invariant tmp == 3 * p2;\nloop invariant p2 >= 0;\nloop invariant p2 <= 89478485;\nloop invariant lim >= 0;\nloop invariant tmp >= 0;\nloop invariant lim <= 178956970;\nloop invariant (unsigned int)tmp >= 0;\nloop invariant (unsigned int)p2 >= 0;\nloop invariant (unsigned int)lim >= 0;"
+        "value": "loop invariant lim == 2 * p2;\nloop invariant tmp == 3 * p2;\nloop invariant p2 >= 0;\nloop invariant p2 <= 89478485;\nloop invariant lim >= 0;\nloop invariant tmp >= 0;\nloop invariant lim <= 178956970;"
       }
     ]
   },
@@ -9531,7 +9531,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant (y - x) >= 1;\nloop invariant x >= \\at(x, Pre);\nloop invariant y >= \\at(y, Pre);\nloop invariant (y - \\at(y, Pre)) >= (x - \\at(x, Pre));\nloop invariant (y - x) >= (\\at(y, Pre) - \\at(x, Pre));\nloop invariant y >= x + 1;\nloop invariant y == x + (y - x);\nloop invariant y == \\at(y, Pre) + (x - \\at(x, Pre)) + (y - x - 1);"
+        "value": "loop invariant (y - x) >= 1;\nloop invariant x >= \\at(x, Pre);\nloop invariant y >= \\at(y, Pre);\nloop invariant (y - \\at(y, Pre)) >= (x - \\at(x, Pre));\nloop invariant (y - x) >= (\\at(y, Pre) - \\at(x, Pre));\nloop invariant y >= x + 1;\nloop invariant y == \\at(y, Pre) + (x - \\at(x, Pre)) + (y - x - 1);"
       }
     ]
   },
@@ -10827,7 +10827,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant z + x * y == a * b;\nloop invariant y >= 0;\nloop invariant z + x * y == (long long)a * b;\nloop invariant x >= 0 ==> x >= a;\nloop invariant y <= b;\nloop invariant x >= a || (a <= 0 && x <= a);"
+        "value": "loop invariant z + x * y == a * b;\nloop invariant y >= 0;\nloop invariant x >= 0 ==> x >= a;\nloop invariant y <= b;\nloop invariant x >= a || (a <= 0 && x <= a);"
       }
     ]
   },
@@ -10891,7 +10891,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant a >= 0;\nloop invariant b >= 0;\nloop invariant a <= x;\nloop invariant b <= y;\nloop invariant p >= 1;\nloop invariant a <= (long long)x;\nloop invariant b <= (long long)y;"
+        "value": "loop invariant a >= 0;\nloop invariant b >= 0;\nloop invariant a <= x;\nloop invariant b <= y;\nloop invariant p >= 1;"
       }
     ]
   },
@@ -11211,7 +11211,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant i >= 0;\nloop invariant j >= 0;\nloop invariant j <= i;\nloop invariant i == j + (i - j);\nloop invariant i == j || j <= i;"
+        "value": "loop invariant i >= 0;\nloop invariant j >= 0;\nloop invariant j <= i;\nloop invariant i == j || j <= i;"
       }
     ]
   },
@@ -11467,7 +11467,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant n == \\at(n, Pre);\nloop invariant x <= \\at(n, Pre);\nloop invariant \\at(n, Pre) - x == \\at(n, Pre) - n + (\\at(n, Pre) - x);\nloop invariant x + (n - x) == n;\nloop invariant x == n - (\\at(n, Pre) - x);\nloop invariant \\at(n, Pre) >= 0 ==> x >= 0;"
+        "value": "loop invariant n == \\at(n, Pre);\nloop invariant x <= \\at(n, Pre);\nloop invariant \\at(n, Pre) - x == \\at(n, Pre) - n + (\\at(n, Pre) - x);\nloop invariant x == n - (\\at(n, Pre) - x);\nloop invariant \\at(n, Pre) >= 0 ==> x >= 0;"
       }
     ]
   },
@@ -11915,7 +11915,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant t + v * cur == delta * d;\nloop invariant cur >= 0;\nloop invariant cur <= d;\nloop invariant t >= 0;\nloop invariant v >= delta;\nloop invariant t <= delta * d;\nloop invariant v >= 0;\nloop invariant t <= (long long)delta * d;\nloop invariant v <= (long long)delta * 1048576;"
+        "value": "loop invariant t + v * cur == delta * d;\nloop invariant cur >= 0;\nloop invariant cur <= d;\nloop invariant t >= 0;\nloop invariant v >= delta;\nloop invariant t <= delta * d;\nloop invariant v >= 0;\nloop invariant v <= delta * 1048576;"
       }
     ]
   },
@@ -12299,7 +12299,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant (y % 14 == 0) ==> (x % 140 == 0);\nloop invariant (y % 14 == 0) ==> (x <= 700);\nloop invariant (y % 14 == 0) ==> (x % 14 == 0);\nloop invariant 0 <= x;\nloop invariant (y % 14 == 0) ==> (x <= 693 + 139);\nloop invariant (y % 14 != 0) ==> (x % 14 == 0 || x % 14 != 0);\nloop invariant (unsigned int)x >= 0;\nloop invariant (y % 14 == 0) ==> (x <= 840);\nloop invariant (y % 14 == 0) ==> (x <= 693 + 140);\nloop invariant (y % 14 == 0) ==> (x >= 0);"
+        "value": "loop invariant (y % 14 == 0) ==> (x % 140 == 0);\nloop invariant (y % 14 == 0) ==> (x <= 700);\nloop invariant (y % 14 == 0) ==> (x % 14 == 0);\nloop invariant 0 <= x;\nloop invariant (y % 14 == 0) ==> (x <= 693 + 139);\nloop invariant (y % 14 != 0) ==> (x % 14 == 0 || x % 14 != 0);\nloop invariant (y % 14 == 0) ==> (x <= 840);\nloop invariant (y % 14 == 0) ==> (x <= 693 + 140);\nloop invariant (y % 14 == 0) ==> (x >= 0);"
       }
     ]
   },
@@ -12427,7 +12427,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant z + x * y == a * b;\nloop invariant x >= 0;\nloop invariant y >= 0;\nloop invariant z >= 0;\nloop invariant x >= a;\nloop invariant y <= b;\nloop invariant z + x * y == (long long)a * b;\nloop invariant y <= 20;\nloop invariant z <= (long long)a * b;"
+        "value": "loop invariant z + x * y == a * b;\nloop invariant x >= 0;\nloop invariant y >= 0;\nloop invariant z >= 0;\nloop invariant x >= a;\nloop invariant y <= b;\nloop invariant y <= 20;\nloop invariant z <= a * b;"
       }
     ]
   },
@@ -12523,7 +12523,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant n == \\at(n, Pre);\nloop invariant x <= n;\nloop invariant y >= 0;\nloop invariant y <= n - x;\nloop invariant x + y <= n;\nloop invariant x == n - (n - x);\nloop invariant x <= \\at(n, Pre);\nloop invariant y <= \\at(n, Pre) - x;\nloop invariant x == \\at(x, Pre) - (n - x);"
+        "value": "loop invariant n == \\at(n, Pre);\nloop invariant x <= n;\nloop invariant y >= 0;\nloop invariant y <= n - x;\nloop invariant x + y <= n;\nloop invariant x <= \\at(n, Pre);\nloop invariant y <= \\at(n, Pre) - x;\nloop invariant x == \\at(x, Pre) - (n - x);"
       }
     ]
   },
@@ -13259,7 +13259,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant v9 >= 1;\nloop invariant v4 > 0;\nloop invariant (unsigned int)v9 >= 1;"
+        "value": "loop invariant v9 >= 1;\nloop invariant v4 > 0;"
       }
     ]
   },
@@ -13435,7 +13435,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant x <= n;\nloop invariant n == \\at(n, Pre);\nloop invariant x == n - (n - x);\nloop invariant x <= \\at(x, Pre);\nloop invariant \\at(x, Pre) - x >= 0;\nloop invariant x + (n - \\at(n, Pre)) == \\at(x, Pre) - (\\at(x, Pre) - x);"
+        "value": "loop invariant x <= n;\nloop invariant n == \\at(n, Pre);\nloop invariant x <= \\at(x, Pre);\nloop invariant \\at(x, Pre) - x >= 0;\nloop invariant x + (n - \\at(n, Pre)) == \\at(x, Pre) - (\\at(x, Pre) - x);"
       }
     ]
   },
@@ -13979,7 +13979,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant z + x * y == (long long)a * b;\nloop invariant y >= 0;\nloop invariant z + x * y == (long long)a * (long long)b;\nloop invariant y <= (long long)b;"
+        "value": "loop invariant z + x * y == a * b;\nloop invariant y >= 0;\nloop invariant y <= b;"
       }
     ]
   },
@@ -15419,7 +15419,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant c == \\at(c, Pre);\nloop invariant cl <= c;\nloop invariant p >= 0;\nloop invariant p <= (c - cl);\nloop invariant (c - cl) >= 0;\nloop invariant p <= 4;\nloop invariant cl <= \\at(cl, Pre);\nloop invariant p <= \\at(cl, Pre) - cl;\nloop invariant \\at(cl, Pre) - cl >= 0;\nloop invariant cl <= \\at(c, Pre);\nloop invariant p + cl <= \\at(c, Pre);\nloop invariant p <= \\at(c, Pre) - cl;\nloop invariant cl == c - (c - cl);\nloop invariant p + cl <= c;\nloop invariant c == \\at(cl, Pre);\nloop invariant p <= \\at(cl, Pre) - cl + p;"
+        "value": "loop invariant c == \\at(c, Pre);\nloop invariant cl <= c;\nloop invariant p >= 0;\nloop invariant p <= (c - cl);\nloop invariant (c - cl) >= 0;\nloop invariant p <= 4;\nloop invariant cl <= \\at(cl, Pre);\nloop invariant p <= \\at(cl, Pre) - cl;\nloop invariant \\at(cl, Pre) - cl >= 0;\nloop invariant cl <= \\at(c, Pre);\nloop invariant p + cl <= \\at(c, Pre);\nloop invariant p <= \\at(c, Pre) - cl;\nloop invariant p + cl <= c;\nloop invariant c == \\at(cl, Pre);\nloop invariant p <= \\at(cl, Pre) - cl + p;"
       }
     ]
   },
@@ -15819,7 +15819,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant tot >= 1;\nloop invariant g == delta + (g - delta);\nloop invariant delta * h == g * h - g + 1;"
+        "value": "loop invariant tot >= 1;\nloop invariant delta * h == g * h - g + 1;"
       }
     ]
   },
@@ -16363,7 +16363,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant i == \\at(i, Pre);\nloop invariant j == \\at(j, Pre);\nloop invariant (x - y) == (i - j);\nloop invariant (x - i) == (y - j);\nloop invariant x <= i;\nloop invariant y <= j;\nloop invariant x == i + (x - i);\nloop invariant y == j + (y - j);"
+        "value": "loop invariant i == \\at(i, Pre);\nloop invariant j == \\at(j, Pre);\nloop invariant (x - y) == (i - j);\nloop invariant (x - i) == (y - j);\nloop invariant x <= i;\nloop invariant y <= j;"
       }
     ]
   },
@@ -16603,7 +16603,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant cd * (r1 - 1) == v7 * r1 - 1;\nloop invariant v9 >= 1;\nloop invariant (v9 == 1) ==> (cd == 1 && v7 == 1);\nloop invariant cd * r1 - v7 * r1 == (cd - v7) * r1;\nloop invariant v7 >= 1 ==> cd >= 1;\nloop invariant (v9 - 1 >= 0);"
+        "value": "loop invariant cd * (r1 - 1) == v7 * r1 - 1;\nloop invariant v9 >= 1;\nloop invariant (v9 == 1) ==> (cd == 1 && v7 == 1);\nloop invariant v7 >= 1 ==> cd >= 1;\nloop invariant (v9 - 1 >= 0);"
       }
     ]
   },
@@ -16667,7 +16667,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant 0 <= a;\nloop invariant a <= x;\nloop invariant 0 <= b;\nloop invariant b <= y;\nloop invariant p >= 1;\nloop invariant x >= 0;\nloop invariant y >= 0;\nloop invariant a + b >= 0;\nloop invariant a <= \\at(x, Pre);\nloop invariant b <= \\at(y, Pre);\nloop invariant a <= (long long)x;\nloop invariant b <= (long long)y;\nloop invariant a <= 5;\nloop invariant b <= 5;"
+        "value": "loop invariant 0 <= a;\nloop invariant a <= x;\nloop invariant 0 <= b;\nloop invariant b <= y;\nloop invariant p >= 1;\nloop invariant x >= 0;\nloop invariant y >= 0;\nloop invariant a + b >= 0;\nloop invariant a <= \\at(x, Pre);\nloop invariant b <= \\at(y, Pre);\nloop invariant a <= 5;\nloop invariant b <= 5;"
       }
     ]
   },
@@ -16859,7 +16859,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant v + v1 * q3 == (long long)j * ij;\nloop invariant q3 >= 0;\nloop invariant v + q3 * v1 == ij * j;\nloop invariant q3 <= ij;\nloop invariant v1 >= 1 ==> v1 >= j;\nloop invariant j >= 0 ==> v >= 0;\nloop invariant j >= 0 ==> v1 >= j;"
+        "value": "loop invariant v + v1 * q3 == j * ij;\nloop invariant q3 >= 0;\nloop invariant q3 <= ij;\nloop invariant v1 >= 1 ==> v1 >= j;\nloop invariant j >= 0 ==> v >= 0;\nloop invariant j >= 0 ==> v1 >= j;"
       }
     ]
   },
@@ -17067,7 +17067,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant p1 * (d - 1) == m * d - 1;\nloop invariant p2 >= 1;\nloop invariant m >= 0;\nloop invariant p1 >= 1;\nloop invariant p1 >= m;\nloop invariant p2 - 1 >= 0;\nloop invariant p1 * d == (p1 - 1) * d + d;\nloop invariant (d == 0) ==> (m == 1 || m == 0);\nloop invariant (d == 1) ==> (p1 == p2 && m == 1);\nloop invariant (d == 1) ==> (m == 1);"
+        "value": "loop invariant p1 * (d - 1) == m * d - 1;\nloop invariant p2 >= 1;\nloop invariant m >= 0;\nloop invariant p1 >= 1;\nloop invariant p1 >= m;\nloop invariant p2 - 1 >= 0;\nloop invariant (d == 0) ==> (m == 1 || m == 0);\nloop invariant (d == 1) ==> (p1 == p2 && m == 1);\nloop invariant (d == 1) ==> (m == 1);"
       }
     ]
   },
@@ -17451,7 +17451,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant lim + s * w == (long long)q2 * cd;\nloop invariant w >= 0;\nloop invariant w <= cd;\nloop invariant w <= (long long)cd;\nloop invariant lim + s * w == q2 * cd;\nloop invariant s >= 0 ==> s * w >= 0;"
+        "value": "loop invariant lim + s * w == q2 * cd;\nloop invariant w >= 0;\nloop invariant w <= cd;\nloop invariant s >= 0 ==> s * w >= 0;"
       }
     ]
   },
@@ -18267,7 +18267,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant (unsigned int)x >= 0;\nloop invariant x >= 0;"
+        "value": "loop invariant x >= 0;"
       }
     ]
   },
@@ -18475,7 +18475,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant nxt >= 1;\nloop invariant alpha >= 1;\nloop invariant nxt + alpha >= 2;\nloop invariant tot * e == nxt + v2 * cur - v2 * cur + tot * e - nxt;\nloop invariant nxt >= 1 || alpha >= 1;\nloop invariant nxt + alpha >= 1;\nloop invariant q1 >= 1;\nloop invariant q1 >= 1 || v4 <= 0;\nloop invariant q1 - v4 >= 1;\nloop invariant v4 <= 0;\nloop invariant tot >= 1;\nloop invariant v2 <= 0;"
+        "value": "loop invariant nxt >= 1;\nloop invariant alpha >= 1;\nloop invariant nxt + alpha >= 2;\nloop invariant nxt >= 1 || alpha >= 1;\nloop invariant nxt + alpha >= 1;\nloop invariant q1 >= 1;\nloop invariant q1 >= 1 || v4 <= 0;\nloop invariant q1 - v4 >= 1;\nloop invariant v4 <= 0;\nloop invariant tot >= 1;\nloop invariant v2 <= 0;"
       }
     ]
   },
@@ -19131,7 +19131,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant kl + ef * beta == (long long)v2 * t;\nloop invariant beta >= 0;\nloop invariant ef >= 0 || v2 < 0;\nloop invariant ef >= 0 ==> ef >= (long long)v2;\nloop invariant (long long)v2 >= 0 ==> ef >= (long long)v2;\nloop invariant beta <= t;"
+        "value": "loop invariant kl + ef * beta == v2 * t;\nloop invariant beta >= 0;\nloop invariant ef >= 0 || v2 < 0;\nloop invariant ef >= 0 ==> ef >= v2;\nloop invariant v2 >= 0 ==> ef >= v2;\nloop invariant beta <= t;"
       }
     ]
   },
@@ -19291,7 +19291,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant 1 <= c;\nloop invariant c <= k;\nloop invariant x >= 1;\nloop invariant x * (z - 1) == (z - 1) * x;\nloop invariant y >= 1;\nloop invariant z == 1 ==> x == c;\nloop invariant z >= 1;"
+        "value": "loop invariant 1 <= c;\nloop invariant c <= k;\nloop invariant x >= 1;\nloop invariant y >= 1;\nloop invariant z == 1 ==> x == c;\nloop invariant z >= 1;"
       }
     ]
   },
@@ -19307,7 +19307,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant x >= 1;\nloop invariant y >= 1;\nloop invariant (unsigned int)x >= 1;\nloop invariant x <= (unsigned int)(y) + 1 || x > (unsigned int)(y);"
+        "value": "loop invariant x >= 1;\nloop invariant y >= 1;"
       }
     ]
   },
@@ -19403,7 +19403,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant 0 <= x;\nloop invariant (int)x >= 0;"
+        "value": "loop invariant 0 <= x;"
       }
     ]
   },
@@ -19419,7 +19419,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant x >= 0;\nloop invariant (unsigned int) x >= 0;\nloop invariant x <= 4294967295;"
+        "value": "loop invariant x >= 0;\nloop invariant x <= 4294967295;"
       }
     ]
   },
@@ -19435,7 +19435,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant q2 == cur;\nloop invariant q2 >= 0;\nloop invariant beta > 0;\nloop invariant \\at(beta, Pre) - beta >= 0;\nloop invariant q2 == beta - (\\at(beta, Pre) - cur);\nloop invariant \\at(beta, Pre) - q2 >= 0;\nloop invariant \\at(beta, Pre) - q2 == \\at(beta, Pre) - cur;\nloop invariant q2 <= \\at(beta, Pre);\nloop invariant q2 + (beta - q2) == beta;\nloop invariant beta == \\at(beta, Pre);"
+        "value": "loop invariant q2 == cur;\nloop invariant q2 >= 0;\nloop invariant beta > 0;\nloop invariant \\at(beta, Pre) - beta >= 0;\nloop invariant q2 == beta - (\\at(beta, Pre) - cur);\nloop invariant \\at(beta, Pre) - q2 >= 0;\nloop invariant \\at(beta, Pre) - q2 == \\at(beta, Pre) - cur;\nloop invariant q2 <= \\at(beta, Pre);\nloop invariant beta == \\at(beta, Pre);"
       }
     ]
   },
@@ -19611,7 +19611,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant x >= 0;\nloop invariant (y % 2 == 0) ==> (x % 19 == 0 || x >= 99);\nloop invariant (unsigned int)x >= 0;\nloop invariant (y % 2 == 0) ==> (x % 19 == 0);\nloop invariant (x % 2 == 0) || (x % 2 == 1);\nloop invariant (y % 2 == 0) ==> (x <= 99 + 18);"
+        "value": "loop invariant x >= 0;\nloop invariant (y % 2 == 0) ==> (x % 19 == 0 || x >= 99);\nloop invariant (y % 2 == 0) ==> (x % 19 == 0);\nloop invariant (x % 2 == 0) || (x % 2 == 1);\nloop invariant (y % 2 == 0) ==> (x <= 99 + 18);"
       }
     ]
   },
@@ -20651,7 +20651,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant g == v1;\nloop invariant g >= 0;\nloop invariant v1 >= 0;\nloop invariant kl == (kl - g) + g;"
+        "value": "loop invariant g == v1;\nloop invariant g >= 0;\nloop invariant v1 >= 0;"
       }
     ]
   },
@@ -20955,7 +20955,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant ef + v1 * mn == p * w;\nloop invariant mn >= 0;\nloop invariant ef + v1 * mn == (long long)p * w;\nloop invariant mn <= w;\nloop invariant mn <= (long long)w;"
+        "value": "loop invariant ef + v1 * mn == p * w;\nloop invariant mn >= 0;\nloop invariant mn <= w;"
       }
     ]
   },
@@ -21307,7 +21307,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant 1 <= c;\nloop invariant c <= k;\nloop invariant x >= 1;\nloop invariant z == 1 ==> x == c;\nloop invariant x * (z - 1) + 1 == (z - 1) * x + 1;\nloop invariant y >= z;\nloop invariant y >= 1;\nloop invariant x >= c;\nloop invariant z >= 1;\nloop invariant z <= 10;\nloop invariant k >= 1;\nloop invariant k <= 10;\nloop invariant x * (z - 1) + 1 >= 1;\nloop invariant (z - 1) >= 0 ==> x * (z - 1) >= z - 1;\nloop invariant (z >= 2) ==> (x * (z - 1) + 1 >= z);\nloop invariant x * (z - 1) >= 0;\nloop invariant (z - 1) * x == z * (z - 1) * x / z || c >= 1;\nloop invariant (z >= 2) ==> (x * (z - 1) >= z * c - c);\nloop invariant x * (z - 1) == z * z * z * z * z * z * z * z * z * z - 1 || (z - 1) >= 0;"
+        "value": "loop invariant 1 <= c;\nloop invariant c <= k;\nloop invariant x >= 1;\nloop invariant z == 1 ==> x == c;\nloop invariant y >= z;\nloop invariant y >= 1;\nloop invariant x >= c;\nloop invariant z >= 1;\nloop invariant z <= 10;\nloop invariant k >= 1;\nloop invariant k <= 10;\nloop invariant x * (z - 1) + 1 >= 1;\nloop invariant (z - 1) >= 0 ==> x * (z - 1) >= z - 1;\nloop invariant (z >= 2) ==> (x * (z - 1) + 1 >= z);\nloop invariant x * (z - 1) >= 0;\nloop invariant (z - 1) * x == z * (z - 1) * x / z || c >= 1;\nloop invariant (z >= 2) ==> (x * (z - 1) >= z * c - c);\nloop invariant x * (z - 1) == z * z * z * z * z * z * z * z * z * z - 1 || (z - 1) >= 0;"
       }
     ]
   },
@@ -21355,7 +21355,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant h * cur - lim * v8 == -(long long)n;\nloop invariant h * ij - lim * acc == (long long)ef;\nloop invariant h >= 1;\nloop invariant lim >= 1;\nloop invariant h * ij - lim * acc == ef;\nloop invariant v8 * lim - cur * h == n;"
+        "value": "loop invariant h * cur - lim * v8 == -n;\nloop invariant h * ij - lim * acc == ef;\nloop invariant h >= 1;\nloop invariant lim >= 1;\nloop invariant v8 * lim - cur * h == n;"
       }
     ]
   },
@@ -21819,7 +21819,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant 0 <= x;\nloop invariant x <= 99 + (x - 0);\nloop invariant x <= 100;\nloop invariant (int)x >= 0;\nloop invariant (unsigned int)x >= 0;"
+        "value": "loop invariant 0 <= x;\nloop invariant x <= 99 + (x - 0);\nloop invariant x <= 100;"
       }
     ]
   },
@@ -22011,7 +22011,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant z + x * y == (long long)a * b;\nloop invariant 0 <= y;\nloop invariant y <= b;\nloop invariant 0 <= x;\nloop invariant 0 <= z;\nloop invariant z <= (long long)a * b;\nloop invariant x >= a;\nloop invariant z + x * y == a * b;\nloop invariant x >= (long long)a;"
+        "value": "loop invariant z + x * y == a * b;\nloop invariant 0 <= y;\nloop invariant y <= b;\nloop invariant 0 <= x;\nloop invariant 0 <= z;\nloop invariant z <= a * b;\nloop invariant x >= a;"
       }
     ]
   },
@@ -22059,7 +22059,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant delta >= 1;\nloop invariant f >= 0;\nloop invariant m >= 1;\nloop invariant f <= (long long)m;"
+        "value": "loop invariant delta >= 1;\nloop invariant f >= 0;\nloop invariant m >= 1;\nloop invariant f <= m;"
       }
     ]
   },
@@ -22507,7 +22507,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant v + alpha * p1 == (long long)v6 * p;\nloop invariant p1 >= 0;\nloop invariant p1 <= p;\nloop invariant v + alpha * p1 == v6 * p;\nloop invariant alpha * p1 >= 0 ==> v <= v6 * p;\nloop invariant alpha * p1 >= 0 ==> v <= (long long)v6 * p;\nloop invariant alpha >= v6 || v6 <= 0;"
+        "value": "loop invariant v + alpha * p1 == v6 * p;\nloop invariant p1 >= 0;\nloop invariant p1 <= p;\nloop invariant alpha * p1 >= 0 ==> v <= v6 * p;\nloop invariant alpha >= v6 || v6 <= 0;"
       }
     ]
   },
@@ -22539,7 +22539,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant r1 + u * v6 == (long long)v3 * kl;\nloop invariant v6 >= 0;\nloop invariant v6 <= kl;\nloop invariant v3 >= 0 ==> r1 >= 0;\nloop invariant v3 <= 0 ==> r1 <= 0;"
+        "value": "loop invariant r1 + u * v6 == v3 * kl;\nloop invariant v6 >= 0;\nloop invariant v6 <= kl;\nloop invariant v3 >= 0 ==> r1 >= 0;\nloop invariant v3 <= 0 ==> r1 <= 0;"
       }
     ]
   },
@@ -22683,7 +22683,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant 0 <= x;\nloop invariant x <= 10000;\nloop invariant x + a == 10000 + (x + a) - 10000;\nloop invariant x <= \\at(x, Pre);\nloop invariant x + a == 10000 + (a - (10000 - x));\nloop invariant x + a == \\at(x, Pre) + (a - (10000 - x));"
+        "value": "loop invariant 0 <= x;\nloop invariant x <= 10000;\nloop invariant x <= \\at(x, Pre);\nloop invariant x + a == \\at(x, Pre) + (a - (10000 - x));"
       }
     ]
   },
@@ -22763,7 +22763,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant z + x * y == a * b;\nloop invariant y >= 0;\nloop invariant y <= b;\nloop invariant x >= 0;\nloop invariant x >= a;\nloop invariant z >= 0;\nloop invariant z <= (long long)a * b;\nloop invariant x * y >= 0;\nloop invariant z + x * y == (long long)a * b;\nloop invariant x >= (long long)a;"
+        "value": "loop invariant z + x * y == a * b;\nloop invariant y >= 0;\nloop invariant y <= b;\nloop invariant x >= 0;\nloop invariant x >= a;\nloop invariant z >= 0;\nloop invariant z <= a * b;\nloop invariant x * y >= 0;"
       }
     ]
   },
@@ -23099,7 +23099,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant 1 <= c;\nloop invariant c <= k;\nloop invariant x >= 1;\nloop invariant y >= z;\nloop invariant x * (z - 1) == z * x - x;\nloop invariant x >= c;\nloop invariant (x * (z - 1) + 1) >= 1;\nloop invariant z >= 1;\nloop invariant k >= 1;\nloop invariant y >= 1;\nloop invariant x * (z - 1) >= 0;\nloop invariant (x - 1) * (z - 1) >= 0;\nloop invariant x * (z - 1) + 1 >= z;"
+        "value": "loop invariant 1 <= c;\nloop invariant c <= k;\nloop invariant x >= 1;\nloop invariant y >= z;\nloop invariant x >= c;\nloop invariant (x * (z - 1) + 1) >= 1;\nloop invariant z >= 1;\nloop invariant k >= 1;\nloop invariant y >= 1;\nloop invariant x * (z - 1) >= 0;\nloop invariant (x - 1) * (z - 1) >= 0;\nloop invariant x * (z - 1) + 1 >= z;"
       }
     ]
   },
@@ -23883,7 +23883,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant x >= 0;\nloop invariant x <= 10000;\nloop invariant x + (10000 - x) == 10000;\nloop invariant x == 10000 - (10000 - x);"
+        "value": "loop invariant x >= 0;\nloop invariant x <= 10000;"
       }
     ]
   },
@@ -23979,7 +23979,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant p2 >= 1;\nloop invariant gamma * (q3 - 1) == v3 * q3 - 1;\nloop invariant v3 * q3 == gamma * (q3 - 1) + 1;\nloop invariant gamma == v3 + (gamma - v3);\nloop invariant p2 <= mn || mn <= 1;"
+        "value": "loop invariant p2 >= 1;\nloop invariant gamma * (q3 - 1) == v3 * q3 - 1;\nloop invariant v3 * q3 == gamma * (q3 - 1) + 1;\nloop invariant p2 <= mn || mn <= 1;"
       }
     ]
   },
@@ -24379,7 +24379,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant 0 <= x;\nloop invariant (unsigned int)x == x;\nloop invariant x % 1 == 0;\nloop invariant (unsigned int)x >= 0;"
+        "value": "loop invariant 0 <= x;\nloop invariant x % 1 == 0;"
       }
     ]
   },
@@ -24667,7 +24667,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant 1 <= c;\nloop invariant x >= 1;\nloop invariant z >= 0;\nloop invariant z <= 10;\nloop invariant k >= 0;\nloop invariant k <= 10;\nloop invariant (z == 0) ==> (x == 1);\nloop invariant (z == 1) ==> (x == c);\nloop invariant y >= 0;\nloop invariant (z - 1) * x == z * x - x;\nloop invariant z == 1 ==> x == c - 1 + 1;"
+        "value": "loop invariant 1 <= c;\nloop invariant x >= 1;\nloop invariant z >= 0;\nloop invariant z <= 10;\nloop invariant k >= 0;\nloop invariant k <= 10;\nloop invariant (z == 0) ==> (x == 1);\nloop invariant (z == 1) ==> (x == c);\nloop invariant y >= 0;\nloop invariant z == 1 ==> x == c - 1 + 1;"
       }
     ]
   },
@@ -25387,7 +25387,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant n == n_0;\nloop invariant i == 0;\nloop invariant conf_0 == 3;\nloop invariant x == 0;\nloop invariant y == 0;\nloop invariant n_0 >= 0;\nloop invariant i_1 == 0;\nloop invariant x_1 == 0;\nloop invariant y_1 == 0;\nloop invariant conf_0_0 == 3;\nloop invariant i >= 0;\nloop invariant i <= n_0;\nloop invariant x >= 0;\nloop invariant y >= 0;\nloop invariant x + y == 3 * i;\nloop invariant i == i_1 + (i - i_1);\nloop invariant x >= i;\nloop invariant y >= i;\nloop invariant n_0 == \\at(n_0, Pre);\nloop invariant i_1 == \\at(i_1, Pre);"
+        "value": "loop invariant n == n_0;\nloop invariant i == 0;\nloop invariant conf_0 == 3;\nloop invariant x == 0;\nloop invariant y == 0;\nloop invariant n_0 >= 0;\nloop invariant i_1 == 0;\nloop invariant x_1 == 0;\nloop invariant y_1 == 0;\nloop invariant conf_0_0 == 3;\nloop invariant i >= 0;\nloop invariant i <= n_0;\nloop invariant x >= 0;\nloop invariant y >= 0;\nloop invariant x + y == 3 * i;\nloop invariant x >= i;\nloop invariant y >= i;\nloop invariant n_0 == \\at(n_0, Pre);\nloop invariant i_1 == \\at(i_1, Pre);"
       }
     ]
   },
@@ -26059,7 +26059,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant v8 + i * f == (long long)alpha * cur;\nloop invariant f >= 0;\nloop invariant i >= 1 ==> v8 >= 0;\nloop invariant (long long)alpha * cur == v8 + i * f;\nloop invariant i >= alpha || alpha <= 0;\nloop invariant i >= 1 || alpha <= 0;\nloop invariant v8 + f * i == (long long)cur * alpha;"
+        "value": "loop invariant v8 + i * f == alpha * cur;\nloop invariant f >= 0;\nloop invariant i >= 1 ==> v8 >= 0;\nloop invariant i >= alpha || alpha <= 0;\nloop invariant i >= 1 || alpha <= 0;"
       }
     ]
   },
@@ -26187,7 +26187,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant x % 20 == 0 || (y % 2 != 0);\nloop invariant (y % 2 == 0) ==> (x % 20 == 0);\nloop invariant (y % 2 == 0) ==> (x <= 100);\nloop invariant x >= 0;\nloop invariant (y % 2 != 0) ==> (x % 5 == 0 || x % 5 == 1 || x % 5 == 2 || x % 5 == 3 || x % 5 == 4);\nloop invariant (unsigned int)x >= 0;\nloop invariant (y % 2 != 0) ==> (x == 0 || x >= 99);\nloop invariant x <= 100 || (y % 2 != 0);"
+        "value": "loop invariant x % 20 == 0 || (y % 2 != 0);\nloop invariant (y % 2 == 0) ==> (x % 20 == 0);\nloop invariant (y % 2 == 0) ==> (x <= 100);\nloop invariant x >= 0;\nloop invariant (y % 2 != 0) ==> (x % 5 == 0 || x % 5 == 1 || x % 5 == 2 || x % 5 == 3 || x % 5 == 4);\nloop invariant (y % 2 != 0) ==> (x == 0 || x >= 99);\nloop invariant x <= 100 || (y % 2 != 0);"
       }
     ]
   },
@@ -26283,7 +26283,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant cd + acc * d == v6 * f;\nloop invariant d >= 0;\nloop invariant cd + acc * d == (long long)v6 * f;\nloop invariant acc >= 0 ==> acc >= v6;\nloop invariant d <= f;\nloop invariant acc >= 0 ==> cd >= 0;\nloop invariant acc >= v6 || v6 <= 0;\nloop invariant acc * d + cd == (long long)v6 * f;\nloop invariant acc >= 0 ==> acc * d >= 0;"
+        "value": "loop invariant cd + acc * d == v6 * f;\nloop invariant d >= 0;\nloop invariant acc >= 0 ==> acc >= v6;\nloop invariant d <= f;\nloop invariant acc >= 0 ==> cd >= 0;\nloop invariant acc >= v6 || v6 <= 0;\nloop invariant acc >= 0 ==> acc * d >= 0;"
       }
     ]
   },
@@ -26747,7 +26747,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant 0 <= x;\nloop invariant x <= 100;\nloop invariant x + a == 100 + (a - (100 - x));\nloop invariant a == (a + x) - x;\nloop invariant x <= \\at(x, Pre);\nloop invariant x + a == \\at(x, Pre) + (a - (100 - x));\nloop invariant x + a == 100 + a - (100 - x);"
+        "value": "loop invariant 0 <= x;\nloop invariant x <= 100;\nloop invariant x <= \\at(x, Pre);\nloop invariant x + a == \\at(x, Pre) + (a - (100 - x));"
       }
     ]
   },
@@ -26859,7 +26859,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant (int)\\at(x, Pre) <= x;\nloop invariant (int)(\\at(x, Pre)) <= 1024 ==> x >= \\at(x, Pre);\nloop invariant (int)(\\at(x, Pre)) > 1024 ==> x == \\at(x, Pre);\nloop invariant x >= \\at(x, Pre) || \\at(x, Pre) > 1024;"
+        "value": "loop invariant \\at(x, Pre) <= x;\nloop invariant (\\at(x, Pre)) <= 1024 ==> x >= \\at(x, Pre);\nloop invariant (\\at(x, Pre)) > 1024 ==> x == \\at(x, Pre);\nloop invariant x >= \\at(x, Pre) || \\at(x, Pre) > 1024;"
       }
     ]
   },
@@ -27499,7 +27499,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant r2 + u * ef == (long long)i * delta;\nloop invariant ef >= 0;\nloop invariant r2 + u * ef == i * delta;"
+        "value": "loop invariant r2 + u * ef == i * delta;\nloop invariant ef >= 0;"
       }
     ]
   },
@@ -27723,7 +27723,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant i == \\at(i, Pre);\nloop invariant j == \\at(j, Pre);\nloop invariant y == \\at(y, Pre) - (\\at(x, Pre) - x);\nloop invariant x - y == i - j;\nloop invariant x >= 0;\nloop invariant x <= i;\nloop invariant y == j - (i - x);\nloop invariant i >= 0;\nloop invariant j >= 0;\nloop invariant x == i - (i - x);\nloop invariant i - x >= 0;\nloop invariant i - x == j - y;\nloop invariant y <= j;"
+        "value": "loop invariant i == \\at(i, Pre);\nloop invariant j == \\at(j, Pre);\nloop invariant y == \\at(y, Pre) - (\\at(x, Pre) - x);\nloop invariant x - y == i - j;\nloop invariant x >= 0;\nloop invariant x <= i;\nloop invariant y == j - (i - x);\nloop invariant i >= 0;\nloop invariant j >= 0;\nloop invariant i - x >= 0;\nloop invariant i - x == j - y;\nloop invariant y <= j;"
       }
     ]
   },
@@ -28059,7 +28059,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant x >= 0;\nloop invariant y >= 0;\nloop invariant z >= 0;\nloop invariant x >= a;\nloop invariant y <= b;\nloop invariant z <= a * b;\nloop invariant x * y >= 0;\nloop invariant z + x * y >= 0;\nloop invariant z + x * y == (long long)a * b;\nloop invariant z <= (long long)a * b;\nloop invariant z + x * y == a * b;"
+        "value": "loop invariant x >= 0;\nloop invariant y >= 0;\nloop invariant z >= 0;\nloop invariant x >= a;\nloop invariant y <= b;\nloop invariant z <= a * b;\nloop invariant x * y >= 0;\nloop invariant z + x * y >= 0;\nloop invariant z + x * y == a * b;"
       }
     ]
   },
@@ -28683,7 +28683,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant x >= 0;\nloop invariant (y % 2 == 0) ==> (x % 20 == 0);\nloop invariant (unsigned int)x >= 0;"
+        "value": "loop invariant x >= 0;\nloop invariant (y % 2 == 0) ==> (x % 20 == 0);"
       }
     ]
   },
@@ -28827,7 +28827,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant j >= 0;\nloop invariant j <= 1000;\nloop invariant k == \\at(k, Pre);\nloop invariant (i - 10) == (i - 10 - j * k) + j * k;\nloop invariant (k >= 0) ==> (i - 10 >= k * j);\nloop invariant (k <= 0) ==> (i - 10 <= k * j);"
+        "value": "loop invariant j >= 0;\nloop invariant j <= 1000;\nloop invariant k == \\at(k, Pre);\nloop invariant (k >= 0) ==> (i - 10 >= k * j);\nloop invariant (k <= 0) ==> (i - 10 <= k * j);"
       }
     ]
   },
@@ -29067,7 +29067,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant c >= 1;\nloop invariant c <= k || k <= 1;\nloop invariant x * (z - 1) == a * (y * z - 1);\nloop invariant y * (z - 1) == (y * z - 1) - (y - 1);\nloop invariant x * (z - 1) + a == a * y * z;\nloop invariant z * (x - a * y) == x - a;"
+        "value": "loop invariant c >= 1;\nloop invariant c <= k || k <= 1;\nloop invariant x * (z - 1) == a * (y * z - 1);\nloop invariant x * (z - 1) + a == a * y * z;\nloop invariant z * (x - a * y) == x - a;"
       }
     ]
   },
@@ -29195,7 +29195,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant (y % 2 == 0) ==> (x % 20 == 0);\nloop invariant (y % 2 == 0) ==> (x < 119);\nloop invariant (y % 2 == 0) ==> (x >= 0);\nloop invariant (y % 2 == 0) ==> (x <= 100);\nloop invariant (y % 2 != 0) ==> (x % 1 == 0);\nloop invariant 0 <= x;\nloop invariant (unsigned int)x >= 0;"
+        "value": "loop invariant (y % 2 == 0) ==> (x % 20 == 0);\nloop invariant (y % 2 == 0) ==> (x < 119);\nloop invariant (y % 2 == 0) ==> (x >= 0);\nloop invariant (y % 2 == 0) ==> (x <= 100);\nloop invariant (y % 2 != 0) ==> (x % 1 == 0);\nloop invariant 0 <= x;"
       }
     ]
   },
@@ -29227,7 +29227,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant j == k;\nloop invariant j >= 0;\nloop invariant n > 0;\nloop invariant j <= \\at(j, Pre);\nloop invariant \\at(j, Pre) - j == \\at(k, Pre) - k;\nloop invariant k >= 0;\nloop invariant j <= n;\nloop invariant k <= n;\nloop invariant n == \\at(n, Pre);\nloop invariant j + (n - n) == j;"
+        "value": "loop invariant j == k;\nloop invariant j >= 0;\nloop invariant n > 0;\nloop invariant j <= \\at(j, Pre);\nloop invariant \\at(j, Pre) - j == \\at(k, Pre) - k;\nloop invariant k >= 0;\nloop invariant j <= n;\nloop invariant k <= n;\nloop invariant n == \\at(n, Pre);"
       }
     ]
   },
@@ -29355,7 +29355,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant s >= 1;\nloop invariant s <= 1000000;\nloop invariant 2*v == 2 + (s-1)*(2*v2 + s);\nloop invariant v2 == (v2 + s) - s;\nloop invariant (v2 + s == 1) || (v2 + s == 2);\nloop invariant (s + v2) == (1 + \\at(v2, Pre));\nloop invariant 2 * v == 2 + 2 * \\at(v2, Pre) * (s - 1) - (s - 1) * (s - 2);\nloop invariant v2 == \\at(v2, Pre) - (s - 1);\nloop invariant \\at(v2, Pre) == 0 ==> v2 == 1 - s;\nloop invariant \\at(v2, Pre) == 1 ==> v2 == 2 - s;\nloop invariant (2 * v) == (2 + 2 * (s - 1) * \\at(v2, Pre) - (s - 1) * (s - 2));\nloop invariant v2 <= 1;"
+        "value": "loop invariant s >= 1;\nloop invariant s <= 1000000;\nloop invariant 2*v == 2 + (s-1)*(2*v2 + s);\nloop invariant (v2 + s == 1) || (v2 + s == 2);\nloop invariant (s + v2) == (1 + \\at(v2, Pre));\nloop invariant 2 * v == 2 + 2 * \\at(v2, Pre) * (s - 1) - (s - 1) * (s - 2);\nloop invariant v2 == \\at(v2, Pre) - (s - 1);\nloop invariant \\at(v2, Pre) == 0 ==> v2 == 1 - s;\nloop invariant \\at(v2, Pre) == 1 ==> v2 == 2 - s;\nloop invariant (2 * v) == (2 + 2 * (s - 1) * \\at(v2, Pre) - (s - 1) * (s - 2));\nloop invariant v2 <= 1;"
       }
     ]
   },
@@ -29483,7 +29483,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant 1 <= i;\nloop invariant i <= n + 1;\nloop invariant n == \\at(n, Pre);\nloop invariant a == a + (i - 1) - (i - 1);"
+        "value": "loop invariant 1 <= i;\nloop invariant i <= n + 1;\nloop invariant n == \\at(n, Pre);"
       }
     ]
   },
@@ -29691,7 +29691,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant (mask & 1) == 0;\nloop invariant (bit & 1) == 0;\nloop invariant (mask == 0 ==> bit == 0) || mask != 0;"
+        "value": "loop invariant (mask == 0 ==> bit == 0) || mask != 0;"
       }
     ]
   },
@@ -29947,7 +29947,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant p + v7 * gh == (long long)v1 * s;\nloop invariant gh >= 0;\nloop invariant s >= 1;\nloop invariant v7 >= 0 ==> p >= 0;\nloop invariant v7 >= 0 || v1 < 0;\nloop invariant v7 >= 1 || v1 <= 0;\nloop invariant gh <= s;"
+        "value": "loop invariant p + v7 * gh == v1 * s;\nloop invariant gh >= 0;\nloop invariant s >= 1;\nloop invariant v7 >= 0 ==> p >= 0;\nloop invariant v7 >= 0 || v1 < 0;\nloop invariant v7 >= 1 || v1 <= 0;\nloop invariant gh <= s;"
       }
     ]
   },
@@ -30011,7 +30011,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant c >= 1;\nloop invariant y == (long long)z * (y / z) ==> 1 == 1;\nloop invariant x * (z - 1) == y - 1;\nloop invariant y == x * (z - 1) + 1;"
+        "value": "loop invariant c >= 1;\nloop invariant x * (z - 1) == y - 1;\nloop invariant y == x * (z - 1) + 1;"
       }
     ]
   },
@@ -30123,7 +30123,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant j >= 0;\nloop invariant ab >= 0;\nloop invariant mn >= 1;\nloop invariant j <= (long long)kl;\nloop invariant ab <= (long long)v0;\nloop invariant j <= kl;\nloop invariant ab <= v0;\nloop invariant kl >= 0;\nloop invariant v0 >= 1;"
+        "value": "loop invariant j >= 0;\nloop invariant ab >= 0;\nloop invariant mn >= 1;\nloop invariant j <= kl;\nloop invariant ab <= v0;\nloop invariant kl >= 0;\nloop invariant v0 >= 1;"
       }
     ]
   },
@@ -30443,7 +30443,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant (y % 2 == 0) ==> (x % 20 == 0);\nloop invariant (y % 2 == 0) ==> (x <= 100);\nloop invariant x >= 0;\nloop invariant (unsigned int)x == x;\nloop invariant x <= 100 || (y % 2 != 0);\nloop invariant (unsigned int)x >= 0;"
+        "value": "loop invariant (y % 2 == 0) ==> (x % 20 == 0);\nloop invariant (y % 2 == 0) ==> (x <= 100);\nloop invariant x >= 0;\nloop invariant x <= 100 || (y % 2 != 0);"
       }
     ]
   },
@@ -31979,7 +31979,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant p >= 1;\nloop invariant b >= 0;\nloop invariant q + a * b * p == (long long)x * y * 1 || 1 == 1;\nloop invariant a >= 0 || x < 0;\nloop invariant (p == 1) || (p % 4 == 0);\nloop invariant (p % 4 == 0) || (p == 1);\nloop invariant b <= \\at(y, Pre);"
+        "value": "loop invariant p >= 1;\nloop invariant b >= 0;\nloop invariant a >= 0 || x < 0;\nloop invariant (p == 1) || (p % 4 == 0);\nloop invariant (p % 4 == 0) || (p == 1);\nloop invariant b <= \\at(y, Pre);"
       }
     ]
   },
@@ -32059,7 +32059,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant p >= \\at(p, Pre) || \\at(p, Pre) >= 1024;\nloop invariant p >= \\at(p, Pre);\nloop invariant (int)\\at(p, Pre) <= p;"
+        "value": "loop invariant p >= \\at(p, Pre) || \\at(p, Pre) >= 1024;\nloop invariant p >= \\at(p, Pre);"
       }
     ]
   },
@@ -32507,7 +32507,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant i >= 0;\nloop invariant k <= n;\nloop invariant i + 2*k <= 2*n;\nloop invariant k == n - (n - k);\nloop invariant i % 2 == 0;\nloop invariant n - k >= 0;\nloop invariant i <= 2*(n - k);"
+        "value": "loop invariant i >= 0;\nloop invariant k <= n;\nloop invariant i + 2*k <= 2*n;\nloop invariant i % 2 == 0;\nloop invariant n - k >= 0;\nloop invariant i <= 2*(n - k);"
       }
     ]
   },
@@ -33195,7 +33195,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant x <= n;\nloop invariant x <= \\at(x, Pre);\nloop invariant n == \\at(n, Pre);\nloop invariant x == n - (n - x);\nloop invariant x <= \\at(n, Pre);\nloop invariant (n - x) >= 0;\nloop invariant x >= 0 ==> n >= x;"
+        "value": "loop invariant x <= n;\nloop invariant x <= \\at(x, Pre);\nloop invariant n == \\at(n, Pre);\nloop invariant x <= \\at(n, Pre);\nloop invariant (n - x) >= 0;\nloop invariant x >= 0 ==> n >= x;"
       }
     ]
   },
@@ -34059,7 +34059,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant 0 <= x;\nloop invariant x <= 100;\nloop invariant (y % 2 == 0) ==> (x <= 99);\nloop invariant (y % 2 != 0) ==> (x % 2 == 0);\nloop invariant (unsigned int)x >= 0;"
+        "value": "loop invariant 0 <= x;\nloop invariant x <= 100;\nloop invariant (y % 2 == 0) ==> (x <= 99);\nloop invariant (y % 2 != 0) ==> (x % 2 == 0);"
       }
     ]
   },
@@ -34091,7 +34091,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant 0 <= c;\nloop invariant c <= k;\nloop invariant y == c;\nloop invariant x == c * c * c * c * c * c / 6 + (c * c * c * c * c) / 5 - (c * c * c) / 3 + c / 6 - (c * c * c * c) / 4 + (c * c) / 4 || 1 == 1;\nloop invariant 0 <= y;\nloop invariant y <= k;\nloop invariant (y == 0) ==> (x == 0);"
+        "value": "loop invariant 0 <= c;\nloop invariant c <= k;\nloop invariant y == c;\nloop invariant 0 <= y;\nloop invariant y <= k;\nloop invariant (y == 0) ==> (x == 0);"
       }
     ]
   },
@@ -36057,7 +36057,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant c >= 0;\nloop invariant (c <= k);\nloop invariant (y == c);\nloop invariant (x >= y * y * y * y);\nloop invariant (c < k) ==> (c == y);\nloop invariant y >= 0;\nloop invariant (c == 0) ==> (y == 0);\nloop invariant (c == 0) ==> (x == 0);\nloop invariant (c < k) ==> (y < k);\nloop invariant (c >= k) ==> (c == k);\nloop invariant k >= 0;\nloop invariant k <= 20;\nloop invariant x >= 0;\nloop invariant (c == 0) ==> (y == 0) && (x == 0);\nloop invariant (c == k) || (1);"
+        "value": "loop invariant c >= 0;\nloop invariant (c <= k);\nloop invariant (y == c);\nloop invariant (x >= y * y * y * y);\nloop invariant (c < k) ==> (c == y);\nloop invariant y >= 0;\nloop invariant (c == 0) ==> (y == 0);\nloop invariant (c == 0) ==> (x == 0);\nloop invariant (c < k) ==> (y < k);\nloop invariant (c >= k) ==> (c == k);\nloop invariant k >= 0;\nloop invariant k <= 20;\nloop invariant x >= 0;\nloop invariant (c == 0) ==> (y == 0) && (x == 0);"
       }
     ],
     "verified": true,
@@ -36651,7 +36651,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant 1 <= c;\nloop invariant (c > k) ==> (x == (1));\nloop invariant (c > k) ==> (y == ((\\at(z,Pre))));\nloop invariant c == (1) + (c - 1);\nloop invariant (c == 1) && (1 < k) ==> (x == 1);\nloop invariant (c == 1) && (1 < k) ==> (y == z);\nloop invariant (c < k) ==> (c >= 1);"
+        "value": "loop invariant 1 <= c;\nloop invariant (c > k) ==> (x == (1));\nloop invariant (c > k) ==> (y == ((\\at(z,Pre))));\nloop invariant (c == 1) && (1 < k) ==> (x == 1);\nloop invariant (c == 1) && (1 < k) ==> (y == z);\nloop invariant (c < k) ==> (c >= 1);"
       }
     ],
     "verified": true,
@@ -36903,7 +36903,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant 1 <= c;\nloop invariant (z == 1) ==> (x == c && y == 1);\nloop invariant (z == 0) ==> (x == 1);\nloop invariant (z == 1) ==> (x == c);\nloop invariant z == (\\at(z,Pre));\nloop invariant k == (\\at(k,Pre));\nloop invariant (y - 1) * z == y * z - z;\nloop invariant (c == 1) ==> (x == 1 && y == 1);\nloop invariant (x*z - x - y*z + 1) == 0;"
+        "value": "loop invariant 1 <= c;\nloop invariant (z == 1) ==> (x == c && y == 1);\nloop invariant (z == 0) ==> (x == 1);\nloop invariant (z == 1) ==> (x == c);\nloop invariant z == (\\at(z,Pre));\nloop invariant k == (\\at(k,Pre));\nloop invariant (c == 1) ==> (x == 1 && y == 1);\nloop invariant (x*z - x - y*z + 1) == 0;"
       }
     ],
     "verified": true,
@@ -36957,7 +36957,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant ij >= 1;\nloop invariant (ij == 1) ==> (ctr == 1 && alpha == 1);\nloop invariant (ij == 1) ==> (ctr == 1);\nloop invariant (ij == 1) ==> (alpha == 1);\nloop invariant (ij >= ef) == !(ij < ef);"
+        "value": "loop invariant ij >= 1;\nloop invariant (ij == 1) ==> (ctr == 1 && alpha == 1);\nloop invariant (ij == 1) ==> (ctr == 1);\nloop invariant (ij == 1) ==> (alpha == 1);"
       }
     ],
     "verified": true,
@@ -39135,7 +39135,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant c >= 1;\nloop invariant c <= k;\nloop invariant c == (1) + (c - (1));\nloop invariant ((\\at(z,Pre))) == z;\nloop invariant c <= k + 1;\nloop invariant (c == (1)) ==> (x == (1) && y == ((\\at(z,Pre))));\nloop invariant (c < k + 1) ==> (c >= (1));\nloop invariant (c <= k) || (c == k);\nloop invariant 1 <= c <= k + 1;\nloop invariant !(c < k) ==> c == k;\nloop invariant x >= 1;\nloop invariant y >= 1;\nloop invariant c == (1) || c > (1);\nloop invariant (x*z - x - y + 1) == 0;"
+        "value": "loop invariant c >= 1;\nloop invariant c <= k;\nloop invariant ((\\at(z,Pre))) == z;\nloop invariant c <= k + 1;\nloop invariant (c == (1)) ==> (x == (1) && y == ((\\at(z,Pre))));\nloop invariant (c < k + 1) ==> (c >= (1));\nloop invariant (c <= k) || (c == k);\nloop invariant 1 <= c <= k + 1;\nloop invariant !(c < k) ==> c == k;\nloop invariant x >= 1;\nloop invariant y >= 1;\nloop invariant c == (1) || c > (1);\nloop invariant (x*z - x - y + 1) == 0;"
       }
     ],
     "verified": true,
@@ -39243,7 +39243,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant c >= 1;\nloop invariant c <= k;\nloop invariant ((\\at(z,Pre))) == z;\nloop invariant x == (1) + (x - 1);\nloop invariant (c > k) ==> (c == (1));\nloop invariant (c > k) ==> (x == (1));\nloop invariant (c > k) ==> (y == ((\\at(z,Pre))));\nloop invariant 1 <= c <= k + 1;\nloop invariant c <= k + 1;\nloop invariant x >= 1;\nloop invariant y >= 1;\nloop invariant (c < k) || (c == k);"
+        "value": "loop invariant c >= 1;\nloop invariant c <= k;\nloop invariant ((\\at(z,Pre))) == z;\nloop invariant (c > k) ==> (c == (1));\nloop invariant (c > k) ==> (x == (1));\nloop invariant (c > k) ==> (y == ((\\at(z,Pre))));\nloop invariant 1 <= c <= k + 1;\nloop invariant c <= k + 1;\nloop invariant x >= 1;\nloop invariant y >= 1;\nloop invariant (c < k) || (c == k);"
       }
     ],
     "verified": true,
@@ -39297,7 +39297,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant c >= 1;\nloop invariant (c == 1) ==> (x == 1 && y == z);\nloop invariant (k <= 5);\nloop invariant (c <= k);\nloop invariant (c <= 5);\nloop invariant x >= 1;\nloop invariant y >= z;\nloop invariant z >= 1;\nloop invariant (z == 1) ==> (x == c);\nloop invariant (z == 1) ==> (y == 1);\nloop invariant (z != 1) ==> (x * (z - 1) == y - 1);\nloop invariant (z != 1) ==> (2 * x * z - x >= y + z - 1);\nloop invariant c == (1) + (c - (1));\nloop invariant y >= 1;\nloop invariant (c > k) ==> (c == (1));\nloop invariant (c > k) ==> (x == (1));\nloop invariant (c > k) ==> (y == ((\\at(z,Pre))));\nloop invariant c <= k + 1;\nloop invariant (x*z - x - y + 1) == 0;"
+        "value": "loop invariant c >= 1;\nloop invariant (c == 1) ==> (x == 1 && y == z);\nloop invariant (k <= 5);\nloop invariant (c <= k);\nloop invariant (c <= 5);\nloop invariant x >= 1;\nloop invariant y >= z;\nloop invariant z >= 1;\nloop invariant (z == 1) ==> (x == c);\nloop invariant (z == 1) ==> (y == 1);\nloop invariant (z != 1) ==> (x * (z - 1) == y - 1);\nloop invariant (z != 1) ==> (2 * x * z - x >= y + z - 1);\nloop invariant y >= 1;\nloop invariant (c > k) ==> (c == (1));\nloop invariant (c > k) ==> (x == (1));\nloop invariant (c > k) ==> (y == ((\\at(z,Pre))));\nloop invariant c <= k + 1;\nloop invariant (x*z - x - y + 1) == 0;"
       }
     ],
     "verified": true,
@@ -39855,7 +39855,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant mn >= \\at(mn,LoopEntry);\nloop invariant mn <= \\at(mn,LoopEntry) + 50;\nloop invariant \\at(mn, LoopEntry) <= 50 ==> mn == \\at(mn, LoopEntry) + (p3 - 1);\nloop invariant \\at(mn, LoopEntry) > 50 ==> p3 == 1 && v == 1 && e == ((\\at(nxt,Pre)));\nloop invariant p3 >= 1;\nloop invariant (p3 >= 1) && (\\at(mn, LoopEntry) <= 50 ==> p3 <= 50 - \\at(mn, LoopEntry) + 1);\nloop invariant (nxt == 1) ==> (v == p3 && e == 1);\nloop invariant p3 == (mn - \\at(mn, LoopEntry)) + (1);\nloop invariant (nxt != 1) || (v == (1) + (p3 - (1)));\nloop invariant p3 <= (1) + 50;\nloop invariant p3 == (1) + (p3 - (1));\nloop invariant p3 == 1 ==> v == (1);\nloop invariant p3 == 1 ==> e == ((\\at(nxt,Pre)));"
+        "value": "loop invariant mn >= \\at(mn,LoopEntry);\nloop invariant mn <= \\at(mn,LoopEntry) + 50;\nloop invariant \\at(mn, LoopEntry) <= 50 ==> mn == \\at(mn, LoopEntry) + (p3 - 1);\nloop invariant \\at(mn, LoopEntry) > 50 ==> p3 == 1 && v == 1 && e == ((\\at(nxt,Pre)));\nloop invariant p3 >= 1;\nloop invariant (p3 >= 1) && (\\at(mn, LoopEntry) <= 50 ==> p3 <= 50 - \\at(mn, LoopEntry) + 1);\nloop invariant (nxt == 1) ==> (v == p3 && e == 1);\nloop invariant p3 == (mn - \\at(mn, LoopEntry)) + (1);\nloop invariant (nxt != 1) || (v == (1) + (p3 - (1)));\nloop invariant p3 <= (1) + 50;\nloop invariant p3 == 1 ==> v == (1);\nloop invariant p3 == 1 ==> e == ((\\at(nxt,Pre)));"
       }
     ],
     "verified": true,
@@ -40161,7 +40161,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant c <= k+1;\nloop invariant (k <= 0) ==> (x == (1));\nloop invariant a == \\at(a,LoopEntry) + c - 1;\nloop invariant c >= 1;\nloop invariant (k <= 0) ==> (y == ((\\at(z,Pre))));\nloop invariant (k <= 0) ==> (c == (1));\nloop invariant (k <= 0) ==> (a == \\at(a,LoopEntry));\nloop invariant (c == 1) ==> (x == 1 && y == z && !(1 < k) == !(c < k));\nloop invariant (c <= k) || (c == k + 1);\nloop invariant x >= 1;\nloop invariant a == \\at(a, LoopEntry) + (c - 1);\nloop invariant (c == (1)) ==> (x == (1));\nloop invariant (c == (1)) ==> (y == ((\\at(z,Pre))));\nloop invariant (c == (1)) ==> (a == \\at(a, LoopEntry));\nloop invariant (z == 1) ==> (x == c);\nloop invariant y >= 0;\nloop invariant (z == 1) ==> (y == 1);\nloop invariant (k > c) ==> (a == \\at(a, LoopEntry) + c - 1);"
+        "value": "loop invariant c <= k+1;\nloop invariant (k <= 0) ==> (x == (1));\nloop invariant a == \\at(a,LoopEntry) + c - 1;\nloop invariant c >= 1;\nloop invariant (k <= 0) ==> (y == ((\\at(z,Pre))));\nloop invariant (k <= 0) ==> (c == (1));\nloop invariant (k <= 0) ==> (a == \\at(a,LoopEntry));\nloop invariant (c <= k) || (c == k + 1);\nloop invariant x >= 1;\nloop invariant a == \\at(a, LoopEntry) + (c - 1);\nloop invariant (c == (1)) ==> (x == (1));\nloop invariant (c == (1)) ==> (y == ((\\at(z,Pre))));\nloop invariant (c == (1)) ==> (a == \\at(a, LoopEntry));\nloop invariant (z == 1) ==> (x == c);\nloop invariant y >= 0;\nloop invariant (z == 1) ==> (y == 1);\nloop invariant (k > c) ==> (a == \\at(a, LoopEntry) + c - 1);"
       }
     ],
     "verified": true,
@@ -41097,7 +41097,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant kl >= 1;\nloop invariant \\at(v9,LoopEntry) >= 1 ==> (kl == (1) && f == (1) && lim == (1));\nloop invariant kl == (1) + (kl - 1);\nloop invariant kl <= (1) + 1;\nloop invariant kl == (1) + (v9 - \\at(v9,LoopEntry));\nloop invariant v9 >= \\at(v9,LoopEntry);\nloop invariant v9 <= \\at(v9,LoopEntry) + 1;"
+        "value": "loop invariant kl >= 1;\nloop invariant \\at(v9,LoopEntry) >= 1 ==> (kl == (1) && f == (1) && lim == (1));\nloop invariant kl <= (1) + 1;\nloop invariant kl == (1) + (v9 - \\at(v9,LoopEntry));\nloop invariant v9 >= \\at(v9,LoopEntry);\nloop invariant v9 <= \\at(v9,LoopEntry) + 1;"
       }
     ],
     "verified": true,
@@ -41115,7 +41115,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant -2147483648 <= t;\nloop invariant t <= 2147483647;\nloop invariant t == \\at(t,LoopEntry) + (ij - (1));\nloop invariant 1 <= ij;\nloop invariant t >= \\at(t, LoopEntry);\nloop invariant \\at(t, LoopEntry) <= 1 ==> (ij == 1 + (\\at(t, LoopEntry) + 1 - \\at(t, LoopEntry)) * (t - \\at(t, LoopEntry))) || ij <= 1;\nloop invariant \\at(t, LoopEntry) <= 1 ==> t <= 1;\nloop invariant t - \\at(t, LoopEntry) <= 1;\nloop invariant t - \\at(t, LoopEntry) == ij - (1);\nloop invariant (h <= 1) ==> (ij == 1) && (v == 1) && (v4 == 1);\nloop invariant (v8 != 0) || (v == 1) || (v4 == 1);\nloop invariant \\at(t, LoopEntry) <= t < \\at(t, LoopEntry) + 2;\nloop invariant ij == (1) + (ij - (1));"
+        "value": "loop invariant -2147483648 <= t;\nloop invariant t <= 2147483647;\nloop invariant t == \\at(t,LoopEntry) + (ij - (1));\nloop invariant 1 <= ij;\nloop invariant t >= \\at(t, LoopEntry);\nloop invariant \\at(t, LoopEntry) <= 1 ==> (ij == 1 + (\\at(t, LoopEntry) + 1 - \\at(t, LoopEntry)) * (t - \\at(t, LoopEntry))) || ij <= 1;\nloop invariant \\at(t, LoopEntry) <= 1 ==> t <= 1;\nloop invariant t - \\at(t, LoopEntry) <= 1;\nloop invariant t - \\at(t, LoopEntry) == ij - (1);\nloop invariant (h <= 1) ==> (ij == 1) && (v == 1) && (v4 == 1);\nloop invariant (v8 != 0) || (v == 1) || (v4 == 1);\nloop invariant \\at(t, LoopEntry) <= t < \\at(t, LoopEntry) + 2;"
       }
     ],
     "verified": true,
@@ -41349,7 +41349,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant g >= 1;\nloop invariant g - 1 <= tmp - \\at(tmp, LoopEntry);\nloop invariant tmp >= \\at(tmp, LoopEntry);\nloop invariant g == (1) + (tmp - \\at(tmp, LoopEntry));\nloop invariant g <= (1) + 6;\nloop invariant tmp == \\at(tmp, LoopEntry) + (g - 1);\nloop invariant (g >= tot) ==> g == (1) || g == tot;\nloop invariant (v5 * v9 + 1) == v9 * v5 + 1;\nloop invariant g <= (1) + (tmp - \\at(tmp, LoopEntry));\nloop invariant g < tot ==> g == 1 + (tmp - \\at(tmp,LoopEntry));\nloop invariant tmp <= \\at(tmp,LoopEntry) + 6;"
+        "value": "loop invariant g >= 1;\nloop invariant g - 1 <= tmp - \\at(tmp, LoopEntry);\nloop invariant tmp >= \\at(tmp, LoopEntry);\nloop invariant g == (1) + (tmp - \\at(tmp, LoopEntry));\nloop invariant g <= (1) + 6;\nloop invariant tmp == \\at(tmp, LoopEntry) + (g - 1);\nloop invariant (g >= tot) ==> g == (1) || g == tot;\nloop invariant g <= (1) + (tmp - \\at(tmp, LoopEntry));\nloop invariant g < tot ==> g == 1 + (tmp - \\at(tmp,LoopEntry));\nloop invariant tmp <= \\at(tmp,LoopEntry) + 6;"
       }
     ],
     "verified": true,
@@ -41871,7 +41871,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant c >= 1;\nloop invariant x >= 1;\nloop invariant c == (1) || c > (1);\nloop invariant (c >= 1) ==> ((c == 1) ==> (x == 1)) && ((c > 1) ==> (x >= 1));\nloop invariant (c >= 1) ==> (k >= 0);\nloop invariant c <= k + 1;\nloop invariant (c < k) ==> (c >= (1));\nloop invariant c == 1 ==> x == 1;\nloop invariant c == 1 ==> y == 1;\nloop invariant c == (1) + (c - 1);"
+        "value": "loop invariant c >= 1;\nloop invariant x >= 1;\nloop invariant c == (1) || c > (1);\nloop invariant (c >= 1) ==> ((c == 1) ==> (x == 1)) && ((c > 1) ==> (x >= 1));\nloop invariant (c >= 1) ==> (k >= 0);\nloop invariant c <= k + 1;\nloop invariant (c < k) ==> (c >= (1));\nloop invariant c == 1 ==> x == 1;\nloop invariant c == 1 ==> y == 1;"
       }
     ],
     "verified": true,
@@ -42051,7 +42051,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant p >= 1;\nloop invariant (acc >= 0);\nloop invariant (\\at(tmp,Pre)) >= 1 ==> p <= (\\at(tmp,Pre));\nloop invariant (p <= (1) + tmp);\nloop invariant p > tmp ==> p == tmp + 1;\nloop invariant p3 >= 1;\nloop invariant ((p == 1) && (v3 == 0)) ==> (p3 == 1);\nloop invariant ((p == 1) && (v3 == 1)) ==> (p3 == 1);\nloop invariant ((p == 1) && (v3 == 2)) ==> (p3 == 1);\nloop invariant (p == 2) ==> (p3 == v3 + 1);\nloop invariant (v3 == 0) ==> (p3 == 1);\nloop invariant (v3 == 1) ==> (p3 == p);\nloop invariant (v3 == 1) ==> (acc == 1);\nloop invariant p == (1) + (p - (1));"
+        "value": "loop invariant p >= 1;\nloop invariant (acc >= 0);\nloop invariant (\\at(tmp,Pre)) >= 1 ==> p <= (\\at(tmp,Pre));\nloop invariant (p <= (1) + tmp);\nloop invariant p > tmp ==> p == tmp + 1;\nloop invariant p3 >= 1;\nloop invariant ((p == 1) && (v3 == 0)) ==> (p3 == 1);\nloop invariant ((p == 1) && (v3 == 1)) ==> (p3 == 1);\nloop invariant ((p == 1) && (v3 == 2)) ==> (p3 == 1);\nloop invariant (p == 2) ==> (p3 == v3 + 1);\nloop invariant (v3 == 0) ==> (p3 == 1);\nloop invariant (v3 == 1) ==> (p3 == p);\nloop invariant (v3 == 1) ==> (acc == 1);"
       }
     ],
     "verified": true,
@@ -42339,7 +42339,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant (c >= 1) && (c <= k + 1);\nloop invariant (c < k) ==> (a == \\at(a,LoopEntry) + (integer)(c-1));\nloop invariant (c < k) ==> (1 <= c);\nloop invariant (c > k) ==> (x == (1)) && (y == (1));\nloop invariant (c == 1) ==> (x == 1);\nloop invariant (c == 1) ==> (y == 1);\nloop invariant x >= 1;\nloop invariant x >= y;\nloop invariant a == \\at(a, LoopEntry) + (c - 1);\nloop invariant (k >= 1) ==> (c <= k);\nloop invariant (k == 0) ==> (c == 1);"
+        "value": "loop invariant (c >= 1) && (c <= k + 1);\nloop invariant (c < k) ==> (1 <= c);\nloop invariant (c > k) ==> (x == (1)) && (y == (1));\nloop invariant (c == 1) ==> (x == 1);\nloop invariant (c == 1) ==> (y == 1);\nloop invariant x >= 1;\nloop invariant x >= y;\nloop invariant a == \\at(a, LoopEntry) + (c - 1);\nloop invariant (k >= 1) ==> (c <= k);\nloop invariant (k == 0) ==> (c == 1);"
       }
     ],
     "verified": true,
@@ -43383,7 +43383,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant r <= v1;\nloop invariant y >= 0;\nloop invariant delta == r;\nloop invariant r >= 0;\nloop invariant r == (0) + 1 * (r - (0));\nloop invariant (r < v1) ==> (y >= (0));\nloop invariant (delta >= 0);\nloop invariant delta <= v1;"
+        "value": "loop invariant r <= v1;\nloop invariant y >= 0;\nloop invariant delta == r;\nloop invariant r >= 0;\nloop invariant (r < v1) ==> (y >= (0));\nloop invariant (delta >= 0);\nloop invariant delta <= v1;"
       }
     ],
     "verified": true,
@@ -43995,7 +43995,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant q == a;\nloop invariant a >= 0;\nloop invariant a <= lim;\nloop invariant (a == 0 ==> q == 0) && (a == 0 ==> mn == 0);\nloop invariant 0 <= a <= lim;\nloop invariant lim == 0 ==> a == 0;\nloop invariant mn == (a * (a + 1) / 2) * (a * (a + 1) / 2);\nloop invariant q >= 0;\nloop invariant mn >= 0;\nloop invariant (lim == 0 && a == 0) || (lim == 1);\nloop invariant a == (0) + (a - (0));\nloop invariant mn == a * a * (a + 1) * (a + 1) / 4;\nloop invariant a < lim ==> (0) < lim;\nloop invariant lim == (\\at(lim,Pre));"
+        "value": "loop invariant q == a;\nloop invariant a >= 0;\nloop invariant a <= lim;\nloop invariant (a == 0 ==> q == 0) && (a == 0 ==> mn == 0);\nloop invariant 0 <= a <= lim;\nloop invariant lim == 0 ==> a == 0;\nloop invariant mn == (a * (a + 1) / 2) * (a * (a + 1) / 2);\nloop invariant q >= 0;\nloop invariant mn >= 0;\nloop invariant (lim == 0 && a == 0) || (lim == 1);\nloop invariant mn == a * a * (a + 1) * (a + 1) / 4;\nloop invariant a < lim ==> (0) < lim;\nloop invariant lim == (\\at(lim,Pre));"
       }
     ],
     "verified": true,
@@ -44319,7 +44319,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant r <= v5;\nloop invariant r >= 0;\nloop invariant i == r;\nloop invariant 0 <= i;\nloop invariant i <= v5;\nloop invariant r1 >= 0;\nloop invariant (0) <= v5 ==> r1 >= (0);\nloop invariant (0) <= v5 ==> (r1 - (0)) <= ((i*i*i) * (i - (0)));\nloop invariant (r < v5 ==> r == (0) + (i - (0))) || (r >= v5);\nloop invariant (r >= v5) ==> (r == v5);\nloop invariant v5 <= 100;\nloop invariant r == (0) + (r - (0));\nloop invariant r <= 100;\nloop invariant (r == 0) ==> (i == 0);\nloop invariant (i == 0) ==> (r == 0);\nloop invariant (i == 0) ==> (r1 == 0);"
+        "value": "loop invariant r <= v5;\nloop invariant r >= 0;\nloop invariant i == r;\nloop invariant 0 <= i;\nloop invariant i <= v5;\nloop invariant r1 >= 0;\nloop invariant (0) <= v5 ==> r1 >= (0);\nloop invariant (0) <= v5 ==> (r1 - (0)) <= ((i*i*i) * (i - (0)));\nloop invariant (r < v5 ==> r == (0) + (i - (0))) || (r >= v5);\nloop invariant (r >= v5) ==> (r == v5);\nloop invariant v5 <= 100;\nloop invariant r <= 100;\nloop invariant (r == 0) ==> (i == 0);\nloop invariant (i == 0) ==> (r == 0);\nloop invariant (i == 0) ==> (r1 == 0);"
       }
     ],
     "verified": true,
@@ -44661,7 +44661,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant tot >= 0 && tot <= 5;\nloop invariant f >= 0;\nloop invariant f <= tot;\nloop invariant f == (0) + 1 * nxt;\nloop invariant nxt >= 0;\nloop invariant ef == nxt * nxt * nxt + (ef - nxt * nxt * nxt);\nloop invariant f <= 5;\nloop invariant 0 <= f <= tot;\nloop invariant !(f < tot) ==> f == tot;\nloop invariant !(f < tot) ==> nxt == tot;\nloop invariant nxt <= tot;\nloop invariant (f == 0) ==> (nxt == 0 && ef == 0);\nloop invariant (tot >= 0) ==> (f <= tot && nxt <= tot);"
+        "value": "loop invariant tot >= 0 && tot <= 5;\nloop invariant f >= 0;\nloop invariant f <= tot;\nloop invariant f == (0) + 1 * nxt;\nloop invariant nxt >= 0;\nloop invariant f <= 5;\nloop invariant 0 <= f <= tot;\nloop invariant !(f < tot) ==> f == tot;\nloop invariant !(f < tot) ==> nxt == tot;\nloop invariant nxt <= tot;\nloop invariant (f == 0) ==> (nxt == 0 && ef == 0);\nloop invariant (tot >= 0) ==> (f <= tot && nxt <= tot);"
       }
     ],
     "verified": true,
@@ -44913,7 +44913,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant q1 == x;\nloop invariant v3 == q1 * q1 * q1 * q1 + (0);\nloop invariant ((x < b) == 0) ==> (x >= b);\nloop invariant z >= \\at(z, LoopEntry);\nloop invariant x >= 0;\nloop invariant q1 >= 0;\nloop invariant v3 >= 0;\nloop invariant q1 <= x;\nloop invariant v3 == q1 * q1 * q1 * (q1 - 1) * (q1 - 1) * (q1 - 2) * (q1 - 3) + v3;\nloop invariant z <= \\at(z, LoopEntry) + 100;\nloop invariant v3 == q1 * q1 * q1 * q1 + (v3 - q1 * q1 * q1 * q1);\nloop invariant x <= (0) + q1;\nloop invariant q1 == (0) + q1;\nloop invariant (z <= \\at(z,LoopEntry)) ==> (x == (0));\nloop invariant (b > (\\at(b,Pre))) || (b == (\\at(b,Pre)));\nloop invariant (z > \\at(z,LoopEntry)) ==> (z <= \\at(z,LoopEntry) + b + 1);"
+        "value": "loop invariant q1 == x;\nloop invariant v3 == q1 * q1 * q1 * q1 + (0);\nloop invariant z >= \\at(z, LoopEntry);\nloop invariant x >= 0;\nloop invariant q1 >= 0;\nloop invariant v3 >= 0;\nloop invariant q1 <= x;\nloop invariant v3 == q1 * q1 * q1 * (q1 - 1) * (q1 - 1) * (q1 - 2) * (q1 - 3) + v3;\nloop invariant z <= \\at(z, LoopEntry) + 100;\nloop invariant x <= (0) + q1;\nloop invariant (z <= \\at(z,LoopEntry)) ==> (x == (0));\nloop invariant (b > (\\at(b,Pre))) || (b == (\\at(b,Pre)));\nloop invariant (z > \\at(z,LoopEntry)) ==> (z <= \\at(z,LoopEntry) + b + 1);"
       }
     ],
     "verified": true,
@@ -44931,7 +44931,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant (z >= 0);\nloop invariant (p1 >= 0);\nloop invariant (q3 == p1);\nloop invariant (p1 <= q3);\nloop invariant lim ≤ 256;\nloop invariant 0 ≤ q3;\nloop invariant v7 == \\at(v7,LoopEntry) + q3;\nloop invariant z == (0) + ((p1 * p1 * p1 * p1) - 0);\nloop invariant q3 >= 0;\nloop invariant \\at(v7, LoopEntry) <= v7;\nloop invariant v7 == \\at(v7,LoopEntry) || v7 > \\at(v7,LoopEntry);\nloop invariant v7 <= \\at(v7,LoopEntry) + 100 + 1;\nloop invariant (q3 >= lim) ==> (v7 == \\at(v7,LoopEntry) || v7 == \\at(v7,LoopEntry) + 1);"
+        "value": "loop invariant (z >= 0);\nloop invariant (p1 >= 0);\nloop invariant (q3 == p1);\nloop invariant (p1 <= q3);\nloop invariant lim <= 256;\nloop invariant 0 <= q3;\nloop invariant v7 == \\at(v7,LoopEntry) + q3;\nloop invariant z == (0) + ((p1 * p1 * p1 * p1) - 0);\nloop invariant \\at(v7, LoopEntry) <= v7;\nloop invariant v7 == \\at(v7,LoopEntry) || v7 > \\at(v7,LoopEntry);\nloop invariant v7 <= \\at(v7,LoopEntry) + 100 + 1;\nloop invariant (q3 >= lim) ==> (v7 == \\at(v7,LoopEntry) || v7 == \\at(v7,LoopEntry) + 1);"
       }
     ],
     "verified": true,
@@ -45129,7 +45129,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant 0 <= m;\nloop invariant s == m;\nloop invariant 0 <= n;\nloop invariant ((v6 <= 51) && (m < tmp)) ==> (v6 == \\at(v6,LoopEntry) + m);\nloop invariant ((v6 <= 51) && (m == tmp)) ==> (v6 == \\at(v6,LoopEntry) + m);\nloop invariant ((v6 > 51) || (m == 0)) ==> (v6 == \\at(v6,LoopEntry));\nloop invariant v6 >= \\at(v6,LoopEntry);\nloop invariant 0 <= s <= m;\nloop invariant (n == 0) || (n >= 1);\nloop invariant (s == m) || (v6 > 50 && s == m - 1);\nloop invariant s >= (0);\nloop invariant s <= 4294967295;\nloop invariant n <= 18446744073709551615;\nloop invariant n == (0 + s*s*s*s + n - s*s*s*s);\nloop invariant n == (n - s*s*s*s + s*s*s*s);\nloop invariant n <= (0) + s * m * m * m * m;"
+        "value": "loop invariant 0 <= m;\nloop invariant s == m;\nloop invariant 0 <= n;\nloop invariant ((v6 <= 51) && (m < tmp)) ==> (v6 == \\at(v6,LoopEntry) + m);\nloop invariant ((v6 <= 51) && (m == tmp)) ==> (v6 == \\at(v6,LoopEntry) + m);\nloop invariant ((v6 > 51) || (m == 0)) ==> (v6 == \\at(v6,LoopEntry));\nloop invariant v6 >= \\at(v6,LoopEntry);\nloop invariant 0 <= s <= m;\nloop invariant (n == 0) || (n >= 1);\nloop invariant (s == m) || (v6 > 50 && s == m - 1);\nloop invariant s >= (0);\nloop invariant s <= 4294967295;\nloop invariant n <= 18446744073709551615;\nloop invariant n <= (0) + s * m * m * m * m;"
       }
     ],
     "verified": true,
@@ -45471,7 +45471,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant gh == r1;\nloop invariant r1 <= beta;\nloop invariant r1 >= (0);\nloop invariant v >= (0);\nloop invariant r1 == (0) + (r1 - (0));\nloop invariant beta <= 256;\nloop invariant gh >= (0);\nloop invariant 0 <= r1 <= beta;\nloop invariant r1 == 0 ==> v == 0;\nloop invariant gh <= beta;"
+        "value": "loop invariant gh == r1;\nloop invariant r1 <= beta;\nloop invariant r1 >= (0);\nloop invariant v >= (0);\nloop invariant beta <= 256;\nloop invariant gh >= (0);\nloop invariant 0 <= r1 <= beta;\nloop invariant r1 == 0 ==> v == 0;\nloop invariant gh <= beta;"
       }
     ],
     "verified": true,
@@ -45525,7 +45525,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant r2 >= 0;\nloop invariant r2 <= v0;\nloop invariant p == r2;\nloop invariant (r2 == 0) ==> (tmp == 0);\nloop invariant p >= 0;\nloop invariant (v0 <= 256) && (r2 <= 256);\nloop invariant (tmp >= 0) && (tmp <= 256 * 256 * 256 * 256 * 256 / 30);\nloop invariant (tmp == p*(p+1)*(2*p+1)*(3*p*p+3*p-1)/30);\nloop invariant (r2 < v0) || (p == v0 && r2 == v0);\nloop invariant p <= v0;\nloop invariant (tmp <= (long long)r2 * r2 * r2 * r2 * v0);\nloop invariant (r2 <= v0 ==> p >= 0 && p <= v0);"
+        "value": "loop invariant r2 >= 0;\nloop invariant r2 <= v0;\nloop invariant p == r2;\nloop invariant (r2 == 0) ==> (tmp == 0);\nloop invariant p >= 0;\nloop invariant (v0 <= 256) && (r2 <= 256);\nloop invariant (tmp >= 0) && (tmp <= 256 * 256 * 256 * 256 * 256 / 30);\nloop invariant (tmp == p*(p+1)*(2*p+1)*(3*p*p+3*p-1)/30);\nloop invariant (r2 < v0) || (p == v0 && r2 == v0);\nloop invariant p <= v0;\nloop invariant (tmp <= r2 * r2 * r2 * r2 * v0);\nloop invariant (r2 <= v0 ==> p >= 0 && p <= v0);"
       }
     ],
     "verified": true,
@@ -45759,7 +45759,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant r <= q2;\nloop invariant r == (0) + 1 * (r - (0));\nloop invariant e == (0) + 1 * (e - (0));\nloop invariant v1 == \\at(v1, LoopEntry) + r;\nloop invariant (e == r) || (e == r+1);\nloop invariant e == (0) + r;\nloop invariant (q2 >= 0) && (q2 <= 20);\nloop invariant (e == h) || (e == r) || (e == 0 && r == 0 && h == 0);\nloop invariant (h >= 0);\nloop invariant (r == 0) ==> (h == 0 && e == 0);\nloop invariant (r > 0) ==> (h >= 1);\nloop invariant (e <= r) && (e >= 0);\nloop invariant v1 == \\at(v1, LoopEntry) + e;\nloop invariant (r == q2) ==> (e == q2);\nloop invariant (r == q2) ==> (v1 == \\at(v1, LoopEntry) + q2);\nloop invariant (r < q2) ==> (e < q2);\nloop invariant (r < q2) ==> (v1 < \\at(v1, LoopEntry) + q2);"
+        "value": "loop invariant r <= q2;\nloop invariant v1 == \\at(v1, LoopEntry) + r;\nloop invariant (e == r) || (e == r+1);\nloop invariant e == (0) + r;\nloop invariant (q2 >= 0) && (q2 <= 20);\nloop invariant (e == h) || (e == r) || (e == 0 && r == 0 && h == 0);\nloop invariant (h >= 0);\nloop invariant (r == 0) ==> (h == 0 && e == 0);\nloop invariant (r > 0) ==> (h >= 1);\nloop invariant (e <= r) && (e >= 0);\nloop invariant v1 == \\at(v1, LoopEntry) + e;\nloop invariant (r == q2) ==> (e == q2);\nloop invariant (r == q2) ==> (v1 == \\at(v1, LoopEntry) + q2);\nloop invariant (r < q2) ==> (e < q2);\nloop invariant (r < q2) ==> (v1 < \\at(v1, LoopEntry) + q2);"
       }
     ],
     "verified": true,
@@ -45867,7 +45867,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant (c >= 0) && (c <= k);\nloop invariant (y == c);\nloop invariant (c == 0) ==> (x == 0);\nloop invariant (c == 0) ==> (y == 0);\nloop invariant x >= 0;\nloop invariant c == (0) + c;\nloop invariant (c == 0) ==> (y == 0 && x == 0);\nloop invariant y >= 0;"
+        "value": "loop invariant (c >= 0) && (c <= k);\nloop invariant (y == c);\nloop invariant (c == 0) ==> (x == 0);\nloop invariant (c == 0) ==> (y == 0);\nloop invariant x >= 0;\nloop invariant (c == 0) ==> (y == 0 && x == 0);\nloop invariant y >= 0;"
       }
     ],
     "verified": true,
@@ -45903,7 +45903,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant nxt <= alpha;\nloop invariant v9 == nxt;\nloop invariant delta == \\at(delta,LoopEntry) + nxt;\nloop invariant nxt >= 0;\nloop invariant v9 >= 0;\nloop invariant (nxt < alpha) || nxt == alpha;\nloop invariant 0 <= nxt <= alpha;\nloop invariant nxt == 0 ==> e == 0;\nloop invariant v9 <= alpha;\nloop invariant 0 <= nxt <= (long long)alpha;"
+        "value": "loop invariant nxt <= alpha;\nloop invariant v9 == nxt;\nloop invariant delta == \\at(delta,LoopEntry) + nxt;\nloop invariant nxt >= 0;\nloop invariant v9 >= 0;\nloop invariant (nxt < alpha) || nxt == alpha;\nloop invariant 0 <= nxt <= alpha;\nloop invariant nxt == 0 ==> e == 0;\nloop invariant v9 <= alpha;"
       }
     ],
     "verified": true,
@@ -46299,7 +46299,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant y == c;\nloop invariant 0 <= c;\nloop invariant c <= k;\nloop invariant y >= (0);\nloop invariant (c == (0)) ==> (y == (0));\nloop invariant (c == (0)) ==> (x == (0));\nloop invariant (c == k) ==> (c < k) == 0;\nloop invariant (c == k) ==> (y == k);\nloop invariant x >= 0;\nloop invariant (c >= k) ==> c == k;\nloop invariant (c >= k) ==> y == k;\nloop invariant (y <= k);"
+        "value": "loop invariant y == c;\nloop invariant 0 <= c;\nloop invariant c <= k;\nloop invariant y >= (0);\nloop invariant (c == (0)) ==> (y == (0));\nloop invariant (c == (0)) ==> (x == (0));\nloop invariant (c == k) ==> (y == k);\nloop invariant x >= 0;\nloop invariant (c >= k) ==> c == k;\nloop invariant (c >= k) ==> y == k;\nloop invariant (y <= k);"
       }
     ],
     "verified": true,
@@ -46371,7 +46371,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant y == c;\nloop invariant 0 <= c <= k;\nloop invariant (c == (0)) ==> (y == (0)) && (c == 0);\nloop invariant (c >= k) ==> (c == k);\nloop invariant c == 0 ==> y == 0;\nloop invariant x == (0) || x > (0);\nloop invariant c >= 0;\nloop invariant c <= k;\nloop invariant x >= 0;\nloop invariant ((long long)k) < 0 || k <= 10;\nloop invariant k >= 0 && k <= 10 ==> (y <= 10 && x <= y*y*y*y*y * y);\nloop invariant c == (0) ==> y == (0) && x == (0);\nloop invariant (c == (0)) ==> (x == (0));\nloop invariant (c > (0)) ==> (x >= (0));\nloop invariant y >= 0;\nloop invariant y <= c;\nloop invariant (c < k) ==> (c == y);"
+        "value": "loop invariant y == c;\nloop invariant 0 <= c <= k;\nloop invariant (c == (0)) ==> (y == (0)) && (c == 0);\nloop invariant (c >= k) ==> (c == k);\nloop invariant c == 0 ==> y == 0;\nloop invariant x == (0) || x > (0);\nloop invariant c >= 0;\nloop invariant c <= k;\nloop invariant x >= 0;\nloop invariant (k) < 0 || k <= 10;\nloop invariant k >= 0 && k <= 10 ==> (y <= 10 && x <= y*y*y*y*y * y);\nloop invariant c == (0) ==> y == (0) && x == (0);\nloop invariant (c == (0)) ==> (x == (0));\nloop invariant (c > (0)) ==> (x >= (0));\nloop invariant y >= 0;\nloop invariant y <= c;\nloop invariant (c < k) ==> (c == y);"
       }
     ],
     "verified": true,
@@ -46389,7 +46389,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant ab >= 0;\nloop invariant p2 == ab;\nloop invariant (ab == 0) ==> (v3 == 0);\nloop invariant (ab <= r1) && (ab < 256);\nloop invariant (ab == 0) ==> (p2 == 0 && v3 == 0);\nloop invariant (ab != 0) ==> (ab == (0) + p2);\nloop invariant (ab == (int)(0)) ==> (v3 == (0));"
+        "value": "loop invariant ab >= 0;\nloop invariant p2 == ab;\nloop invariant (ab == 0) ==> (v3 == 0);\nloop invariant (ab <= r1) && (ab < 256);\nloop invariant (ab == 0) ==> (p2 == 0 && v3 == 0);\nloop invariant (ab != 0) ==> (ab == (0) + p2);"
       }
     ],
     "verified": true,
@@ -46515,7 +46515,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant c >= 0;\nloop invariant y == c;\nloop invariant a == \\at(a,LoopEntry) + c;\nloop invariant c <= k;\nloop invariant 0 <= c <= k;\nloop invariant x >= 0;\nloop invariant (c == 0) ==> (y == 0 && x == 0);\nloop invariant (c == c + 1 - 1);"
+        "value": "loop invariant c >= 0;\nloop invariant y == c;\nloop invariant a == \\at(a,LoopEntry) + c;\nloop invariant c <= k;\nloop invariant 0 <= c <= k;\nloop invariant x >= 0;\nloop invariant (c == 0) ==> (y == 0 && x == 0);"
       }
     ],
     "verified": true,
@@ -46605,7 +46605,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant (c >= 0) && (c <= k);\nloop invariant y == c;\nloop invariant (c < k) || (c == k);\nloop invariant (c < k) ==> (x <= (long long) c * (long long) c * (long long) c * (long long) c * (long long) c);\nloop invariant (c >= k) ==> (y == k);\nloop invariant 0 <= y;\nloop invariant y <= c;\nloop invariant c >= (0);\nloop invariant (c == (0)) || (y == c);\nloop invariant (k >= \\at(k, Pre)) ==> (c <= k);\nloop invariant x >= 0;"
+        "value": "loop invariant (c >= 0) && (c <= k);\nloop invariant y == c;\nloop invariant (c < k) || (c == k);\nloop invariant (c < k) ==> (x <= c * c * c * c * c);\nloop invariant (c >= k) ==> (y == k);\nloop invariant 0 <= y;\nloop invariant y <= c;\nloop invariant c >= (0);\nloop invariant (c == (0)) || (y == c);\nloop invariant (k >= \\at(k, Pre)) ==> (c <= k);\nloop invariant x >= 0;"
       }
     ],
     "verified": true,
@@ -47307,7 +47307,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant (c == 1) || (c <= k);\nloop invariant x >= 1;\nloop invariant y >= 1;\nloop invariant c >= 1;\nloop invariant c <= k;\nloop invariant c == 1 ==> (x == 1 && y == z);\nloop invariant (c == 1) || ((x == (x % (z - 1)) * (z - 1) + 1) || (1));\nloop invariant z == 1 ==> (x == c);\nloop invariant (z == 1) ==> (y == z);\nloop invariant a >= \\at(a, LoopEntry);\nloop invariant c <= k + 1;\nloop invariant k >= 1;"
+        "value": "loop invariant (c == 1) || (c <= k);\nloop invariant x >= 1;\nloop invariant y >= 1;\nloop invariant c >= 1;\nloop invariant c <= k;\nloop invariant c == 1 ==> (x == 1 && y == z);\nloop invariant z == 1 ==> (x == c);\nloop invariant (z == 1) ==> (y == z);\nloop invariant a >= \\at(a, LoopEntry);\nloop invariant c <= k + 1;\nloop invariant k >= 1;"
       }
     ],
     "verified": true,
@@ -47361,7 +47361,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant c >= 1;\nloop invariant (c == 1) ==> (x == 1 && y == ((\\at(z,Pre))));\nloop invariant k >= 1;\nloop invariant (c <= k) || (c == k + 1);\nloop invariant c <= k;\nloop invariant x >= 1;\nloop invariant y >= z;\nloop invariant z >= 1;\nloop invariant y >= 1;\nloop invariant (c < k) || (c == k);\nloop invariant c == (1) + (c - (1));\nloop invariant (z == 1) ==> (x == c);\nloop invariant (z == 1) ==> (y == 1);"
+        "value": "loop invariant c >= 1;\nloop invariant (c == 1) ==> (x == 1 && y == ((\\at(z,Pre))));\nloop invariant k >= 1;\nloop invariant (c <= k) || (c == k + 1);\nloop invariant c <= k;\nloop invariant x >= 1;\nloop invariant y >= z;\nloop invariant z >= 1;\nloop invariant y >= 1;\nloop invariant (c < k) || (c == k);\nloop invariant (z == 1) ==> (x == c);\nloop invariant (z == 1) ==> (y == 1);"
       }
     ],
     "verified": true,
@@ -47577,7 +47577,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant a == \\at(a,LoopEntry) + c - 1;\nloop invariant c >= 1;\nloop invariant (a >= \\at(a, LoopEntry));\nloop invariant (x - x) == 0;\nloop invariant a == \\at(a,LoopEntry) + (c - 1);\nloop invariant (k <= 1) ==> (x == 1 && y == z && c == 1 && a == \\at(a,LoopEntry));\nloop invariant (k > 1) ==> (0 <= c && c <= k);\nloop invariant (k > 1) ==> (c == 1) ==> (x == 1 && y == z && a == \\at(a,LoopEntry));"
+        "value": "loop invariant a == \\at(a,LoopEntry) + c - 1;\nloop invariant c >= 1;\nloop invariant (a >= \\at(a, LoopEntry));\nloop invariant a == \\at(a,LoopEntry) + (c - 1);\nloop invariant (k <= 1) ==> (x == 1 && y == z && c == 1 && a == \\at(a,LoopEntry));\nloop invariant (k > 1) ==> (0 <= c && c <= k);\nloop invariant (k > 1) ==> (c == 1) ==> (x == 1 && y == z && a == \\at(a,LoopEntry));"
       }
     ],
     "verified": true,
@@ -47703,7 +47703,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant (c == 1) ==> (x == 1);\nloop invariant (c == 1) ==> (y == z);\nloop invariant c >= 1;\nloop invariant c == (1) + (c - (1));\nloop invariant (\\at(k,Pre)) == k;\nloop invariant (\\at(z,Pre)) == z;\nloop invariant k <= 0 || c <= k + 1;"
+        "value": "loop invariant (c == 1) ==> (x == 1);\nloop invariant (c == 1) ==> (y == z);\nloop invariant c >= 1;\nloop invariant (\\at(k,Pre)) == k;\nloop invariant (\\at(z,Pre)) == z;\nloop invariant k <= 0 || c <= k + 1;"
       }
     ],
     "verified": true,
@@ -48567,7 +48567,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant c >= 0;\nloop invariant y == c;\nloop invariant (a >= \\at(a, LoopEntry)) && (a <= \\at(a, LoopEntry) + c);\nloop invariant (c == 0) || (c <= k);\nloop invariant x >= 0;\nloop invariant y >= 0;\nloop invariant (c == 0) ==> (x == 0);\nloop invariant ((k >= 0) && (c <= k)) ==> (c == y);\nloop invariant x == x + 0;\nloop invariant (c <= k) ==> (y*y*y >= 0);"
+        "value": "loop invariant c >= 0;\nloop invariant y == c;\nloop invariant (a >= \\at(a, LoopEntry)) && (a <= \\at(a, LoopEntry) + c);\nloop invariant (c == 0) || (c <= k);\nloop invariant x >= 0;\nloop invariant y >= 0;\nloop invariant (c == 0) ==> (x == 0);\nloop invariant ((k >= 0) && (c <= k)) ==> (c == y);\nloop invariant (c <= k) ==> (y*y*y >= 0);"
       }
     ],
     "verified": true,
@@ -49377,7 +49377,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant (1 <= v4) && (v4 <= v0);\nloop invariant ((v4 < v0) && (v7 < 100)) ==> (v7 - \\at(v7,LoopEntry) == v4 - 1);\nloop invariant (v4 >= v0) ==> (v4 == v0);\nloop invariant v7 >= \\at(v7,LoopEntry);\nloop invariant mn >= 1;\nloop invariant r2 >= 1;\nloop invariant (1) == 1 ==> v4 <= 100;\nloop invariant (1) == 1 ==> v4 <= (\\at(v0,Pre));\nloop invariant v4 >= (1);\nloop invariant v4 - (1) <= 100;\nloop invariant v4 <= (\\at(v0,Pre)) || !((1) == 1);\nloop invariant (v7 == \\at(v7, LoopEntry)) ==> (mn == 1);\nloop invariant (v7 == \\at(v7, LoopEntry)) ==> (r2 == gh);\nloop invariant (v7 == \\at(v7, LoopEntry)) ==> (v4 == 1);\nloop invariant v4 == (1) + (v7 - \\at(v7, LoopEntry));\nloop invariant gh >= 1;\nloop invariant gh == (\\at(gh,Pre));\nloop invariant v4 == (1) + ((v4 - (1)) * 1);\nloop invariant v7 == \\at(v7, LoopEntry) + (v4 - (1));"
+        "value": "loop invariant (1 <= v4) && (v4 <= v0);\nloop invariant ((v4 < v0) && (v7 < 100)) ==> (v7 - \\at(v7,LoopEntry) == v4 - 1);\nloop invariant (v4 >= v0) ==> (v4 == v0);\nloop invariant v7 >= \\at(v7,LoopEntry);\nloop invariant mn >= 1;\nloop invariant r2 >= 1;\nloop invariant (1) == 1 ==> v4 <= 100;\nloop invariant (1) == 1 ==> v4 <= (\\at(v0,Pre));\nloop invariant v4 >= (1);\nloop invariant v4 - (1) <= 100;\nloop invariant v4 <= (\\at(v0,Pre)) || !((1) == 1);\nloop invariant (v7 == \\at(v7, LoopEntry)) ==> (mn == 1);\nloop invariant (v7 == \\at(v7, LoopEntry)) ==> (r2 == gh);\nloop invariant (v7 == \\at(v7, LoopEntry)) ==> (v4 == 1);\nloop invariant v4 == (1) + (v7 - \\at(v7, LoopEntry));\nloop invariant gh >= 1;\nloop invariant gh == (\\at(gh,Pre));\nloop invariant v7 == \\at(v7, LoopEntry) + (v4 - (1));"
       }
     ],
     "verified": true,
@@ -49647,7 +49647,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant c >= 1;\nloop invariant c <= k;\nloop invariant (c <= 1) ==> (x == (1));\nloop invariant k >= 1;\nloop invariant z >= 1;\nloop invariant c == (1) + (c - (1));\nloop invariant x >= 1;\nloop invariant (c < k) || (c == k);\nloop invariant (c == 1) ==> (x == 1 && y == z);\nloop invariant y > 0;\nloop invariant (z == 1) ==> (x == c);\nloop invariant (z == 1) ==> (y == 1);\nloop invariant 1 <= c <= k;\nloop invariant ((z != 1)) ==> ((x*z - x - y + 1) == 0);"
+        "value": "loop invariant c >= 1;\nloop invariant c <= k;\nloop invariant (c <= 1) ==> (x == (1));\nloop invariant k >= 1;\nloop invariant z >= 1;\nloop invariant x >= 1;\nloop invariant (c < k) || (c == k);\nloop invariant (c == 1) ==> (x == 1 && y == z);\nloop invariant y > 0;\nloop invariant (z == 1) ==> (x == c);\nloop invariant (z == 1) ==> (y == 1);\nloop invariant 1 <= c <= k;\nloop invariant ((z != 1)) ==> ((x*z - x - y + 1) == 0);"
       }
     ],
     "verified": true,
@@ -49917,7 +49917,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant d >= 1;\nloop invariant gh >= 1;\nloop invariant v5 >= 1;\nloop invariant (v5 == 1) || (v5 <= d);\nloop invariant (v5 == 1) ==> (lim == 1 && p2 == gh);\nloop invariant d > 1 ==> p2 >= gh;\nloop invariant v5 >= d ==> v5 == d;\nloop invariant ((\\at(gh,Pre))) == gh;\nloop invariant v5 <= d;\nloop invariant lim >= (1);\nloop invariant lim == lim * 1;\nloop invariant (p2 == ((\\at(gh,Pre)))) && (v5 == (1)) || (v5 > (1));\nloop invariant v5 == (1) ==> (p2 == gh) && (lim == 1);\nloop invariant (v5 < d) || (v5 == d && !(v5 < d));"
+        "value": "loop invariant d >= 1;\nloop invariant gh >= 1;\nloop invariant v5 >= 1;\nloop invariant (v5 == 1) || (v5 <= d);\nloop invariant (v5 == 1) ==> (lim == 1 && p2 == gh);\nloop invariant d > 1 ==> p2 >= gh;\nloop invariant v5 >= d ==> v5 == d;\nloop invariant ((\\at(gh,Pre))) == gh;\nloop invariant v5 <= d;\nloop invariant lim >= (1);\nloop invariant (p2 == ((\\at(gh,Pre)))) && (v5 == (1)) || (v5 > (1));\nloop invariant v5 == (1) ==> (p2 == gh) && (lim == 1);\nloop invariant (v5 < d) || (v5 == d && !(v5 < d));"
       }
     ],
     "verified": true,
@@ -50619,7 +50619,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant v9 >= 1;\nloop invariant e == (e - v9) + v9;\nloop invariant (kl == 1) ==> (r1 == v9);\nloop invariant e >= \\at(e, LoopEntry);\nloop invariant (e > \\at(e, LoopEntry)) ==> (v9 == (1) + e - \\at(e, LoopEntry));\nloop invariant (e > \\at(e, LoopEntry)) ==> (e - \\at(e, LoopEntry) <= 5);\nloop invariant e <= \\at(e, LoopEntry) + 5;\nloop invariant (v9 == (1) + (e - \\at(e,LoopEntry)));\nloop invariant r1 == (1) || e > \\at(e, LoopEntry);\nloop invariant \\at(e, LoopEntry) <= 5 ==> e <= 6;\nloop invariant v9 <= e - \\at(e, LoopEntry) + 1;\nloop invariant ((kl != 1)) ==> ((a - kl*r1 + r1 - 1) == 0);"
+        "value": "loop invariant v9 >= 1;\nloop invariant (kl == 1) ==> (r1 == v9);\nloop invariant e >= \\at(e, LoopEntry);\nloop invariant (e > \\at(e, LoopEntry)) ==> (v9 == (1) + e - \\at(e, LoopEntry));\nloop invariant (e > \\at(e, LoopEntry)) ==> (e - \\at(e, LoopEntry) <= 5);\nloop invariant e <= \\at(e, LoopEntry) + 5;\nloop invariant (v9 == (1) + (e - \\at(e,LoopEntry)));\nloop invariant r1 == (1) || e > \\at(e, LoopEntry);\nloop invariant \\at(e, LoopEntry) <= 5 ==> e <= 6;\nloop invariant v9 <= e - \\at(e, LoopEntry) + 1;\nloop invariant ((kl != 1)) ==> ((a - kl*r1 + r1 - 1) == 0);"
       }
     ],
     "verified": true,
@@ -50781,7 +50781,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant c >= 1;\nloop invariant (c == 1) ==> (x == 1 && y == z);\nloop invariant ((z == 0) || (z == 1)) ==> (y == z);\nloop invariant (z == 0) ==> (x == 1 && y == 0);\nloop invariant (z == 1) ==> (x == 1 && y == 1);\nloop invariant x == 1 + (x - 1) * 1;\nloop invariant (z == 0) && (c >= 2) ==> (x == 1);\nloop invariant x >= 1;\nloop invariant ((\\at(z,Pre))) == z;\nloop invariant k <= 1 ==> (c == 1) && (x == 1) && (y == z);\nloop invariant (c == (1)) || (c > (1));\nloop invariant c <= k + 1;\nloop invariant c < k ==> (x == 1 || x == 1 + z);\nloop invariant k <= 1 ==> c == 1;\nloop invariant z >= 0 && z <= 1;\nloop invariant k >= 0 && k <= 1;\nloop invariant (c > k) ==> (x == (1));\nloop invariant (y >= 0);\nloop invariant (1 <= c) && (c < k ==> c <= k);"
+        "value": "loop invariant c >= 1;\nloop invariant (c == 1) ==> (x == 1 && y == z);\nloop invariant ((z == 0) || (z == 1)) ==> (y == z);\nloop invariant (z == 0) ==> (x == 1 && y == 0);\nloop invariant (z == 1) ==> (x == 1 && y == 1);\nloop invariant (z == 0) && (c >= 2) ==> (x == 1);\nloop invariant x >= 1;\nloop invariant ((\\at(z,Pre))) == z;\nloop invariant k <= 1 ==> (c == 1) && (x == 1) && (y == z);\nloop invariant (c == (1)) || (c > (1));\nloop invariant c <= k + 1;\nloop invariant c < k ==> (x == 1 || x == 1 + z);\nloop invariant k <= 1 ==> c == 1;\nloop invariant z >= 0 && z <= 1;\nloop invariant k >= 0 && k <= 1;\nloop invariant (c > k) ==> (x == (1));\nloop invariant (y >= 0);\nloop invariant (1 <= c) && (c < k ==> c <= k);"
       }
     ],
     "verified": true,
@@ -50907,7 +50907,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant c >= 1;\nloop invariant a == \\at(a,LoopEntry) + (c - 1);\nloop invariant x == 1 && y == z && c == 1 && a == \\at(a,LoopEntry);\nloop invariant c <= k+1;\nloop invariant c > k ==> x == (1) && y == ((\\at(z,Pre))) && a == \\at(a,LoopEntry);\nloop invariant (a == \\at(a, LoopEntry) + c - 1);\nloop invariant ((x-1) * z) == (x * z) - z;\nloop invariant y == z*z*z*z*z*z*z*z*z*z;\nloop invariant (a != \\at(a, LoopEntry)) ==> (a >= \\at(a, LoopEntry) + 1);\nloop invariant (c == 1) ==> (x == 1 && y == (\\at(z,Pre)) && c == 1);\nloop invariant (c > k) ==> (a == \\at(a, LoopEntry) + k);"
+        "value": "loop invariant c >= 1;\nloop invariant a == \\at(a,LoopEntry) + (c - 1);\nloop invariant x == 1 && y == z && c == 1 && a == \\at(a,LoopEntry);\nloop invariant c <= k+1;\nloop invariant c > k ==> x == (1) && y == ((\\at(z,Pre))) && a == \\at(a,LoopEntry);\nloop invariant (a == \\at(a, LoopEntry) + c - 1);\nloop invariant y == z*z*z*z*z*z*z*z*z*z;\nloop invariant (a != \\at(a, LoopEntry)) ==> (a >= \\at(a, LoopEntry) + 1);\nloop invariant (c == 1) ==> (x == 1 && y == (\\at(z,Pre)) && c == 1);\nloop invariant (c > k) ==> (a == \\at(a, LoopEntry) + k);"
       }
     ],
     "verified": true,
@@ -51375,7 +51375,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant c >= 1;\nloop invariant k >= 0 && k <= 20;\nloop invariant z >= 0 && z <= 20;\nloop invariant (c == (1)) || (c > (1));\nloop invariant c <= 21;\nloop invariant c <= k ==> c <= 20;\nloop invariant c <= k ==> x >= 1;\nloop invariant c <= k + 1;\nloop invariant (z == 0) ==> (x == 1 && y == 0);\nloop invariant (z == 1) ==> (x == (long long)c && (y == 1 || y == 0));\nloop invariant (z == 1) ==> (y == 1 || y == 0);"
+        "value": "loop invariant c >= 1;\nloop invariant k >= 0 && k <= 20;\nloop invariant z >= 0 && z <= 20;\nloop invariant (c == (1)) || (c > (1));\nloop invariant c <= 21;\nloop invariant c <= k ==> c <= 20;\nloop invariant c <= k ==> x >= 1;\nloop invariant c <= k + 1;\nloop invariant (z == 0) ==> (x == 1 && y == 0);\nloop invariant (z == 1) ==> (x == c && (y == 1 || y == 0));\nloop invariant (z == 1) ==> (y == 1 || y == 0);"
       }
     ],
     "verified": true,
@@ -51483,7 +51483,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant cd <= 20 && cd >= 0;\nloop invariant acc <= 20 && acc >= 0;\nloop invariant v6 >= 1;\nloop invariant (cd == 0) ==> (b == 1);\nloop invariant (cd == 0) ==> (kl == 0);\nloop invariant (cd == 1) ==> (b == v6);\nloop invariant (cd == 1) ==> (kl == 1);\nloop invariant v6 == (1) + (v6 - (1));\nloop invariant (((cd == 1) && ((1) == 1)) ==> (b == v6));\nloop invariant (((cd == 1) && ((1) == 1)) ==> (kl == 1));\nloop invariant (1 <= v6 && v6 <= acc + 1) || (acc < 1);\nloop invariant v6 <= acc + 1;\nloop invariant v6 > acc ==> v6 == acc + 1;\nloop invariant (b >= 1);\nloop invariant (kl >= 0);\nloop invariant b == (1) || v6 > (1);\nloop invariant kl == ((\\at(cd,Pre))) || v6 > (1);\nloop invariant v6 == (1) ==> (b == (1) && kl == ((\\at(cd,Pre))));"
+        "value": "loop invariant cd <= 20 && cd >= 0;\nloop invariant acc <= 20 && acc >= 0;\nloop invariant v6 >= 1;\nloop invariant (cd == 0) ==> (b == 1);\nloop invariant (cd == 0) ==> (kl == 0);\nloop invariant (cd == 1) ==> (b == v6);\nloop invariant (cd == 1) ==> (kl == 1);\nloop invariant (((cd == 1) && ((1) == 1)) ==> (b == v6));\nloop invariant (((cd == 1) && ((1) == 1)) ==> (kl == 1));\nloop invariant (1 <= v6 && v6 <= acc + 1) || (acc < 1);\nloop invariant v6 <= acc + 1;\nloop invariant v6 > acc ==> v6 == acc + 1;\nloop invariant (b >= 1);\nloop invariant (kl >= 0);\nloop invariant b == (1) || v6 > (1);\nloop invariant kl == ((\\at(cd,Pre))) || v6 > (1);\nloop invariant v6 == (1) ==> (b == (1) && kl == ((\\at(cd,Pre))));"
       }
     ],
     "verified": true,
@@ -51627,7 +51627,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant (p3 >= (1)) || (!(1));\nloop invariant ((acc >= 2) && (p3 == (1) - 1)) ==> (cur == (1));\nloop invariant p3 >= (1);\nloop invariant cur >= 1;\nloop invariant (p3 == 1) ==> (cur == 1);\nloop invariant (p3 > 1) ==> (cur >= acc + 1);\nloop invariant (p3 <= delta) ==> (1 <= p3);\nloop invariant (p3 >= delta + 1) ==> (p3 == (1));\nloop invariant (p3 <= delta + 1);\nloop invariant (p3 >= 1) && ((p3 >= delta + 1) ==> (cd == ((\\at(acc,Pre))) && cur == (1)));\nloop invariant cd >= acc;\nloop invariant cd >= 0;\nloop invariant p3 == (1) ==> cd == ((\\at(acc,Pre)));\nloop invariant p3 == (1) + (p3 - (1));"
+        "value": "loop invariant ((acc >= 2) && (p3 == (1) - 1)) ==> (cur == (1));\nloop invariant p3 >= (1);\nloop invariant cur >= 1;\nloop invariant (p3 == 1) ==> (cur == 1);\nloop invariant (p3 > 1) ==> (cur >= acc + 1);\nloop invariant (p3 <= delta) ==> (1 <= p3);\nloop invariant (p3 >= delta + 1) ==> (p3 == (1));\nloop invariant (p3 <= delta + 1);\nloop invariant (p3 >= 1) && ((p3 >= delta + 1) ==> (cd == ((\\at(acc,Pre))) && cur == (1)));\nloop invariant cd >= acc;\nloop invariant cd >= 0;\nloop invariant p3 == (1) ==> cd == ((\\at(acc,Pre)));"
       }
     ],
     "verified": true,
@@ -51771,7 +51771,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant g == 1 || g >= 1;\nloop invariant s == \\at(s, LoopEntry) || s == \\at(s, LoopEntry) + 1;\nloop invariant g >= (1);\nloop invariant (g == (1)) ==> p1 == (1);\nloop invariant (g > (1)) ==> (p1 == (1) || p1 == (1) * e);\nloop invariant s == \\at(s, LoopEntry) ==> g == (1);\nloop invariant s == \\at(s, LoopEntry) + 1 ==> g > (1);\nloop invariant (\\at(s,LoopEntry) < 1) ==> (s == \\at(s,LoopEntry) + g - (1));\nloop invariant (e != 1) || (alpha == (1) + (g - (1)));\nloop invariant (g == (1)) || (g <= v6);\nloop invariant s >= \\at(s, LoopEntry);\nloop invariant ((long long)s - (long long)\\at(s, LoopEntry)) + (1) == g;\nloop invariant (g - (1)) < 1 ==> p1 == 1;"
+        "value": "loop invariant g == 1 || g >= 1;\nloop invariant s == \\at(s, LoopEntry) || s == \\at(s, LoopEntry) + 1;\nloop invariant g >= (1);\nloop invariant (g == (1)) ==> p1 == (1);\nloop invariant (g > (1)) ==> (p1 == (1) || p1 == (1) * e);\nloop invariant s == \\at(s, LoopEntry) ==> g == (1);\nloop invariant s == \\at(s, LoopEntry) + 1 ==> g > (1);\nloop invariant (\\at(s,LoopEntry) < 1) ==> (s == \\at(s,LoopEntry) + g - (1));\nloop invariant (e != 1) || (alpha == (1) + (g - (1)));\nloop invariant (g == (1)) || (g <= v6);\nloop invariant s >= \\at(s, LoopEntry);\nloop invariant (s - \\at(s, LoopEntry)) + (1) == g;\nloop invariant (g - (1)) < 1 ==> p1 == 1;"
       }
     ],
     "verified": true,
@@ -51807,7 +51807,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant \\at(k, LoopEntry) <= k;\nloop invariant \\at(k, LoopEntry) < k ==> b == (1) + (k - \\at(k, LoopEntry));\nloop invariant \\at(k, LoopEntry) == k ==> (b == (1)) && (r2 == (1)) && (m == (1));\nloop invariant (b == (1)) ==> (r2 == (1)) && (m == (1));\nloop invariant (b >= (1)) && (b <= (1)+(k-\\at(k,LoopEntry)));\nloop invariant b == (1) + (b - (1));\nloop invariant b >= (1);\nloop invariant k > \\at(k, LoopEntry) ==> b == (1) + 1 && r2 == (1) * c + 1 && m == (1) * c;\nloop invariant r2 == (1) && m == (1) && b == (1) ==> k == \\at(k, LoopEntry);\nloop invariant k > \\at(k, LoopEntry) ==> k <= \\at(k, LoopEntry) + 1;\nloop invariant k > \\at(k, LoopEntry) && b >= p1 ==> b == (1) + (k - \\at(k, LoopEntry) - 1) + 1;\nloop invariant k > \\at(k, LoopEntry) ==> b >= (1) + 1;\nloop invariant !(k > \\at(k, LoopEntry)) ==> r2 == (1);\nloop invariant !(k > \\at(k, LoopEntry)) ==> m == (1);\nloop invariant !(k > \\at(k, LoopEntry)) ==> b == (1);"
+        "value": "loop invariant \\at(k, LoopEntry) <= k;\nloop invariant \\at(k, LoopEntry) < k ==> b == (1) + (k - \\at(k, LoopEntry));\nloop invariant \\at(k, LoopEntry) == k ==> (b == (1)) && (r2 == (1)) && (m == (1));\nloop invariant (b == (1)) ==> (r2 == (1)) && (m == (1));\nloop invariant (b >= (1)) && (b <= (1)+(k-\\at(k,LoopEntry)));\nloop invariant b >= (1);\nloop invariant k > \\at(k, LoopEntry) ==> b == (1) + 1 && r2 == (1) * c + 1 && m == (1) * c;\nloop invariant r2 == (1) && m == (1) && b == (1) ==> k == \\at(k, LoopEntry);\nloop invariant k > \\at(k, LoopEntry) ==> k <= \\at(k, LoopEntry) + 1;\nloop invariant k > \\at(k, LoopEntry) && b >= p1 ==> b == (1) + (k - \\at(k, LoopEntry) - 1) + 1;\nloop invariant k > \\at(k, LoopEntry) ==> b >= (1) + 1;\nloop invariant !(k > \\at(k, LoopEntry)) ==> r2 == (1);\nloop invariant !(k > \\at(k, LoopEntry)) ==> m == (1);\nloop invariant !(k > \\at(k, LoopEntry)) ==> b == (1);"
       }
     ],
     "verified": true,
@@ -52059,7 +52059,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant ef > \\at(ef, LoopEntry) ==> v6 == v7 * (1) + 1;\nloop invariant ef == \\at(ef, LoopEntry) ==> v6 == 1;\nloop invariant ef == \\at(ef, LoopEntry) ==> f == 1;\nloop invariant ab == (ef - (int)\\at(ef, LoopEntry)) + 1;\nloop invariant ef < 20 ==> ef == \\at(ef,LoopEntry) + (ab - (1));\nloop invariant ef < 20 ==> ab == (1) + (ef - \\at(ef,LoopEntry));\nloop invariant ab >= (1);\nloop invariant (ef >= \\at(ef, LoopEntry)) && ((ab >= (1)) || !(ab < q));\nloop invariant ef == \\at(ef, LoopEntry) + (ab - (1));\nloop invariant (ab < q) ==> (ab - (1) <= 19);\nloop invariant (ab < q) ==> (ef <= \\at(ef, LoopEntry) + 20);\nloop invariant (q < 2) ==> (ab == 1);\nloop invariant (v7 == 1) ==> (v6 == 1 + (ab - 1));\nloop invariant ef >= \\at(ef, LoopEntry) + (ab - 1);\nloop invariant ef == \\at(ef, LoopEntry) + ab - 1;\nloop invariant ab <= 21;\nloop invariant v7 == (\\at(v7,Pre));\nloop invariant q == (\\at(q,Pre));\nloop invariant (ab - 1) % 21 >= 0;"
+        "value": "loop invariant ef > \\at(ef, LoopEntry) ==> v6 == v7 * (1) + 1;\nloop invariant ef == \\at(ef, LoopEntry) ==> v6 == 1;\nloop invariant ef == \\at(ef, LoopEntry) ==> f == 1;\nloop invariant ab == (ef - \\at(ef, LoopEntry)) + 1;\nloop invariant ef < 20 ==> ef == \\at(ef,LoopEntry) + (ab - (1));\nloop invariant ef < 20 ==> ab == (1) + (ef - \\at(ef,LoopEntry));\nloop invariant ab >= (1);\nloop invariant (ef >= \\at(ef, LoopEntry)) && ((ab >= (1)) || !(ab < q));\nloop invariant ef == \\at(ef, LoopEntry) + (ab - (1));\nloop invariant (ab < q) ==> (ab - (1) <= 19);\nloop invariant (ab < q) ==> (ef <= \\at(ef, LoopEntry) + 20);\nloop invariant (q < 2) ==> (ab == 1);\nloop invariant (v7 == 1) ==> (v6 == 1 + (ab - 1));\nloop invariant ef >= \\at(ef, LoopEntry) + (ab - 1);\nloop invariant ef == \\at(ef, LoopEntry) + ab - 1;\nloop invariant ab <= 21;\nloop invariant v7 == (\\at(v7,Pre));\nloop invariant q == (\\at(q,Pre));\nloop invariant (ab - 1) % 21 >= 0;"
       }
     ],
     "verified": true,
@@ -52113,7 +52113,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant n >= \\at(n, LoopEntry);\nloop invariant h >= (1);\nloop invariant (p3 < (1)) ==> (h == (1));\nloop invariant (int)(\\at(n, LoopEntry) < 5) ==> (h == (1) + (n - \\at(n, LoopEntry)));\nloop invariant (int)(\\at(n, LoopEntry) >= 5) ==> ((h == (1)) && (e == (1)) && (b == (1)));\nloop invariant 0 <= n - \\at(n, LoopEntry);\nloop invariant n - \\at(n, LoopEntry) < 5 ==> h == (1) + (n - \\at(n, LoopEntry));\nloop invariant n - \\at(n, LoopEntry) >= 5 ==> n == \\at(n, LoopEntry) + (5 - \\at(n, LoopEntry)) + 1;\nloop invariant n - \\at(n, LoopEntry) >= 5 ==> h == (1) + (5 - \\at(n, LoopEntry));\nloop invariant n - \\at(n, LoopEntry) >= 5 ==> b >= (1);"
+        "value": "loop invariant n >= \\at(n, LoopEntry);\nloop invariant h >= (1);\nloop invariant (p3 < (1)) ==> (h == (1));\nloop invariant (\\at(n, LoopEntry) < 5) ==> (h == (1) + (n - \\at(n, LoopEntry)));\nloop invariant (\\at(n, LoopEntry) >= 5) ==> ((h == (1)) && (e == (1)) && (b == (1)));\nloop invariant 0 <= n - \\at(n, LoopEntry);\nloop invariant n - \\at(n, LoopEntry) < 5 ==> h == (1) + (n - \\at(n, LoopEntry));\nloop invariant n - \\at(n, LoopEntry) >= 5 ==> n == \\at(n, LoopEntry) + (5 - \\at(n, LoopEntry)) + 1;\nloop invariant n - \\at(n, LoopEntry) >= 5 ==> h == (1) + (5 - \\at(n, LoopEntry));\nloop invariant n - \\at(n, LoopEntry) >= 5 ==> b >= (1);"
       }
     ],
     "verified": true,
@@ -52761,7 +52761,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant (0 <= lim) && (lim <= 20);\nloop invariant (0 <= gamma) && (gamma <= 20);\nloop invariant p == 1 ==> tot == 1 && q3 == 1;\nloop invariant p >= 1;\nloop invariant (gamma == 1) ==> (tot == p && q3 == 1);\nloop invariant \\at(acc, LoopEntry) + (p - (1)) == acc;\nloop invariant p <= lim + 1;\nloop invariant acc == \\at(acc, LoopEntry) + p - 1;\nloop invariant (p == 0) ==> (tot == (1));\nloop invariant (p == 0) ==> (q3 == (1));\nloop invariant tot == tot + 0;\nloop invariant q3 == q3 + 0;\nloop invariant tot >= 0;\nloop invariant q3 >= 0;"
+        "value": "loop invariant (0 <= lim) && (lim <= 20);\nloop invariant (0 <= gamma) && (gamma <= 20);\nloop invariant p == 1 ==> tot == 1 && q3 == 1;\nloop invariant p >= 1;\nloop invariant (gamma == 1) ==> (tot == p && q3 == 1);\nloop invariant \\at(acc, LoopEntry) + (p - (1)) == acc;\nloop invariant p <= lim + 1;\nloop invariant acc == \\at(acc, LoopEntry) + p - 1;\nloop invariant (p == 0) ==> (tot == (1));\nloop invariant (p == 0) ==> (q3 == (1));\nloop invariant tot >= 0;\nloop invariant q3 >= 0;"
       }
     ],
     "verified": true,
@@ -52851,7 +52851,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant v0 >= (1);\nloop invariant v0 == (1) + (v0 - (1));\nloop invariant (v0 == (1)) || (v0 > (1));\nloop invariant u >= 1;\nloop invariant (ctr == 1) ==> (u == v0);"
+        "value": "loop invariant v0 >= (1);\nloop invariant (v0 == (1)) || (v0 > (1));\nloop invariant u >= 1;\nloop invariant (ctr == 1) ==> (u == v0);"
       }
     ],
     "verified": true,
@@ -52977,7 +52977,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant f >= 0 && f <= 5;\nloop invariant g >= 0 && g <= 5;\nloop invariant j >= 1;\nloop invariant p3 >= 1;\nloop invariant (p3 <= g) || (p3 == g + 1);\nloop invariant p3 == (1) + (p3 - (1));\nloop invariant p3 - 1 >= 0;\nloop invariant p3 <= g + 1;\nloop invariant p3 == (1) ==> j == (1) && nxt == (1);"
+        "value": "loop invariant f >= 0 && f <= 5;\nloop invariant g >= 0 && g <= 5;\nloop invariant j >= 1;\nloop invariant p3 >= 1;\nloop invariant (p3 <= g) || (p3 == g + 1);\nloop invariant p3 - 1 >= 0;\nloop invariant p3 <= g + 1;\nloop invariant p3 == (1) ==> j == (1) && nxt == (1);"
       }
     ],
     "verified": true,
@@ -53031,7 +53031,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant 1 <= n;\nloop invariant s == 1 + h + h*h + (s - 1 - h - h*h);\nloop invariant s >= 1;\nloop invariant 0 <= d && d <= 50;\nloop invariant n == 1 ==> s == 1;\nloop invariant n == 1 ==> cd == 1;\nloop invariant n <= 100;"
+        "value": "loop invariant 1 <= n;\nloop invariant s >= 1;\nloop invariant 0 <= d && d <= 50;\nloop invariant n == 1 ==> s == 1;\nloop invariant n == 1 ==> cd == 1;\nloop invariant n <= 100;"
       }
     ],
     "verified": true,
@@ -53157,7 +53157,7 @@
       },
       {
         "from": "gpt",
-        "value": "loop invariant (c < k) ==> (0 <= c) && (c <= 50);\nloop invariant (c == 1) || (c > 1);\nloop invariant x >= 1;\nloop invariant (c == 1) ==> (x == (1)) && (y == (1));\nloop invariant c >= 1;\nloop invariant c <= 50;\nloop invariant 0 <= z <= 50;\nloop invariant x == x + 0;\nloop invariant 0 <= k && k < 51;\nloop invariant 0 <= z && z < 51;"
+        "value": "loop invariant (c < k) ==> (0 <= c) && (c <= 50);\nloop invariant (c == 1) || (c > 1);\nloop invariant x >= 1;\nloop invariant (c == 1) ==> (x == (1)) && (y == (1));\nloop invariant c >= 1;\nloop invariant c <= 50;\nloop invariant 0 <= z <= 50;\nloop invariant 0 <= k && k < 51;\nloop invariant 0 <= z && z < 51;"
       }
     ],
     "verified": true,

@@ -33,6 +33,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from rl_pipeline.common import prompts  # noqa: E402
+from rl_pipeline.common.acsl_parser import parse_scalar_invariant  # noqa: E402
 from rl_pipeline.common.program import (  # noqa: E402
     Program,
     parse_program,
@@ -70,6 +71,7 @@ _C_INTEGER_CAST = re.compile(
 )
 _UNKNOWN_CALL = re.compile(r"\bunknown\w*\s*\(")
 _DIRECT_UNKNOWN_CALL = re.compile(r"^\s*unknown\w*\s*\(\s*\)\s*$")
+_UNICODE_OPERATORS = str.maketrans({"≤": "<=", "≥": ">=", "≠": "!=", "∧": "&&", "∨": "||"})
 
 
 def _program_suffix(message: str) -> tuple[str, str]:
@@ -356,6 +358,18 @@ def _rewrite_fixed_powers(expression: str) -> tuple[str, int]:
             break
         if not changed:
             return normalize_invariant(result), rewritten
+
+
+def _canonicalize_interface(expression: str) -> tuple[str, Counter[str]]:
+    """Normalize semantics-preserving legacy notation to the current interface."""
+    changes: Counter[str] = Counter()
+    translated = expression.translate(_UNICODE_OPERATORS)
+    if translated != expression:
+        changes["unicode_operator_normalized"] += 1
+    without_casts, cast_count = _C_INTEGER_CAST.subn("", translated)
+    if cast_count:
+        changes["integer_cast_removed"] += cast_count
+    return normalize_invariant(without_casts), changes
 
 
 def _split_top_level_operator(expression: str, operator: str) -> tuple[str, str] | None:
@@ -652,6 +666,18 @@ def _obvious_tautology(expression: str) -> bool:
     return left == right
 
 
+def _obvious_logical_tautology(expression: str) -> bool:
+    """Recognize a top-level implication/disjunction with an obvious true arm."""
+    expression = _strip_outer_parentheses(normalize_invariant(expression))
+    implication = _split_top_level_operator(expression, "==>")
+    if implication is not None:
+        return _obvious_tautology(implication[1])
+    disjunction = _split_top_level_operator(expression, "||")
+    if disjunction is not None:
+        return any(_obvious_tautology(part) for part in disjunction)
+    return False
+
+
 _LOGIC_TOKEN = re.compile(
     r"\s*("
     r"<==>|==>|&&|\|\||==|!=|<=|>=|<<|>>|"
@@ -840,13 +866,15 @@ class _LogicParser:
 
 def _universally_true(expression: str) -> bool:
     """Prove a supported scalar clause valid; return False on any uncertainty."""
-    if _obvious_tautology(expression):
+    if _obvious_tautology(expression) or _obvious_logical_tautology(expression):
         return True
-    # Most atomic invariants are intentionally informative.  Entry-value
-    # equalities are the exception: archived answers contain algebraic identities
-    # such as ``x == x0 + (x - x0)`` that are not caught by reflexive spelling.
+    # Most atomic inequalities are intentionally informative. Equalities and
+    # entry-value formulas are the exceptions: archived answers contain
+    # algebraic identities such as ``x == x0 + (x - x0)`` and cast-normalized
+    # forms whose two sides differ only by ``0 * y``.
     if (
         "\\at(" not in expression
+        and "==" not in expression
         and not any(operator in expression for operator in ("==>", "<==>", "||", "&&"))
     ):
         return False
@@ -911,6 +939,89 @@ def _remove_subsumed_constant_bounds(invariants: Sequence[str]) -> tuple[list[st
     return [value for index, value in enumerate(invariants) if index not in dropped], len(dropped)
 
 
+def _simple_update_delta(rhs: str, variable: str, operator: str) -> int | None:
+    """Return a constant additive delta for one simple scalar update."""
+    if operator == "++":
+        return 1
+    if operator == "--":
+        return -1
+    rhs = _strip_outer_parentheses(rhs.strip())
+    if operator in {"+=", "-="} and re.fullmatch(r"[+-]?\d+", rhs):
+        value = int(rhs)
+        return value if operator == "+=" else -value
+    if operator != "=":
+        return None
+    escaped = re.escape(variable)
+    direct = re.fullmatch(rf"{escaped}\s*([+-])\s*(\d+)", rhs)
+    reverse = re.fullmatch(rf"(\d+)\s*\+\s*{escaped}", rhs)
+    if direct:
+        return int(direct.group(2)) * (1 if direct.group(1) == "+" else -1)
+    if reverse:
+        return int(reverse.group(1))
+    return None
+
+
+def _synchronous_linear_relation(
+    program: Program, existing: Sequence[str]
+) -> str | None:
+    """Synthesize one conservation law for two unconditional constant updates.
+
+    This deliberately handles only a narrow, auditable pattern. Every write to
+    either variable must be the same single top-level loop-body statement; the
+    resulting candidate is still sent through Houdini/WP before retention.
+    """
+    if any(
+        "==" in clause.replace("==>", "").replace("<==>", "")
+        for clause in existing
+    ):
+        return None
+    body = strip_noncontract_comments(program.loop.body)
+    if re.search(r"\bcontinue\b", body):
+        return None
+    update = re.compile(
+        r"(?:(?P<prefix>\+\+|--)\s*(?P<prefix_name>[A-Za-z_]\w*)|"
+        r"(?P<name>[A-Za-z_]\w*)\s*(?P<operator>\+\+|--|\+=|-=|\*=|/=|%=|=(?!=))"
+        r"\s*(?P<rhs>[^;]*))\s*;"
+    )
+    writes: dict[str, list[tuple[int, str, str]]] = {}
+    for match in update.finditer(body):
+        name = match.group("prefix_name") or match.group("name")
+        if name not in program.pre_vars:
+            continue
+        operator = match.group("prefix") or match.group("operator")
+        rhs = "" if match.group("prefix") else match.group("rhs")
+        depth = body[: match.start()].count("{") - body[: match.start()].count("}")
+        writes.setdefault(name, []).append((depth, operator, rhs))
+
+    mentioned = {
+        identifier
+        for clause in existing
+        for identifier in _IDENTIFIER.findall(_AT_CALL.sub(" ", clause))
+        if identifier in program.pre_vars
+    }
+    resolve = _loop_entry_resolver(program)
+    linear: list[tuple[str, int, str]] = []
+    for variable in program.pre_vars:
+        entries = writes.get(variable, [])
+        if variable not in mentioned or len(entries) != 1 or entries[0][0] != 0:
+            continue
+        delta = _simple_update_delta(entries[0][2], variable, entries[0][1])
+        entry, _requires_loop_entry = resolve(variable)
+        if delta in {None, 0} or entry is None:
+            continue
+        linear.append((variable, delta, entry))
+    if len(linear) < 2:
+        return None
+    left, right = linear[0], linear[1]
+    left_change = f"({left[0]} - ({left[2]}))"
+    right_change = f"({right[0]} - ({right[2]}))"
+    if left[1] == right[1]:
+        return normalize_invariant(f"{left_change} == {right_change}")
+    return normalize_invariant(
+        f"{right[1]} * {left_change} == {left[1]} * {right_change}"
+    )
+
+
 def _rejection_reason(invariant: str, program: Program) -> str | None:
     """Return the first reason a clause violates the deployed prompt/interface."""
     clause = normalize_invariant(invariant)
@@ -943,6 +1054,9 @@ def _rejection_reason(invariant: str, program: Program) -> str | None:
         return "helper_function"
     if out_of_scope_ids(clause, program.pre_vars):
         return "out_of_scope"
+    verdict = parse_scalar_invariant(clause, program)
+    if not verdict.valid:
+        return f"interface_{verdict.reason}"
     if _universally_true(clause):
         return "tautology"
 
@@ -953,7 +1067,7 @@ def _rejection_reason(invariant: str, program: Program) -> str | None:
 
 
 def _static_clean_invariants(
-    answer: str, program: Program
+    answer: str, program: Program, *, propose_relations: bool = False
 ) -> tuple[
     list[str], Counter[str], Counter[str], list[dict[str, Any]], list[dict[str, Any]]
 ]:
@@ -970,7 +1084,9 @@ def _static_clean_invariants(
     for invariant in extracted:
         minimized, loopentry_changes = _minimize_loop_entry(invariant, program)
         transformations.update(loopentry_changes)
-        rewritten, rewrite_count = _rewrite_fixed_powers(minimized)
+        canonical, interface_changes = _canonicalize_interface(minimized)
+        transformations.update(interface_changes)
+        rewritten, rewrite_count = _rewrite_fixed_powers(canonical)
         if rewrite_count:
             transformations["fixed_power_calls_expanded"] += rewrite_count
             transformations["clauses_with_fixed_power_expansion"] += 1
@@ -1005,6 +1121,11 @@ def _static_clean_invariants(
     reasons["guarded_copy"] += guarded_copies
     deduplicated, subsumed = _remove_subsumed_constant_bounds(deduplicated)
     reasons["subsumed_bound"] += subsumed
+    if propose_relations:
+        relation = _synchronous_linear_relation(program, deduplicated)
+        if relation is not None and _rejection_reason(relation, program) is None:
+            deduplicated.append(relation)
+            transformations["synchronous_relations_proposed"] += 1
     retained = set(deduplicated)
     for decision in power_decisions:
         if decision["static_decision"] == "candidate":
@@ -1255,7 +1376,9 @@ def sanitize_sft_records(
             row_transformed,
             derived,
             power_decisions,
-        ) = _static_clean_invariants(old_answer, program)
+        ) = _static_clean_invariants(
+            old_answer, program, propose_relations=verify
+        )
         removed.update(row_removed)
         transformed.update(row_transformed)
         if "power(" in old_answer:

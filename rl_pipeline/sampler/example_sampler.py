@@ -12,17 +12,19 @@ union is the sampled reachable set. We produce:
     ("real prefix + this state"); an over-run continuation is one group.
     A rollout rejects a history iff some invariant is false at ANY witness.
 
-Three negative-candidate families:
+Four negative-candidate families:
   * relation : small perturbations (±1, ±2) around DENSE sampled bases and
     observed terminal transitions;
   * over-run : the body executed past an observed genuine exit;
   * escape   : the nearest ladder step in each direction that leaves the
     variable's sampled range.
+  * frame    : perturb a variable that the loop never writes while preserving
+    its exact Pre/LoopEntry snapshot.
 
 Families have independent trace budgets (320 relation, 64 over-run, 128
-escape).  Candidates are selected round-robin across structural buckets, so a
-large collection of easy range violations cannot crowd relational witnesses
-out of the score.
+escape, 64 frame). Candidates are selected round-robin across structural
+buckets, so a large collection of easy range/frame violations cannot crowd
+relational witnesses out of the score.
 
 Conservative filters (a reachable state mislabeled as negative would distort
 the tightness signal):
@@ -74,10 +76,12 @@ _RELATION_GROUP_BUDGET = 320
 _RELATION_FALLBACK_BUDGET = 64
 _OVERRUN_GROUP_BUDGET = 64
 _ESCAPE_GROUP_BUDGET = 128
+_FRAME_GROUP_BUDGET = 64
 _NEGATIVE_GROUP_BUDGET = (
     _RELATION_GROUP_BUDGET
     + _OVERRUN_GROUP_BUDGET
     + _ESCAPE_GROUP_BUDGET
+    + _FRAME_GROUP_BUDGET
 )
 
 
@@ -304,18 +308,39 @@ class ExampleSampler:
     def _untracked_body_state(cls, prog: Program, loop_idx: int = 0) -> Set[str]:
         """Names assigned in the body but absent from the loop-head valuation.
 
-        This includes block-local temporaries and unsupported state shapes. A
-        projected trace is not a complete transition state in that case, so
-        finite perturbations cannot safely be labeled as negatives.
+        Ordinary block-local temporaries are deliberately excluded: their
+        lifetime ends before the next loop head, so they are transition-local
+        values rather than omitted persistent state. A non-local assigned name
+        that is absent from ``pre_vars`` still makes the projected trace
+        incomplete, so finite perturbations cannot safely be labeled negative.
         """
         loop = prog.loops[loop_idx]
         body = prog.source[loop.body_open + 1:loop.body_close]
-        return cls._assigned_names(body) - set(prog.pre_vars)
+        body_locals: Set[str] = set()
+        declaration = re.compile(
+            r"\b(?P<storage>static\s+)?"
+            r"(?:(?:unsigned|signed|long|short|const|volatile)\s+)*"
+            r"(?:int|long|short|char|_Bool|unsigned|signed)\s+(?P<decls>[^;{}]+);"
+        )
+        for match in declaration.finditer(body):
+            # A static block local persists between iterations and therefore
+            # really is omitted loop-head state. Keep it in the unsafe set.
+            if match.group("storage"):
+                continue
+            for declarator in match.group("decls").split(","):
+                name = declarator.partition("=")[0].strip()
+                if "*" in name or "[" in name:
+                    continue
+                if re.fullmatch(r"[A-Za-z_]\w*", name):
+                    body_locals.add(name)
+        return cls._assigned_names(body) - set(prog.pre_vars) - body_locals
 
     @staticmethod
     def _body_calls_function(prog: Program, loop_idx: int = 0) -> bool:
         loop = prog.loops[loop_idx]
         body = prog.source[loop.body_open + 1:loop.body_close]
+        # ACSL annotations describe proof obligations, not executable calls.
+        body = re.sub(r"/\*.*?\*/|//[^\n]*", " ", body, flags=re.DOTALL)
         calls = set(re.findall(r"\b([A-Za-z_]\w*)\s*\(", body))
         return bool(calls - {
             "if", "while", "for", "switch", "sizeof",
@@ -523,6 +548,48 @@ class ExampleSampler:
                     ))
         return out
 
+    def _frame_negatives(
+        self,
+        prog: Program,
+        bases: List[State],
+        loop_idx: int = 0,
+    ) -> List[_NegativeCandidate]:
+        """Break variables that the loop transition never assigns.
+
+        These witnesses remain unreachable even when execution is capped or
+        oracle-controlled: for a fixed ``LoopEntry`` snapshot, a variable that
+        neither the guard nor body writes must retain that value at every loop
+        head. They are kept in a separate family because frame discrimination
+        is easier than discovering the loop's changing-state relation.
+        """
+        loop = prog.loops[loop_idx]
+        body = prog.source[loop.body_open + 1:loop.body_close]
+        assigned = self._assigned_names(body) | self._assigned_names(loop.guard or "")
+        framed = [name for name in prog.pre_vars if name not in assigned]
+        unsigned = set(prog.unsigned_vars)
+        out: List[_NegativeCandidate] = []
+        for base in bases:
+            for name in framed:
+                if name not in base.vars or name not in base.loop_entry:
+                    continue
+                # Only use a witnessed frame equality. This also avoids treating
+                # a pre-loop initialization as though it happened in the loop.
+                if base.vars[name] != base.loop_entry[name]:
+                    continue
+                deltas = (1, 2) if name in unsigned else (1, -1)
+                for delta in deltas:
+                    values = dict(base.vars)
+                    values[name] += delta
+                    out.append(_NegativeCandidate(
+                        state=State(
+                            vars=values,
+                            pre=dict(base.pre),
+                            loop_entry=dict(base.loop_entry),
+                        ),
+                        bucket=(name, 1 if delta > 0 else -1),
+                    ))
+        return out
+
     @staticmethod
     def _round_robin(
         candidates: List[_NegativeCandidate], limit: int
@@ -566,7 +633,10 @@ class ExampleSampler:
                 if v not in set(analysis_prog.params)
             ] or list(analysis_prog.pre_vars)
 
-        reachable = {s.vars_key() for s in positives}
+        # Reachability is relative to the same function-entry and loop-entry
+        # snapshots. A current valuation reached under another input is not a
+        # reachable counterexample to a labelled invariant for this input.
+        reachable = {s.key() for s in positives}
         entry_feasible = self._entry_feasible_fn(prog)
         seen: set = set()
 
@@ -574,6 +644,7 @@ class ExampleSampler:
             candidates: List[_NegativeCandidate],
             limit: int,
             fallback_limit: int | None = None,
+            filter_fresh_entry: bool = True,
         ) -> List[State]:
             """Filter, stratify, and commit only candidates that are emitted."""
             selected: List[_NegativeCandidate] = []
@@ -584,10 +655,10 @@ class ExampleSampler:
                     if candidate.preferred != preferred:
                         continue
                     state = candidate.state
-                    key = state.vars_key()
+                    key = state.key()
                     if key in reachable or key in seen or key in local_seen:
                         continue
-                    if entry_feasible(state):
+                    if filter_fresh_entry and entry_feasible(state):
                         continue
                     local_seen.add(key)
                     admissible.append(candidate)
@@ -603,7 +674,7 @@ class ExampleSampler:
                 if len(chosen) < len(admissible) and len(selected) == limit:
                     break
             states = [candidate.state for candidate in selected]
-            seen.update(state.vars_key() for state in states)
+            seen.update(state.key() for state in states)
             return states
 
         def select_overrun_groups() -> List[List[State]]:
@@ -618,7 +689,7 @@ class ExampleSampler:
                 group: List[State] = []
                 local_seen: Set[Tuple] = set()
                 for state in by_run[run]:
-                    key = state.vars_key()
+                    key = state.key()
                     if key in reachable or key in seen or key in local_seen:
                         continue
                     if entry_feasible(state):
@@ -628,7 +699,7 @@ class ExampleSampler:
                 if not group:
                     continue
                 selected_groups.append(group)
-                seen.update(state.vars_key() for state in group)
+                seen.update(state.key() for state in group)
             return selected_groups
 
         nondet_body = self._body_nondeterministic(analysis_prog, 0)
@@ -648,13 +719,24 @@ class ExampleSampler:
             bool(untracked) or body_call or unsupported_state
             or ((nondet or nondet_body) and not movable)
         )
+        zero_blockers: List[str] = []
+        if untracked:
+            zero_blockers.append("persistent_untracked_state")
+        if body_call:
+            zero_blockers.append("body_call")
+        if unsupported_state:
+            zero_blockers.append("unsupported_state")
+        if (nondet or nondet_body) and not movable:
+            zero_blockers.append("nondeterministic_no_safe_axis")
 
         # Family priority for cross-family de-duplication is intentional:
-        # relation > over-run > escape.  Each family keeps its own budget; an
-        # under-filled easy family never consumes relational capacity.
+        # relation > over-run > escape > frame. Each family keeps its own
+        # budget; an under-filled easy family never consumes relational
+        # capacity.
         relation: List[State] = []
         overrun_groups: List[List[State]] = []
         escape: List[State] = []
+        frame: List[State] = []
         random_states: List[State] = []
         if not uncontrolled:
             if self.negative_sampler == "random":
@@ -685,7 +767,7 @@ class ExampleSampler:
                         pre=dict(base.pre),
                         loop_entry=dict(base.loop_entry),
                     )
-                    key = state.vars_key()
+                    key = state.key()
                     if key in reachable or key in seen or entry_feasible(state):
                         continue
                     seen.add(key)
@@ -709,6 +791,19 @@ class ExampleSampler:
                         self._escape_negatives(movable, bases, positives),
                         _ESCAPE_GROUP_BUDGET,
                     )
+        # Frame witnesses do not depend on termination or on a deterministic
+        # update axis, so they remain available when nondeterminism blocks the
+        # other structured families. Hidden state/calls can invalidate the
+        # projected no-write argument, hence the state-completeness blockers.
+        if (
+            self.negative_sampler == "structured"
+            and not (untracked or body_call or unsupported_state)
+        ):
+            frame = select_candidates(
+                self._frame_negatives(analysis_prog, bases),
+                _FRAME_GROUP_BUDGET,
+                filter_fresh_entry=False,
+            )
 
         negatives: List[State] = []
         groups: List[List[int]] = []
@@ -727,6 +822,11 @@ class ExampleSampler:
         for state in random_states:
             groups.append([len(negatives)])
             negatives.append(state)
+        for state in frame:
+            groups.append([len(negatives)])
+            negatives.append(state)
+        if groups:
+            zero_blockers = []
 
         stats = {
             "n_traces": len(groups),
@@ -735,18 +835,25 @@ class ExampleSampler:
             "bound_overrun": len(overrun_groups),
             "bound_escape": len(escape),
             "random": len(random_states),
+            "frame": len(frame),
             "negative_sampler": self.negative_sampler,
             "negative_budget": _NEGATIVE_GROUP_BUDGET,
             "relation_budget": _RELATION_GROUP_BUDGET,
             "relation_fallback_budget": _RELATION_FALLBACK_BUDGET,
             "overrun_budget": _OVERRUN_GROUP_BUDGET,
             "escape_budget": _ESCAPE_GROUP_BUDGET,
+            "frame_budget": _FRAME_GROUP_BUDGET,
             "capped": capped,
             "nondet_guard": nondet,
             "nondet_body": nondet_body,
             "untracked_state": sorted(untracked),
             "body_call": body_call,
             "unsupported_state": unsupported_state,
+            "safe_movable": sorted(movable),
+            "tainted_persistent": sorted(
+                set(analysis_prog.pre_vars) & tainted
+            ),
+            "zero_blockers": zero_blockers,
         }
         return negatives, groups, stats
 

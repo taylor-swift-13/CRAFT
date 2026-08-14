@@ -403,6 +403,25 @@ class ParserAndAnnotationRegressionTests(unittest.TestCase):
         self.assertEqual(dict(program.local_inits)["k"], "n % (g + 1)")
         self.assertEqual(dict(program.local_inits)["q"], "4 * (n - g)")
 
+    def test_implicit_int_unsigned_locals_are_tracked(self):
+        source = (
+            "unsigned global; void f(unsigned a, int b) { unsigned x, y, u, v; "
+            "x = a; y = b; u = b; v = a; "
+            "while (x != y) { if (x > y) { x -= y; v += u; } "
+            "else { y -= x; u += v; } } }"
+        )
+
+        program = parse_program(source)
+
+        self.assertEqual(
+            program.pre_vars,
+            ["global", "a", "b", "x", "y", "u", "v"],
+        )
+        self.assertEqual(
+            program.unsigned_vars,
+            ["global", "a", "x", "y", "u", "v"],
+        )
+
     def test_unsupported_loop_shapes_fail_explicitly(self):
         with self.assertRaisesRegex(ValueError, "for loops are not supported"):
             parse_program("void f(void) { for (int i = 0; i < 3; i++) {} }")
@@ -1539,7 +1558,60 @@ class SamplerIntegrationRegressionTests(unittest.TestCase):
         self.assertEqual(ExampleSampler._nondet_tainted(preloop), set())
         self.assertEqual(ExampleSampler._nondet_tainted(in_body), {"x", "y"})
 
-    def test_untracked_block_state_disables_synthetic_negatives(self):
+    def test_zero_negative_stats_explain_no_safe_nondeterministic_axis(self):
+        source = (
+            "int unknown(void); void f(void) { int x = 0; "
+            "while (x < 10) { if (unknown()) x++; } }"
+        )
+
+        examples = ExampleSampler(source, n_runs=1).sample()
+
+        self.assertEqual(examples.neg(0), [])
+        self.assertEqual(examples.stats[0]["safe_movable"], [])
+        self.assertEqual(examples.stats[0]["tainted_persistent"], ["x"])
+        self.assertIn(
+            "nondeterministic_no_safe_axis",
+            examples.stats[0]["zero_blockers"],
+        )
+
+    def test_frame_negatives_survive_capped_oracle_execution(self):
+        source = (
+            "int unknown(void); void f(int n) { int x = 0; int frozen = unknown(); "
+            "while (unknown()) { if (unknown()) x++; } }"
+        )
+
+        examples = ExampleSampler(source, n_runs=1).sample()
+
+        self.assertGreater(examples.stats[0]["frame"], 0)
+        self.assertTrue(any(
+            state.vars["n"] != state.loop_entry["n"]
+            for state in examples.neg(0)
+        ))
+        self.assertTrue(any(
+            state.vars["frozen"] != state.loop_entry["frozen"]
+            for state in examples.neg(0)
+        ))
+
+    def test_reachability_dedup_is_relative_to_pre_and_loop_entry(self):
+        source = (
+            "/*@ requires x >= 0; */ void f(int x) { "
+            "while (1) { int old = x; if (!(old < 268435455)) break; "
+            "x = old + 1; } }"
+        )
+
+        examples = ExampleSampler(source, n_runs=2).sample()
+
+        self.assertGreater(examples.stats[0]["relation"], 0)
+
+    def test_acsl_annotation_calls_do_not_count_as_c_body_calls(self):
+        program = parse_program(
+            "void f(void) { int x = 0; while (x < 1) { "
+            "/*@ assert x == \\old(x); */ x++; } }"
+        )
+
+        self.assertFalse(ExampleSampler._body_calls_function(program))
+
+    def test_automatic_block_temporary_is_not_loop_head_state(self):
         source = (
             "void f(void) { int x = 0; while (x < 10) { "
             "int temporary = x; temporary++; x++; } }"
@@ -1547,8 +1619,19 @@ class SamplerIntegrationRegressionTests(unittest.TestCase):
 
         examples = ExampleSampler(source, n_runs=1).sample()
 
+        self.assertGreater(len(examples.neg(0)), 0)
+        self.assertEqual(examples.stats[0]["untracked_state"], [])
+
+    def test_static_block_local_remains_untracked_persistent_state(self):
+        source = (
+            "void f(void) { int x = 0; while (x < 10) { "
+            "static int hidden = 0; hidden++; x++; } }"
+        )
+
+        examples = ExampleSampler(source, n_runs=1).sample()
+
         self.assertEqual(examples.neg(0), [])
-        self.assertEqual(examples.stats[0]["untracked_state"], ["temporary"])
+        self.assertEqual(examples.stats[0]["untracked_state"], ["hidden"])
 
 
 class InferenceRegressionTests(unittest.TestCase):

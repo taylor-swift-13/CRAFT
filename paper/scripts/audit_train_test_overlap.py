@@ -30,8 +30,8 @@ from rl_pipeline.common.program import (  # noqa: E402
 )
 
 
-TRAIN_PARQUET = ROOT / "traindata" / "craft_rl_clean.parquet"
-SFT_JSON = ROOT / "traindata" / "craft_sft_clean.json"
+TRAIN_PARQUET = ROOT / "traindata" / "craft_rl_negative_complete.parquet"
+SFT_JSON = ROOT / "traindata" / "craft_sft_negative_complete.json"
 SYSTEM_PROMPT = ROOT / "prompt" / "system_prompt.txt"
 USER_PROMPT = ROOT / "prompt" / "generate_prompt.txt"
 EVAL_DIRS = (

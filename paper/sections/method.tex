@@ -8,20 +8,23 @@
 For a target-masked loop \(\mathcal L\), the model emits ACSL loop-invariant
 annotations~\citep{acsl}.  Parsing extracts each
 \texttt{loop invariant ...;} annotation as one clause; normalization turns
-response \(i\) into
-\(A_i=(a_{i1},\ldots,a_{im_i})\).  We cap it at \(K\) clauses,
-\(\bar A_i=(a_{i1},\ldots,a_{i,\min(m_i,K)})\), with overflow
+response \(i\) into the clause sequence
+\(A_i=\langle a_{i1},\ldots,a_{im_i}\rangle\).  We cap it at \(K\) clauses,
+\(\bar A_i=\langle a_{i1},\ldots,a_{i,\min(m_i,K)}\rangle\), with overflow
 \(o(A_i)=\max(0,m_i-K)\).  Extraction makes the annotation, rather than the complete
-response, the unit that can survive filtering and earn credit.
+response, the unit that can survive filtering and earn credit.  We write
+\(\operatorname{set}(\bar A_i)\) for the underlying clause set when applying
+set operations.
 
 Given \(G\) responses, RCF unions their clauses,
 \[
-  X_0=\bigcup_{i=1}^{G}\bar A_i,
+  C_G^{\mathrm{pool}}=
+  \bigcup_{i=1}^{G}\operatorname{set}(\bar A_i),
 \]
 then iteratively removes syntax failures and applies Houdini to delete clauses
 whose establishment or preservation obligations fail
 ~\citep{flanagan2001houdini}.  We write the resulting inductive subset as
-\(\mathsf{Filter}_{\mathcal L}(X_0)\).  Conjoining valid clauses preserves
+\(\mathsf{Filter}_{\mathcal L}(C_G^{\mathrm{pool}})\).  Conjoining valid clauses preserves
 validity and can combine a bound from one response with a relation from
 another; filtering salvages such clauses from otherwise imperfect responses
 but cannot invent a missing relation.  Algorithm~\ref{alg:rcf} is shared by
@@ -33,26 +36,71 @@ SFT synthesis and deployment.
 \begin{algorithmic}
 \alginput{masked loop \(\mathcal L\), parsed clause sequences \(A_{1:G}\), cap \(K\)}
 \algoutput{filtered clause set \(C\)}
-\algline \(C\leftarrow\bigcup_i
-  \operatorname{Cap}_K(\operatorname{Normalize}(A_i))\)\\
+\algline \(C\leftarrow\bigcup_i\operatorname{set}\!\left(
+  \operatorname{Cap}_K(\operatorname{Normalize}(A_i))\right)\)\\
 \algline \(C\leftarrow\operatorname{ConservativeDedup}(C)\)\\
 \algline \kw{repeat}\\
-\algline \algind \(E\leftarrow\operatorname{ParserErrors}(\mathcal L,C)\); \(C\leftarrow C\setminus E\)\\
-\algline \kw{until} \(E=\varnothing\) or \(C=\varnothing\)\\
+\algline \algind \(C_{\mathrm{parse}}\leftarrow
+  \operatorname{ParserErrors}(\mathcal L,C)\);
+  \(C\leftarrow C\setminus C_{\mathrm{parse}}\)\\
+\algline \kw{until} \(C_{\mathrm{parse}}=\varnothing\) or \(C=\varnothing\)\\
 \algline \kw{repeat}\\
-\algline \algind \(D\leftarrow\{c\in C:
-  \neg\operatorname{WP}_{\rm est,pres}(\mathcal L,C,c)\}\);
-  \(C\leftarrow C\setminus D\)\\
-\algline \kw{until} \(D=\varnothing\) or \(C=\varnothing\)\\
+\algline \algind \(C_{\mathrm{drop}}\leftarrow\{c\in C:
+  \neg\operatorname{WP}_{\mathrm{est,pres}}(\mathcal L,C,c)\}\);
+  \(C\leftarrow C\setminus C_{\mathrm{drop}}\)\\
+\algline \kw{until} \(C_{\mathrm{drop}}=\varnothing\) or \(C=\varnothing\)\\
 \algline \kw{return} \(C\)\\
 \end{algorithmic}
 \end{algorithm}
 
+The following statements formalize the composition used by RCF; all proofs
+are deferred to Appendix~\ref{app:composition-proofs}.
+
+\begin{proposition}[Closure and strengthening under conjunction]
+\label{prop:conjunctive-closure}
+Let \(I_1,\ldots,I_m\) be valid invariants of the same loop, for finite
+\(m\ge 1\).  Then \(I=\bigwedge_{j=1}^{m}I_j\) is valid and implies every
+\(I_j\), i.e., \(I\preceq I_j\).  Moreover, \(I\prec I_j\) exactly when
+\(I_j\not\Rightarrow\bigwedge_{\ell\ne j}I_\ell\).
+\end{proposition}
+
+\begin{proposition}[Mutually supported composition]
+\label{prop:mutual-support}
+Let \(C=\{c_1,\ldots,c_m\}\) be any finite set of candidate clauses.  The
+conjunction \(I_C\) is a valid invariant
+whenever
+
+\[
+  P\Rightarrow I_C,
+  \qquad
+  \forall j,\ \{I_C\wedge B\}\,S\,\{c_j\}.
+\]
+
+Individual obligations
+\(\{c_j\wedge B\}\,S\,\{c_j\}\) need not hold: preservation may be supplied
+by any number of companion clauses in \(C\).  Mutual support cannot, however,
+repair a clause that fails establishment from \(P\).  The resulting valid
+invariant satisfies \(I_C\preceq c_j\), with \(I_C\prec c_j\) whenever
+\(c_j\not\Rightarrow I_{C\setminus\{c_j\}}\).
+\end{proposition}
+
+\begin{theorem}[Candidate-relative optimality of ideal Houdini]
+\label{thm:houdini-greatest}
+For a finite parser-admitted pool \(C\), assume exact decisions for all
+establishment and preservation obligations in Algorithm~\ref{alg:rcf}.
+Its fixed point \(\mathsf H_{\mathcal L}(C)\) is jointly inductive, and every
+jointly inductive subset \(C'\subseteq C\) satisfies
+\(C'\subseteq\mathsf H_{\mathcal L}(C)\).  Consequently,
+\(I_{\mathsf H_{\mathcal L}(C)}\preceq I_{C'}\): the result is the strongest
+conjunction expressible as a subset of \(C\).  This maximality is relative to
+the supplied pool and the exact-oracle assumption.
+\end{theorem}
+
 RL scoring additionally removes clauses contradicted by observed reachable
 states \(\mathcal P\) before Houdini:
 \[
-  \mathsf{PF}_{\mathcal P}(X)
-  =\{a\in X:\forall p\in\mathcal P,\ p\models a\}.
+  \mathsf{PF}_{\mathcal P}(C)
+  =\{c\in C:\forall p\in\mathcal P,\ p\models c\}.
 \]
 This positive filter is a cheap refutation step, not a validity proof;
 Frama-C/WP remains the authority.  It is used only for RL scoring; deployment
@@ -62,14 +110,17 @@ Appendix~\ref{app:constants} gives normalization and filtering details.
 \subsection{Distilling Multi-Response Search}
 \label{sec:method:sft}
 
-For each masked loop \(\mathcal L\) in the training set \(\mathcal T\), let
-\(X_0(\mathcal L)\) be a sampled response-group union and
-\(C_{\mathcal L}=\mathsf{Filter}_{\mathcal L}(X_0(\mathcal L))\).  We
+For each masked loop \(\mathcal L\) in the training corpus
+\(\mathcal D_{\mathrm{train}}\), let
+\(C_{\mathcal L}^{\mathrm{pool}}\) be a sampled response-group union and
+\(C_{\mathcal L}^{\mathrm{sft}}=\mathsf{Filter}_{\mathcal L}
+(C_{\mathcal L}^{\mathrm{pool}})\).  We
 serialize every nonempty result as one SFT target:
 \[
   \mathcal D_{\mathrm{SFT}}
-  =\{(\mathcal L,\operatorname{serialize}(C_{\mathcal L})):
-      \mathcal L\in\mathcal T,\ C_{\mathcal L}\neq\varnothing\}.
+  =\{(\mathcal L,\operatorname{serialize}(C_{\mathcal L}^{\mathrm{sft}})):
+      \mathcal L\in\mathcal D_{\mathrm{train}},\
+      C_{\mathcal L}^{\mathrm{sft}}\neq\varnothing\}.
 \]
 Neither input nor target contains \(Q\): SFT serializes a Houdini-retained
 multi-response search result as one response.  Execution states
@@ -91,8 +142,8 @@ family.  Figure~\ref{fig:negative-sampling}, Algorithm~\ref{alg:negative-samplin
 and exact budgets appear in Appendix~\ref{app:negative-sampling}.
 
 Let \(\mathcal N\) be the retained negative traces.  For a retained clause set
-\(X\), \(\mathrm{rej}(X)\subseteq\mathcal N\) contains each trace on which at
-least one clause in \(X\) is false at some recorded state; singleton traces
+\(C\), \(\operatorname{rej}(C)\subseteq\mathcal N\) contains each trace on which at
+least one clause in \(C\) is false at some recorded state; singleton traces
 recover ordinary state rejection.
 
 \subsection{Clause-Decomposed, Group-Compositional Reward}
@@ -101,9 +152,10 @@ recover ordinary state rejection.
 For rollout \(i\), define its verifier-retained subset and rejected negatives
 as
 \[
-  S_i=\mathsf{Filter}_{\mathcal L}
-  (\mathsf{PF}_{\mathcal P}(\bar A_i)),
-  \qquad R_i=\mathrm{rej}(S_i).
+  C_i^{\mathrm{pf}}=
+  \mathsf{PF}_{\mathcal P}(\operatorname{set}(\bar A_i)),\qquad
+  C_i^{\mathrm{train}}=\mathsf{Filter}_{\mathcal L}(C_i^{\mathrm{pf}}),
+  \qquad R_i=\operatorname{rej}(C_i^{\mathrm{train}}).
 \]
 This projection implements \emph{intra-rollout decomposition}: malformed or
 non-inductive clauses are removed without erasing useful clauses in the same
@@ -111,7 +163,7 @@ response.  When retained negatives exist, the reward adds no bonus merely for
 valid syntax or whole-response validity.  The subset receives the dense,
 target-independent strength score
 \[
-  \mathrm{coverage}(A_i)=\frac{|R_i|}{|\mathcal N|}.
+  \operatorname{cov}(A_i)=\frac{|R_i|}{|\mathcal N|}.
 \]
 This and the following allocation apply when \(\mathcal N\neq\varnothing\);
 when the sampler retains none, we use the binary fallback in
@@ -120,7 +172,9 @@ Appendix~\ref{app:grpo-details}.
 Independent coverage, however, rewards a complementary discovery exactly like
 one repeated by every peer.  We therefore allocate the union of the
 standalone-retained rejection sets with the coverage game
-\(v(T)=|\bigcup_{j\in T}R_j|/|\mathcal N|\).  Let
+over rollout indices \(\mathcal G=\{1,\ldots,G\}\): for each coalition
+\(J\subseteq\mathcal G\), let
+\(v(J)=|\bigcup_{j\in J}R_j|/|\mathcal N|\).  Let
 \(f(n)=\sum_{j=1}^{G}\mathbf 1[n\in R_j]\).  The Shapley value of rollout
 \(i\) has the closed form~\citep{shapley1953value}
 \begin{equation}
@@ -138,11 +192,11 @@ the same response earns less group credit when its verified constraints are
 already supplied by peers.
 
 With conservative within-response duplicate count
-\(d_{\rm dup}(A_i)=|\bar A_i|-|\operatorname{dedup}(\bar A_i)|\), the reward is
+\(d_{\mathrm{dup}}(A_i)=|\bar A_i|-|\operatorname{dedup}(\bar A_i)|\), the reward is
 \begin{equation}
 \label{eq:generation-reward}
-  r_i=w_c\,\mathrm{coverage}(A_i)+w_g\phi_i
-      -w_d d_{\rm dup}(A_i)-w_o o(A_i),
+  r_i=w_c\,\operatorname{cov}(A_i)+w_g\phi_i
+      -w_d d_{\mathrm{dup}}(A_i)-w_o o(A_i),
 \end{equation}
 where \((w_c,w_g,w_d,w_o)=(1.0,0.3,0.02,0.05)\).  GRPO normalizes these
 group-conditioned rewards within the sampled response group.  Shapley credit
@@ -157,9 +211,10 @@ policy objective, duplicate normalization, and fallback behavior.
 
 At deployment, RCF samples \(k\) masked responses and produces
 \[
-  X_k=\bigcup_{i=1}^{k}\bar A_i,\qquad
-  C_k=\mathsf{Filter}_{\mathcal L}(X_k),\qquad
-  I_k=\bigwedge_{a\in C_k}a.
+  C_k^{\mathrm{pool}}=
+  \bigcup_{i=1}^{k}\operatorname{set}(\bar A_i),\qquad
+  C_k=\mathsf{Filter}_{\mathcal L}(C_k^{\mathrm{pool}}),\qquad
+  I_k=I_{C_k}.
 \]
 Only then is \(Q\) restored.  The target utility and inference objective are
 \[

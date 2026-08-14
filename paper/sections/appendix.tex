@@ -23,6 +23,119 @@ void f(int k, int z) {
 When visible, the assertion can be copied verbatim as an invariant; when
 hidden, its nonlinear relation must be recovered from the coupled updates.
 
+\section{Proofs of Compositionality}
+\label{app:composition-proofs}
+
+This section contains all proofs for the formal composition claims in
+Section~\ref{sec:method:core}.  Write
+\(\mathcal L=(P,B,S)\), where \(P\) denotes loop-entry states, \(B\) the guard,
+and \(S\) the body transition.
+
+\subsection{Conjunction of Valid Invariants}
+
+\begin{proof}[Proof of Proposition~\ref{prop:conjunctive-closure}]
+For each \(j\), validity gives \(P\Rightarrow I_j\); hence
+\(P\Rightarrow\bigwedge_j I_j=I\).  Suppose \(I\wedge B\) holds before one
+execution of \(S\).  Then \(I_j\wedge B\) holds for every \(j\), so preservation
+of \(I_j\) establishes every \(I_j\) afterward.  Therefore \(I\) is preserved
+and is a valid invariant.
+
+Because a conjunction implies each conjunct, \(I\preceq I_j\).  It satisfies
+\(I\prec I_j\) precisely when the reverse implication fails.
+Since
+
+\[
+  I_j\Rightarrow I
+  \quad\Longleftrightarrow\quad
+  I_j\Rightarrow\bigwedge_{\ell\ne j}I_\ell,
+\]
+
+the stated condition follows.  In particular, two valid invariants form a
+strict strengthening of both exactly when neither invariant implies the
+other; without this non-redundancy condition, conjunction is only guaranteed
+to be no weaker.
+\end{proof}
+
+\subsection{Mutual Support Among Arbitrarily Many Clauses}
+
+\begin{proof}[Proof of Proposition~\ref{prop:mutual-support}]
+The first premise is exactly establishment of \(I_C\).  For preservation,
+assume \(I_C\wedge B\) before executing \(S\).  The second premise establishes
+each \(c_j\) afterward.  Since every conjunct then holds in the same successor
+state, their conjunction \(I_C\) also holds.  Thus
+\(\{I_C\wedge B\}S\{I_C\}\), and \(I_C\) is valid.
+
+No standalone preservation premise appears in this argument.  A clause may
+use all other conjuncts in the pre-state, so clauses that fail preservation
+separately may still be preserved jointly.  Establishment is different:
+\(P\Rightarrow I_C\) implies \(P\Rightarrow c_j\) for every \(j\).  Hence a
+candidate false at some loop-entry state cannot be rescued by conjunction.
+\end{proof}
+
+The phenomenon is not limited to pairs.  For any \(m\ge2\), consider the cyclic
+transition, where \(x_i'\) denotes the value of \(x_i\) after one execution of
+\(S\),
+
+\[
+  x'_1=x_2,\quad x'_2=x_3,\quad\ldots,\quad
+  x'_{m-1}=x_m,\quad x'_m=x_1
+\]
+
+with entry condition \(P\equiv\bigwedge_i x_i=0\), and candidates
+\(c_i\equiv x_i\ge0\).  Each \(c_i\) is established.  It is not preserved
+alone: a state can satisfy \(x_i\ge0\) while its predecessor under the cyclic
+assignment is negative.  Nevertheless, the conjunction
+\(\bigwedge_i x_i\ge0\) is preserved because every successor coordinate is an
+old coordinate constrained by another conjunct.  Thus all \(m\) candidates
+can fail standalone preservation while forming one valid, mutually supported
+invariant.
+
+\subsection{Greatest Jointly Inductive Candidate Subset}
+
+Let \(C_0=C\), and let \(C_{t+1}\subseteq C_t\) be the set remaining after one
+ideal Houdini deletion round in Algorithm~\ref{alg:rcf}.  Because \(C\) is
+finite, this descending sequence reaches the fixed point
+\(\mathsf H_{\mathcal L}(C)\).
+
+\begin{proof}[Proof of Theorem~\ref{thm:houdini-greatest}]
+At the fixed point, every \(c\in\mathsf H_{\mathcal L}(C)\) satisfies
+establishment and preservation under the full conjunction
+\(I_{\mathsf H_{\mathcal L}(C)}\).  Applying
+Proposition~\ref{prop:mutual-support} shows that this conjunction is valid.
+
+It remains to prove greatestness.  Let \(C'\subseteq C\) be any jointly
+inductive subset.  We show by induction over deletion rounds that
+\(C'\subseteq C_t\).  The base case \(C'\subseteq C_0=C\) is immediate.  Assume
+\(C'\subseteq C_t\), and take any \(c\in C'\).  Joint establishment of \(C'\)
+gives \(P\Rightarrow c\), so \(c\) cannot be deleted for establishment.  Joint
+preservation gives
+
+\[
+  \{I_{C'}\wedge B\}\,S\,\{c\}.
+\]
+
+Since \(C'\subseteq C_t\), the antecedent \(I_{C_t}\wedge B\) implies
+\(I_{C'}\wedge B\).  Strengthening a valid Hoare precondition preserves
+validity, so
+
+\[
+  \{I_{C_t}\wedge B\}\,S\,\{c\}
+\]
+
+also holds.  Therefore no member of \(C'\) is deleted in round \(t\), proving
+\(C'\subseteq C_{t+1}\).  At termination,
+\(C'\subseteq\mathsf H_{\mathcal L}(C)\).  Conjunction reverses set inclusion,
+hence \(I_{\mathsf H_{\mathcal L}(C)}\preceq I_{C'}\).
+\end{proof}
+
+The theorem is deliberately candidate-relative: Houdini cannot synthesize a
+missing clause, so it need not recover the strongest invariant expressible in
+the full assertion language.  It is also an ideal-oracle result.  The deployed
+Frama-C/WP backend may time out or fail to prove a valid obligation; such
+clauses are conservatively removed.  The final retained conjunction remains
+accepted by the verifier, but completeness and greatestness are not claimed
+for these resource-bounded executions.
+
 \section{Implementation Details}
 \label{app:constants}
 
@@ -94,32 +207,33 @@ Table~\ref{tab:constants}.
 \begin{algorithmic}
 \alginput{masked loop \(\mathcal L=(P,B,S)\), input schedule \(U\), configuration \(\Theta\)}
 \algoutput{reachable states \(\mathcal P\), negative traces \(\mathcal N\)}
-\algline \(\mathcal T,\mathcal C_{\rm post},c
+\algline \(\mathcal T_{\mathrm{exec}},\mathcal T_{\mathrm{post}},c
   \leftarrow\operatorname{Trace}(\mathcal L,U,\Theta)\)
   \cmnt{\(c\): some run was capped}\\
-\algline \(\mathcal P\leftarrow\operatorname{UniqueHeads}(\mathcal T)\);
+\algline \(\mathcal P\leftarrow\operatorname{UniqueHeads}(\mathcal T_{\mathrm{exec}})\);
   \quad \(M\leftarrow\operatorname{SafeModifiedVars}(S)\)\\
 \algline \kw{if} \(M=\varnothing\) or \(S\) has unsupported state
   \kw{then return} \((\mathcal P,\varnothing)\)\\
-\algline \(\mathcal S\leftarrow
+\algline \(\mathcal P_{\mathrm{sample}}\leftarrow
   \operatorname{StratifiedSample}(\mathcal P)\)\\
-\algline \(C_{\rm rel}\leftarrow
-  \operatorname{Perturb}_{\Theta}(\operatorname{Dense}(\mathcal S),M)\)\\
+\algline \(C_{\mathrm{rel}}\leftarrow
+  \operatorname{Perturb}_{\Theta}(\operatorname{Dense}(\mathcal P_{\mathrm{sample}}),M)\)\\
 \algline \kw{if} \(\neg c\) \kw{then}
-  \(C_{\rm rel}\leftarrow C_{\rm rel}\cup
-  \operatorname{Perturb}_{\Theta}(\operatorname{Terminals}(\mathcal T),M)\)\\
-\algline \(C_{\rm range}\leftarrow
-  \operatorname{RangeEscape}(\mathcal S,M,\mathcal P,\Theta)\) if \(\neg c\),
+  \(C_{\mathrm{rel}}\leftarrow C_{\mathrm{rel}}\cup
+  \operatorname{Perturb}_{\Theta}(\operatorname{Terminals}(\mathcal T_{\mathrm{exec}}),M)\)\\
+\algline \(C_{\mathrm{range}}\leftarrow
+  \operatorname{RangeEscape}(\mathcal P_{\mathrm{sample}},M,\mathcal P,\Theta)\) if \(\neg c\),
   else \(\varnothing\)\\
-\algline \((C_{\rm rel},\mathcal C_{\rm post},C_{\rm range})
+\algline \((C_{\mathrm{rel}},\mathcal T_{\mathrm{post}},C_{\mathrm{range}})
   \leftarrow\operatorname{Clean}_{\mathcal P}
-  (C_{\rm rel},\mathcal C_{\rm post},C_{\rm range})\)\\
-\algline \(N_{\rm rel},\mathcal N_{\rm post},N_{\rm range}
+  (C_{\mathrm{rel}},\mathcal T_{\mathrm{post}},C_{\mathrm{range}})\)\\
+\algline \(\widehat C_{\mathrm{rel}},\mathcal N_{\mathrm{post}},
+  \widehat C_{\mathrm{range}}
   \leftarrow\operatorname{BudgetAndRoundRobin}
-  (C_{\rm rel},\mathcal C_{\rm post},C_{\rm range},\Theta)\)\\
+  (C_{\mathrm{rel}},\mathcal T_{\mathrm{post}},C_{\mathrm{range}},\Theta)\)\\
 \algline \(\mathcal N\leftarrow
-  \{\langle s\rangle:s\in N_{\rm rel}\}\cup\mathcal N_{\rm post}
-  \cup\{\langle s\rangle:s\in N_{\rm range}\}\)\\
+  \{\langle s\rangle:s\in \widehat C_{\mathrm{rel}}\}\cup\mathcal N_{\mathrm{post}}
+  \cup\{\langle s\rangle:s\in \widehat C_{\mathrm{range}}\}\)\\
 \algline \kw{return} \((\mathcal P,\mathcal N)\)\\
 \end{algorithmic}
 \end{algorithm}
@@ -135,10 +249,10 @@ value and remain inside the sampled coordinate ranges are selected first.
 \label{app:grpo-details}
 
 For sampled sequences
-\(o_{1:G}\sim\pi_{\theta_{\rm old}}(\cdot\mid\mathcal L)\), we normalize
+\(o_{1:G}\sim\pi_{\theta_{\mathrm{old}}}(\cdot\mid\mathcal L)\), we normalize
 Equation~\ref{eq:generation-reward} within its group,
 \[
-  \hat A_i=
+  \widehat{\operatorname{Adv}}_i=
   \frac{r_i-\operatorname{mean}_{j}r_j}
        {\operatorname{std}_{j}r_j+10^{-6}},
 \]
@@ -147,12 +261,13 @@ and use the clipped GRPO objective~\citep{shao2024deepseekmath}
 \label{eq:grpo}
   \mathcal J(\theta)=\mathbb E\!\left[
     \frac1G\sum_i\frac1{|o_i|}\sum_t
-    \min\!\left(\rho_{i,t}\hat A_i,
-    \operatorname{clip}(\rho_{i,t},1-\varepsilon,1+\varepsilon)\hat A_i\right)
-    -\beta D_{\rm KL}(\pi_\theta\Vert\pi_{\rm ref})\right].
+    \min\!\left(\rho_{i,t}\widehat{\operatorname{Adv}}_i,
+    \operatorname{clip}(\rho_{i,t},1-\varepsilon,1+\varepsilon)
+    \widehat{\operatorname{Adv}}_i\right)
+    -\beta D_{\mathrm{KL}}(\pi_\theta\Vert\pi_{\mathrm{ref}})\right].
 \end{equation}
 Here \(\rho_{i,t}\) is the token-level ratio to the rollout policy and
-\(\pi_{\rm ref}\) is frozen.  Duplicate detection normalizes comparison
+\(\pi_{\mathrm{ref}}\) is frozen.  Duplicate detection normalizes comparison
 direction, equality sides, parentheses, immediate commutative operands,
 harmless identities, and Boolean association, but avoids transformations that
 require additional arithmetic assumptions.  Unique zero-coverage clauses are
@@ -514,14 +629,15 @@ iff the capped, normalized response is nonempty and every clause survives
 Houdini.  \emph{Whole-Rollout Strength}
 uses negative coverage only when every capped clause survives,
 \[
-  r_i^{\rm whole}
-  =\mathbf 1[S_i=\operatorname{dedup}(\bar A_i)]
+  r_i^{\mathrm{whole}}
+  =\mathbf 1[C_i^{\mathrm{train}}=
+    \operatorname{set}(\operatorname{dedup}(\bar A_i))]
    \frac{|R_i|}{|\mathcal N|}-w_o o(A_i).
 \]
 \emph{Clause-Decomposed Strength} removes this all-or-nothing indicator and
-scores the surviving \(S_i\); \emph{Compositional Credit} additionally adds
+scores the surviving \(C_i^{\mathrm{train}}\); \emph{Compositional Credit} additionally adds
 \(w_g\phi_i\); and \emph{Regularized Compositional Credit} additionally
-subtracts \(w_d d_{\rm dup}(A_i)\), yielding the full reward.  These are
+subtracts \(w_d d_{\mathrm{dup}}(A_i)\), yielding the full reward.  These are
 \texttt{binary}, \texttt{whole\_coverage}, \texttt{base},
 \texttt{base\_shapley}, and \texttt{full}, respectively.
 
@@ -753,14 +869,18 @@ disabled throughout the local-model pipeline.
 \section{Training--Inference Mismatch in Houdini Ordering}
 \label{app:houdini-order}
 
-Let \(A_i\) be the invariant set proposed by rollout \(i\), and let
-\(\mathsf{H}(X)\) denote syntax filtering followed by Houdini on candidate set
-\(X\).  SFT construction and inference first merge the candidates and then
-filter them:
+Let \(\bar A_i\) be the normalized, capped clause sequence proposed by rollout
+\(i\), and let
+\(C_i^{\mathrm{pf}}=
+\mathsf{PF}_{\mathcal P}(\operatorname{set}(\bar A_i))\).  Recall that
+\(\mathsf{Filter}_{\mathcal L}(C)\) denotes the implemented filtering pipeline
+on candidate set \(C\).  SFT construction and inference first merge the
+candidates and then filter them:
 \begin{equation}
-  S_{\mathrm{infer}}
+  C^{\mathrm{infer}}
   =
-  \mathsf{H}\!\left(\bigcup_{i=1}^{G} A_i\right).
+  \mathsf{Filter}_{\mathcal L}\!\left(
+    \bigcup_{i=1}^{G}\operatorname{set}(\bar A_i)\right).
   \label{eq:infer-houdini-order}
 \end{equation}
 This order allows a clause from one response to be preserved with the help of
@@ -770,19 +890,21 @@ RL requires a scalar reward for each rollout.  The current implementation
 therefore runs Houdini independently and computes coverage, Shapley credit, and
 redundancy from
 \begin{equation}
-  S_i^{\mathrm{train}} = \mathsf{H}(A_i).
+  C_i^{\mathrm{train}} =
+  \mathsf{Filter}_{\mathcal L}(C_i^{\mathrm{pf}}).
   \label{eq:train-houdini-order}
 \end{equation}
 It also evaluates
-\(\mathsf{H}(\bigcup_i A_i)\) as a group-level diagnostic, but this shared
+\(\mathsf{Filter}_{\mathcal L}
+(\bigcup_i C_i^{\mathrm{pf}})\) as a group-level diagnostic, but this shared
 result does not determine each rollout's token-level advantage.
 
 \paragraph{Why the two orders are not equivalent.}
 Houdini is not distributive over union:
 \begin{equation}
-  \mathsf{H}\!\left(\bigcup_i A_i\right)
+  \mathsf{Filter}_{\mathcal L}\!\left(\bigcup_i C_i^{\mathrm{pf}}\right)
   \ne
-  \bigcup_i \mathsf{H}(A_i)
+  \bigcup_i \mathsf{Filter}_{\mathcal L}(C_i^{\mathrm{pf}})
   \quad\text{in general}.
   \label{eq:houdini-nondistributive}
 \end{equation}
@@ -813,9 +935,11 @@ uninformative under group-relative normalization because the shared component
 cancels.  Exact leave-one-out credit,
 \[
   \Delta_i =
-  V\!\left(\mathsf{H}\!\left(\bigcup_j A_j\right)\right)
+  V\!\left(\mathsf{Filter}_{\mathcal L}\!\left(
+    \bigcup_j C_j^{\mathrm{pf}}\right)\right)
   -
-  V\!\left(\mathsf{H}\!\left(\bigcup_{j\ne i} A_j\right)\right),
+  V\!\left(\mathsf{Filter}_{\mathcal L}\!\left(
+    \bigcup_{j\ne i} C_j^{\mathrm{pf}}\right)\right),
 \]
 requires at least \(G+1\) union-level Houdini evaluations per prompt and can
 still miss higher-order interactions.  Shapley-style credit captures such

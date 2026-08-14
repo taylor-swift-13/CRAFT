@@ -20,7 +20,36 @@ which ensures \(\operatorname{Reach}(\mathcal L)\subseteq\denote I\)
 ~\citep{floyd1967assigning,hoare1969axiomatic}.  The semantic ideal is an
 exact invariant \(I^\star\) with
 \(\denote{I^\star}=\operatorname{Reach}(\mathcal L)\), although this set need
-not be finitely expressible in the annotation language.  A valid invariant is
+not be finitely expressible in the annotation language.
+
+For predicates \(I\) and \(J\), write
+\[
+  I\preceq J
+  \quad\Longleftrightarrow\quad
+  I\Rightarrow J
+  \quad\Longleftrightarrow\quad
+  \denote I\subseteq\denote J.
+\]
+Thus \(I\preceq J\) means that \(I\) is at least as strong as \(J\), and
+\(I\prec J\) means that it is strictly stronger.  For a finite clause set
+\(C\), define
+\[
+  I_C\triangleq\bigwedge_{c\in C}c,
+  \qquad I_\varnothing\triangleq\mathit{true}.
+\]
+We call \(C\) \emph{jointly inductive} when \(I_C\) is valid, equivalently
+when
+\[
+  P\Rightarrow I_C,
+  \qquad
+  \{I_C\wedge B\}\,S\,\{I_C\}.
+\]
+We reserve \(\mathsf H_{\mathcal L}(C)\) for the ideal Houdini fixed point
+under exact establishment and preservation decisions, and
+\(\mathsf{Filter}_{\mathcal L}(C)\) for the implemented parsing,
+deduplication, and resource-bounded WP/Houdini pipeline.
+
+A valid invariant is
 \emph{\(Q\)-sufficient} when annotating the loop with \(I\) lets the verifier
 prove every \(q_\ell\) at \(\ell\).  For one post-loop target this reduces to
 \(I\wedge\neg B\Rightarrow q\).  Thus validity is target-independent, whereas

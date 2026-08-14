@@ -196,7 +196,7 @@
 \draw[rounded corners=2pt, draw=none, fill=codepurple!32]
   (1.10,-1.00) rectangle (3.26,-0.72);
 \node[tag, fill=codepurple!84] (sftcorpus) at (2.10,-1.06)
-  {SFT CORPUS \(\mathcal D_{\rm SFT}\)};
+  {SFT CORPUS \(\mathcal D_{\mathrm{SFT}}\)};
 \node[card, draw=codepurple!58, fill=white, text width=2.6cm,
   inner ysep=3pt, font=\tiny] (sftmodel) at (2.10,-1.72)
   {fine-tune \(\pi_\theta\): many rollouts \(\to\) one response};
@@ -218,7 +218,7 @@
 
 %% -----------------------------------------------------------------
 %% RL STAGE 1 -- DECOMPOSE (within a rollout): each response is
-%% projected onto its verifier-retained subset S_i.  Rejected clauses
+%% projected onto its verifier-retained subset C_i^train. Rejected clauses
 %% fail the whole response (x) but no longer erase useful clauses:
 %% the retained subset earns a dense, target-independent strength
 %% score -- coverage of the execution-derived negatives N.
@@ -226,7 +226,7 @@
 \node[tag, fill=codeblue!72, font=\tiny\bfseries, anchor=west]
   at (4.55,2.32) {1\hspace{2pt}DECOMPOSE};
 \node[font=\tiny, text=codegray, anchor=west] at (6.48,2.32)
-  {within a rollout: keep verifier-retained clauses \(S_i\)};
+  {within a rollout: keep verifier-retained clauses \(C_i^{\mathrm{train}}\)};
 
 \node[font=\tiny, text=paperink!75] at (4.70,1.88) {\(A_2\)};
 \foreach \i/\c in {0/codegreen!70,1/wrongred,2/codegreen!45,
@@ -340,15 +340,15 @@
 \node[card, draw=codeblue!58, fill=codeblue!3, text width=3.5cm,
   inner xsep=4pt, inner ysep=3pt, font=\tiny] (score) at (6.45,-0.74)
   {{\tiny\bfseries Target-independent score}\\[0pt]
-   \(\mathrm{cov}(A_i)=|\mathrm{rej}(S_i)\,|\,/\,|\mathcal N|\)};
+   \(\operatorname{cov}(A_i)=|\operatorname{rej}(C_i^{\mathrm{train}})|/|\mathcal N|\)};
 
 %% -----------------------------------------------------------------
 %% Group-conditioned reward -> GRPO
 %% -----------------------------------------------------------------
 \node[card, draw=codeblue!62, fill=algobg!85, text width=3.5cm,
   inner xsep=4pt, inner ysep=3pt, font=\tiny] (rwd) at (6.45,-1.62)
-  {\(r_i=w_c\,\mathrm{cov}(A_i)+w_g\,\phi_i
-       -w_d\,d_{\rm dup}-w_o\,o(A_i)\)};
+  {\(r_i=w_c\,\operatorname{cov}(A_i)+w_g\,\phi_i
+       -w_d\,d_{\mathrm{dup}}(A_i)-w_o\,o(A_i)\)};
 \node[tag, fill=codeblue!84] (grpo) at (9.65,-1.62) {GRPO};
 \node[font=\tiny, text=codegray] at (9.65,-1.96)
   {group-normalized advantage};
@@ -381,7 +381,7 @@
   \node[clausebox, fill=\c] at (12.90+\i*0.26,1.20) {};
 }
 \node[font=\tiny, text=codeolive!80, anchor=east] at (12.65,1.20)
-  {\(I_k=\bigwedge C_k\)};
+  {\(I_k=I_{C_k}\)};
 
 \node[card, draw=codegreen!64, fill=codegreen!10, text width=2.55cm]
   (pass) at (13.55,-1.10)

@@ -53,7 +53,9 @@ the exact all-subset analogue for combine@\(k\), because it would require
 filtering \(\binom{100}{k}\) unions per program; we evaluate the fixed saved
 prefix instead.  For the measured budget grid
 \(\mathcal K=\{1,10,30,50,100\}\), we report
-\(k_{95}=\min\{k\in\mathcal K:C_\pi(k)\geq0.95\,C_\pi(100)\}\).  A smaller
+\(k_{95}=\min\{k\in\mathcal K:
+\operatorname{Comb}_\pi(k)\geq0.95\,\operatorname{Comb}_\pi(100)\}\), where
+\(\operatorname{Comb}_\pi(k)\) is the measured combine@\(k\) curve.  A smaller
 \(k_{95}\) means the retained pool reaches its large-budget performance
 sooner.
 
@@ -121,27 +123,43 @@ RQ, so model quality is not confounded with a larger inference budget.
 
 \begin{table}[H]
 \centering
-\setlength{\tabcolsep}{4.5pt}
+\setlength{\tabcolsep}{0.8pt}
 \begin{tabular}{lccccrr}
 \toprule
 Model & Linear / 316 & NLA / 50 & Loopy / 466 & All / 832
   & Time / task & Tokens / task \\
 \midrule
-GPT-5-nano        & 8/157 & 0/4 & 22/213 & 30/374
+GPT-5-nano        & \acc{8/157}{2.53\%/49.68\%}
+  & \acc{0/4}{0.00\%/8.00\%}
+  & \acc{22/213}{4.72\%/45.71\%}
+  & \acc{30/374}{3.61\%/44.95\%}
   & 29.66\,s & 1,135.83 \\
-GPT-5-mini        & 57/187 & 1/4 & 101/280 & 159/471
+GPT-5-mini        & \acc{57/187}{18.04\%/59.18\%}
+  & \acc{1/4}{2.00\%/8.00\%}
+  & \acc{101/280}{21.67\%/60.09\%}
+  & \acc{159/471}{19.11\%/56.61\%}
   & 22.98\,s & 1,271.78 \\
-GPT-5             & 76/196 & 1/5 & 114/296 & 191/497
+GPT-5             & \acc{76/196}{24.05\%/62.03\%}
+  & \acc{1/5}{2.00\%/10.00\%}
+  & \acc{114/296}{24.46\%/63.52\%}
+  & \acc{191/497}{22.96\%/59.74\%}
   & 18.22\,s & 1,230.92 \\
-Claude Sonnet-4.6 & 168/230 & 4/5 & 259/353 & 431/588
+\shortstack[l]{Claude\\Sonnet-4.6} & \acc{168/230}{53.16\%/72.78\%}
+  & \acc{4/5}{8.00\%/10.00\%}
+  & \acc{259/353}{55.58\%/75.75\%}
+  & \acc{431/588}{51.80\%/70.67\%}
   & 19.86\,s & 4,010.26 \\
-DeepSeek-V4-Flash & 51/198 & 3/6 & 101/287 & 155/491
+\shortstack[l]{DeepSeek\\V4-Flash} & \acc{51/198}{16.14\%/62.66\%}
+  & \acc{3/6}{6.00\%/12.00\%}
+  & \acc{101/287}{21.67\%/61.59\%}
+  & \acc{155/491}{18.63\%/59.01\%}
   & 35.90\,s & 1,209.49 \\
 \bottomrule
 \end{tabular}
 \caption{Single-response cross-model results by benchmark stratum.  Each
-accuracy cell reports pass@1/combine@1.  Time covers the end-to-end combine@1
-pipeline; tokens cover the shared response.}
+accuracy cell reports pass@1/combine@1 counts on the first line and the
+corresponding percentages on the second.  Time covers the end-to-end
+combine@1 pipeline; tokens cover the shared response.}
 \label{tab:cross-model-main}
 \end{table}
 

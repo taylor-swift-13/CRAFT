@@ -56,10 +56,14 @@ def main() -> None:
         default=ROOT / "paper" / "artifacts" / "training_sanitation.json",
     )
     parser.add_argument(
-        "--rl", type=Path, default=ROOT / "traindata" / "craft_rl_clean.parquet"
+        "--rl",
+        type=Path,
+        default=ROOT / "traindata" / "craft_rl_negative_complete.parquet",
     )
     parser.add_argument(
-        "--sft", type=Path, default=ROOT / "traindata" / "craft_sft_clean.json"
+        "--sft",
+        type=Path,
+        default=ROOT / "traindata" / "craft_sft_negative_complete.json",
     )
     parser.add_argument(
         "--power-audit",

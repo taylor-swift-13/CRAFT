@@ -51,6 +51,33 @@ class SamplerRequirementTests(unittest.TestCase):
             with self.subTest(name=name):
                 self.assertGreater(len({values[name] for values in candidates}), 1)
 
+    def test_parameter_equality_chain_constructs_an_input(self):
+        params = ["conf_0", "conf_0_0", "m", "m_1", "x", "x_1"]
+        requires = (
+            "conf_0 == conf_0_0 && m == m_1 && x == x_1 && "
+            "conf_0_0 == 8 && x_1 == 1 && m_1 == 1"
+        )
+        constraints = cexec.param_constraints(requires, params)
+
+        inputs = cexec.sample_inputs(
+            params, constraints, n_runs=4, requires=requires
+        )
+
+        self.assertTrue(inputs)
+        self.assertTrue(
+            all(
+                values == {
+                    "conf_0": 8,
+                    "conf_0_0": 8,
+                    "m": 1,
+                    "m_1": 1,
+                    "x": 1,
+                    "x_1": 1,
+                }
+                for values in inputs
+            )
+        )
+
     def test_collect_traces_resolves_integer_macros_and_globals(self):
         source = (
             "#define LIMIT 100\n"

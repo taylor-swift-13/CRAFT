@@ -323,7 +323,7 @@ def _parse_params(param_str: str) -> Tuple[List[str], List[str]]:
             raise ValueError("only scalar integer parameters are supported")
         m = re.fullmatch(
             r"(?:(?:unsigned|signed|long|short|const|static)\s+)*"
-            r"(?:int|long|short|char|_Bool)\s+(\w+)",
+            r"(?:int|long|short|char|_Bool|unsigned|signed)\s+(\w+)",
             p,
         )
         if not m:
@@ -406,7 +406,7 @@ def _find_local_inits(src: str, func_open: int, loop_start: int) -> List[Tuple[s
     # was nondeterministic (`int c; c = unknown();`).
     for m in re.finditer(
         r"\b(?:(?:unsigned|signed|long|short|const|static)\s+)*"
-        r"(?:int|long|short|char|_Bool)\s+([^;{}]+);",
+        r"(?:int|long|short|char|_Bool|unsigned|signed)\s+([^;{}]+);",
         region,
     ):
         decls = m.group(1)
@@ -447,7 +447,7 @@ def _find_unsigned_locals(src: str, func_open: int, loop_start: int) -> List[str
     names: List[str] = []
     declaration = re.compile(
         r"\b(?P<type>(?:(?:unsigned|signed|long|short|const|static)\s+)*"
-        r"(?:int|long|short|char|_Bool))\s+(?P<decls>[^;{}]+);"
+        r"(?:int|long|short|char|_Bool|unsigned|signed))\s+(?P<decls>[^;{}]+);"
     )
     for match in declaration.finditer(region):
         if not re.search(r"\bunsigned\b", match.group("type")):
@@ -485,7 +485,7 @@ def _find_global_ints(src: str, before: int) -> Tuple[List[str], List[str]]:
     unsigned: List[str] = []
     declaration = re.compile(
         r"(?m)^\s*(?P<type>(?:(?:static|extern|const|volatile)\s+)*"
-        r"(?:(?:unsigned|signed)\s+)?(?:int|long|short))\s+"
+        r"(?:(?:unsigned|signed)\s+)?(?:int|long|short|unsigned|signed))\s+"
         r"(?P<decls>[^;{}]+);"
     )
     for match in declaration.finditer(top_level):

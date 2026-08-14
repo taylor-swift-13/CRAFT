@@ -34,8 +34,30 @@ CRAFT_WP_PAR=2 conda run -n ASGSE \
   --verify-sft --wp-timeout 5 --jobs 16
 ```
 
-This writes `traindata/craft_rl_clean.parquet` and
-`traindata/craft_sft_clean.json`. Both use the current system and generation
+This first writes the auditable intermediate files
+`traindata/craft_rl_clean.parquet` and `traindata/craft_sft_clean.json`. Do not
+train from these intermediates: a syntactically valid loop can still have no
+sound perturbation axis from which the deployed sampler can construct a
+negative example. Build the negative-complete release files with:
+
+```bash
+python paper/scripts/audit_training_negative_coverage.py rl --jobs 16
+python paper/scripts/filter_training_by_negative_coverage.py sft
+python paper/scripts/filter_training_by_negative_coverage.py rl
+```
+
+The trainer inputs are
+`traindata/craft_rl_negative_complete.parquet` and
+`traindata/craft_sft_negative_complete.json`. The filter fails if its coverage
+ledger is incomplete and retains a loop only when the sampler produced at
+least one valid negative trace. SFT uses the same source-hash-indexed ledger as
+RL; this avoids sampling identical loops twice while still failing closed if
+an SFT source is absent or changed. Loops whose persistent state is entirely
+tainted by nondeterministic updates are quarantined in the filter report; they
+are not assigned fabricated negatives. Re-run the audit and filter whenever
+the clean data or sampler changes.
+
+Both intermediate and release files use the current system and generation
 prompts and contain only supported target-hidden scalar-integer, single-loop
 programs. For archived `power` clauses, fixed exponents are expanded into
 explicit multiplication. When two equations contain the same symbolic power,
@@ -149,8 +171,9 @@ only when every admitted clause in the response survives the positive and
 Houdini filters; otherwise it gives zero. For sampler ablations, set
 `sampler.negative_sampler` to `random` or `structured`. The two switches are
 independent, and omitted switches default to the complete method.
-`structured` combines relational perturbations, post-exit continuations, and
-range/bound escapes under their fixed family budgets.
+`structured` combines relational perturbations, post-exit continuations,
+range/bound escapes, and frame-value perturbations under their fixed family
+budgets.
 
 ## 3. GRPO recipe
 
@@ -211,3 +234,5 @@ Parquet additionally requires `pandas` and `pyarrow`.
   inline copies in the trainer.
 - Preserve rollout order when mapping `rollout_rewards` back to the
   sampled responses.
+- Train only from the `*_negative_complete` release files. The `*_clean`
+  intermediates intentionally retain quarantined rows for reproducible audits.

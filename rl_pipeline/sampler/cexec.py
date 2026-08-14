@@ -314,6 +314,90 @@ def _requirement_tuples(params: List[str], cons: Dict[str, Dict[str, int]],
                     yield vals
 
 
+def _equality_requirement_tuples(
+    params: List[str],
+    cons: Dict[str, Dict[str, int]],
+    requires: str,
+    seed: int,
+):
+    """Construct tuples for conjunctions containing parameter equalities.
+
+    Many generated benchmarks expose an SSA-like input contract, for example
+    ``x == x_0 && x_0 == 8``. A mixed-radix grid almost never hits all such
+    equalities simultaneously. Propagate simple arithmetic equalities from a
+    collection of diverse seeds, then let the complete requirement evaluator
+    decide whether the resulting tuple is admissible.
+
+    This is candidate construction only: unsupported expressions are skipped,
+    and no tuple bypasses the authoritative full-contract check in ``admit``.
+    """
+    param_set = set(params)
+    equations: List[Tuple[str, str]] = []
+    for raw_clause in _requirement_conjuncts(requires):
+        clause = _strip_outer_parens(raw_clause)
+        match = re.fullmatch(r"([A-Za-z_]\w*)\s*==\s*(.+)", clause)
+        if match and match.group(1) in param_set:
+            equations.append((match.group(1), _strip_outer_parens(match.group(2))))
+            continue
+        reversed_match = re.fullmatch(r"(.+)\s*==\s*([A-Za-z_]\w*)", clause)
+        if reversed_match and reversed_match.group(2) in param_set:
+            equations.append(
+                (reversed_match.group(2), _strip_outer_parens(reversed_match.group(1)))
+            )
+    if not equations:
+        return
+
+    def evaluate(expression: str, values: Dict[str, int]) -> Optional[int]:
+        identifiers = set(re.findall(r"[A-Za-z_]\w*", expression))
+        if not identifiers.issubset(values):
+            return None
+        rendered = expression
+        for name in sorted(identifiers, key=len, reverse=True):
+            rendered = re.sub(rf"\b{re.escape(name)}\b", str(values[name]), rendered)
+        # The contracts in this path are scalar integer arithmetic. Refuse all
+        # other syntax before using the locked-down evaluator.
+        if not re.fullmatch(r"[\d\s()+\-*/%]+", rendered):
+            return None
+        try:
+            value = eval(rendered, {"__builtins__": {}}, {})
+        except (ArithmeticError, SyntaxError, TypeError, ValueError):
+            return None
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            return None
+        return int(value)
+
+    seeds = max(24, len(params) * 8)
+    for index in range(seeds):
+        values = _grid_tuple(
+            params,
+            cons,
+            index,
+            seed,
+            rotation=index % max(1, len(params)),
+        )
+        # Repeated assignment resolves equality chains. Stop on a fixed point;
+        # a bounded iteration count prevents malformed cyclic arithmetic from
+        # making candidate construction diverge.
+        for _ in range(max(2, 2 * len(equations))):
+            changed = False
+            for left, right in reversed(equations):
+                value = evaluate(right, values)
+                if value is None:
+                    continue
+                lo = cons.get(left, {}).get("min")
+                hi = cons.get(left, {}).get("max")
+                if lo is not None and value < lo:
+                    continue
+                if hi is not None and value > hi:
+                    continue
+                if values.get(left) != value:
+                    values[left] = value
+                    changed = True
+            if not changed:
+                break
+        yield values
+
+
 def sample_inputs(params: List[str], cons: Dict[str, Dict[str, int]], n_runs: int,
                   seed: int = 0, requires: str = "", single_ok: bool = True) -> List[Dict[str, int]]:
     """Deterministic broad sweep of input tuples honoring the FULL requires.
@@ -371,6 +455,13 @@ def sample_inputs(params: List[str], cons: Dict[str, Dict[str, int]], n_runs: in
     # Phase 3 targets large constants and pairwise offsets from the contract.
     if requires and len(runs) < n_runs:
         for vals in _requirement_tuples(params, cons, requires, seed):
+            admit(vals)
+            if len(runs) >= n_runs:
+                break
+    # Phase 4 solves the common SSA-like equality chains in generated input
+    # contracts. Every candidate is still checked against the full requires.
+    if requires and len(runs) < n_runs:
+        for vals in _equality_requirement_tuples(params, cons, requires, seed):
             admit(vals)
             if len(runs) >= n_runs:
                 break
@@ -504,6 +595,33 @@ def _build_program(instr_func: str, prog: Program, inputs: Dict[str, int], run_s
     return prelude + instr_func + main
 
 
+def _build_reusable_program(instr_func: str, prog: Program) -> str:
+    """Build one argv-driven harness reusable across all sampled inputs."""
+    prelude = '#include <stdio.h>\n#include <stdlib.h>\n'
+    for name in sorted(set(re.findall(r"\b(unknown\w*)\s*\(", instr_func))):
+        if not re.search(rf"\b{name}\s*\([^;{{)]*\)\s*\{{", instr_func):
+            prelude += _oracle_definition(instr_func, name)
+    fname = prog.func_name
+    if fname == "main":
+        instr_func = re.sub(r"\bmain\s*\(", "__prog_main(", instr_func, count=1)
+        fname = "__prog_main"
+    declarations = "\n".join(
+        f"    int {param} = (int)strtoll(argv[{index + 2}], NULL, 0);"
+        for index, param in enumerate(prog.params)
+    )
+    call = f"    {fname}({', '.join(prog.params)});"
+    argc = len(prog.params) + 2
+    main = (
+        "\nint main(int argc, char **argv){\n"
+        f"    if (argc != {argc}) return 64;\n"
+        "    setbuf(stdout, NULL);\n"
+        "    srand((unsigned)strtoul(argv[1], NULL, 0));\n"
+        f"{declarations}\n{call}\n"
+        "    return 0;\n}\n"
+    )
+    return prelude + instr_func + main
+
+
 _LINE_RE = re.compile(rf"{re.escape(_MARK)}([EHXO])(\d+)\s+#(-?\d+)\s+(.*)")
 _CAP_RE = re.compile(rf"{re.escape(_MARK)}C(\d+)")
 
@@ -605,6 +723,71 @@ def _compile_run_parse(full: str, prog: Program, inputs, loop_idx, timeout, run_
         shutil.rmtree(tmpdir, ignore_errors=True)
 
 
+def _compile_reusable(full: str) -> Tuple[str, str]:
+    """Compile a reusable harness; return ``(temporary directory, binary)``."""
+    tmpdir = tempfile.mkdtemp(prefix="rlsampler_")
+    csrc = os.path.join(tmpdir, "prog.c")
+    cbin = os.path.join(tmpdir, "prog.out")
+    try:
+        with open(csrc, "w") as handle:
+            handle.write(full)
+        subprocess.run(
+            ["gcc", csrc, "-o", cbin],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        return tmpdir, cbin
+    except subprocess.CalledProcessError as exc:
+        shutil.rmtree(tmpdir, ignore_errors=True)
+        detail = (exc.stderr or exc.stdout or "unknown compiler error").strip()
+        raise ValueError(
+            f"gcc failed to compile instrumented program: {detail[:500]}"
+        ) from exc
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        shutil.rmtree(tmpdir, ignore_errors=True)
+        raise ValueError(f"could not compile instrumented program: {exc}") from exc
+
+
+def _run_reusable(
+    binary: str,
+    prog: Program,
+    inputs: Dict[str, int],
+    loop_idx: int,
+    timeout: float,
+    run_seed: int,
+    run_id: int,
+):
+    argv = [binary, str(run_seed)] + [str(inputs.get(param, 0)) for param in prog.params]
+    try:
+        result = subprocess.run(
+            argv, capture_output=True, text=True, timeout=timeout
+        )
+    except subprocess.TimeoutExpired as exc:
+        stdout = exc.stdout or ""
+        if isinstance(stdout, bytes):
+            stdout = stdout.decode(errors="replace")
+        states, _ = _parse_output(
+            stdout, loop_idx, prog.pre_vars, inputs, run_id
+        )
+        return states, True
+    except OSError as exc:
+        raise ValueError(f"could not run instrumented program: {exc}") from exc
+    if result.returncode != 0:
+        status = (
+            f"signal {-result.returncode}"
+            if result.returncode < 0
+            else f"status {result.returncode}"
+        )
+        detail = result.stderr.strip()
+        suffix = f": {detail[:500]}" if detail else ""
+        raise ValueError(
+            f"instrumented program exited abnormally ({status}){suffix}"
+        )
+    return _parse_output(result.stdout, loop_idx, prog.pre_vars, inputs, run_id)
+
+
 def collect_traces(
     prog: Program,
     loop_idx: int = 0,
@@ -638,32 +821,44 @@ def collect_traces(
     overrun: List[State] = []
     capped_any = False
     abnormal_runs = []
-    for i, inputs in enumerate(inputs_list):
-        # distinct per-run seed so nondeterministic (unknown) loops vary trace length
-        try:
-            states, capped = run_and_collect(
-                src, prog, inputs, loop_idx,
-                run_seed=1000 + seed * 97 + i * 7 + 1, run_id=i,
-            )
-        except ValueError as exc:
-            # A concrete input can satisfy `requires` yet reach undefined C
-            # behavior (for example integer division by zero). Such a run has
-            # no valid reachable trace, but must not discard the other inputs.
-            if not str(exc).startswith("instrumented program exited abnormally"):
-                raise
-            abnormal_runs.append({
-                "run": i,
-                "inputs": dict(inputs),
-                "error": str(exc),
-            })
-            continue
-        capped_any = capped_any or capped
-        for kind, s in states:
-            if kind == "O":
-                if not capped:
-                    overrun.append(s)
-            else:
-                reachable.append(s)
+    instrumented = instrument(src, prog, loop_idx)
+    full = _build_reusable_program(instrumented, prog)
+    tmpdir, binary = _compile_reusable(full)
+    try:
+        for i, inputs in enumerate(inputs_list):
+            # Distinct per-run seed explores oracle paths; a fresh process also
+            # resets globals exactly as the historical compile-per-run harness.
+            try:
+                states, capped = _run_reusable(
+                    binary,
+                    prog,
+                    inputs,
+                    loop_idx,
+                    timeout=5.0,
+                    run_seed=1000 + seed * 97 + i * 7 + 1,
+                    run_id=i,
+                )
+            except ValueError as exc:
+                # A concrete input can satisfy `requires` yet reach undefined C
+                # behavior (for example integer division by zero). Such a run
+                # has no valid reachable trace, but must not discard the rest.
+                if not str(exc).startswith("instrumented program exited abnormally"):
+                    raise
+                abnormal_runs.append({
+                    "run": i,
+                    "inputs": dict(inputs),
+                    "error": str(exc),
+                })
+                continue
+            capped_any = capped_any or capped
+            for kind, state in states:
+                if kind == "O":
+                    if not capped:
+                        overrun.append(state)
+                else:
+                    reachable.append(state)
+    finally:
+        shutil.rmtree(tmpdir, ignore_errors=True)
     if not reachable:
         if abnormal_runs:
             raise ValueError(

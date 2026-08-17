@@ -71,7 +71,16 @@ _C_INTEGER_CAST = re.compile(
 )
 _UNKNOWN_CALL = re.compile(r"\bunknown\w*\s*\(")
 _DIRECT_UNKNOWN_CALL = re.compile(r"^\s*unknown\w*\s*\(\s*\)\s*$")
+_UNSUPPORTED_LOOP_PRAGMA = re.compile(
+    r"(?m)^[ \t]*//@[ \t]*loop[ \t]+pragma[ \t]+UNROLL[ \t]+1;[ \t]*(?:\n|$)"
+)
 _UNICODE_OPERATORS = str.maketrans({"≤": "<=", "≥": ">=", "≠": "!=", "∧": "&&", "∨": "||"})
+
+
+def _strip_unsupported_pragma(source: str) -> tuple[str, bool]:
+    """Remove ACSL loop-unroll pragmas the deployed interface does not support."""
+    cleaned, count = _UNSUPPORTED_LOOP_PRAGMA.subn("", source)
+    return cleaned, bool(count)
 
 
 def _program_suffix(message: str) -> tuple[str, str]:
@@ -86,6 +95,7 @@ def _canonical_user(source: str) -> str:
 
 def _canonical_source(source: str) -> str:
     """Normalize only terminal whitespace so prompt reconstruction is idempotent."""
+    source, _ = _strip_unsupported_pragma(source)
     return strip_postcondition(source).rstrip() + "\n"
 
 
@@ -97,8 +107,8 @@ def _sanitize_visible_source(
     visible_source: str, full_source: str
 ) -> tuple[str, bool]:
     """Return target-hidden source, preferring matching visible formatting."""
-    candidate = strip_postcondition(visible_source)
-    authoritative = strip_postcondition(full_source)
+    candidate, _ = _strip_unsupported_pragma(strip_postcondition(visible_source))
+    authoritative, _ = _strip_unsupported_pragma(strip_postcondition(full_source))
     if candidate.rstrip() == authoritative.rstrip():
         return candidate, False
     if visible_source.endswith("\n") and not authoritative.endswith("\n"):
@@ -1238,6 +1248,7 @@ def sanitize_rl_rows(
         "input_rows": len(rows),
         "output_rows": 0,
         "modified_prompts": 0,
+        "removed_unsupported_loop_pragma_rows": 0,
         "reconstructed_from_archival_source": 0,
         "dropped_programs": {},
         "output_prompts_with_target": 0,
@@ -1252,11 +1263,14 @@ def sanitize_rl_rows(
         row = copy.deepcopy(original)
         try:
             full_source = row["reward_model"]["ground_truth"]["raw_code"]
+            cleaned_full_source, removed_pragmas = _strip_unsupported_pragma(full_source)
             user_turns = [turn for turn in row["prompt"] if turn["role"] == "user"]
             if len(user_turns) != 1:
                 raise ValueError(f"expected one user turn, found {len(user_turns)}")
             _, old_source = _program_suffix(user_turns[0]["content"])
-            clean_source, reconstructed = _sanitize_visible_source(old_source, full_source)
+            clean_source, reconstructed = _sanitize_visible_source(
+                old_source, cleaned_full_source
+            )
             clean_source = _canonical_source(clean_source)
             _parse_supported(clean_source)
         except (KeyError, TypeError, ValueError) as error:
@@ -1268,6 +1282,9 @@ def sanitize_rl_rows(
             {"role": "user", "content": _canonical_user(clean_source)},
         ]
         stats["modified_prompts"] += int(canonical_prompt != row["prompt"])
+        if removed_pragmas:
+            row["reward_model"]["ground_truth"]["raw_code"] = cleaned_full_source
+            stats["removed_unsupported_loop_pragma_rows"] += 1
         stats["reconstructed_from_archival_source"] += int(reconstructed)
         row["prompt"] = canonical_prompt
         stats["output_prompts_with_target"] += int(not _is_target_hidden(clean_source))

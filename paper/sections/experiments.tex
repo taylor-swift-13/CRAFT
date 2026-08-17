@@ -178,7 +178,10 @@ We compare against the target-hidden pipelines of
 Daikon 5.8.24
 ~\citep{wen2024enchanting,yang2026sespec,cao2025clause2inv,daikon}.
 All LLM-based rows use \texttt{gpt-5-nano}.  Naive makes one call without
-filtering or refinement.
+filtering or refinement.  Because pass@1 judges all clauses in a response as
+an indivisible conjunction, one invalid or non-inductive clause makes the
+whole response fail; CRAFT's richer raw outputs can therefore score below the
+shorter Naive outputs before Houdini filtering.
 \textsc{Clause2Inv}'s unsupported inputs remain failures in the common
 832-program denominator.  Budgets are fixed before comparison but not matched:
 each system retains its predeclared native orchestration.

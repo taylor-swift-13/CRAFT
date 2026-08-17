@@ -1,0 +1,3424 @@
+{
+  "schema_version": 1,
+  "source": "/home/yangfp/CRAFT/traindata/craft_sft_clean.json",
+  "bounds_only_before": 150,
+  "strengthened": 122,
+  "remaining": [
+    82,
+    285,
+    391,
+    481,
+    553,
+    583,
+    598,
+    743,
+    835,
+    861,
+    880,
+    892,
+    926,
+    946,
+    964,
+    1010,
+    1166,
+    1182,
+    1190,
+    1430,
+    1447,
+    1687,
+    1702,
+    1847,
+    1968,
+    2004,
+    2047,
+    2068
+  ],
+  "items": [
+    {
+      "row": 7,
+      "function": "main2013",
+      "original": [
+        "x >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "y == \\at(y,Pre)",
+          "rationale": "loop-relevant frame relation"
+        }
+      ],
+      "wp_additions": [
+        "y == \\at(y,Pre)"
+      ],
+      "addition_rationales": {
+        "y == \\at(y,Pre)": "loop-relevant frame relation"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 50,
+      "function": "main2000",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "x <= 268435456",
+          "rationale": "tight guard-overshoot bound"
+        },
+        {
+          "clause": "x < 65520 || x % 2 == 0",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x <= 268435456",
+        "x < 65520 || x % 2 == 0"
+      ],
+      "addition_rationales": {
+        "x <= 268435456": "tight guard-overshoot bound",
+        "x < 65520 || x % 2 == 0": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 61,
+      "function": "main99",
+      "original": [
+        "x <= 100",
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "y % 2 != 0 ==> x % 2 == 0",
+          "rationale": "selector-conditioned modular phase"
+        },
+        {
+          "clause": "x <= 100",
+          "rationale": "tight guard-overshoot bound"
+        }
+      ],
+      "wp_additions": [
+        "y % 2 != 0 ==> x % 2 == 0"
+      ],
+      "addition_rationales": {
+        "y % 2 != 0 ==> x % 2 == 0": "selector-conditioned modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 82,
+      "function": "main1607",
+      "original": [
+        "delta >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "1 * (gh - (\\at(gh,LoopEntry))) == 6 * (delta - (0))",
+          "rationale": "synchronous constant-update conservation law"
+        },
+        {
+          "clause": "gh == \\at(gh,LoopEntry) + 6 * (delta - 0)",
+          "rationale": "unknown-initialized lockstep conservation law"
+        }
+      ],
+      "wp_additions": [],
+      "addition_rationales": {},
+      "strengthened": false
+    },
+    {
+      "row": 95,
+      "function": "main2043",
+      "original": [
+        "x >= 1",
+        "y > 0"
+      ],
+      "candidates": [
+        {
+          "clause": "y == \\at(y,Pre)",
+          "rationale": "loop-relevant frame relation"
+        }
+      ],
+      "wp_additions": [
+        "y == \\at(y,Pre)"
+      ],
+      "addition_rationales": {
+        "y == \\at(y,Pre)": "loop-relevant frame relation"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 134,
+      "function": "main3803",
+      "original": [
+        "p >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "a * b * p + q == \\at(x,Pre) * \\at(y,Pre)",
+          "rationale": "multiplicative conservation law"
+        },
+        {
+          "clause": "p == 1 || p % 4 == 0",
+          "rationale": "fixed-multiplier modular phase"
+        }
+      ],
+      "wp_additions": [
+        "p == 1 || p % 4 == 0"
+      ],
+      "addition_rationales": {
+        "p == 1 || p % 4 == 0": "fixed-multiplier modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 142,
+      "function": "main7311",
+      "original": [
+        "p >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "a * b * p + q == \\at(x,Pre) * \\at(y,Pre)",
+          "rationale": "multiplicative conservation law"
+        },
+        {
+          "clause": "p == 1 || p % 4 == 0",
+          "rationale": "fixed-multiplier modular phase"
+        }
+      ],
+      "wp_additions": [
+        "p == 1 || p % 4 == 0"
+      ],
+      "addition_rationales": {
+        "p == 1 || p % 4 == 0": "fixed-multiplier modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 147,
+      "function": "main353",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "x < 65521 || x % 2 == 1",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x < 65521 || x % 2 == 1"
+      ],
+      "addition_rationales": {
+        "x < 65521 || x % 2 == 1": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 153,
+      "function": "main7479",
+      "original": [
+        "p >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "a * b * p + q == \\at(x,Pre) * \\at(y,Pre)",
+          "rationale": "multiplicative conservation law"
+        },
+        {
+          "clause": "p == 1 || p % 4 == 0",
+          "rationale": "fixed-multiplier modular phase"
+        }
+      ],
+      "wp_additions": [
+        "p == 1 || p % 4 == 0"
+      ],
+      "addition_rationales": {
+        "p == 1 || p % 4 == 0": "fixed-multiplier modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 172,
+      "function": "main5809",
+      "original": [
+        "1 <= c",
+        "x >= 1",
+        "y >= 0",
+        "c <= 10",
+        "z >= 0",
+        "z <= 10",
+        "k >= 0",
+        "k <= 10"
+      ],
+      "candidates": [
+        {
+          "clause": "z == \\at(z,Pre)",
+          "rationale": "loop-relevant frame relation"
+        },
+        {
+          "clause": "k == \\at(k,Pre)",
+          "rationale": "loop-relevant frame relation"
+        }
+      ],
+      "wp_additions": [
+        "z == \\at(z,Pre)",
+        "k == \\at(k,Pre)"
+      ],
+      "addition_rationales": {
+        "z == \\at(z,Pre)": "loop-relevant frame relation",
+        "k == \\at(k,Pre)": "loop-relevant frame relation"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 176,
+      "function": "main7296",
+      "original": [
+        "r >= 1",
+        "beta >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "v7 * beta * r + g == \\at(p3,Pre) * \\at(r1,Pre)",
+          "rationale": "multiplicative conservation law"
+        },
+        {
+          "clause": "r == 1 || r % 4 == 0",
+          "rationale": "fixed-multiplier modular phase"
+        },
+        {
+          "clause": "f == \\at(f,LoopEntry)",
+          "rationale": "loop-relevant frame relation"
+        }
+      ],
+      "wp_additions": [
+        "r == 1 || r % 4 == 0"
+      ],
+      "addition_rationales": {
+        "r == 1 || r % 4 == 0": "fixed-multiplier modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 185,
+      "function": "main2027",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "x <= 268435456",
+          "rationale": "tight guard-overshoot bound"
+        },
+        {
+          "clause": "x < 65521 || x % 2 == 1",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x <= 268435456",
+        "x < 65521 || x % 2 == 1"
+      ],
+      "addition_rationales": {
+        "x <= 268435456": "tight guard-overshoot bound",
+        "x < 65521 || x % 2 == 1": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 201,
+      "function": "main7480",
+      "original": [
+        "a >= 0",
+        "b >= 0",
+        "p >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "p == 1 || p % 28 == 0",
+          "rationale": "fixed-multiplier modular phase"
+        }
+      ],
+      "wp_additions": [
+        "p == 1 || p % 28 == 0"
+      ],
+      "addition_rationales": {
+        "p == 1 || p % 28 == 0": "fixed-multiplier modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 241,
+      "function": "main12167",
+      "original": [
+        "p2 >= 0",
+        "p2 <= 100"
+      ],
+      "candidates": [
+        {
+          "clause": "p2 >= \\at(p2,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "p2 >= \\at(p2,Pre)"
+      ],
+      "addition_rationales": {
+        "p2 >= \\at(p2,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 252,
+      "function": "main323",
+      "original": [
+        "0 <= delta"
+      ],
+      "candidates": [
+        {
+          "clause": "delta <= 268435456",
+          "rationale": "tight guard-overshoot bound"
+        },
+        {
+          "clause": "delta < 65520 || delta % 2 == 0",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "delta <= 268435456",
+        "delta < 65520 || delta % 2 == 0"
+      ],
+      "addition_rationales": {
+        "delta <= 268435456": "tight guard-overshoot bound",
+        "delta < 65520 || delta % 2 == 0": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 262,
+      "function": "main7308",
+      "original": [
+        "p3 >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "i * kl * p3 + q1 == \\at(delta,Pre) * \\at(f,Pre)",
+          "rationale": "multiplicative conservation law"
+        },
+        {
+          "clause": "p3 == 1 || p3 % 4 == 0",
+          "rationale": "fixed-multiplier modular phase"
+        }
+      ],
+      "wp_additions": [
+        "p3 == 1 || p3 % 4 == 0"
+      ],
+      "addition_rationales": {
+        "p3 == 1 || p3 % 4 == 0": "fixed-multiplier modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 285,
+      "function": "main2263",
+      "original": [
+        "0 <= c"
+      ],
+      "candidates": [
+        {
+          "clause": "cur >= b",
+          "rationale": "coupled-accumulator order relation"
+        },
+        {
+          "clause": "i == \\at(i,Pre)",
+          "rationale": "loop-relevant frame relation"
+        }
+      ],
+      "wp_additions": [],
+      "addition_rationales": {},
+      "strengthened": false
+    },
+    {
+      "row": 302,
+      "function": "main2073",
+      "original": [
+        "v9 > 0",
+        "v5 >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "v9 == \\at(v9,Pre)",
+          "rationale": "loop-relevant frame relation"
+        }
+      ],
+      "wp_additions": [
+        "v9 == \\at(v9,Pre)"
+      ],
+      "addition_rationales": {
+        "v9 == \\at(v9,Pre)": "loop-relevant frame relation"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 360,
+      "function": "main2068",
+      "original": [
+        "x >= 1",
+        "y > 0"
+      ],
+      "candidates": [
+        {
+          "clause": "y == \\at(y,Pre)",
+          "rationale": "loop-relevant frame relation"
+        }
+      ],
+      "wp_additions": [
+        "y == \\at(y,Pre)"
+      ],
+      "addition_rationales": {
+        "y == \\at(y,Pre)": "loop-relevant frame relation"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 391,
+      "function": "main1438",
+      "original": [
+        "x >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "x == 1 || x + y == n + 1",
+          "rationale": "assignment/update phase relation"
+        }
+      ],
+      "wp_additions": [],
+      "addition_rationales": {},
+      "strengthened": false
+    },
+    {
+      "row": 409,
+      "function": "main5690",
+      "original": [
+        "c >= 1",
+        "x >= 1",
+        "y >= 0",
+        "z >= 0",
+        "z <= 50",
+        "k >= 0",
+        "k <= 50"
+      ],
+      "candidates": [
+        {
+          "clause": "z == \\at(z,Pre)",
+          "rationale": "loop-relevant frame relation"
+        },
+        {
+          "clause": "k == \\at(k,Pre)",
+          "rationale": "loop-relevant frame relation"
+        }
+      ],
+      "wp_additions": [
+        "z == \\at(z,Pre)",
+        "k == \\at(k,Pre)"
+      ],
+      "addition_rationales": {
+        "z == \\at(z,Pre)": "loop-relevant frame relation",
+        "k == \\at(k,Pre)": "loop-relevant frame relation"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 417,
+      "function": "main309",
+      "original": [
+        "v1 >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "v1 <= 268435456",
+          "rationale": "tight guard-overshoot bound"
+        },
+        {
+          "clause": "v1 < 65520 || v1 % 2 == 0",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "v1 <= 268435456",
+        "v1 < 65520 || v1 % 2 == 0"
+      ],
+      "addition_rationales": {
+        "v1 <= 268435456": "tight guard-overshoot bound",
+        "v1 < 65520 || v1 % 2 == 0": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 435,
+      "function": "main2026",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "x < 65521 || x % 2 == 1",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x < 65521 || x % 2 == 1"
+      ],
+      "addition_rationales": {
+        "x < 65521 || x % 2 == 1": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 442,
+      "function": "main7355",
+      "original": [
+        "p >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "a * b * p + q == \\at(x,Pre) * \\at(y,Pre)",
+          "rationale": "multiplicative conservation law"
+        },
+        {
+          "clause": "p == 1 || p % 4 == 0",
+          "rationale": "fixed-multiplier modular phase"
+        }
+      ],
+      "wp_additions": [
+        "p == 1 || p % 4 == 0"
+      ],
+      "addition_rationales": {
+        "p == 1 || p % 4 == 0": "fixed-multiplier modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 446,
+      "function": "main10221",
+      "original": [
+        "i >= 0",
+        "i <= 1000000"
+      ],
+      "candidates": [
+        {
+          "clause": "i >= \\at(i,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "i >= \\at(i,Pre)"
+      ],
+      "addition_rationales": {
+        "i >= \\at(i,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 479,
+      "function": "main1975",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "x <= 268435456",
+          "rationale": "tight guard-overshoot bound"
+        },
+        {
+          "clause": "x < 65520 || x % 2 == 0",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x <= 268435456",
+        "x < 65520 || x % 2 == 0"
+      ],
+      "addition_rationales": {
+        "x <= 268435456": "tight guard-overshoot bound",
+        "x < 65520 || x % 2 == 0": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 481,
+      "function": "main1397",
+      "original": [
+        "x >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "x == 1 || x + y == n + 1",
+          "rationale": "assignment/update phase relation"
+        }
+      ],
+      "wp_additions": [],
+      "addition_rationales": {},
+      "strengthened": false
+    },
+    {
+      "row": 483,
+      "function": "main122",
+      "original": [
+        "r <= 100",
+        "r >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "p1 % 2 != 0 ==> r % 2 == 0",
+          "rationale": "selector-conditioned modular phase"
+        },
+        {
+          "clause": "r <= 100",
+          "rationale": "tight guard-overshoot bound"
+        }
+      ],
+      "wp_additions": [
+        "p1 % 2 != 0 ==> r % 2 == 0"
+      ],
+      "addition_rationales": {
+        "p1 % 2 != 0 ==> r % 2 == 0": "selector-conditioned modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 487,
+      "function": "main11528",
+      "original": [
+        "0 <= u",
+        "u <= 40"
+      ],
+      "candidates": [
+        {
+          "clause": "u >= \\at(u,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "u >= \\at(u,Pre)"
+      ],
+      "addition_rationales": {
+        "u >= \\at(u,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 504,
+      "function": "main55",
+      "original": [
+        "v6 <= 100",
+        "v6 >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "tot % 2 == 0 ==> v6 % 2 == 0",
+          "rationale": "selector-conditioned modular phase"
+        },
+        {
+          "clause": "v6 <= 100",
+          "rationale": "tight guard-overshoot bound"
+        }
+      ],
+      "wp_additions": [
+        "tot % 2 == 0 ==> v6 % 2 == 0"
+      ],
+      "addition_rationales": {
+        "tot % 2 == 0 ==> v6 % 2 == 0": "selector-conditioned modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 505,
+      "function": "main2444",
+      "original": [
+        "t >= 0",
+        "t <= 200"
+      ],
+      "candidates": [
+        {
+          "clause": "t <= \\at(t,Pre)",
+          "rationale": "monotonic progress from function entry"
+        },
+        {
+          "clause": "t >= 0",
+          "rationale": "tight guard-overshoot bound"
+        }
+      ],
+      "wp_additions": [
+        "t <= \\at(t,Pre)"
+      ],
+      "addition_rationales": {
+        "t <= \\at(t,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 512,
+      "function": "main112",
+      "original": [
+        "x <= 706",
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "y % 14 != 0 ==> x % 14 == 0",
+          "rationale": "selector-conditioned modular phase"
+        },
+        {
+          "clause": "x <= 706",
+          "rationale": "tight guard-overshoot bound"
+        }
+      ],
+      "wp_additions": [
+        "y % 14 != 0 ==> x % 14 == 0"
+      ],
+      "addition_rationales": {
+        "y % 14 != 0 ==> x % 14 == 0": "selector-conditioned modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 524,
+      "function": "main3813",
+      "original": [
+        "t >= 1",
+        "beta >= 0",
+        "r2 >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "t == 1 || t % 28 == 0",
+          "rationale": "fixed-multiplier modular phase"
+        }
+      ],
+      "wp_additions": [
+        "t == 1 || t % 28 == 0"
+      ],
+      "addition_rationales": {
+        "t == 1 || t % 28 == 0": "fixed-multiplier modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 526,
+      "function": "main9032",
+      "original": [
+        "j >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "j <= \\at(j,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "j <= \\at(j,Pre)"
+      ],
+      "addition_rationales": {
+        "j <= \\at(j,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 533,
+      "function": "main12268",
+      "original": [
+        "x >= 0",
+        "sn >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "x >= \\at(x,Pre)",
+          "rationale": "monotonic progress from function entry"
+        },
+        {
+          "clause": "sn >= \\at(sn,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "x >= \\at(x,Pre)",
+        "sn >= \\at(sn,Pre)"
+      ],
+      "addition_rationales": {
+        "x >= \\at(x,Pre)": "monotonic progress from function entry",
+        "sn >= \\at(sn,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 537,
+      "function": "main11475",
+      "original": [
+        "cd >= 0",
+        "cd <= 10000"
+      ],
+      "candidates": [
+        {
+          "clause": "cd <= \\at(cd,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "cd <= \\at(cd,Pre)"
+      ],
+      "addition_rationales": {
+        "cd <= \\at(cd,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 553,
+      "function": "main1445",
+      "original": [
+        "1 <= x"
+      ],
+      "candidates": [
+        {
+          "clause": "x == 1 || x + y == n + 1",
+          "rationale": "assignment/update phase relation"
+        }
+      ],
+      "wp_additions": [],
+      "addition_rationales": {},
+      "strengthened": false
+    },
+    {
+      "row": 576,
+      "function": "main101",
+      "original": [
+        "mn <= 100",
+        "mn >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "h % 2 != 0 ==> mn % 2 == 0",
+          "rationale": "selector-conditioned modular phase"
+        }
+      ],
+      "wp_additions": [
+        "h % 2 != 0 ==> mn % 2 == 0"
+      ],
+      "addition_rationales": {
+        "h % 2 != 0 ==> mn % 2 == 0": "selector-conditioned modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 583,
+      "function": "main1356",
+      "original": [
+        "1 <= x",
+        "x <= 101"
+      ],
+      "candidates": [],
+      "wp_additions": [],
+      "addition_rationales": {},
+      "strengthened": false
+    },
+    {
+      "row": 598,
+      "function": "main1378",
+      "original": [
+        "1 <= x",
+        "x <= 101"
+      ],
+      "candidates": [
+        {
+          "clause": "x <= 101",
+          "rationale": "tight guard-overshoot bound"
+        }
+      ],
+      "wp_additions": [],
+      "addition_rationales": {},
+      "strengthened": false
+    },
+    {
+      "row": 602,
+      "function": "main10309",
+      "original": [
+        "0 <= i",
+        "i <= 1000000"
+      ],
+      "candidates": [
+        {
+          "clause": "i >= \\at(i,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "i >= \\at(i,Pre)"
+      ],
+      "addition_rationales": {
+        "i >= \\at(i,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 613,
+      "function": "main372",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "x < 65521 || x % 2 == 1",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x < 65521 || x % 2 == 1"
+      ],
+      "addition_rationales": {
+        "x < 65521 || x % 2 == 1": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 663,
+      "function": "main7488",
+      "original": [
+        "p >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "a * b * p + q == \\at(x,Pre) * \\at(y,Pre)",
+          "rationale": "multiplicative conservation law"
+        },
+        {
+          "clause": "p == 1 || p % 4 == 0",
+          "rationale": "fixed-multiplier modular phase"
+        }
+      ],
+      "wp_additions": [
+        "p == 1 || p % 4 == 0"
+      ],
+      "addition_rationales": {
+        "p == 1 || p % 4 == 0": "fixed-multiplier modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 664,
+      "function": "main11526",
+      "original": [
+        "0 <= v6",
+        "v6 <= 4"
+      ],
+      "candidates": [
+        {
+          "clause": "v6 >= \\at(v6,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "v6 >= \\at(v6,Pre)"
+      ],
+      "addition_rationales": {
+        "v6 >= \\at(v6,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 683,
+      "function": "main8925",
+      "original": [
+        "ef >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "ef <= \\at(ef,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "ef <= \\at(ef,Pre)"
+      ],
+      "addition_rationales": {
+        "ef <= \\at(ef,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 701,
+      "function": "main1970",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "x < 65520 || x % 2 == 0",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x < 65520 || x % 2 == 0"
+      ],
+      "addition_rationales": {
+        "x < 65520 || x % 2 == 0": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 718,
+      "function": "main7304",
+      "original": [
+        "r1 >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "v4 * ctr * r1 + mn == \\at(p2,Pre) * \\at(ef,Pre)",
+          "rationale": "multiplicative conservation law"
+        },
+        {
+          "clause": "r1 == 1 || r1 % 4 == 0",
+          "rationale": "fixed-multiplier modular phase"
+        }
+      ],
+      "wp_additions": [
+        "r1 == 1 || r1 % 4 == 0"
+      ],
+      "addition_rationales": {
+        "r1 == 1 || r1 % 4 == 0": "fixed-multiplier modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 730,
+      "function": "main313",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "x < 65520 || x % 2 == 0",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x < 65520 || x % 2 == 0"
+      ],
+      "addition_rationales": {
+        "x < 65520 || x % 2 == 0": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 735,
+      "function": "main10279",
+      "original": [
+        "i >= 0",
+        "i <= 7000000"
+      ],
+      "candidates": [
+        {
+          "clause": "i >= \\at(i,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "i >= \\at(i,Pre)"
+      ],
+      "addition_rationales": {
+        "i >= \\at(i,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 743,
+      "function": "main1610",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "sn == \\at(sn,LoopEntry) + 20 * (x - 0)",
+          "rationale": "unknown-initialized lockstep conservation law"
+        }
+      ],
+      "wp_additions": [],
+      "addition_rationales": {},
+      "strengthened": false
+    },
+    {
+      "row": 751,
+      "function": "main7275",
+      "original": [
+        "d >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "z * w * d + v9 == \\at(ab,Pre) * \\at(h,Pre)",
+          "rationale": "multiplicative conservation law"
+        },
+        {
+          "clause": "d == 1 || d % 4 == 0",
+          "rationale": "fixed-multiplier modular phase"
+        }
+      ],
+      "wp_additions": [
+        "d == 1 || d % 4 == 0"
+      ],
+      "addition_rationales": {
+        "d == 1 || d % 4 == 0": "fixed-multiplier modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 773,
+      "function": "main2001",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "a == \\at(a,LoopEntry) + 1 * (x - 0)",
+          "rationale": "unknown-initialized lockstep conservation law"
+        },
+        {
+          "clause": "x <= 268435456",
+          "rationale": "tight guard-overshoot bound"
+        },
+        {
+          "clause": "x < 65520 || x % 2 == 0",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x <= 268435456",
+        "x < 65520 || x % 2 == 0"
+      ],
+      "addition_rationales": {
+        "x <= 268435456": "tight guard-overshoot bound",
+        "x < 65520 || x % 2 == 0": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 777,
+      "function": "main10614",
+      "original": [
+        "x >= 0",
+        "x <= 30",
+        "y >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "x >= \\at(x,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "x >= \\at(x,Pre)"
+      ],
+      "addition_rationales": {
+        "x >= \\at(x,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 802,
+      "function": "main2034",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "x <= 268435458",
+          "rationale": "tight guard-overshoot bound"
+        },
+        {
+          "clause": "x < 65520 || x % 4 == 0",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x <= 268435458",
+        "x < 65520 || x % 4 == 0"
+      ],
+      "addition_rationales": {
+        "x <= 268435458": "tight guard-overshoot bound",
+        "x < 65520 || x % 4 == 0": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 825,
+      "function": "main72",
+      "original": [
+        "v0 <= 100",
+        "v0 >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "b % 2 == 0 ==> v0 % 2 == 0",
+          "rationale": "selector-conditioned modular phase"
+        },
+        {
+          "clause": "v0 <= 100",
+          "rationale": "tight guard-overshoot bound"
+        }
+      ],
+      "wp_additions": [
+        "b % 2 == 0 ==> v0 % 2 == 0"
+      ],
+      "addition_rationales": {
+        "b % 2 == 0 ==> v0 % 2 == 0": "selector-conditioned modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 828,
+      "function": "main2027",
+      "original": [
+        "v9 >= 1",
+        "v4 > 0"
+      ],
+      "candidates": [
+        {
+          "clause": "v4 == \\at(v4,Pre)",
+          "rationale": "loop-relevant frame relation"
+        }
+      ],
+      "wp_additions": [
+        "v4 == \\at(v4,Pre)"
+      ],
+      "addition_rationales": {
+        "v4 == \\at(v4,Pre)": "loop-relevant frame relation"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 835,
+      "function": "main1382",
+      "original": [
+        "1 <= x",
+        "x <= 101"
+      ],
+      "candidates": [],
+      "wp_additions": [],
+      "addition_rationales": {},
+      "strengthened": false
+    },
+    {
+      "row": 837,
+      "function": "main2009",
+      "original": [
+        "b >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "b <= 268435456",
+          "rationale": "tight guard-overshoot bound"
+        },
+        {
+          "clause": "b < 65520 || b % 2 == 0",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "b <= 268435456",
+        "b < 65520 || b % 2 == 0"
+      ],
+      "addition_rationales": {
+        "b <= 268435456": "tight guard-overshoot bound",
+        "b < 65520 || b % 2 == 0": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 840,
+      "function": "main815",
+      "original": [
+        "x >= 0",
+        "x <= 100"
+      ],
+      "candidates": [
+        {
+          "clause": "x >= \\at(x,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "x >= \\at(x,Pre)"
+      ],
+      "addition_rationales": {
+        "x >= \\at(x,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 846,
+      "function": "main2609",
+      "original": [
+        "x <= 11"
+      ],
+      "candidates": [
+        {
+          "clause": "x >= \\at(x,Pre)",
+          "rationale": "monotonic progress from function entry"
+        },
+        {
+          "clause": "x <= 11",
+          "rationale": "tight guard-overshoot bound"
+        }
+      ],
+      "wp_additions": [
+        "x >= \\at(x,Pre)"
+      ],
+      "addition_rationales": {
+        "x >= \\at(x,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 861,
+      "function": "main1433",
+      "original": [
+        "x >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "x == 1 || x + y == n + 1",
+          "rationale": "assignment/update phase relation"
+        }
+      ],
+      "wp_additions": [],
+      "addition_rationales": {},
+      "strengthened": false
+    },
+    {
+      "row": 880,
+      "function": "main554",
+      "original": [
+        "0 <= x",
+        "x <= 18"
+      ],
+      "candidates": [
+        {
+          "clause": "a == \\at(a,LoopEntry) + 1 * (x - 0)",
+          "rationale": "unknown-initialized lockstep conservation law"
+        },
+        {
+          "clause": "x <= 18",
+          "rationale": "tight guard-overshoot bound"
+        }
+      ],
+      "wp_additions": [],
+      "addition_rationales": {},
+      "strengthened": false
+    },
+    {
+      "row": 892,
+      "function": "main2256",
+      "original": [
+        "0 <= c"
+      ],
+      "candidates": [
+        {
+          "clause": "k >= b",
+          "rationale": "coupled-accumulator order relation"
+        },
+        {
+          "clause": "p1 == \\at(p1,Pre)",
+          "rationale": "loop-relevant frame relation"
+        }
+      ],
+      "wp_additions": [],
+      "addition_rationales": {},
+      "strengthened": false
+    },
+    {
+      "row": 900,
+      "function": "main2403",
+      "original": [
+        "i >= 0",
+        "i <= 100",
+        "c >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "i >= \\at(i,Pre)",
+          "rationale": "monotonic progress from function entry"
+        },
+        {
+          "clause": "i <= 100",
+          "rationale": "tight guard-overshoot bound"
+        }
+      ],
+      "wp_additions": [
+        "i >= \\at(i,Pre)"
+      ],
+      "addition_rationales": {
+        "i >= \\at(i,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 904,
+      "function": "main7339",
+      "original": [
+        "a >= 0",
+        "b >= 0",
+        "p >= 1",
+        "x <= 2",
+        "y <= 2",
+        "y >= 1",
+        "a <= 2",
+        "b <= 2"
+      ],
+      "candidates": [
+        {
+          "clause": "a * b * p + q == \\at(x,Pre) * \\at(y,Pre)",
+          "rationale": "multiplicative conservation law"
+        },
+        {
+          "clause": "p == 1 || p % 4 == 0",
+          "rationale": "fixed-multiplier modular phase"
+        }
+      ],
+      "wp_additions": [
+        "p == 1 || p % 4 == 0"
+      ],
+      "addition_rationales": {
+        "p == 1 || p % 4 == 0": "fixed-multiplier modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 918,
+      "function": "main92",
+      "original": [
+        "0 <= x"
+      ],
+      "candidates": [
+        {
+          "clause": "x <= 268435456",
+          "rationale": "tight guard-overshoot bound"
+        },
+        {
+          "clause": "x < 65521 || x % 2 == 1",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x <= 268435456",
+        "x < 65521 || x % 2 == 1"
+      ],
+      "addition_rationales": {
+        "x <= 268435456": "tight guard-overshoot bound",
+        "x < 65521 || x % 2 == 1": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 925,
+      "function": "main7347",
+      "original": [
+        "w >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "u * g * w + v3 == \\at(f,Pre) * \\at(cd,Pre)",
+          "rationale": "multiplicative conservation law"
+        },
+        {
+          "clause": "w == 1 || w % 4 == 0",
+          "rationale": "fixed-multiplier modular phase"
+        }
+      ],
+      "wp_additions": [
+        "w == 1 || w % 4 == 0"
+      ],
+      "addition_rationales": {
+        "w == 1 || w % 4 == 0": "fixed-multiplier modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 926,
+      "function": "main1305",
+      "original": [
+        "1 <= x",
+        "x <= 11"
+      ],
+      "candidates": [
+        {
+          "clause": "x <= 11",
+          "rationale": "tight guard-overshoot bound"
+        }
+      ],
+      "wp_additions": [],
+      "addition_rationales": {},
+      "strengthened": false
+    },
+    {
+      "row": 935,
+      "function": "main301",
+      "original": [
+        "p >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "a * b * p + q == \\at(x,Pre) * \\at(y,Pre)",
+          "rationale": "multiplicative conservation law"
+        },
+        {
+          "clause": "p == 1 || p % 4 == 0",
+          "rationale": "fixed-multiplier modular phase"
+        }
+      ],
+      "wp_additions": [
+        "p == 1 || p % 4 == 0"
+      ],
+      "addition_rationales": {
+        "p == 1 || p % 4 == 0": "fixed-multiplier modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 946,
+      "function": "main1390",
+      "original": [
+        "1 <= x"
+      ],
+      "candidates": [
+        {
+          "clause": "x == 1 || x + y == n + 1",
+          "rationale": "assignment/update phase relation"
+        }
+      ],
+      "wp_additions": [],
+      "addition_rationales": {},
+      "strengthened": false
+    },
+    {
+      "row": 948,
+      "function": "main11444",
+      "original": [
+        "i <= 100",
+        "i >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "i <= \\at(i,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "i <= \\at(i,Pre)"
+      ],
+      "addition_rationales": {
+        "i <= \\at(i,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 954,
+      "function": "main343",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "x <= 268435456",
+          "rationale": "tight guard-overshoot bound"
+        },
+        {
+          "clause": "x < 65521 || x % 2 == 1",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x <= 268435456",
+        "x < 65521 || x % 2 == 1"
+      ],
+      "addition_rationales": {
+        "x <= 268435456": "tight guard-overshoot bound",
+        "x < 65521 || x % 2 == 1": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 964,
+      "function": "main1482",
+      "original": [
+        "1 <= x"
+      ],
+      "candidates": [
+        {
+          "clause": "x == 1 || x + y == n + 1",
+          "rationale": "assignment/update phase relation"
+        }
+      ],
+      "wp_additions": [],
+      "addition_rationales": {},
+      "strengthened": false
+    },
+    {
+      "row": 973,
+      "function": "main331",
+      "original": [
+        "v6 >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "v6 <= 268435456",
+          "rationale": "tight guard-overshoot bound"
+        },
+        {
+          "clause": "v6 < 65520 || v6 % 2 == 0",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "v6 <= 268435456",
+        "v6 < 65520 || v6 % 2 == 0"
+      ],
+      "addition_rationales": {
+        "v6 <= 268435456": "tight guard-overshoot bound",
+        "v6 < 65520 || v6 % 2 == 0": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 978,
+      "function": "main7408",
+      "original": [
+        "v8 >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "p3 * v0 * v8 + ij == \\at(z,Pre) * \\at(s,Pre)",
+          "rationale": "multiplicative conservation law"
+        },
+        {
+          "clause": "v8 == 1 || v8 % 4 == 0",
+          "rationale": "fixed-multiplier modular phase"
+        }
+      ],
+      "wp_additions": [
+        "v8 == 1 || v8 % 4 == 0"
+      ],
+      "addition_rationales": {
+        "v8 == 1 || v8 % 4 == 0": "fixed-multiplier modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 996,
+      "function": "main3801",
+      "original": [
+        "p >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "a * b * p + q == \\at(x,Pre) * \\at(y,Pre)",
+          "rationale": "multiplicative conservation law"
+        },
+        {
+          "clause": "p == 1 || p % 4 == 0",
+          "rationale": "fixed-multiplier modular phase"
+        }
+      ],
+      "wp_additions": [
+        "p == 1 || p % 4 == 0"
+      ],
+      "addition_rationales": {
+        "p == 1 || p % 4 == 0": "fixed-multiplier modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1010,
+      "function": "main1349",
+      "original": [
+        "1 <= x",
+        "x <= 11"
+      ],
+      "candidates": [
+        {
+          "clause": "x <= 11",
+          "rationale": "tight guard-overshoot bound"
+        }
+      ],
+      "wp_additions": [],
+      "addition_rationales": {},
+      "strengthened": false
+    },
+    {
+      "row": 1013,
+      "function": "main2036",
+      "original": [
+        "0 <= x"
+      ],
+      "candidates": [
+        {
+          "clause": "a == \\at(a,LoopEntry) + 1 * (x - 0)",
+          "rationale": "unknown-initialized lockstep conservation law"
+        },
+        {
+          "clause": "x <= 268435468",
+          "rationale": "tight guard-overshoot bound"
+        },
+        {
+          "clause": "x < 65521 || x % 14 == 1",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x <= 268435468",
+        "x < 65521 || x % 14 == 1"
+      ],
+      "addition_rationales": {
+        "x <= 268435468": "tight guard-overshoot bound",
+        "x < 65521 || x % 14 == 1": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1032,
+      "function": "main1424",
+      "original": [
+        "x >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "(a - (\\at(a,LoopEntry))) == (b - (\\at(b,LoopEntry)))",
+          "rationale": "synchronous constant-update conservation law"
+        },
+        {
+          "clause": "x == 1 || x + y == n + 1",
+          "rationale": "assignment/update phase relation"
+        }
+      ],
+      "wp_additions": [
+        "(a - (\\at(a,LoopEntry))) == (b - (\\at(b,LoopEntry)))",
+        "x == 1 || x + y == n + 1"
+      ],
+      "addition_rationales": {
+        "(a - (\\at(a,LoopEntry))) == (b - (\\at(b,LoopEntry)))": "synchronous constant-update conservation law",
+        "x == 1 || x + y == n + 1": "assignment/update phase relation"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1039,
+      "function": "main10176",
+      "original": [
+        "c >= 0",
+        "c <= 1000000"
+      ],
+      "candidates": [
+        {
+          "clause": "c >= \\at(c,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "c >= \\at(c,Pre)"
+      ],
+      "addition_rationales": {
+        "c >= \\at(c,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1051,
+      "function": "main11413",
+      "original": [
+        "x <= 100",
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "x <= \\at(x,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "x <= \\at(x,Pre)"
+      ],
+      "addition_rationales": {
+        "x <= \\at(x,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1055,
+      "function": "main10172",
+      "original": [
+        "i >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "i >= \\at(i,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "i >= \\at(i,Pre)"
+      ],
+      "addition_rationales": {
+        "i >= \\at(i,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1096,
+      "function": "main11640",
+      "original": [
+        "x >= 1",
+        "x <= 11"
+      ],
+      "candidates": [
+        {
+          "clause": "x >= \\at(x,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "x >= \\at(x,Pre)"
+      ],
+      "addition_rationales": {
+        "x >= \\at(x,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1103,
+      "function": "main57",
+      "original": [
+        "x <= 302",
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "y % 6 == 0 ==> x % 6 == 0",
+          "rationale": "selector-conditioned modular phase"
+        },
+        {
+          "clause": "x <= 302",
+          "rationale": "tight guard-overshoot bound"
+        }
+      ],
+      "wp_additions": [
+        "y % 6 == 0 ==> x % 6 == 0"
+      ],
+      "addition_rationales": {
+        "y % 6 == 0 ==> x % 6 == 0": "selector-conditioned modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1129,
+      "function": "main7416",
+      "original": [
+        "m >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "v2 * nxt * m + v0 == \\at(q2,Pre) * \\at(c,Pre)",
+          "rationale": "multiplicative conservation law"
+        },
+        {
+          "clause": "m == 1 || m % 4 == 0",
+          "rationale": "fixed-multiplier modular phase"
+        }
+      ],
+      "wp_additions": [
+        "m == 1 || m % 4 == 0"
+      ],
+      "addition_rationales": {
+        "m == 1 || m % 4 == 0": "fixed-multiplier modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1139,
+      "function": "main2059",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "x <= 268435456",
+          "rationale": "tight guard-overshoot bound"
+        },
+        {
+          "clause": "x < 65521 || x % 2 == 1",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x <= 268435456",
+        "x < 65521 || x % 2 == 1"
+      ],
+      "addition_rationales": {
+        "x <= 268435456": "tight guard-overshoot bound",
+        "x < 65521 || x % 2 == 1": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1140,
+      "function": "main10238",
+      "original": [
+        "i >= 0",
+        "i <= 2000000"
+      ],
+      "candidates": [
+        {
+          "clause": "i >= \\at(i,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "i >= \\at(i,Pre)"
+      ],
+      "addition_rationales": {
+        "i >= \\at(i,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1141,
+      "function": "main2032",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "a == \\at(a,LoopEntry) + 1 * (x - 0)",
+          "rationale": "unknown-initialized lockstep conservation law"
+        },
+        {
+          "clause": "x <= 268435460",
+          "rationale": "tight guard-overshoot bound"
+        },
+        {
+          "clause": "x < 65521 || x % 6 == 1",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x <= 268435460",
+        "x < 65521 || x % 6 == 1"
+      ],
+      "addition_rationales": {
+        "x <= 268435460": "tight guard-overshoot bound",
+        "x < 65521 || x % 6 == 1": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1166,
+      "function": "main7194",
+      "original": [
+        "a >= 1",
+        "b >= 1"
+      ],
+      "candidates": [],
+      "wp_additions": [],
+      "addition_rationales": {},
+      "strengthened": false
+    },
+    {
+      "row": 1182,
+      "function": "main1423",
+      "original": [
+        "x >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "x == 1 || x + y == n + 1",
+          "rationale": "assignment/update phase relation"
+        }
+      ],
+      "wp_additions": [],
+      "addition_rationales": {},
+      "strengthened": false
+    },
+    {
+      "row": 1190,
+      "function": "main1451",
+      "original": [
+        "x >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "x == 1 || x + y == n + 1",
+          "rationale": "assignment/update phase relation"
+        }
+      ],
+      "wp_additions": [],
+      "addition_rationales": {},
+      "strengthened": false
+    },
+    {
+      "row": 1206,
+      "function": "main2053",
+      "original": [
+        "x >= 1",
+        "y >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "y == \\at(y,Pre)",
+          "rationale": "loop-relevant frame relation"
+        }
+      ],
+      "wp_additions": [
+        "y == \\at(y,Pre)"
+      ],
+      "addition_rationales": {
+        "y == \\at(y,Pre)": "loop-relevant frame relation"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1212,
+      "function": "main2041",
+      "original": [
+        "0 <= x"
+      ],
+      "candidates": [
+        {
+          "clause": "a == \\at(a,LoopEntry) + 1 * (x - 0)",
+          "rationale": "unknown-initialized lockstep conservation law"
+        },
+        {
+          "clause": "x <= 268435457",
+          "rationale": "tight guard-overshoot bound"
+        },
+        {
+          "clause": "x < 65521 || x % 2 == 1",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x <= 268435457",
+        "x < 65521 || x % 2 == 1"
+      ],
+      "addition_rationales": {
+        "x <= 268435457": "tight guard-overshoot bound",
+        "x < 65521 || x % 2 == 1": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1213,
+      "function": "main103",
+      "original": [
+        "x >= 0",
+        "x <= 4294967295"
+      ],
+      "candidates": [
+        {
+          "clause": "x >= -1",
+          "rationale": "tight guard-overshoot bound"
+        }
+      ],
+      "wp_additions": [
+        "x >= -1"
+      ],
+      "addition_rationales": {
+        "x >= -1": "tight guard-overshoot bound"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1303,
+      "function": "main2026",
+      "original": [
+        "x >= 1",
+        "y > 0"
+      ],
+      "candidates": [
+        {
+          "clause": "a == \\at(a,LoopEntry) + 1 * (x - 1)",
+          "rationale": "unknown-initialized lockstep conservation law"
+        },
+        {
+          "clause": "y == \\at(y,Pre)",
+          "rationale": "loop-relevant frame relation"
+        }
+      ],
+      "wp_additions": [
+        "y == \\at(y,Pre)"
+      ],
+      "addition_rationales": {
+        "y == \\at(y,Pre)": "loop-relevant frame relation"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1319,
+      "function": "main12120",
+      "original": [
+        "x >= 0",
+        "x <= 100"
+      ],
+      "candidates": [
+        {
+          "clause": "x >= \\at(x,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "x >= \\at(x,Pre)"
+      ],
+      "addition_rationales": {
+        "x >= \\at(x,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1360,
+      "function": "main11486",
+      "original": [
+        "h >= 0",
+        "h <= 10000"
+      ],
+      "candidates": [
+        {
+          "clause": "h <= \\at(h,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "h <= \\at(h,Pre)"
+      ],
+      "addition_rationales": {
+        "h <= \\at(h,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1370,
+      "function": "main7478",
+      "original": [
+        "p >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "a * b * p + q == \\at(x,Pre) * \\at(y,Pre)",
+          "rationale": "multiplicative conservation law"
+        },
+        {
+          "clause": "p == 1 || p % 4 == 0",
+          "rationale": "fixed-multiplier modular phase"
+        }
+      ],
+      "wp_additions": [
+        "p == 1 || p % 4 == 0"
+      ],
+      "addition_rationales": {
+        "p == 1 || p % 4 == 0": "fixed-multiplier modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1377,
+      "function": "main1463",
+      "original": [
+        "x >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "(a - (\\at(a,LoopEntry))) == (x - (1))",
+          "rationale": "synchronous constant-update conservation law"
+        },
+        {
+          "clause": "x == 1 || x + y == n + 1",
+          "rationale": "assignment/update phase relation"
+        }
+      ],
+      "wp_additions": [
+        "(a - (\\at(a,LoopEntry))) == (x - (1))",
+        "x == 1 || x + y == n + 1"
+      ],
+      "addition_rationales": {
+        "(a - (\\at(a,LoopEntry))) == (x - (1))": "synchronous constant-update conservation law",
+        "x == 1 || x + y == n + 1": "assignment/update phase relation"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1387,
+      "function": "main1991",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "x <= 268435456",
+          "rationale": "tight guard-overshoot bound"
+        },
+        {
+          "clause": "x < 65521 || x % 2 == 1",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x <= 268435456",
+        "x < 65521 || x % 2 == 1"
+      ],
+      "addition_rationales": {
+        "x <= 268435456": "tight guard-overshoot bound",
+        "x < 65521 || x % 2 == 1": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1396,
+      "function": "main5813",
+      "original": [
+        "p3 >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "p2 == \\at(p2,Pre)",
+          "rationale": "loop-relevant frame relation"
+        },
+        {
+          "clause": "f == \\at(f,Pre)",
+          "rationale": "loop-relevant frame relation"
+        },
+        {
+          "clause": "v3 == \\at(v3,LoopEntry)",
+          "rationale": "loop-relevant frame relation"
+        }
+      ],
+      "wp_additions": [
+        "p2 == \\at(p2,Pre)",
+        "f == \\at(f,Pre)"
+      ],
+      "addition_rationales": {
+        "p2 == \\at(p2,Pre)": "loop-relevant frame relation",
+        "f == \\at(f,Pre)": "loop-relevant frame relation"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1423,
+      "function": "main332",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "x < 65521 || x % 2 == 1",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x < 65521 || x % 2 == 1"
+      ],
+      "addition_rationales": {
+        "x < 65521 || x % 2 == 1": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1429,
+      "function": "main11681",
+      "original": [
+        "x >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "x >= \\at(x,Pre)",
+          "rationale": "monotonic progress from function entry"
+        },
+        {
+          "clause": "n == \\at(n,Pre)",
+          "rationale": "loop-relevant frame relation"
+        },
+        {
+          "clause": "v1 == \\at(v1,Pre)",
+          "rationale": "loop-relevant frame relation"
+        },
+        {
+          "clause": "v2 == \\at(v2,Pre)",
+          "rationale": "loop-relevant frame relation"
+        },
+        {
+          "clause": "v3 == \\at(v3,Pre)",
+          "rationale": "loop-relevant frame relation"
+        }
+      ],
+      "wp_additions": [
+        "x >= \\at(x,Pre)",
+        "n == \\at(n,Pre)",
+        "v1 == \\at(v1,Pre)",
+        "v2 == \\at(v2,Pre)",
+        "v3 == \\at(v3,Pre)"
+      ],
+      "addition_rationales": {
+        "x >= \\at(x,Pre)": "monotonic progress from function entry",
+        "n == \\at(n,Pre)": "loop-relevant frame relation",
+        "v1 == \\at(v1,Pre)": "loop-relevant frame relation",
+        "v2 == \\at(v2,Pre)": "loop-relevant frame relation",
+        "v3 == \\at(v3,Pre)": "loop-relevant frame relation"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1430,
+      "function": "main1296",
+      "original": [
+        "1 <= x",
+        "x <= 11"
+      ],
+      "candidates": [
+        {
+          "clause": "x <= 11",
+          "rationale": "tight guard-overshoot bound"
+        }
+      ],
+      "wp_additions": [],
+      "addition_rationales": {},
+      "strengthened": false
+    },
+    {
+      "row": 1447,
+      "function": "main1439",
+      "original": [
+        "x >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "x == 1 || x + y == n + 1",
+          "rationale": "assignment/update phase relation"
+        }
+      ],
+      "wp_additions": [],
+      "addition_rationales": {},
+      "strengthened": false
+    },
+    {
+      "row": 1452,
+      "function": "main11772",
+      "original": [
+        "x >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "x >= \\at(x,Pre)",
+          "rationale": "monotonic progress from function entry"
+        },
+        {
+          "clause": "n == \\at(n,Pre)",
+          "rationale": "loop-relevant frame relation"
+        },
+        {
+          "clause": "v1 == \\at(v1,Pre)",
+          "rationale": "loop-relevant frame relation"
+        },
+        {
+          "clause": "v2 == \\at(v2,Pre)",
+          "rationale": "loop-relevant frame relation"
+        },
+        {
+          "clause": "v3 == \\at(v3,Pre)",
+          "rationale": "loop-relevant frame relation"
+        }
+      ],
+      "wp_additions": [
+        "x >= \\at(x,Pre)",
+        "n == \\at(n,Pre)",
+        "v1 == \\at(v1,Pre)",
+        "v2 == \\at(v2,Pre)",
+        "v3 == \\at(v3,Pre)"
+      ],
+      "addition_rationales": {
+        "x >= \\at(x,Pre)": "monotonic progress from function entry",
+        "n == \\at(n,Pre)": "loop-relevant frame relation",
+        "v1 == \\at(v1,Pre)": "loop-relevant frame relation",
+        "v2 == \\at(v2,Pre)": "loop-relevant frame relation",
+        "v3 == \\at(v3,Pre)": "loop-relevant frame relation"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1456,
+      "function": "main93",
+      "original": [
+        "x >= 0",
+        "x <= 100"
+      ],
+      "candidates": [
+        {
+          "clause": "y % 2 != 0 ==> x % 2 == 0",
+          "rationale": "selector-conditioned modular phase"
+        },
+        {
+          "clause": "x <= 100",
+          "rationale": "tight guard-overshoot bound"
+        }
+      ],
+      "wp_additions": [
+        "y % 2 != 0 ==> x % 2 == 0"
+      ],
+      "addition_rationales": {
+        "y % 2 != 0 ==> x % 2 == 0": "selector-conditioned modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1461,
+      "function": "main3798",
+      "original": [
+        "t >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "cur * gh * t + ij == \\at(n,Pre) * \\at(v2,Pre)",
+          "rationale": "multiplicative conservation law"
+        },
+        {
+          "clause": "t == 1 || t % 4 == 0",
+          "rationale": "fixed-multiplier modular phase"
+        }
+      ],
+      "wp_additions": [
+        "t == 1 || t % 4 == 0"
+      ],
+      "addition_rationales": {
+        "t == 1 || t % 4 == 0": "fixed-multiplier modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1464,
+      "function": "main12159",
+      "original": [
+        "x >= 0",
+        "x <= 300"
+      ],
+      "candidates": [
+        {
+          "clause": "x >= \\at(x,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "x >= \\at(x,Pre)"
+      ],
+      "addition_rationales": {
+        "x >= \\at(x,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1474,
+      "function": "main11535",
+      "original": [
+        "c >= 0",
+        "c <= 4"
+      ],
+      "candidates": [
+        {
+          "clause": "c >= \\at(c,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "c >= \\at(c,Pre)"
+      ],
+      "addition_rationales": {
+        "c >= \\at(c,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1480,
+      "function": "main309",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "x <= 268435456",
+          "rationale": "tight guard-overshoot bound"
+        },
+        {
+          "clause": "x < 65520 || x % 2 == 0",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x <= 268435456",
+        "x < 65520 || x % 2 == 0"
+      ],
+      "addition_rationales": {
+        "x <= 268435456": "tight guard-overshoot bound",
+        "x < 65520 || x % 2 == 0": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1492,
+      "function": "main11454",
+      "original": [
+        "x >= 0",
+        "x <= 10000"
+      ],
+      "candidates": [
+        {
+          "clause": "x <= \\at(x,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "x <= \\at(x,Pre)"
+      ],
+      "addition_rationales": {
+        "x <= \\at(x,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1512,
+      "function": "main7433",
+      "original": [
+        "p >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "a * b * p + q == \\at(x,Pre) * \\at(y,Pre)",
+          "rationale": "multiplicative conservation law"
+        },
+        {
+          "clause": "p == 1 || p % 4 == 0",
+          "rationale": "fixed-multiplier modular phase"
+        }
+      ],
+      "wp_additions": [
+        "p == 1 || p % 4 == 0"
+      ],
+      "addition_rationales": {
+        "p == 1 || p % 4 == 0": "fixed-multiplier modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1526,
+      "function": "main310",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "x <= 268435456",
+          "rationale": "tight guard-overshoot bound"
+        },
+        {
+          "clause": "x < 65520 || x % 2 == 0",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x <= 268435456",
+        "x < 65520 || x % 2 == 0"
+      ],
+      "addition_rationales": {
+        "x <= 268435456": "tight guard-overshoot bound",
+        "x < 65520 || x % 2 == 0": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1612,
+      "function": "main3828",
+      "original": [
+        "p >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "a * b * p + q == \\at(x,Pre) * \\at(y,Pre)",
+          "rationale": "multiplicative conservation law"
+        },
+        {
+          "clause": "p == 1 || p % 4 == 0",
+          "rationale": "fixed-multiplier modular phase"
+        }
+      ],
+      "wp_additions": [
+        "p == 1 || p % 4 == 0"
+      ],
+      "addition_rationales": {
+        "p == 1 || p % 4 == 0": "fixed-multiplier modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1626,
+      "function": "main10192",
+      "original": [
+        "0 <= i",
+        "i <= 3000000"
+      ],
+      "candidates": [
+        {
+          "clause": "i >= \\at(i,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "i >= \\at(i,Pre)"
+      ],
+      "addition_rationales": {
+        "i >= \\at(i,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1662,
+      "function": "main2076",
+      "original": [
+        "x >= 1",
+        "y > 0"
+      ],
+      "candidates": [
+        {
+          "clause": "y == \\at(y,Pre)",
+          "rationale": "loop-relevant frame relation"
+        }
+      ],
+      "wp_additions": [
+        "y == \\at(y,Pre)"
+      ],
+      "addition_rationales": {
+        "y == \\at(y,Pre)": "loop-relevant frame relation"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1687,
+      "function": "main1587",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "1 * (sn - (\\at(sn,LoopEntry))) == 6 * (x - (0))",
+          "rationale": "synchronous constant-update conservation law"
+        },
+        {
+          "clause": "sn == \\at(sn,LoopEntry) + 6 * (x - 0)",
+          "rationale": "unknown-initialized lockstep conservation law"
+        }
+      ],
+      "wp_additions": [],
+      "addition_rationales": {},
+      "strengthened": false
+    },
+    {
+      "row": 1691,
+      "function": "main2022",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "x < 65521 || x % 2 == 1",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x < 65521 || x % 2 == 1"
+      ],
+      "addition_rationales": {
+        "x < 65521 || x % 2 == 1": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1702,
+      "function": "main1356",
+      "original": [
+        "x >= 1",
+        "x <= 101"
+      ],
+      "candidates": [
+        {
+          "clause": "x <= 101",
+          "rationale": "tight guard-overshoot bound"
+        }
+      ],
+      "wp_additions": [],
+      "addition_rationales": {},
+      "strengthened": false
+    },
+    {
+      "row": 1709,
+      "function": "main7380",
+      "original": [
+        "p >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "a * b * p + q == \\at(x,Pre) * \\at(y,Pre)",
+          "rationale": "multiplicative conservation law"
+        },
+        {
+          "clause": "p == 1 || p % 4 == 0",
+          "rationale": "fixed-multiplier modular phase"
+        }
+      ],
+      "wp_additions": [
+        "p == 1 || p % 4 == 0"
+      ],
+      "addition_rationales": {
+        "p == 1 || p % 4 == 0": "fixed-multiplier modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1789,
+      "function": "main10197",
+      "original": [
+        "i >= 0",
+        "i <= 1000000"
+      ],
+      "candidates": [
+        {
+          "clause": "i >= \\at(i,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "i >= \\at(i,Pre)"
+      ],
+      "addition_rationales": {
+        "i >= \\at(i,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1796,
+      "function": "main351",
+      "original": [
+        "0 <= x"
+      ],
+      "candidates": [
+        {
+          "clause": "x <= 268435456",
+          "rationale": "tight guard-overshoot bound"
+        },
+        {
+          "clause": "x < 65520 || x % 2 == 0",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x <= 268435456",
+        "x < 65520 || x % 2 == 0"
+      ],
+      "addition_rationales": {
+        "x <= 268435456": "tight guard-overshoot bound",
+        "x < 65520 || x % 2 == 0": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1799,
+      "function": "main56",
+      "original": [
+        "v9 <= 100",
+        "v9 >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "f % 2 == 0 ==> v9 % 2 == 0",
+          "rationale": "selector-conditioned modular phase"
+        },
+        {
+          "clause": "v9 <= 100",
+          "rationale": "tight guard-overshoot bound"
+        }
+      ],
+      "wp_additions": [
+        "f % 2 == 0 ==> v9 % 2 == 0"
+      ],
+      "addition_rationales": {
+        "f % 2 == 0 ==> v9 % 2 == 0": "selector-conditioned modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1811,
+      "function": "main2020",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "x < 65520 || x % 2 == 0",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x < 65520 || x % 2 == 0"
+      ],
+      "addition_rationales": {
+        "x < 65520 || x % 2 == 0": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1847,
+      "function": "main468",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [],
+      "wp_additions": [],
+      "addition_rationales": {},
+      "strengthened": false
+    },
+    {
+      "row": 1866,
+      "function": "main10230",
+      "original": [
+        "c >= 0",
+        "c <= 1000000"
+      ],
+      "candidates": [
+        {
+          "clause": "c >= \\at(c,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "c >= \\at(c,Pre)"
+      ],
+      "addition_rationales": {
+        "c >= \\at(c,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1868,
+      "function": "main336",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "x < 65520 || x % 2 == 0",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x < 65520 || x % 2 == 0"
+      ],
+      "addition_rationales": {
+        "x < 65520 || x % 2 == 0": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1914,
+      "function": "main8055",
+      "original": [
+        "ij >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "v0 == \\at(v0,Pre)",
+          "rationale": "loop-relevant frame relation"
+        },
+        {
+          "clause": "e == \\at(e,LoopEntry)",
+          "rationale": "loop-relevant frame relation"
+        }
+      ],
+      "wp_additions": [
+        "v0 == \\at(v0,Pre)"
+      ],
+      "addition_rationales": {
+        "v0 == \\at(v0,Pre)": "loop-relevant frame relation"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1920,
+      "function": "main2033",
+      "original": [
+        "0 <= x"
+      ],
+      "candidates": [
+        {
+          "clause": "x < 65521 || x % 2 == 1",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x < 65521 || x % 2 == 1"
+      ],
+      "addition_rationales": {
+        "x < 65521 || x % 2 == 1": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1934,
+      "function": "main474",
+      "original": [
+        "x >= 0",
+        "x <= 10000"
+      ],
+      "candidates": [
+        {
+          "clause": "x <= \\at(x,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "x <= \\at(x,Pre)"
+      ],
+      "addition_rationales": {
+        "x <= \\at(x,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1935,
+      "function": "main11434",
+      "original": [
+        "x >= 0",
+        "x <= 100000"
+      ],
+      "candidates": [
+        {
+          "clause": "x <= \\at(x,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "x <= \\at(x,Pre)"
+      ],
+      "addition_rationales": {
+        "x <= \\at(x,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1949,
+      "function": "main2063",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "x <= 268435464",
+          "rationale": "tight guard-overshoot bound"
+        },
+        {
+          "clause": "x < 65521 || x % 10 == 1",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x <= 268435464",
+        "x < 65521 || x % 10 == 1"
+      ],
+      "addition_rationales": {
+        "x <= 268435464": "tight guard-overshoot bound",
+        "x < 65521 || x % 10 == 1": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1956,
+      "function": "main3425",
+      "original": [
+        "1 <= c"
+      ],
+      "candidates": [
+        {
+          "clause": "z == \\at(z,Pre)",
+          "rationale": "loop-relevant frame relation"
+        },
+        {
+          "clause": "k == \\at(k,Pre)",
+          "rationale": "loop-relevant frame relation"
+        }
+      ],
+      "wp_additions": [
+        "z == \\at(z,Pre)",
+        "k == \\at(k,Pre)"
+      ],
+      "addition_rationales": {
+        "z == \\at(z,Pre)": "loop-relevant frame relation",
+        "k == \\at(k,Pre)": "loop-relevant frame relation"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1968,
+      "function": "main1401",
+      "original": [
+        "1 <= x"
+      ],
+      "candidates": [
+        {
+          "clause": "x == 1 || x + y == n + 1",
+          "rationale": "assignment/update phase relation"
+        }
+      ],
+      "wp_additions": [],
+      "addition_rationales": {},
+      "strengthened": false
+    },
+    {
+      "row": 1981,
+      "function": "main2017",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "x < 65520 || x % 2 == 0",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x < 65520 || x % 2 == 0"
+      ],
+      "addition_rationales": {
+        "x < 65520 || x % 2 == 0": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 1986,
+      "function": "main2030",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "x <= 268435456",
+          "rationale": "tight guard-overshoot bound"
+        },
+        {
+          "clause": "x < 65521 || x % 2 == 1",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x <= 268435456",
+        "x < 65521 || x % 2 == 1"
+      ],
+      "addition_rationales": {
+        "x <= 268435456": "tight guard-overshoot bound",
+        "x < 65521 || x % 2 == 1": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 2004,
+      "function": "main1452",
+      "original": [
+        "x >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "x == 1 || x + y == n + 1",
+          "rationale": "assignment/update phase relation"
+        }
+      ],
+      "wp_additions": [],
+      "addition_rationales": {},
+      "strengthened": false
+    },
+    {
+      "row": 2037,
+      "function": "main2031",
+      "original": [
+        "x >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "x >= -1",
+          "rationale": "tight guard-overshoot bound"
+        }
+      ],
+      "wp_additions": [
+        "x >= -1"
+      ],
+      "addition_rationales": {
+        "x >= -1": "tight guard-overshoot bound"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 2047,
+      "function": "main1468",
+      "original": [
+        "x >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "x == 1 || x + y == n + 1",
+          "rationale": "assignment/update phase relation"
+        }
+      ],
+      "wp_additions": [],
+      "addition_rationales": {},
+      "strengthened": false
+    },
+    {
+      "row": 2051,
+      "function": "main11422",
+      "original": [
+        "t <= 10000",
+        "t >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "t <= \\at(t,Pre)",
+          "rationale": "monotonic progress from function entry"
+        }
+      ],
+      "wp_additions": [
+        "t <= \\at(t,Pre)"
+      ],
+      "addition_rationales": {
+        "t <= \\at(t,Pre)": "monotonic progress from function entry"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 2055,
+      "function": "main7492",
+      "original": [
+        "p >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "a * b * p + q == \\at(x,Pre) * \\at(y,Pre)",
+          "rationale": "multiplicative conservation law"
+        },
+        {
+          "clause": "p == 1 || p % 4 == 0",
+          "rationale": "fixed-multiplier modular phase"
+        }
+      ],
+      "wp_additions": [
+        "p == 1 || p % 4 == 0"
+      ],
+      "addition_rationales": {
+        "p == 1 || p % 4 == 0": "fixed-multiplier modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 2063,
+      "function": "main1986",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "x >= -1",
+          "rationale": "tight guard-overshoot bound"
+        }
+      ],
+      "wp_additions": [
+        "x >= -1"
+      ],
+      "addition_rationales": {
+        "x >= -1": "tight guard-overshoot bound"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 2068,
+      "function": "main1481",
+      "original": [
+        "1 <= x"
+      ],
+      "candidates": [
+        {
+          "clause": "x == 1 || x + y == n + 1",
+          "rationale": "assignment/update phase relation"
+        }
+      ],
+      "wp_additions": [],
+      "addition_rationales": {},
+      "strengthened": false
+    },
+    {
+      "row": 2090,
+      "function": "main7474",
+      "original": [
+        "p >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "a * b * p + q == \\at(x,Pre) * \\at(y,Pre)",
+          "rationale": "multiplicative conservation law"
+        },
+        {
+          "clause": "p == 1 || p % 4 == 0",
+          "rationale": "fixed-multiplier modular phase"
+        }
+      ],
+      "wp_additions": [
+        "p == 1 || p % 4 == 0"
+      ],
+      "addition_rationales": {
+        "p == 1 || p % 4 == 0": "fixed-multiplier modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 2118,
+      "function": "main5024",
+      "original": [
+        "u >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "u == w * f + v1 * ctr",
+          "rationale": "B\u00e9zout conservation law for u"
+        },
+        {
+          "clause": "v2 == v4 * f + d * ctr",
+          "rationale": "B\u00e9zout conservation law for v2"
+        }
+      ],
+      "wp_additions": [
+        "u == w * f + v1 * ctr",
+        "v2 == v4 * f + d * ctr"
+      ],
+      "addition_rationales": {
+        "u == w * f + v1 * ctr": "B\u00e9zout conservation law for u",
+        "v2 == v4 * f + d * ctr": "B\u00e9zout conservation law for v2"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 2120,
+      "function": "main1656",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "1 * (sn - (\\at(sn,LoopEntry))) == 20 * (a - (\\at(a,LoopEntry)))",
+          "rationale": "synchronous constant-update conservation law"
+        },
+        {
+          "clause": "sn == \\at(sn,LoopEntry) + 20 * (x - 0)",
+          "rationale": "unknown-initialized lockstep conservation law"
+        },
+        {
+          "clause": "a == \\at(a,LoopEntry) + 1 * (x - 0)",
+          "rationale": "unknown-initialized lockstep conservation law"
+        }
+      ],
+      "wp_additions": [
+        "1 * (sn - (\\at(sn,LoopEntry))) == 20 * (a - (\\at(a,LoopEntry)))"
+      ],
+      "addition_rationales": {
+        "1 * (sn - (\\at(sn,LoopEntry))) == 20 * (a - (\\at(a,LoopEntry)))": "synchronous constant-update conservation law"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 2174,
+      "function": "main2026",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "x <= 268435456",
+          "rationale": "tight guard-overshoot bound"
+        },
+        {
+          "clause": "x < 65521 || x % 2 == 1",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x <= 268435456",
+        "x < 65521 || x % 2 == 1"
+      ],
+      "addition_rationales": {
+        "x <= 268435456": "tight guard-overshoot bound",
+        "x < 65521 || x % 2 == 1": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 2199,
+      "function": "main2040",
+      "original": [
+        "x >= 0"
+      ],
+      "candidates": [
+        {
+          "clause": "a == \\at(a,LoopEntry) + 1 * (x - 0)",
+          "rationale": "unknown-initialized lockstep conservation law"
+        },
+        {
+          "clause": "x <= 268435460",
+          "rationale": "tight guard-overshoot bound"
+        },
+        {
+          "clause": "x < 65521 || x % 6 == 1",
+          "rationale": "post-threshold modular phase"
+        }
+      ],
+      "wp_additions": [
+        "x <= 268435460",
+        "x < 65521 || x % 6 == 1"
+      ],
+      "addition_rationales": {
+        "x <= 268435460": "tight guard-overshoot bound",
+        "x < 65521 || x % 6 == 1": "post-threshold modular phase"
+      },
+      "strengthened": true
+    },
+    {
+      "row": 3164,
+      "function": "main5794",
+      "original": [
+        "x >= 1",
+        "c >= 1"
+      ],
+      "candidates": [
+        {
+          "clause": "z == \\at(z,Pre)",
+          "rationale": "loop-relevant frame relation"
+        },
+        {
+          "clause": "k == \\at(k,Pre)",
+          "rationale": "loop-relevant frame relation"
+        }
+      ],
+      "wp_additions": [
+        "z == \\at(z,Pre)",
+        "k == \\at(k,Pre)"
+      ],
+      "addition_rationales": {
+        "z == \\at(z,Pre)": "loop-relevant frame relation",
+        "k == \\at(k,Pre)": "loop-relevant frame relation"
+      },
+      "strengthened": true
+    }
+  ]
+}

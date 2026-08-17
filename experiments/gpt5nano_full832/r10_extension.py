@@ -17,6 +17,7 @@ from .common import (
     Task,
     append_jsonl,
     base_row,
+    craft_env,
     discover_tasks,
     ensure_frama_c_available,
     latest_rows,
@@ -27,9 +28,21 @@ from .run import _score_fixed_task, event_path, new_attempt_dir, save_hidden_sou
 
 METHOD = "loopgym_r10_houdini"
 N_ROLLOUTS = 10
-REQUESTS_PER_TASK = 2
-ROLLOUTS_PER_REQUEST = 5
-EXTENSION_PROTOCOL = "loopgym_r10_houdini_two_requests_n5x2_v4"
+# Some providers behind the shared OpenAI-compatible endpoint silently return
+# fewer choices than requested for n>1 (observed for gpt-5 and
+# claude-sonnet-4-6), rather than raising. Those models must use
+# REQUESTS_PER_TASK=10 / ROLLOUTS_PER_REQUEST=1; models that honor n=5 keep
+# the original two-batched-calls scheme. Override per model via env vars.
+REQUESTS_PER_TASK = int(craft_env("R10_REQUESTS_PER_TASK") or "2")
+ROLLOUTS_PER_REQUEST = int(craft_env("R10_ROLLOUTS_PER_REQUEST") or "5")
+if REQUESTS_PER_TASK * ROLLOUTS_PER_REQUEST != N_ROLLOUTS:
+    raise ValueError(
+        "CRAFT_R10_REQUESTS_PER_TASK * CRAFT_R10_ROLLOUTS_PER_REQUEST must "
+        f"equal {N_ROLLOUTS}, got {REQUESTS_PER_TASK} * {ROLLOUTS_PER_REQUEST}"
+    )
+EXTENSION_PROTOCOL = (
+    f"loopgym_r10_houdini_n{ROLLOUTS_PER_REQUEST}x{REQUESTS_PER_TASK}_v4"
+)
 
 
 def _compatible_completed(row: dict | None) -> bool:

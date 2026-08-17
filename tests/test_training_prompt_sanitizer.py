@@ -249,6 +249,30 @@ class TrainingPromptSanitizerTests(unittest.TestCase):
         self.assertNotIn("assert x == n", clean)
         self.assertNotIn("tracks completed iterations", clean)
 
+    def test_rl_removes_unsupported_unroll_pragma_from_prompt_and_ground_truth(self):
+        source = """int f(int n) {
+          int x = 0;
+          //@ loop pragma UNROLL 1;
+          while (x < n) { x++; }
+        }
+        """
+        row = {
+            "prompt": [
+                {"role": "system", "content": "legacy system"},
+                {"role": "user", "content": "Legacy task\nProgram:\n" + source},
+            ],
+            "reward_model": {"ground_truth": {"raw_code": source}},
+        }
+
+        sanitized, stats = sanitize_rl_rows([row])
+
+        self.assertNotIn("loop pragma", sanitized[0]["prompt"][1]["content"])
+        self.assertNotIn(
+            "loop pragma",
+            sanitized[0]["reward_model"]["ground_truth"]["raw_code"],
+        )
+        self.assertEqual(stats["removed_unsupported_loop_pragma_rows"], 1)
+
     def test_sft_canonicalizes_prompt_and_scrubs_answer(self):
         answer = "\n".join(
             [

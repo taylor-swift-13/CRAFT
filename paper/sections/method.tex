@@ -2,6 +2,21 @@
 \section{Method}\label{sec:method}
 %% ============================================================
 
+\textsc{Craft} couples an inference protocol that proves targets by
+combining clauses across responses with a training pipeline that optimizes
+that protocol without ever seeing the target.  Three design decisions
+organize this section: (i)~\emph{target hiding}---generation, distillation,
+and reward computation all operate on the masked loop, and the target is
+restored only for the final proof (Section~\ref{sec:method:inference});
+(ii)~\emph{the clause, not the response, is the credit unit} that survives
+filtering and earns reward (Section~\ref{sec:method:core});
+(iii)~\emph{training mirrors inference}---credit rewards complementary
+coverage across a response group, because inference unions that group
+(Section~\ref{sec:method:reward}).  The guiding thesis is that because
+inference combines, training should optimize combinability: raising the
+combine@$k$ curve and reaching its large-pool performance with fewer
+rollouts.
+
 \subsection{Rollout--Combine--Filter}
 \label{sec:method:core}
 
@@ -9,7 +24,8 @@ For a target-masked loop \(\mathcal L\), the model emits ACSL loop-invariant
 annotations~\citep{acsl}.  Parsing extracts each
 \texttt{loop invariant ...;} annotation as one clause; normalization turns
 response \(i\) into the clause sequence
-\(A_i=\langle a_{i1},\ldots,a_{im_i}\rangle\).  We cap it at \(K\) clauses,
+\(A_i=\langle a_{i1},\ldots,a_{im_i}\rangle\).  We cap it at \(K\) clauses
+(\(K{=}20\); Appendix~\ref{app:constants}),
 \(\bar A_i=\langle a_{i1},\ldots,a_{i,\min(m_i,K)}\rangle\), with overflow
 \(o(A_i)=\max(0,m_i-K)\).  Extraction makes the annotation, rather than the complete
 response, the unit that can survive filtering and earn credit.  We write
@@ -27,8 +43,11 @@ whose establishment or preservation obligations fail
 \(\mathsf{Filter}_{\mathcal L}(C_G^{\mathrm{pool}})\).  Conjoining valid clauses preserves
 validity and can combine a bound from one response with a relation from
 another; filtering salvages such clauses from otherwise imperfect responses
-but cannot invent a missing relation.  Algorithm~\ref{alg:rcf} is shared by
-SFT synthesis and deployment.
+but cannot invent a missing relation.  Algorithm~\ref{alg:rcf} computes
+\(\mathsf{Filter}_{\mathcal L}\); we write its fixed point as
+\(\mathsf H_{\mathcal L}(C)\) and the conjunction of a clause set \(C\) as
+\(I_C=\bigwedge_{c\in C}c\).  The algorithm is shared by
+SFT synthesis and inference.
 
 \begin{algorithm}[t]
 \caption{Rollout--combine--filter}
@@ -96,6 +115,11 @@ conjunction expressible as a subset of \(C\).  This maximality is relative to
 the supplied pool and the exact-oracle assumption.
 \end{theorem}
 
+This is the classic Houdini greatest-fixpoint
+property~\citep{flanagan2001houdini}, restated in our clause notation.  In
+practice the per-obligation prover budget (Section~\ref{sec:exp:setup})
+makes this oracle approximate.
+
 RL scoring additionally removes clauses contradicted by observed reachable
 states \(\mathcal P\) before Houdini:
 \[
@@ -103,9 +127,53 @@ states \(\mathcal P\) before Houdini:
   =\{c\in C:\forall p\in\mathcal P,\ p\models c\}.
 \]
 This positive filter is a cheap refutation step, not a validity proof;
-Frama-C/WP remains the authority.  It is used only for RL scoring; deployment
+Frama-C/WP remains the authority.  It is used only for RL scoring; inference
 performs the same identifier-scope checks but no execution-based rejection.
 Appendix~\ref{app:constants} gives normalization and filtering details.
+
+\subsection{Inference Objective}
+\label{sec:method:inference}
+
+At inference, RCF samples \(k\) masked responses and produces
+\[
+  C_k^{\mathrm{pool}}=
+  \bigcup_{i=1}^{k}\operatorname{set}(\bar A_i),\qquad
+  C_k=\mathsf{Filter}_{\mathcal L}(C_k^{\mathrm{pool}}),\qquad
+  I_k=I_{C_k}.
+\]
+Only then is \(Q\) restored.  The target utility and inference objective are
+\[
+  U_Q(A_{1:k})=\mathbf 1[\operatorname{Verify}(\mathcal L,I_k,Q)],
+  \qquad
+  \max_\pi\ \mathbb E_{A_{1:k}\sim\pi(\cdot\mid\mathcal L)}[U_Q(A_{1:k})].
+\]
+Here \(\operatorname{Verify}\) requires establishment, preservation, and every
+restored target at its original location; for one post-loop target, its last
+obligation is \(I_k\wedge\neg B\Rightarrow q\).
+Its empirical counterpart is combine@\(k\), which can succeed even when no
+standalone response is sufficient.  The training sections below therefore
+optimize a target-hidden surrogate for this curve.
+
+\subsection{Target-Independent Strength Examples}
+\label{sec:method:sampler}
+
+To grade inductive sets without \(Q\), we execute a deterministic,
+precondition-checked input sweep and record reachable loop-head states
+\(\mathcal P\).  From these executions we construct three negative-example
+families: local one- or two-variable perturbations that break relations,
+continuations of the real body after a witnessed loop exit, and perturbations
+outside observed variable ranges.  Cleaning is deliberately conservative---
+any candidate that executions cannot rule out is dropped: it removes
+observed reachable states, possible fresh entries, duplicates, and
+candidates involving unsupported state.  These examples are training signals, not proofs of global
+unreachability; unsupported or incomplete executions disable the affected
+family.  Figure~\ref{fig:negative-sampling}, Algorithm~\ref{alg:negative-sampling},
+and exact budgets appear in Appendix~\ref{app:negative-sampling}.
+
+Let \(\mathcal N\) be the retained negative traces.  For a retained clause set
+\(C\), \(\operatorname{rej}(C)\subseteq\mathcal N\) contains each trace on which at
+least one clause in \(C\) is false at some recorded state; singleton traces
+recover ordinary state rejection.
 
 \subsection{Distilling Multi-Response Search}
 \label{sec:method:sft}
@@ -123,31 +191,22 @@ serialize every nonempty result as one SFT target:
       C_{\mathcal L}^{\mathrm{sft}}\neq\varnothing\}.
 \]
 Neither input nor target contains \(Q\): SFT serializes a Houdini-retained
-multi-response search result as one response.  Execution states
-are used only for RL rewards, never as SFT answers.
-
-\subsection{Target-Independent Strength Examples}
-\label{sec:method:sampler}
-
-To grade inductive sets without \(Q\), we execute a deterministic,
-precondition-checked input sweep and record reachable loop-head states
-\(\mathcal P\).  From these executions we construct three negative-example
-families: local one- or two-variable perturbations that break relations,
-continuations of the real body after a witnessed loop exit, and perturbations
-outside observed variable ranges.  Conservative cleaning removes observed
-reachable states, possible fresh entries, duplicates, and candidates involving
-unsupported state.  These examples are training signals, not proofs of global
-unreachability; unsupported or incomplete executions disable the affected
-family.  Figure~\ref{fig:negative-sampling}, Algorithm~\ref{alg:negative-sampling},
-and exact budgets appear in Appendix~\ref{app:negative-sampling}.
-
-Let \(\mathcal N\) be the retained negative traces.  For a retained clause set
-\(C\), \(\operatorname{rej}(C)\subseteq\mathcal N\) contains each trace on which at
-least one clause in \(C\) is false at some recorded state; singleton traces
-recover ordinary state rejection.
+multi-response search result as one response.  The execution states of
+Section~\ref{sec:method:sampler} are used only for RL rewards, never as SFT
+answers.
 
 \subsection{Clause-Decomposed, Group-Compositional Reward}
 \label{sec:method:reward}
+
+The reward design responds directly to the sharpening tendency described in
+Section~\ref{sec:intro}.  Group-relative optimization with a whole-response
+reward concentrates probability mass on a few high-reward responses, eroding
+the clause diversity that RCF combines at inference.  We therefore decompose
+credit \emph{within} each rollout---surviving clauses earn reward even when
+siblings fail---and re-allocate credit \emph{across} the group by each
+rollout's marginal contribution to pooled coverage, paying the policy for
+expanding the joint clause pool rather than for reproducing its most common
+clauses.
 
 For rollout \(i\), define its verifier-retained subset and rejected negatives
 as
@@ -170,13 +229,13 @@ when the sampler retains none, we use the binary fallback in
 Appendix~\ref{app:grpo-details}.
 
 Independent coverage, however, rewards a complementary discovery exactly like
-one repeated by every peer.  We therefore allocate the union of the
-standalone-retained rejection sets with the coverage game
-over rollout indices \(\mathcal G=\{1,\ldots,G\}\): for each coalition
-\(J\subseteq\mathcal G\), let
-\(v(J)=|\bigcup_{j\in J}R_j|/|\mathcal N|\).  Let
-\(f(n)=\sum_{j=1}^{G}\mathbf 1[n\in R_j]\).  The Shapley value of rollout
-\(i\) has the closed form~\citep{shapley1953value}
+one repeated by every peer.  We therefore allocate credit for the union
+\(\bigcup_i R_i\) across the rollout group \(\mathcal G=\{1,\ldots,G\}\) as
+a coverage game.  Let
+\(f(n)=\sum_{j=1}^{G}\mathbf 1[n\in R_j]\) count how many peers reject
+trace \(n\).  The Shapley value of rollout
+\(i\) has the closed form~
+\citep{shapley1953value} (proof in Appendix~\ref{app:composition-proofs})
 \begin{equation}
 \label{eq:shapley-credit}
   \phi_i=\frac{1}{|\mathcal N|}
@@ -186,45 +245,35 @@ over rollout indices \(\mathcal G=\{1,\ldots,G\}\): for each coalition
   =\frac{|\bigcup_iR_i|}{|\mathcal N|}.
 \end{equation}
 Thus a unique rejection receives full credit, whereas \(f(n)\) redundant
-rejections split it.  This closed form uses already-computed rejection sets
-and adds no verifier calls.  It implements \emph{inter-rollout composition}:
+rejections split it.  The Shapley allocation is the unique credit rule
+satisfying efficiency, symmetry, linearity, and the null-player
+axiom~
+\citep{shapley1953value}; unlike a leave-one-out marginal, which credits
+only rejections supplied by no peer and does not account for the full union,
+it splits credit for shared rejections instead of discarding it.  This closed
+form uses already-computed rejection sets and adds no verifier calls.  It implements \emph{inter-rollout composition}:
 the same response earns less group credit when its verified constraints are
 already supplied by peers.
 
-With conservative within-response duplicate count
-\(d_{\mathrm{dup}}(A_i)=|\bar A_i|-|\operatorname{dedup}(\bar A_i)|\), the reward is
+With the within-response duplicate count
+\(d_{\mathrm{dup}}(A_i)=|\bar A_i|-|\operatorname{dedup}(\bar A_i)|\)
+(clauses identical after normalization), the reward is
 \begin{equation}
 \label{eq:generation-reward}
   r_i=w_c\,\operatorname{cov}(A_i)+w_g\phi_i
       -w_d d_{\mathrm{dup}}(A_i)-w_o o(A_i),
 \end{equation}
-where \((w_c,w_g,w_d,w_o)=(1.0,0.3,0.02,0.05)\).  GRPO normalizes these
+where \((w_c,w_g,w_d,w_o)=(1.0,0.3,0.02,0.05)\);
+Section~\ref{sec:exp:ablations} ablates each term.  GRPO normalizes these
 group-conditioned rewards within the sampled response group.  Shapley credit
 distinguishes equal-coverage rollouts when their rejection sets overlap
 differently, favoring less redundant coverage.  It remains a target-independent
 behavioral surrogate rather than credit for final \(Q\)-sufficiency.
+Each training step samples a group of \(G\) responses per masked loop,
+scores them by Equation~\eqref{eq:generation-reward}, and applies one GRPO
+update; this training-time group is distinct from the inference sweep over
+\(k\) (Section~\ref{sec:method:inference}).
 Appendix~\ref{app:grpo-details} gives the standard
 policy objective, duplicate normalization, and fallback behavior.
 
-\subsection{Deployment Objective}
-\label{sec:method:inference}
 
-At deployment, RCF samples \(k\) masked responses and produces
-\[
-  C_k^{\mathrm{pool}}=
-  \bigcup_{i=1}^{k}\operatorname{set}(\bar A_i),\qquad
-  C_k=\mathsf{Filter}_{\mathcal L}(C_k^{\mathrm{pool}}),\qquad
-  I_k=I_{C_k}.
-\]
-Only then is \(Q\) restored.  The target utility and inference objective are
-\[
-  U_Q(A_{1:k})=\mathbf 1[\operatorname{Verify}(\mathcal L,I_k,Q)],
-  \qquad
-  \max_\pi\ \mathbb E_{A_{1:k}\sim\pi(\cdot\mid\mathcal L)}[U_Q(A_{1:k})].
-\]
-Here \(\operatorname{Verify}\) requires establishment, preservation, and every
-restored target at its original location; for one post-loop target, its last
-obligation is \(I_k\wedge\neg B\Rightarrow q\).
-Its empirical counterpart is combine@\(k\), which can succeed even when no
-standalone response is sufficient.  Training therefore aims to raise this
-curve and reach its large-pool performance with fewer rollouts.

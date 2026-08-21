@@ -24,7 +24,14 @@ that neither proves alone.  Clause-wise verification can discard invalid
 clauses without losing the rest.  The natural unit of inference is therefore
 the filtered clause pool, not a complete response.
 
-A complete response is also the wrong unit of training credit.  A whole-response reward
+Response-level rewards are mismatched to this unit in two ways.  First,
+verifiable rewards credited to whole responses chiefly sharpen the sampling
+distribution toward responses the policy already produces, improving pass@1
+without widening what \(k\) samples can cover~\citep{yue2025rlcapacity}.
+For a clause pool, such sharpening toward a few self-sufficient responses is
+at best orthogonal and at worst collapses the diversity that composition
+exploits.  Second, a complete response is also the wrong unit of training
+credit.  A whole-response reward
 withholds credit from useful clauses whenever another clause in the same
 response fails.  A reward computed independently for each response cannot
 distinguish a constraint that expands group coverage from one already repeated
@@ -51,7 +58,7 @@ necessary.
 Given a budget of \(k\) target-hidden responses, RCF extracts each invariant
 annotation as a clause, unions clauses across responses, removes syntax failures,
 and applies Houdini to retain a jointly valid subset.  Only then is \(Q\)
-restored for the final proof.  We measure this deployed object with
+restored for the final proof.  We measure this inference-time object with
 combine@\(k\): the fraction of programs verified after combining the first
 \(k\) responses.  Unlike pass@\(k\), which requires at least one response to
 contain the complete proof, combine@\(k\) preserves useful partial answers.
@@ -72,7 +79,7 @@ its Group Relative Policy Optimization (GRPO) group discover
 ~\citep{shao2024deepseekmath}.  Synthetic supervised fine-tuning (SFT)
 additionally distills a filtered multi-response union into one
 individual response.  Together, these stages make sampled responses more
-useful to the clause pool that RCF combines at deployment.
+useful to the clause pool that RCF combines at inference.
 
 Prior systems synthesize and prune candidate invariants at inference time,
 while learning-based methods train from verified outputs, solver feedback, or
@@ -87,17 +94,15 @@ inference.  On 832 integer C programs, five target-hidden
 \texttt{gpt-5-nano} responses with union and Houdini verify 622 programs
 (74.76\%), compared with 514 (61.78\%) for the
 strongest external baseline under each system's fixed native budget.
-In the paired Qwen3-8B evaluation, reinforcement learning decreases
-pass@1 from 9.30\% to 4.88\% but increases combine@10 from 52.76\% to 56.97\%.
-It reduces the rollouts needed to reach 95\% of each policy's measured maximum
-from 30 to 10.  This reversal is evidence of the intended alignment: training improves
-the deployed composition rather than one standalone target-proving answer.
+The paired Qwen3-8B before/after RL evaluation is pending re-evaluation
+against the updated Base 8B checkpoint (pass@1 3.55\%, combine@10 36.78\%,
+\(k_{95}=30\)); Section~\ref{sec:exp:rl} reports the current baseline.
 
 \paragraph{Contributions.}
 This paper makes three contributions:
 \begin{itemize}
   \item We formulate target-hidden loop verification around a fixed-budget
-  rollout--combine--filter objective.  The deployed and evaluated object is
+  rollout--combine--filter objective.  The evaluated object at inference is
   the verified composition measured by combine@\(k\), not an isolated
   response.
   \item We align learning credit with that object in both directions: the

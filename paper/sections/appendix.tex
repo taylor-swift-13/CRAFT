@@ -130,11 +130,36 @@ hence \(I_{\mathsf H_{\mathcal L}(C)}\preceq I_{C'}\).
 
 The theorem is deliberately candidate-relative: Houdini cannot synthesize a
 missing clause, so it need not recover the strongest invariant expressible in
-the full assertion language.  It is also an ideal-oracle result.  The deployed
+the full assertion language.  It is also an ideal-oracle result.  The inference-time
 Frama-C/WP backend may time out or fail to prove a valid obligation; such
 clauses are conservatively removed.  The final retained conjunction remains
 accepted by the verifier, but completeness and greatestness are not claimed
 for these resource-bounded executions.
+
+\subsection{Closed Form of the Coverage-Game Shapley Value}
+
+The allocation of Equation~\eqref{eq:shapley-credit} is the Shapley value of
+the coverage game \(v(S)=|\bigcup_{i\in S}R_i|/|\mathcal N|\) on the rollout
+group.
+
+\begin{proposition}[Closed form of the coverage game]
+\label{prop:shapley-closed-form}
+For the coverage game \(v(S)=|\bigcup_{i\in S}R_i|/|\mathcal N|\), the
+Shapley value is
+\(\phi_i=\frac{1}{|\mathcal N|}\sum_{n\in R_i}\frac{1}{f(n)}\), and
+\(\sum_i\phi_i=v(\mathcal G)\).
+\end{proposition}
+
+\begin{proof}
+Fix a trace \(n\) rejected by \(f(n)\) rollouts.  In a uniformly random
+ordering of the group, \(n\) contributes to the marginal gain of exactly one
+player---the first of those \(f(n)\) rollouts to appear---and by symmetry
+each of them is first with probability \(1/f(n)\).  Player \(i\) therefore
+receives expected credit \(1/f(n)\) for each \(n\in R_i\) and zero otherwise.
+Summing over \(n\in\mathcal N\) and normalizing by \(|\mathcal N|\) gives the
+closed form; efficiency follows because each covered trace distributes
+exactly one unit of credit among its \(f(n)\) rejectors.
+\end{proof}
 
 \section{Implementation Details}
 \label{app:constants}
@@ -200,6 +225,20 @@ exit, continues the real loop body to obtain one post-exit trace.
 pairwise changes, while \(\operatorname{RangeEscape}\) moves one variable just
 outside its sampled range.  The exact perturbations and budgets are those in
 Table~\ref{tab:constants}.
+
+The three families are complementary: each rejects a different class of weak
+but valid invariants, and none subsumes another.  Relational perturbations
+change one variable while fixing the rest, so they are rejected only by
+clauses that constrain relations among variables; pure bounds accept them.
+Post-exit continuations execute the real body past a witnessed exit and
+reach states that no finite perturbation of an observed state can produce,
+so only clauses that pin down the exit boundary reject them.  Range escapes
+probe the boundary tightness of individual variables, which relational
+clauses may leave unconstrained.  Coverage over their union therefore grades
+strength along three independent axes, and dropping any family leaves the
+corresponding weakness unpunished;
+Section~\ref{sec:exp:ablations} ablates these structured families against
+uniform random perturbations.
 
 \begin{algorithm}[H]
 \caption{Target-hidden negative-trace sampling}
@@ -319,7 +358,7 @@ rewrites 4,214 unnecessary references and leaves 2,137 necessary references in
 the rule.
 
 A final interface-alignment pass removes legacy integer casts, normalizes two
-Unicode comparison operators, and rechecks every clause against the deployed
+Unicode comparison operators, and rechecks every clause against the inference-time
 scalar parser.  Cast normalization exposes 68 duplicates and 98 algebraic
 tautologies; ten further clauses use expressions outside the released grammar.
 Two additional top-level formulas with an explicitly true implication or
@@ -327,7 +366,7 @@ disjunction arm are removed structurally.
 For bounds-only answers, a conservative static analysis proposes seven
 two-variable conservation equalities only when both variables have a single
 unconditional constant update.  Houdini/WP retains one and rejects six.  The
-result remains 3,200 nonempty answers and has zero deployed-interface violations.
+result remains 3,200 nonempty answers and has zero inference-interface violations.
 
 Contract-level audits find no target clause or non-contract comment in any
 final RL or SFT model prompt, and all rows contain the same current system and
@@ -351,12 +390,93 @@ Program:
 \end{lstlisting}
 \end{promptbox}
 
-The accompanying system prompt defines the accepted scalar ACSL forms,
-including bounds, relational and polynomial equalities, implications, modular
-constraints, conjunctions, and power-of-two bitshifts.  It restricts
-\texttt{Pre} to function parameters and \texttt{LoopEntry} to locals initialized
-before the loop by a direct \texttt{unknown*()} assignment; the full verbatim
-prompt is released in \texttt{prompt/system\_prompt.txt}.
+The accompanying system prompt appears verbatim below (also released as
+\texttt{prompt/system\_prompt.txt}).
+
+\begin{promptbox}[System prompt]
+\begin{lstlisting}[style=promptstyle]
+You are a formal verification expert specializing in ACSL loop invariant
+synthesis for Frama-C/WP.
+
+## LOOP INVARIANT DEFINITION
+
+A loop invariant is a property that:
+1. Holds before the first loop iteration (initialization).
+2. Is preserved by every loop iteration when the loop guard is true
+   (inductiveness).
+3. Combined with loop exit (`!guard`), helps establish required
+   loop-exit facts.
+
+## RULES
+
+- Add one core conservation/relational equality that explains loop
+  updates (state transition law).
+- Add minimal progress bounds for loop counters and key arithmetic
+  variables.
+- Prefer strong invariants; avoid weak/tautological ones.
+- Do not add unrelated invariants just to increase count.
+- MUST NOT modify or rewrite any `unknown()`/`unknownN()` call.
+- `\at(v, Pre)` can ONLY be used with function parameters, never with
+  local variables initialized inside the function.
+- `\at(v, LoopEntry)` denotes the value of v at the start of the loop
+  and can ONLY be used with local variables initialized before the
+  loop (using v = unknown();).
+- Loop guard is NOT an invariant; weaken strict guards to non-strict
+  bounds at exit.
+- Parenthesize mixed equality and relational expressions so their
+  grouping is explicit.
+- Use `loop invariant` only as a line prefix, never inside expressions.
+- Emit scalar invariant expressions only; do not declare predicates,
+  logic functions, axioms, or lemmas.
+- Do NOT use the ternary `? :` operator; split cases with `==>` instead.
+- `^` is bitwise XOR in C/ACSL, not exponentiation --- write `x*x*x`
+  for x cubed.
+- Do NOT place a C boolean directly in arithmetic (`x + (a > b)` is
+  invalid); use `==>` to split cases.
+- Only use variables declared in the given function.
+- Operators: comparison `==` `!=` `<` `<=` `>` `>=`; logical `&&` `||`
+  `!` `==>` `<==>`; arithmetic `+` `-` `*` `/` `%`.
+
+## ACSL INVARIANT SYNTAX
+
+Allowed expression forms (all verified by Frama-C/WP):
+
+1. **Bounds**: `0 <= i`, `i <= n`, `x >= 1`
+2. **Linear equality**: `i + c == n`, `2 * s == i * (i - 1)`,
+   `x == q * y + r`
+3. **Polynomial equality**: `x == n * n * n`,
+   `6 * s == i * (i + 1) * (2 * i + 1)`
+4. **Relational identity** (multi-var algebraic law):
+   `1 + x * z - x - z * y == 0`, `p * s - r * q == 1`
+5. **Implication**: `i > 0 ==> s >= i`, `a != 0 ==> q >= 1`
+6. **Modular**: `i % 5 == 0`, `r >= 0 && r < y`
+7. **Bitshift** (power-of-2 only): `p == 1 << i`, `s == (1 << i) - 1`
+8. **Conjunction**: `c >= 1 && c <= k`
+9. **\at for params**: `n == \at(n, Pre)` (function parameters only)
+
+Forbidden:
+- `^` for exponentiation (it is XOR) --- use repeated `*` or `<<` for
+  powers of 2.
+- `\product`, `\sum`, `\factorial` --- not ACSL scalar operators.
+- `? :` ternary --- rewrite with `==>`.
+- `\old(x)` --- use `\at(x, Pre)`.
+- Type casts `(int)`, `(long)` --- unnecessary in ACSL logic.
+- Function calls, predicates, lemmas, axioms --- emit only scalar
+  expressions.
+
+Operators (complete list):
+  comparison: `==` `!=` `<` `<=` `>` `>=`
+  logical:    `&&` `||` `!` `==>` `<==>`
+  arithmetic: `+` `-` `*` `/` `%` `<<` `>>`
+
+## OUTPUT
+
+Return ONLY invariant lines, one per line, formatted exactly as:
+`loop invariant <property>;`
+Do not return code fences, `loop assigns`, the surrounding C function,
+or explanations.
+\end{lstlisting}
+\end{promptbox}
 
 \section{Training Interface}
 \label{app:service}
@@ -555,17 +675,17 @@ value at \(k=100\).}
 \toprule
 Model & pass@1 & pass@10 & pass@30 & pass@50 & pass@100 \\
 \midrule
-Qwen3-0.6B & 0.70\% & 4.09\% & 7.12\% & 9.00\% & 12.26\%
+Qwen3-0.6B & 0.58\% & 3.63\% & 6.88\% & 8.82\% & 11.54\%
   \\
-Qwen3-4B & 2.53\% & 7.56\% & 11.21\% & 13.10\% & 15.62\%
+Qwen3-4B & 3.49\% & 8.05\% & 9.91\% & 10.69\% & 11.54\%
   \\
-Qwen3-8B & 9.30\% & 22.87\% & 28.30\% & 30.47\% & 33.29\%
+Qwen3-8B & 3.55\% & 9.86\% & 12.78\% & 13.83\% & 15.02\%
   \\
-Qwen3-14B & 10.29\% & 25.45\% & 33.55\% & 36.78\% & 39.90\%
+Qwen3-14B & 4.99\% & 10.37\% & 12.48\% & 13.40\% & 14.66\%
   \\
-Qwen3-30B-A3B & 7.43\% & 19.27\% & 25.13\% & 27.88\% & 31.73\%
+Qwen3-30B-A3B & 5.00\% & 10.01\% & 11.52\% & 12.11\% & 12.98\%
   \\
-Llama 3.1 8B & 0.14\% & 1.23\% & 3.03\% & 4.46\% & 7.33\%
+Llama 3.1 8B & 0.48\% & 3.38\% & 6.48\% & 8.19\% & 10.46\%
   \\
 \bottomrule
 \end{tabular}
@@ -576,22 +696,95 @@ Llama 3.1 8B & 0.14\% & 1.23\% & 3.03\% & 4.46\% & 7.33\%
 \toprule
 Model & combine@1 & combine@10 & combine@30 & combine@50 & combine@100 & \(k_{95}\) \\
 \midrule
-Qwen3-0.6B & 6.61\% & 24.16\% & 25.00\% & 25.00\% & 25.00\% & 10 \\
-Qwen3-4B & 33.89\% & 45.31\% & 47.24\% & 47.60\% & 47.84\% & 30 \\
-Qwen3-8B & 41.23\% & 52.76\% & 56.37\% & 57.09\% & 58.05\% & 30 \\
-Qwen3-14B & 49.52\% & 57.33\% & 57.81\% & 57.81\% & 58.05\% & 10 \\
-Qwen3-30B-A3B & 43.27\% & 50.12\% & 50.96\% & 51.08\% & 51.32\% & 10 \\
-Llama 3.1 8B & 16.59\% & 30.41\% & 34.13\% & 34.38\% & 34.38\% & 30 \\
+Qwen3-0.6B & 9.50\% & 22.84\% & 27.40\% & 28.85\% & 29.21\% & 50 \\
+Qwen3-4B & 23.08\% & 31.49\% & 34.13\% & 34.74\% & 36.06\% & 50 \\
+Qwen3-8B & 26.32\% & 36.78\% & 38.22\% & 39.06\% & 39.78\% & 30 \\
+Qwen3-14B & 30.17\% & 35.10\% & 37.14\% & 37.50\% & 37.74\% & 30 \\
+Qwen3-30B-A3B & 28.73\% & 35.10\% & 35.82\% & 36.06\% & 36.54\% & 10 \\
+Llama 3.1 8B & 18.03\% & 27.28\% & 28.25\% & 28.37\% & 28.37\% & 10 \\
 \bottomrule
 \end{tabular}
-For Qwen3-0.6B, pass@\(k\) at \(k=1,2,5,10,20,30,50,75,100\) is
-0.70\%, 1.30\%, 2.64\%, 4.09\%, 5.87\%, 7.12\%, 9.00\%, 10.79\%, and
-12.26\%, respectively; 102/832 programs have at least one successful
-response.  Prefix combine numerators at \(k=1,10,30,50,75,100\) are 55,
-201, 208, 208, 208, and 208 out of 832 tasks.
-The unrounded Llama 3.1 8B pass@30 estimate is 3.0345\%.  Its combine
-numerators at \(k=1,10,30,50,100\) are 138, 253, 284, 286, and 286 out of
-832 tasks.
+\end{table}
+
+\begin{table}[H]
+\centering
+\setlength{\tabcolsep}{5pt}
+\caption{Per-GPU decoding throughput of the base probe checkpoints, measured
+with vLLM on A800-80G GPUs (\(n{=}100\) responses per task, temperature 1.0,
+\texttt{max\_tokens=2048}).}
+\label{tab:probe-serving}
+\begin{tabular}{lr}
+\toprule
+Model & tok/s/GPU \\
+\midrule
+Qwen3-0.6B & 18,727 \\
+Qwen3-4B & 7,445 \\
+Qwen3-8B & 5,833 \\
+Qwen3-14B & 3,168 \\
+Qwen3-30B-A3B & 5,031 \\
+Llama 3.1 8B & 5,135 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{SFT Probe Curves}
+\label{app:sft-probe}
+
+The SFT checkpoints (0817, one epoch on the 3,200-example corpus) are
+evaluated under the same 832-task protocol as the base probe: 100 saved
+target-hidden responses per task at temperature 1.0, 5-second per-obligation
+prover budget, and the current prompt.
+
+\begin{table}[H]
+\centering
+\setlength{\tabcolsep}{3pt}
+\caption{Complete SFT probe results.  \(k_{95}\) is the smallest measured
+\(k\in\{1,10,30,50,100\}\) at which combine@\(k\) reaches \(95\%\) of its
+value at \(k=100\).}
+\label{tab:sft-probe-complete}
+\textit{Whole-response pass rates}\\[2pt]
+\begin{tabular}{lrrrrr}
+\toprule
+Model & pass@1 & pass@10 & pass@30 & pass@50 & pass@100 \\
+\midrule
+Qwen3-4B + SFT & 25.61\% & 53.66\% & 63.51\% & 67.47\% & 71.88\% \\
+Qwen3-8B + SFT & 25.98\% & 54.58\% & 63.84\% & 67.64\% & 72.12\% \\
+Qwen3-14B + SFT & 30.51\% & 57.90\% & 66.26\% & 69.45\% & 73.08\% \\
+Llama 3.1 8B + SFT & 17.76\% & 44.24\% & 53.29\% & 57.30\% & 62.26\% \\
+\bottomrule
+\end{tabular}
+\vspace{5pt}
+
+\textit{Clause-combination rates}\\[2pt]
+\begin{tabular}{lrrrrrr}
+\toprule
+Model & combine@1 & combine@10 & combine@30 & combine@50 & combine@100 & \(k_{95}\) \\
+\midrule
+Qwen3-4B + SFT & 47.96\% & 70.07\% & 73.80\% & 73.92\% & 74.04\% & 30 \\
+Qwen3-8B + SFT & 49.88\% & 74.04\% & 76.32\% & 76.80\% & 76.80\% & 10 \\
+Qwen3-14B + SFT & 55.05\% & 73.68\% & 75.84\% & 76.44\% & 76.80\% & 10 \\
+Llama 3.1 8B + SFT & 46.15\% & 64.66\% & 68.15\% & 68.63\% & 68.63\% & 30 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\setlength{\tabcolsep}{5pt}
+\caption{Per-GPU decoding throughput of the SFT checkpoints, measured with
+vLLM on A800-80G GPUs (\(n{=}100\) responses per task, temperature 1.0,
+\texttt{max\_tokens=2048}).}
+\label{tab:sft-serving}
+\begin{tabular}{lr}
+\toprule
+Model & tok/s/GPU \\
+\midrule
+Qwen3-4B + SFT & 7,445 \\
+Qwen3-8B + SFT & 5,833 \\
+Qwen3-14B + SFT & 3,168 \\
+Llama 3.1 8B + SFT & 5,135 \\
+\bottomrule
+\end{tabular}
 \end{table}
 
 \subsection{Reinforcement-Learning Results}
@@ -608,9 +801,9 @@ configuration.}
 Path & Model & pass@1 & combine@1 & combine@10 &
 combine@50 & combine@100 & \(k_{95}\) \\
 \midrule
-Zero & Base 8B      & 9.30\% & 41.23\% & 52.76\% & 57.09\% & 58.05\% & 30 \\
-Zero & Base 8B + RL & 4.88\% & 43.15\% & 56.97\% & 58.77\% & 58.77\% & 10 \\
-SFT  & SFT 8B       & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Zero & Base 8B      & 3.55\% & 26.32\% & 36.78\% & 39.06\% & 39.78\% & 30 \\
+Zero & Base 8B + RL & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+SFT  & SFT 8B       & 25.98\% & 49.88\% & 74.04\% & 76.80\% & 76.80\% & 10 \\
 SFT  & SFT 8B + RL  & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
 \bottomrule
 \end{tabular}
@@ -640,6 +833,44 @@ scores the surviving \(C_i^{\mathrm{train}}\); \emph{Compositional Credit} addit
 subtracts \(w_d d_{\mathrm{dup}}(A_i)\), yielding the full reward.  These are
 \texttt{binary}, \texttt{whole\_coverage}, \texttt{base},
 \texttt{base\_shapley}, and \texttt{full}, respectively.
+
+\begin{table}[H]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{2.4pt}
+\caption{Reward-function ablation on Qwen3-8B (three-seed means, \%);
+  exact numbers for Figure~\ref{fig:reward-ablation}.
+  Best result per column among trained variants in bold.}
+\label{tab:reward-ablation}
+\begin{tabular}{lrrrrrrrrrr}
+\toprule
+& \multicolumn{5}{c}{pass@$k$} & \multicolumn{5}{c}{combine@$k$} \\
+\cmidrule(lr){2-6}\cmidrule(lr){7-11}
+Variant & 1 & 10 & 30 & 50 & 100 & 1 & 10 & 30 & 50 & 100 \\
+\midrule
+Untrained 8B (reference)
+  & 3.55 & 9.86 & 12.78 & 13.83 & 15.02
+  & 26.32 & 36.78 & 38.22 & 39.06 & 39.78 \\
+\midrule
+Binary Inductiveness
+  & 8.65 & 10.84 & 12.09 & 12.66 & \textbf{13.46}
+  & 1.80 & 5.89 & 8.53 & 9.98 & 12.02 \\
+Whole-Rollout Strength
+  & \textbf{10.80} & \textbf{12.25} & \textbf{12.81} & \textbf{13.10}
+  & \textbf{13.46}
+  & 22.24 & 24.88 & 25.72 & 25.96 & 26.56 \\
+Clause-Decomposed Strength
+  & 2.66 & 6.32 & 7.65 & 8.10 & 8.65
+  & 29.57 & 34.74 & 37.14 & 38.22 & 39.06 \\
+Compositional Credit
+  & 2.31 & 5.35 & 6.59 & 6.97 & 7.33
+  & \textbf{30.77} & \textbf{36.06} & \textbf{38.46} & \textbf{39.30}
+  & \textbf{41.11} \\
+Regularized Compositional (ours)
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \begin{table}[H]
 \centering
@@ -675,77 +906,119 @@ Structured sampler                  & \textsc{TBD} & \textsc{TBD} & \textsc{TBD}
 \end{table}
 
 \subsection{Cross-Model Main Results}
+\label{app:reasoning-leakage}
 
 \begin{table}[H]
 \centering
-\setlength{\tabcolsep}{4.5pt}
-\caption{Complete main results by evaluation stratum.  Each benchmark column
-reports the number verified by pass@1/combine@1.}
+\footnotesize
+\setlength{\tabcolsep}{2.2pt}
+\caption{Complete main results by evaluation stratum (316 linear, 50 NLA,
+466 Loopy, 832 overall programs), reproducing every pass@\(k\)/combine@\(k\)
+row from Table~\ref{tab:cross-model-main} and adding reasoning-on reference
+rows: \emph{default} leaves reasoning\_effort unset (the provider's own
+default); \emph{medium} sets it explicitly.  GPT-5-mini has no setting that
+reaches true reasoning\_effort=none, so it is omitted from
+Table~\ref{tab:cross-model-main} and appears here only under default
+reasoning.}
 \label{tab:main-complete}
-\begin{tabular}{lccccrr}
+\begin{tabular}{llcccccrr}
 \toprule
-Model & Linear / 316 & NLA / 50 & Loopy / 466 & All / 832 &
-Time / task & Total tokens / task \\
+Model & Reasoning & \(k\) & Linear & NLA & Loopy & All &
+Time / task & Tokens / task \\
 \midrule
-GPT-5-nano        & 8/157 & 0/4 & 22/213 & 30/374 & 29.66\,s & 1,135.83 \\
-GPT-5-mini        & 57/187 & 1/4 & 101/280 & 159/471 & 22.98\,s & 1,271.78 \\
-GPT-5             & 76/196 & 1/5 & 114/296 & 191/497 & 18.22\,s & 1,230.92 \\
-Claude Sonnet-4.6 & 168/230 & 4/5 & 259/353 & 431/588 & 19.86\,s & 4,010.26 \\
-DeepSeek-V4-Flash & 51/198 & 3/6 & 101/287 & 155/491 & 35.90\,s & 1,209.49 \\
+GPT-5-nano        & none & 1  & 2.53/49.68 & 0.00/8.00 & 4.72/45.71
+  & 3.61/44.95 & 29.66\,s & 1,135.83 \\
+GPT-5-nano        & none & 10 & 17.72/67.72 & 4.00/10.00 & 19.74/71.24
+  & 18.03/66.23 & 190.35\,s & 4,322.38 \\
+GPT-5             & none & 1  & 24.05/62.03 & 2.00/10.00 & 24.46/63.52
+  & 22.96/59.74 & 18.22\,s & 1,230.92 \\
+GPT-5             & none & 10 & 53.16/71.20 & 10.00/8.00 & 57.73/68.88
+  & 53.13/66.11 & 75.53\,s & 12,250.89 \\
+Claude Sonnet-4.6 & none & 1  & 53.16/72.78 & 8.00/10.00 & 55.58/75.75
+  & 51.80/70.67 & 19.86\,s & 4,010.26 \\
+Claude Sonnet-4.6 & none & 10 & 43.67/66.77 & 10.00/12.00 & 51.07/64.81
+  & 45.79/62.38 & 66.94\,s & 13,071.64 \\
+DeepSeek-V4-Flash & none & 1  & 16.14/62.66 & 6.00/12.00 & 21.67/61.59
+  & 18.63/59.01 & 35.90\,s & 1,209.49 \\
+DeepSeek-V4-Flash & none & 10 & 47.47/72.15 & 8.00/8.00 & 55.15/72.53
+  & 49.40/68.51 & 105.24\,s & 13,580.48 \\
+\midrule
+DeepSeek-V4-Flash & default & 1 & 57.91/62.03 & 4.00/8.00 & 52.15/54.51
+  & 51.44/54.57 & 166.98\,s & 11,084.44 \\
+GPT-5-mini        & default & 1 & 55.70/77.85 & 4.00/10.00 & 60.94/75.75
+  & 55.53/72.60 & 58.36\,s & 4,509.32 \\
+GPT-5             & medium & 1 & 77.85/80.38 & 14.00/14.00 & 80.47/80.47
+  & 75.48/76.44 & 82.88\,s & 5,289.00 \\
 \bottomrule
 \end{tabular}
 \end{table}
 All timing and token columns are full-workload means over 832 programs.  Each
-pass@1/combine@1 pair is certified from the same saved response.
+pass@\(k\)/combine@\(k\) pair at a given \(k\) is certified from the same
+saved \(k\) responses.
 
 \subsection{Comparison with Specialized Tools}
 
 \begin{table}[H]
 \centering
+\footnotesize
 \setlength{\tabcolsep}{3pt}
-\caption{Archived target-hidden tool-comparison results with
-\texttt{reasoning\_effort=medium} for every LLM-based row; Daikon makes no
-model call.  Each cell reports verified programs and rate under the common
-file-level denominator.}
+\caption{Archived target-hidden tool-comparison results reproducing the
+\texttt{reasoning\_effort=none} rows from the main text alongside the
+\texttt{reasoning\_effort=medium} archived rerun of the same methods; Daikon
+makes no model call, so it is reasoning-independent and listed once.  Each
+cell reports the verification rate under the common file-level denominator.}
 \label{tab:tools-complete}
-\begin{tabular}{lrrrrrr}
+\begin{tabular}{llrrrrrr}
 \toprule
-Method & Linear / 316 & NLA / 50 & Loopy / 466 & Overall / 832 &
+Method & Reasoning & Linear / 316 & NLA / 50 & Loopy / 466 & Overall / 832 &
 Tokens / task & Time / task \\
 \midrule
-AutoSpec & \acc{208}{65.82\%} & \acc{4}{8.00\%} & \acc{302}{64.81\%}
+AutoSpec & none & \acc{151}{47.78\%} & \acc{3}{6.00\%} & \acc{197}{42.27\%}
+  & \acc{351}{42.19\%} & 2,181.72 & 27.34\,s \\
+AutoSpec & medium & \acc{208}{65.82\%} & \acc{4}{8.00\%} & \acc{302}{64.81\%}
   & \acc{514}{61.78\%} & 25,154.54 & 54.77\,s \\
-SESpec & \acc{180}{56.96\%} & \acc{3}{6.00\%} & \acc{231}{49.57\%}
+SESpec & none & \acc{91}{28.80\%} & \acc{2}{4.00\%} & \acc{154}{33.05\%}
+  & \acc{247}{29.69\%} & 22,081.61 & 68.50\,s \\
+SESpec & medium & \acc{180}{56.96\%} & \acc{3}{6.00\%} & \acc{231}{49.57\%}
   & \acc{414}{49.76\%} & 44,807.05 & 117.31\,s \\
-Clause2Inv & \acc{63}{19.94\%} & \acc{1}{2.00\%} & \acc{0}{0.00\%}
+Clause2Inv & none & \acc{66}{20.89\%} & \acc{0}{0.00\%} & \acc{0}{0.00\%}
+  & \acc{66}{7.93\%} & 1,056.25 & 8.41\,s \\
+Clause2Inv & medium & \acc{63}{19.94\%} & \acc{1}{2.00\%} & \acc{0}{0.00\%}
   & \acc{64}{7.69\%} & 385.80 & 29.04\,s \\
-Daikon & \acc{73}{23.10\%} & \acc{0}{0.00\%} & \acc{101}{21.67\%}
+Daikon & --- & \acc{73}{23.10\%} & \acc{0}{0.00\%} & \acc{101}{21.67\%}
   & \acc{174}{20.91\%} & 0 & 4.89\,s \\
-\midrule
-Naive
-  & \acc{154}{48.73\%} & \acc{4}{8.00\%} & \acc{221}{47.42\%}
-  & \acc{379}{45.55\%} & 4,493.37 & 28.87\,s \\
-\sam{} (pass@1)
-  & \acc{193}{61.08\%} & \acc{7}{14.00\%} & \acc{252}{54.08\%}
-  & \acc{452}{54.33\%} & 6,928.30 & 53.52\,s \\
-\sam{} (combine@1)
-  & \acc{203}{64.24\%} & \acc{7}{14.00\%} & \acc{294}{63.09\%}
-  & \acc{504}{60.58\%} & 6,928.30 & 66.60\,s \\
-\sam{} (combine@5)
-  & \acc{250}{79.11\%} & \acc{7}{14.00\%} & \acc{365}{78.33\%}
-  & \acc{622}{74.76\%} & 33,404.56 & 114.95\,s \\
-\sam{} (combine@10)
-  & \acc{255}{80.70\%} & \acc{7}{14.00\%} & \acc{376}{80.69\%}
-  & \acc{638}{76.68\%} & 68,953.35 & 143.67\,s \\
-\textsc{Loopy}
-  & \acc{230}{72.78\%} & \acc{6}{12.00\%} & \acc{330}{70.82\%}
+\textsc{Loopy} & none & \acc{64}{20.25\%} & \acc{0}{0.00\%} & \acc{92}{19.74\%}
+  & \acc{156}{18.75\%} & 14,513.37 & 147.16\,s \\
+\textsc{Loopy} & medium & \acc{230}{72.78\%} & \acc{6}{12.00\%} & \acc{330}{70.82\%}
   & \acc{566}{68.03\%} & 111,973.15 & 381.01\,s \\
+\midrule
+Naive & none & \acc{48}{15.19\%} & \acc{1}{2.00\%} & \acc{88}{18.88\%}
+  & \acc{137}{16.47\%} & 225.95 & 2.98\,s \\
+Naive & medium & \acc{154}{48.73\%} & \acc{4}{8.00\%} & \acc{221}{47.42\%}
+  & \acc{379}{45.55\%} & 4,493.37 & 28.87\,s \\
+\sam{} (pass@1) & none & \acc{8}{2.53\%} & \acc{0}{0.00\%} & \acc{22}{4.72\%}
+  & \acc{30}{3.61\%} & 1,135.83 & 7.86\,s \\
+\sam{} (pass@1) & medium & \acc{193}{61.08\%} & \acc{7}{14.00\%} & \acc{252}{54.08\%}
+  & \acc{452}{54.33\%} & 6,928.30 & 53.52\,s \\
+\sam{} (combine@1) & none & \acc{157}{49.68\%} & \acc{4}{8.00\%} & \acc{213}{45.71\%}
+  & \acc{374}{44.95\%} & 1,135.83 & 29.66\,s \\
+\sam{} (combine@1) & medium & \acc{203}{64.24\%} & \acc{7}{14.00\%} & \acc{294}{63.09\%}
+  & \acc{504}{60.58\%} & 6,928.30 & 66.60\,s \\
+\sam{} (combine@5) & none & \acc{205}{64.87\%} & \acc{6}{12.00\%} & \acc{297}{63.73\%}
+  & \acc{508}{61.06\%} & 2,161.52 & 91.78\,s \\
+\sam{} (combine@5) & medium & \acc{250}{79.11\%} & \acc{7}{14.00\%} & \acc{365}{78.33\%}
+  & \acc{622}{74.76\%} & 33,404.56 & 114.95\,s \\
+\sam{} (combine@10) & none & \acc{214}{67.72\%} & \acc{5}{10.00\%} & \acc{332}{71.24\%}
+  & \acc{551}{66.23\%} & 4,322.38 & 190.35\,s \\
+\sam{} (combine@10) & medium & \acc{255}{80.70\%} & \acc{7}{14.00\%} & \acc{376}{80.69\%}
+  & \acc{638}{76.68\%} & 68,953.35 & 143.67\,s \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The non-reasoning main comparison uses each tool's own sampling schedule with
-the shared model-call parameters summarized separately in
+The main text reports each method's \texttt{reasoning\_effort=none} row.  The
+shared model-call parameters for the non-reasoning comparison are summarized
+separately in
 Table~\ref{tab:tool-sampling-parameters}.
 
 \begin{table}[H]

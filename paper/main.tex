@@ -71,7 +71,7 @@
 \definecolor{algoframe}{RGB}{129,174,150}
 \definecolor{paperink}{RGB}{31,49,40}
 \definecolor{wrongred}{RGB}{224,150,138}
-\definecolor{codeolive}{RGB}{140,126,55}
+\definecolor{codeolive}{RGB}{184,122,44}
 
 %% Restrained green accents; structural typography comes from the ICLR style.
 \hypersetup{
@@ -185,7 +185,7 @@
 \newcommand{\xmark}{\ding{55}}
 \newcommand{\sam}{\textsc{Craft}}
 \newcommand{\denote}[1]{\left[\!\left[#1\right]\!\right]}
-\newcommand{\acc}[2]{\shortstack[r]{#1\\(#2)}}
+\newcommand{\acc}[2]{#2}
 
 %% Meta
 \title{\sam{}: Compositional Reward Alignment\\
@@ -216,9 +216,8 @@ coverage beyond peers.  Its target-independent strength signal comes from
 reachable executions and conservatively filtered synthetic negatives.  On
 832 C programs, five \texttt{gpt-5-nano} rollouts verify 74.76\% of tasks,
 versus 61.78\% for the strongest external baseline under each system's fixed
-native budget.  In a paired Qwen3-8B evaluation, RL raises combine@10 from
-52.76\% to 56.97\% despite lower pass@1 and reduces the rollouts needed to
-reach 95\% of each policy's measured maximum performance from 30 to 10.
+native budget.  A paired Qwen3-8B before/after RL evaluation is in progress
+against the updated base checkpoint (pass@1 3.55\%, combine@10 36.78\%).
 \end{abstract}
 
 %% ============================================================

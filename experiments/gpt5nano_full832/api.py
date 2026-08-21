@@ -54,7 +54,7 @@ class RecordingChat:
         )
         self.reasoning_effort = (
             None
-            if str(configured_reasoning_effort).lower() in {"default", "omit"}
+            if str(configured_reasoning_effort).lower() in {"default", "omit", "none"}
             else configured_reasoning_effort
         )
         configured_enable_thinking = _craft_env("ENABLE_THINKING")
@@ -121,9 +121,16 @@ class RecordingChat:
         if self.reasoning_effort:
             kwargs["reasoning_effort"] = self.reasoning_effort
         if self.enable_thinking is not None:
-            kwargs["extra_body"] = {
-                "enable_thinking": self.enable_thinking,
-            }
+            extra_body = {"enable_thinking": self.enable_thinking}
+            if "deepseek" in self.model.lower():
+                # DeepSeek V3.2-family models ignore enable_thinking and
+                # default to thinking mode at high effort; the documented
+                # control is the `thinking` object.
+                # https://api-docs.deepseek.com/guides/thinking_mode/
+                extra_body["thinking"] = {
+                    "type": "enabled" if self.enable_thinking else "disabled"
+                }
+            kwargs["extra_body"] = extra_body
         started = time.perf_counter()
         last_error = None
         response = None

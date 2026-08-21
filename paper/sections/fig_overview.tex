@@ -16,7 +16,7 @@
     line width=0.95pt},
   inferflow/.style={-{Stealth[length=2.0mm]}, draw=codeolive!80,
     line width=0.95pt},
-  panel/.style={draw=promptframe, fill=promptbg, rounded corners=5pt,
+  panel/.style={draw=promptframe, fill=white, rounded corners=5pt,
     line width=0.85pt},
   card/.style={draw=promptframe, fill=white, rounded corners=2.5pt,
     line width=0.75pt, align=center, inner xsep=5pt, inner ysep=4pt},
@@ -149,7 +149,7 @@
 %% -----------------------------------------------------------------
 %% Three consumers contain only what differs
 %% -----------------------------------------------------------------
-\draw[rounded corners=5pt, fill=codepurple!2, draw=codepurple!34,
+\draw[rounded corners=5pt, fill=white, draw=codepurple!34,
   line width=0.8pt] (0.10,-2.10) rectangle (4.325,3.05);
 \begin{scope}[xshift=0.1125cm]
 
@@ -205,7 +205,7 @@
 
 \end{scope}
 
-\draw[rounded corners=5pt, fill=codeblue!3, draw=codeblue!34,
+\draw[rounded corners=5pt, fill=white, draw=codeblue!34,
   line width=0.8pt] (4.525,-2.10) rectangle (11.275,3.05);
 \begin{scope}[xshift=0.225cm]
 \node[tag, fill=codeblue, anchor=west] at (4.60,2.75)
@@ -225,8 +225,8 @@
 %% -----------------------------------------------------------------
 \node[tag, fill=codeblue!72, font=\tiny\bfseries, anchor=west]
   at (4.55,2.32) {1\hspace{2pt}DECOMPOSE};
-\node[font=\tiny, text=codegray, anchor=west] at (6.48,2.32)
-  {within a rollout: keep verifier-retained clauses \(C_i^{\mathrm{train}}\)};
+\node[font=\tiny, text=codegray, anchor=west, align=left] at (6.48,2.32)
+  {within a rollout: keep verifier-retained\\clauses \(C_i^{\mathrm{train}}\)};
 
 \node[font=\tiny, text=paperink!75] at (4.70,1.88) {\(A_2\)};
 \foreach \i/\c in {0/codegreen!70,1/wrongred,2/codegreen!45,
@@ -357,12 +357,12 @@
 
 \end{scope}
 
-\draw[rounded corners=5pt, fill=codeolive!3, draw=codeolive!38,
+\draw[rounded corners=5pt, fill=white, draw=codeolive!38,
   line width=0.8pt] (11.475,-2.10) rectangle (15.90,3.05);
 \begin{scope}[xshift=0.1375cm]
 \node[tag, fill=codeolive!80, anchor=west] at (11.55,2.75)
-  {DEPLOY};
-\node[font=\tiny\itshape, text=codegray, anchor=east] at (15.62,2.75)
+  {INFERENCE};
+\node[font=\tiny\itshape, text=codegray, anchor=east] at (15.62,2.42)
   {no execution states needed};
 
 \node[card, draw=codeolive!55, fill=white, text width=2.3cm]
@@ -388,7 +388,7 @@
   {{\tiny\bfseries\textcolor{codegreen!82}{\cmark\ VERIFIED}}};
 \node[font=\tiny, text=codegray] at (13.55,-1.56)
   {measured as combine@\(k\)};
-\draw[inferflow] (13.575,3.42) -- (13.575,3.05);
+\draw[inferflow] (13.55,3.42) -- (13.55,3.05);
 \draw[inferflow] (13.55,1.76) -- (13.55,1.37);
 \draw[inferflow] (13.55,1.05) -- (13.55,0.62);
 \draw[inferflow] (wp) -- (pass);
@@ -403,6 +403,6 @@ clauses---a dense, target-independent strength score from execution-derived
 negatives---and \emph{composes} credit across the rollout group through a
 closed-form Shapley allocation, so a rejection already supplied by peers earns
 less.  Executions construct and clean only training-time reward signals;
-deployment restores \(Q\) only for the final proof.}
+inference restores \(Q\) only for the final proof.}
 \label{fig:overview}
 \end{figure}

@@ -178,7 +178,7 @@ def base_row(method: str, task: Task) -> dict:
         "model": craft_env("MODEL") or protocol["model"],
         "reasoning_effort": (
             None
-            if str(configured_reasoning_effort).lower() in {"default", "omit"}
+            if str(configured_reasoning_effort).lower() in {"default", "omit", "none"}
             else configured_reasoning_effort
         ),
         "enable_thinking": enable_thinking,

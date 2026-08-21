@@ -6,7 +6,16 @@ CRAFT makes filtered clause composition the inference target: RCF combines
 rollouts, SFT distills their union, and target-independent RL rewards useful
 clauses and complementary coverage.
 
+The recipe transfers beyond loop invariants.  It applies to problems whose
+answers (i) decompose into independently checkable units combined by
+conjunction, (ii) admit a cheap mechanical filter for unit validity,
+(iii) include valid-but-weak degenerate solutions that pass/fail cannot
+grade, and (iv) allow behavioral negatives, on which weak and strong
+solutions disagree, to be derived from executions or simulations.  Test
+generation judged by mutant killing, auxiliary-lemma synthesis for proof
+assistants, and data-constraint discovery all satisfy these conditions.
+
 Evidence is limited to scalar-integer, single-loop C programs, Frama-C/WP and
 ACSL, and vLLM-served local checkpoints.  Credit also filters rollouts
-separately whereas deployment filters their union.  Appendices~\ref{app:limitations}
+separately whereas inference filters their union.  Appendices~\ref{app:limitations}
 and~\ref{app:houdini-order} detail these scope and reward approximations.

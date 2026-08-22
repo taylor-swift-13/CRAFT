@@ -51,8 +51,8 @@ UNTRAINED = {
 
 # vertical nudges (points) for end-of-line labels per panel
 LABEL_OFFSETS = {
-    "pass": {"Binary": 3.2, "Whole-rollout": -3.2},
-    "combine": {"+Shapley": 2.4, "Clause-decomp.": -2.4},
+    "pass": {"Binary": 3.8, "Whole-rollout": -3.8},
+    "combine": {"+Shapley": 3.0, "Clause-decomp.": -3.0},
 }
 
 
@@ -60,16 +60,16 @@ def configure() -> None:
     plt.rcParams.update(
         {
             "font.family": "DejaVu Sans",
-            "font.size": 8.2,
-            "axes.titlesize": 9.2,
-            "axes.labelsize": 8.5,
-            "legend.fontsize": 7.4,
-            "xtick.labelsize": 7.7,
-            "ytick.labelsize": 7.7,
+            "font.size": 11.2,
+            "axes.titlesize": 12.6,
+            "axes.labelsize": 11.6,
+            "legend.fontsize": 10.2,
+            "xtick.labelsize": 10.6,
+            "ytick.labelsize": 10.6,
             "axes.edgecolor": "#5c6e65",
-            "axes.linewidth": 0.6,
+            "axes.linewidth": 0.7,
             "grid.color": "#dce5df",
-            "grid.linewidth": 0.55,
+            "grid.linewidth": 0.6,
             "pdf.fonttype": 42,
         }
     )
@@ -93,9 +93,9 @@ def plot_panel(ax: plt.Axes, metric: str) -> None:
         color="#6f6f6f",
         marker="x",
         linestyle=":",
-        linewidth=1.6,
-        markersize=5.0,
-        markeredgewidth=1.3,
+        linewidth=2.0,
+        markersize=6.0,
+        markeredgewidth=1.5,
     )
     for label, values in VARIANTS.items():
         ax.plot(
@@ -105,9 +105,9 @@ def plot_panel(ax: plt.Axes, metric: str) -> None:
             color=values["color"],
             marker=values["marker"],
             linestyle=values["style"],
-            linewidth=1.9,
-            markersize=5.0,
-            markeredgewidth=0.7,
+            linewidth=2.3,
+            markersize=6.0,
+            markeredgewidth=0.8,
             markeredgecolor="white",
         )
         # nudge end labels apart when terminal values nearly coincide
@@ -117,27 +117,27 @@ def plot_panel(ax: plt.Axes, metric: str) -> None:
             xy=(K[-1], values[metric][-1]),
             xytext=(4, dy),
             textcoords="offset points",
-            fontsize=6.6,
+            fontsize=9.4,
             color=values["color"],
             va="center",
         )
 
 
 def reward_ablation() -> None:
-    fig, axes = plt.subplots(1, 2, figsize=(7.15, 2.9))
+    fig, axes = plt.subplots(1, 2, figsize=(9.2, 3.5))
     plot_panel(axes[0], "pass")
     plot_panel(axes[1], "combine")
     style_axis(axes[0])
     style_axis(axes[1])
     axes[0].set_title("(a) pass@$k$ (single response)")
-    axes[1].set_title("(b) combine@$k$ (union + Houdini)")
+    axes[1].set_title("(b) compose@$k$ (union + Houdini)")
     axes[0].set_ylim(0, 20)
     axes[1].set_ylim(0, 48)
     for ax in axes:
-        ax.set_xlim(K[0], K[-1] * 2.6)
+        ax.set_xlim(K[0], K[-1] * 2.9)
     handles, labels = axes[1].get_legend_handles_labels()
     fig.legend(handles, labels, loc="upper center", ncol=5, frameon=False)
-    fig.tight_layout(rect=(0, 0, 1, 0.84), w_pad=2.0)
+    fig.tight_layout(rect=(0, 0, 1, 0.87), w_pad=2.8)
     fig.savefig(OUT / "reward_ablation.pdf", bbox_inches="tight")
     plt.close(fig)
 

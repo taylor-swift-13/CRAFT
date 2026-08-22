@@ -9,10 +9,10 @@ rollouts, final Frama-C/WP judgment, protocol hash, and failure status.
 
 | RQ | Question | Primary evidence |
 |---|---|---|
-| RQ1 | How do pass@\(k\) and combine@\(k\) scale? | One saved 100-response pool per task for Qwen3-4B, 8B, 14B, 30B-A3B, and Llama 3.1 8B; report \(k\in\{1,10,30,50,100\}\). |
-| RQ2 | How much does combine@1 recover from one response across model families? | Paired pass@1/combine@1 judgments of the same response on all 832 tasks. |
+| RQ1 | How do pass@\(k\) and compose@\(k\) scale? | One saved 100-response pool per task for Qwen3-4B, 8B, 14B, 30B-A3B, and Llama 3.1 8B; report \(k\in\{1,10,30,50,100\}\). |
+| RQ2 | How much does compose@1 recover from one response across model families? | Paired pass@1/compose@1 judgments of the same response on all 832 tasks. |
 | RQ3 | How does CRAFT compare with specialized tools? | Target-hidden adaptations, fixed native budgets, common 832-task denominator, and common restored-target judge. |
-| RQ4 | Does RL improve the deployed combined inference curve? | Matched before/after-RL checkpoints for Zero and SFT initializations. |
+| RQ4 | Does RL improve the deployed composed inference curve? | Matched before/after-RL checkpoints for Zero and SFT initializations. |
 | RQ5 | Which reward and sampler mechanisms matter? | Three training seeds per reward or sampler variant, with all other settings fixed. |
 
 ## Common information boundary and judge
@@ -33,15 +33,15 @@ token-matched. LLM-based RQ3 rows use gpt-5-nano.
 
 - pass@k: for a pool of \(n=100\) responses with \(c\) successes, compute
   \(1-\binom{n-c}{k}/\binom{n}{k}\) per program and average over programs.
-- combine@k: union the first \(k\) saved responses, apply Houdini, restore
+- compose@k: union the first \(k\) saved responses, apply Houdini, restore
   \(Q\), and report the verified fraction. It is a fixed-prefix measurement,
   not an all-subset unbiased estimate.
-- \(k_{95}\): the smallest measured \(k\) whose combine@\(k\) reaches 95% of
-  that pool's combine@100.
+- \(k_{95}\): the smallest measured \(k\) whose compose@\(k\) reaches 95% of
+  that pool's compose@100.
 - Efficiency: mean total tokens and end-to-end time per attempted task.
   Provider usage is used for APIs; serving-tokenizer counts are used locally.
 
-RQ2 compares aggregate pass@1 and combine@1 on the same saved response, so the
+RQ2 compares aggregate pass@1 and compose@1 on the same saved response, so the
 rate difference introduces no additional model calls.
 
 ## RQ5 variants
@@ -58,7 +58,7 @@ Reward variants map directly to the released service:
 
 The sampler contrast is random versus structured, with identical execution,
 cleaning, seed, family-independent trace cap, and reward. Primary
-effectiveness is combine@10; also report pass@1, combine@1, combine@100,
+effectiveness is compose@10; also report pass@1, compose@1, compose@100,
 \(k_{95}\), pre-normalization within-group reward variance, and expanded-sweep
 reachability collision.
 

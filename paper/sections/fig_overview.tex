@@ -1,5 +1,5 @@
 %% ============================================================
-%% Figure 1: rollout--combine--filter as the organizing principle
+%% Figure 1: rollout--decompose--filter--compose as the organizing principle
 %% ============================================================
 \begin{figure}[t]
 \centering
@@ -38,7 +38,7 @@
 %% -----------------------------------------------------------------
 \draw[panel] (0.10,3.72) rectangle (15.90,6.48);
 \node[tag, fill=codeblue, anchor=west] at (0.40,6.16)
-  {ROLLOUT--COMBINE--FILTER};
+  {ROLLOUT--DECOMPOSE--FILTER--COMPOSE};
 
 %% legend: clause color encodes validity and, for valid clauses, strength
 \begin{scope}[shift={(10.55,5.98)}]
@@ -97,7 +97,7 @@
 %% -----------------------------------------------------------------
 %% COMBINE: union of extracted clauses across all rollouts
 %% -----------------------------------------------------------------
-\node[heading] at (7.05,5.62) {COMBINE};
+\node[heading] at (7.05,5.62) {DECOMPOSE};
 \node[poolbound, minimum width=1.85cm, minimum height=1.25cm]
   (pool) at (7.05,4.90) {};
 \foreach \dx/\dy/\c in {
@@ -106,7 +106,7 @@
   -0.45/-0.36/codegreen!80, 0.05/-0.38/codegreen!45, 0.52/-0.34/codegreen!30}{
   \node[clausebox, fill=\c] at (7.05+\dx,4.90+\dy) {};
 }
-\node[font=\tiny, text=codegray] at (7.05,4.10) {union};
+\node[font=\tiny, text=codegray] at (7.05,4.10) {extract + union};
 
 %% unified clause filter: syntax + Houdini as one funnel glyph
 \node[heading] at (9.75,5.62) {FILTER};
@@ -118,12 +118,12 @@
 \draw[draw=codeblue!74, fill=codeblue!84, line width=0.7pt]
   (9.75,5.16) ellipse (0.47 and 0.085);
 \node[font=\tiny, text=codegray] at (9.75,4.10)
-  {parse + dedup + Houdini};
+  {syntax + dedup + Houdini};
 
 %% -----------------------------------------------------------------
 %% VALID CLAUSES: only the surviving green boxes, gathered together
 %% -----------------------------------------------------------------
-\node[heading] at (12.65,5.62) {VALID CLAUSES};
+\node[heading] at (12.65,5.62) {COMPOSE};
 \foreach \dx/\dy/\c in {
   -0.34/0.30/codegreen!85, 0.10/0.32/codegreen!45, 0.46/0.22/codegreen!70,
   -0.30/-0.14/codegreen!55, 0.14/-0.16/codegreen!30, 0.48/-0.14/codegreen!80}{
@@ -155,7 +155,7 @@
 
 \node[card, draw=codepurple!58, fill=white, text width=2.9cm]
   (sftpair) at (2.10,2.05)
-  {{\tiny\bfseries Combined clauses \(C_k\)}\\[-1pt]
+  {{\tiny\bfseries Composed clauses \(C_k\)}\\[-1pt]
    {\tiny \(k\) rollouts: union \(\to\) filter}};
 \draw[dataflow] (2.10,3.42) -- (2.10,3.05);
 \node[tag, fill=codepurple!84, anchor=west] at (0.40,2.75)
@@ -387,7 +387,7 @@
   (pass) at (13.55,-1.10)
   {{\tiny\bfseries\textcolor{codegreen!82}{\cmark\ VERIFIED}}};
 \node[font=\tiny, text=codegray] at (13.55,-1.56)
-  {measured as combine@\(k\)};
+  {measured as compose@\(k\)};
 \draw[inferflow] (13.55,3.42) -- (13.55,3.05);
 \draw[inferflow] (13.55,1.76) -- (13.55,1.37);
 \draw[inferflow] (13.55,1.05) -- (13.55,0.62);
@@ -396,9 +396,9 @@
 
 \end{tikzpicture}
 }%
-\caption{\textbf{Rollout--combine--filter is the organizing principle.}
+\caption{\textbf{Rollout--decompose--filter--compose is the organizing principle.}
 Target-hidden rollouts are parsed, unioned, and Houdini-filtered.  SFT distills
-the combined set.  RL \emph{decomposes} each rollout onto its verifier-retained
+the composed set.  RL \emph{decomposes} each rollout onto its verifier-retained
 clauses---a dense, target-independent strength score from execution-derived
 negatives---and \emph{composes} credit across the rollout group through a
 closed-form Shapley allocation, so a rejection already supplied by peers earns

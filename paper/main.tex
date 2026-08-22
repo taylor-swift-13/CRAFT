@@ -207,17 +207,18 @@ different responses can prove a target even when no response does so alone.
 Yet standard training scores each response as an indivisible answer.  We
 study this mismatch under \emph{target-hidden loop verification}, where target
 assertions and postconditions \(Q\) are withheld during generation and
-training.  CRAFT aligns both stages through rollout--combine--filter (RCF).
-At inference, RCF extracts and unions clauses, then uses syntax filtering and
-Houdini to retain an inductive subset before restoring \(Q\).  SFT distills a
+training.  CRAFT aligns both stages through
+rollout--decompose--filter--compose.
+At inference, it decomposes responses into clauses, filters them with syntax
+checking and
+Houdini, and composes an inductive subset before restoring \(Q\).  SFT distills a
 filtered multi-response union into one response.  RL assigns credit within a
 rollout to its verifier-retained subset and across rollouts to complementary
 coverage beyond peers.  Its target-independent strength signal comes from
 reachable executions and conservatively filtered synthetic negatives.  On
 832 C programs, five \texttt{gpt-5-nano} rollouts verify 74.76\% of tasks,
 versus 61.78\% for the strongest external baseline under each system's fixed
-native budget.  A paired Qwen3-8B before/after RL evaluation is in progress
-against the updated base checkpoint (pass@1 3.55\%, combine@10 36.78\%).
+budget.
 \end{abstract}
 
 %% ============================================================

@@ -28,7 +28,8 @@ Response-level rewards are mismatched to this unit in two ways.  First,
 verifiable rewards credited to whole responses chiefly sharpen the sampling
 distribution toward responses the policy already produces, improving pass@1
 without widening what \(k\) samples can cover~\citep{yue2025rlcapacity}.
-For a clause pool, such sharpening toward a few self-sufficient responses is
+For a clause pool, such sharpening toward a few individually complete
+responses is
 at best orthogonal and at worst collapses the diversity that composition
 exploits.  Second, a complete response is also the wrong unit of training
 credit.  A whole-response reward
@@ -54,16 +55,17 @@ failures to steer generation.  It also rules out target success as a training
 reward, making a graded, target-independent measure of invariant strength
 necessary.
 
-\sam{} organizes inference around \emph{rollout--combine--filter} (RCF).
-Given a budget of \(k\) target-hidden responses, RCF extracts each invariant
+\sam{} organizes inference around \emph{rollout--decompose--filter--compose}.
+Given a budget of \(k\) target-hidden responses, the pipeline extracts each
+invariant
 annotation as a clause, unions clauses across responses, removes syntax failures,
 and applies Houdini to retain a jointly valid subset.  Only then is \(Q\)
 restored for the final proof.  We measure this inference-time object with
-combine@\(k\): the fraction of programs verified after combining the first
+compose@\(k\): the fraction of programs verified after composing the first
 \(k\) responses.  Unlike pass@\(k\), which requires at least one response to
-contain the complete proof, combine@\(k\) preserves useful partial answers.
+contain the complete proof, compose@\(k\) preserves useful partial answers.
 The objective is to make this curve both higher and faster to converge, so a
-small rollout budget recovers the combinations otherwise found only through
+small rollout budget recovers the compositions otherwise found only through
 much broader sampling.
 
 Training aligns credit with the two levels of this inference procedure.  \emph{Within}
@@ -79,7 +81,7 @@ its Group Relative Policy Optimization (GRPO) group discover
 ~\citep{shao2024deepseekmath}.  Synthetic supervised fine-tuning (SFT)
 additionally distills a filtered multi-response union into one
 individual response.  Together, these stages make sampled responses more
-useful to the clause pool that RCF combines at inference.
+useful to the clause pool that the pipeline composes at inference.
 
 Prior systems synthesize and prune candidate invariants at inference time,
 while learning-based methods train from verified outputs, solver feedback, or
@@ -89,26 +91,23 @@ huang2026specrl}.  We instead train for the filtered clause pool used at
 inference: credit preserves useful clauses within a response and depends on
 complementary coverage across responses.
 
-Our experiments deliberately separate standalone success from combined
+Our experiments deliberately separate standalone success from composed
 inference.  On 832 integer C programs, five target-hidden
 \texttt{gpt-5-nano} responses with union and Houdini verify 622 programs
 (74.76\%), compared with 514 (61.78\%) for the
-strongest external baseline under each system's fixed native budget.
-The paired Qwen3-8B before/after RL evaluation is pending re-evaluation
-against the updated Base 8B checkpoint (pass@1 3.55\%, combine@10 36.78\%,
-\(k_{95}=30\)); Section~\ref{sec:exp:rl} reports the current baseline.
+strongest external baseline under each system's fixed budget.
 
 \paragraph{Contributions.}
 This paper makes three contributions:
 \begin{itemize}
   \item We formulate target-hidden loop verification around a fixed-budget
-  rollout--combine--filter objective.  The evaluated object at inference is
-  the verified composition measured by combine@\(k\), not an isolated
+  rollout--decompose--filter--compose objective.  The evaluated object at inference is
+  the verified composition measured by compose@\(k\), not an isolated
   response.
   \item We align learning credit with that object in both directions: the
   reward preserves useful clauses within imperfect rollouts and allocates
   complementary coverage across rollouts, without using \(Q\).
-  \item We show that this alignment improves combined verification and rollout
+  \item We show that this alignment improves composed verification and rollout
   efficiency, and audit the execution-derived examples that provide its
   graded strength signal.
 \end{itemize}

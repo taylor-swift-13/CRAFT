@@ -167,10 +167,10 @@ exactly one unit of credit among its \(f(n)\) rejectors.
 Table~\ref{tab:constants} lists the implemented defaults.
 Execution sampling is used only to compute reinforcement-learning rewards; it
 does not construct the synthetic SFT corpus.  SFT synthesis, RL, and inference
-share the rollout--combine--filter implementation: the same annotation
-extraction, per-rollout response cap, normalization, candidate combination, iterative
+share the rollout--decompose--filter--compose implementation: the same annotation
+extraction, per-rollout response cap, normalization, candidate composition, iterative
 syntax filtering, conservative semantic deduplication, and Houdini pruning.  SFT
-serializes the filtered combination, RL scores the responses that populate it,
+serializes the filtered composition, RL scores the responses that populate it,
 and inference restores \(Q\) only after filtering.  Inference does not
 construct execution examples.  The operators are shared, but RL applies
 Houdini once per response for credit assignment whereas SFT and inference
@@ -314,7 +314,7 @@ not penalized because they may support another clause or the hidden target.
 Both coverage and Shapley credit lie in \([0,1]\), so the unpenalized full
 reward lies in \([0,1.3]\); duplicate and overflow costs can lower it.
 When the sampler retains no negatives, scoring falls back to binary inductiveness for
-a nonempty response.  Combined-pool coverage is logged as a diagnostic but is
+a nonempty response.  Composed-pool coverage is logged as a diagnostic but is
 not copied into every rollout reward.
 
 \section{Generation Prompt}
@@ -373,11 +373,21 @@ final RL or SFT model prompt, and all rows contain the same current system and
 user templates.  The archival full source remains only in RL reward metadata;
 the service strips its target before sampling and inductiveness filtering.
 Likewise, model-visible evaluation sources contain no provenance or outcome
-comments.  These cleaned artifacts require retraining; results from checkpoints
+comments.  Results from checkpoints
 trained on the archived prompts are not evidence for the final protocol.
 
 \begin{promptbox}[Generation prompt]
 \begin{lstlisting}[style=promptstyle]
+You are given a C function. Produce the strongest inductive ACSL loop
+invariants that capture the loop's behavior (conservation/relational laws
++ tight progress bounds). Output ONLY invariant lines, each formatted
+exactly as:
+loop invariant <expr>;
+Output at most 20 invariant lines.
+
+Program:
+{program}
+\end{lstlisting}\begin{lstlisting}[style=promptstyle]
 You are given a C function. Produce the strongest inductive ACSL loop
 invariants that capture the loop's behavior (conservation/relational laws
 + tight progress bounds). Output ONLY invariant lines, each formatted
@@ -395,6 +405,87 @@ The accompanying system prompt appears verbatim below (also released as
 
 \begin{promptbox}[System prompt]
 \begin{lstlisting}[style=promptstyle]
+You are a formal verification expert specializing in ACSL loop invariant
+synthesis for Frama-C/WP.
+
+## LOOP INVARIANT DEFINITION
+
+A loop invariant is a property that:
+1. Holds before the first loop iteration (initialization).
+2. Is preserved by every loop iteration when the loop guard is true
+   (inductiveness).
+3. Combined with loop exit (`!guard`), helps establish required
+   loop-exit facts.
+
+## RULES
+
+- Add one core conservation/relational equality that explains loop
+  updates (state transition law).
+- Add minimal progress bounds for loop counters and key arithmetic
+  variables.
+- Prefer strong invariants; avoid weak/tautological ones.
+- Do not add unrelated invariants just to increase count.
+- MUST NOT modify or rewrite any `unknown()`/`unknownN()` call.
+- `\at(v, Pre)` can ONLY be used with function parameters, never with
+  local variables initialized inside the function.
+- `\at(v, LoopEntry)` denotes the value of v at the start of the loop
+  and can ONLY be used with local variables initialized before the
+  loop (using v = unknown();).
+- Loop guard is NOT an invariant; weaken strict guards to non-strict
+  bounds at exit.
+- Parenthesize mixed equality and relational expressions so their
+  grouping is explicit.
+- Use `loop invariant` only as a line prefix, never inside expressions.
+- Emit scalar invariant expressions only; do not declare predicates,
+  logic functions, axioms, or lemmas.
+- Do NOT use the ternary `? :` operator; split cases with `==>` instead.
+- `^` is bitwise XOR in C/ACSL, not exponentiation --- write `x*x*x`
+  for x cubed.
+- Do NOT place a C boolean directly in arithmetic (`x + (a > b)` is
+  invalid); use `==>` to split cases.
+- Only use variables declared in the given function.
+- Operators: comparison `==` `!=` `<` `<=` `>` `>=`; logical `&&` `||`
+  `!` `==>` `<==>`; arithmetic `+` `-` `*` `/` `%`.
+
+## ACSL INVARIANT SYNTAX
+
+Allowed expression forms (all verified by Frama-C/WP):
+
+1. **Bounds**: `0 <= i`, `i <= n`, `x >= 1`
+2. **Linear equality**: `i + c == n`, `2 * s == i * (i - 1)`,
+   `x == q * y + r`
+3. **Polynomial equality**: `x == n * n * n`,
+   `6 * s == i * (i + 1) * (2 * i + 1)`
+4. **Relational identity** (multi-var algebraic law):
+   `1 + x * z - x - z * y == 0`, `p * s - r * q == 1`
+5. **Implication**: `i > 0 ==> s >= i`, `a != 0 ==> q >= 1`
+6. **Modular**: `i % 5 == 0`, `r >= 0 && r < y`
+7. **Bitshift** (power-of-2 only): `p == 1 << i`, `s == (1 << i) - 1`
+8. **Conjunction**: `c >= 1 && c <= k`
+9. **\at for params**: `n == \at(n, Pre)` (function parameters only)
+
+Forbidden:
+- `^` for exponentiation (it is XOR) --- use repeated `*` or `<<` for
+  powers of 2.
+- `\product`, `\sum`, `\factorial` --- not ACSL scalar operators.
+- `? :` ternary --- rewrite with `==>`.
+- `\old(x)` --- use `\at(x, Pre)`.
+- Type casts `(int)`, `(long)` --- unnecessary in ACSL logic.
+- Function calls, predicates, lemmas, axioms --- emit only scalar
+  expressions.
+
+Operators (complete list):
+  comparison: `==` `!=` `<` `<=` `>` `>=`
+  logical:    `&&` `||` `!` `==>` `<==>`
+  arithmetic: `+` `-` `*` `/` `%` `<<` `>>`
+
+## OUTPUT
+
+Return ONLY invariant lines, one per line, formatted exactly as:
+`loop invariant <property>;`
+Do not return code fences, `loop assigns`, the surrounding C function,
+or explanations.
+\end{lstlisting}\begin{lstlisting}[style=promptstyle]
 You are a formal verification expert specializing in ACSL loop invariant
 synthesis for Frama-C/WP.
 
@@ -658,8 +749,8 @@ Local rollout decoding & non-thinking; \(T=1\), top-\(p=1\); 2,048 tokens & data
 \label{app:complete-results}
 
 This section collects the per-model, per-stratum, and per-seed measurements
-behind the main aggregates.  Entries marked \textsc{TBD} await the final
-evaluation artifacts; no missing value is used in the analysis.
+behind the main aggregates.  No entry marked \textsc{TBD} is used in
+the analysis.
 
 \subsection{Probe Curves}
 
@@ -667,7 +758,7 @@ evaluation artifacts; no missing value is used in the analysis.
 \centering
 \setlength{\tabcolsep}{3pt}
 \caption{Complete probe results.  \(k_{95}\) is the smallest measured
-\(k\in\{1,10,30,50,100\}\) at which combine@\(k\) reaches \(95\%\) of its
+\(k\in\{1,10,30,50,100\}\) at which compose@\(k\) reaches \(95\%\) of its
 value at \(k=100\).}
 \label{tab:probe-complete}
 \textit{Whole-response pass rates}\\[2pt]
@@ -691,10 +782,10 @@ Llama 3.1 8B & 0.48\% & 3.38\% & 6.48\% & 8.19\% & 10.46\%
 \end{tabular}
 \vspace{5pt}
 
-\textit{Clause-combination rates}\\[2pt]
+\textit{Clause-composition rates}\\[2pt]
 \begin{tabular}{lrrrrrr}
 \toprule
-Model & combine@1 & combine@10 & combine@30 & combine@50 & combine@100 & \(k_{95}\) \\
+Model & compose@1 & compose@10 & compose@30 & compose@50 & compose@100 & \(k_{95}\) \\
 \midrule
 Qwen3-0.6B & 9.50\% & 22.84\% & 27.40\% & 28.85\% & 29.21\% & 50 \\
 Qwen3-4B & 23.08\% & 31.49\% & 34.13\% & 34.74\% & 36.06\% & 50 \\
@@ -702,6 +793,66 @@ Qwen3-8B & 26.32\% & 36.78\% & 38.22\% & 39.06\% & 39.78\% & 30 \\
 Qwen3-14B & 30.17\% & 35.10\% & 37.14\% & 37.50\% & 37.74\% & 30 \\
 Qwen3-30B-A3B & 28.73\% & 35.10\% & 35.82\% & 36.06\% & 36.54\% & 10 \\
 Llama 3.1 8B & 18.03\% & 27.28\% & 28.25\% & 28.37\% & 28.37\% & 10 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3.0pt}
+\caption{Probe results by benchmark stratum (316 linear, 50 NLA, 466 Loopy,
+832 overall programs) at \(k{=}1\) and \(k{=}10\), laid out as in
+Table~\ref{tab:cross-model-main}: pass@\(k\) (pass) and compose@\(k\) (comp)
+percentages side by side.  Best value per column within each budget block
+in bold.}
+\label{tab:probe-stratum}
+\begin{tabular}{lcccccccc}
+\toprule
+& \multicolumn{2}{c}{Linear} & \multicolumn{2}{c}{NLA}
+  & \multicolumn{2}{c}{Loopy} & \multicolumn{2}{c}{All} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
+\(k\) & pass & comp & pass & comp & pass & comp & pass & comp \\
+\midrule
+\multicolumn{9}{l}{\textit{Qwen3-0.6B}} \\
+1
+  & 0.55 & 6.96 & 0.02 & 2.00 & 0.66 & 12.02 & 0.58 & 9.50 \\
+10
+  & 3.29 & 21.20 & 0.20 & \textbf{4.00} & 4.23 & 25.97 & 3.63 & 22.84 \\
+\cmidrule(l{3pt}r{3pt}){1-9}
+\multicolumn{9}{l}{\textit{Qwen3-4B}} \\
+1
+  & 2.80 & 23.42 & 0.00 & 2.00 & 4.34 & 25.11 & 3.49 & 23.08 \\
+10
+  & 7.52 & 30.38 & 0.00 & 2.00 & 9.28 & 35.41 & 8.05 & 31.49 \\
+\cmidrule(l{3pt}r{3pt}){1-9}
+\multicolumn{9}{l}{\textit{Qwen3-8B}} \\
+1
+  & 2.79 & 25.63 & 0.00 & 2.00 & 4.44 & 29.40 & 3.55 & 26.32 \\
+10
+  & 9.37 & \textbf{37.03} & 0.00 & 2.00 & 11.24 & \textbf{40.34}
+  & 9.86 & \textbf{36.78} \\
+\cmidrule(l{3pt}r{3pt}){1-9}
+\multicolumn{9}{l}{\textit{Qwen3-14B}} \\
+1
+  & 4.36 & \textbf{31.01} & \textbf{0.12} & 0.00 & \textbf{5.94}
+  & \textbf{32.83} & 4.99 & \textbf{30.17} \\
+10
+  & 9.35 & 35.44 & \textbf{0.96} & 0.00 & \textbf{12.07} & 38.63
+  & \textbf{10.37} & 35.10 \\
+\cmidrule(l{3pt}r{3pt}){1-9}
+\multicolumn{9}{l}{\textit{Qwen3-30B-A3B}} \\
+1
+  & \textbf{5.22} & 28.80 & 0.02 & 0.00 & 5.38 & 31.76 & \textbf{5.00}
+  & 28.73 \\
+10
+  & \textbf{9.53} & 33.86 & 0.20 & 0.00 & 11.39 & 39.70 & 10.01 & 35.10 \\
+\cmidrule(l{3pt}r{3pt}){1-9}
+\multicolumn{9}{l}{\textit{Llama 3.1 8B}} \\
+1
+  & 0.38 & 16.77 & 0.00 & \textbf{4.00} & 0.60 & 20.39 & 0.48 & 18.03 \\
+10
+  & 3.13 & 25.00 & 0.00 & \textbf{4.00} & 3.92 & 31.33 & 3.38 & 27.28 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -727,11 +878,12 @@ Llama 3.1 8B & 5,135 \\
 \end{tabular}
 \end{table}
 
+
 \subsection{SFT Probe Curves}
 \label{app:sft-probe}
 
-The SFT checkpoints (0817, one epoch on the 3,200-example corpus) are
-evaluated under the same 832-task protocol as the base probe: 100 saved
+The SFT checkpoints (one epoch on the final SFT corpus) are evaluated
+under the same 832-task protocol as the base probe: 100 saved
 target-hidden responses per task at temperature 1.0, 5-second per-obligation
 prover budget, and the current prompt.
 
@@ -739,7 +891,7 @@ prover budget, and the current prompt.
 \centering
 \setlength{\tabcolsep}{3pt}
 \caption{Complete SFT probe results.  \(k_{95}\) is the smallest measured
-\(k\in\{1,10,30,50,100\}\) at which combine@\(k\) reaches \(95\%\) of its
+\(k\in\{1,10,30,50,100\}\) at which compose@\(k\) reaches \(95\%\) of its
 value at \(k=100\).}
 \label{tab:sft-probe-complete}
 \textit{Whole-response pass rates}\\[2pt]
@@ -747,23 +899,23 @@ value at \(k=100\).}
 \toprule
 Model & pass@1 & pass@10 & pass@30 & pass@50 & pass@100 \\
 \midrule
-Qwen3-4B + SFT & 25.61\% & 53.66\% & 63.51\% & 67.47\% & 71.88\% \\
-Qwen3-8B + SFT & 25.98\% & 54.58\% & 63.84\% & 67.64\% & 72.12\% \\
-Qwen3-14B + SFT & 30.51\% & 57.90\% & 66.26\% & 69.45\% & 73.08\% \\
-Llama 3.1 8B + SFT & 17.76\% & 44.24\% & 53.29\% & 57.30\% & 62.26\% \\
+Qwen3-4B + SFT & 7.40\% & 18.49\% & 24.51\% & 27.54\% & 31.61\% \\
+Qwen3-8B + SFT & 7.10\% & 17.97\% & 23.86\% & 26.82\% & 31.01\% \\
+Qwen3-14B + SFT & 8.26\% & 17.79\% & 22.75\% & 25.43\% & 29.33\% \\
+Llama 3.1 8B + SFT & 5.12\% & 14.46\% & 19.75\% & 22.57\% & 26.44\% \\
 \bottomrule
 \end{tabular}
 \vspace{5pt}
 
-\textit{Clause-combination rates}\\[2pt]
+\textit{Clause-composition rates}\\[2pt]
 \begin{tabular}{lrrrrrr}
 \toprule
-Model & combine@1 & combine@10 & combine@30 & combine@50 & combine@100 & \(k_{95}\) \\
+Model & compose@1 & compose@10 & compose@30 & compose@50 & compose@100 & \(k_{95}\) \\
 \midrule
-Qwen3-4B + SFT & 47.96\% & 70.07\% & 73.80\% & 73.92\% & 74.04\% & 30 \\
-Qwen3-8B + SFT & 49.88\% & 74.04\% & 76.32\% & 76.80\% & 76.80\% & 10 \\
-Qwen3-14B + SFT & 55.05\% & 73.68\% & 75.84\% & 76.44\% & 76.80\% & 10 \\
-Llama 3.1 8B + SFT & 46.15\% & 64.66\% & 68.15\% & 68.63\% & 68.63\% & 30 \\
+Qwen3-4B + SFT & 26.08\% & 38.46\% & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Qwen3-8B + SFT & 25.60\% & 39.06\% & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Qwen3-14B + SFT & 29.33\% & 39.06\% & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Llama 3.1 8B + SFT & 24.04\% & 37.02\% & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -798,12 +950,12 @@ configuration.}
 \label{tab:rl-complete}
 \begin{tabular}{llrrrrrrr}
 \toprule
-Path & Model & pass@1 & combine@1 & combine@10 &
-combine@50 & combine@100 & \(k_{95}\) \\
+Path & Model & pass@1 & compose@1 & compose@10 &
+compose@50 & compose@100 & \(k_{95}\) \\
 \midrule
 Zero & Base 8B      & 3.55\% & 26.32\% & 36.78\% & 39.06\% & 39.78\% & 30 \\
 Zero & Base 8B + RL & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
-SFT  & SFT 8B       & 25.98\% & 49.88\% & 74.04\% & 76.80\% & 76.80\% & 10 \\
+SFT  & SFT 8B       & 7.10\% & 25.60\% & 39.06\% & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
 SFT  & SFT 8B + RL  & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
 \bottomrule
 \end{tabular}
@@ -844,7 +996,7 @@ subtracts \(w_d d_{\mathrm{dup}}(A_i)\), yielding the full reward.  These are
 \label{tab:reward-ablation}
 \begin{tabular}{lrrrrrrrrrr}
 \toprule
-& \multicolumn{5}{c}{pass@$k$} & \multicolumn{5}{c}{combine@$k$} \\
+& \multicolumn{5}{c}{pass@$k$} & \multicolumn{5}{c}{compose@$k$} \\
 \cmidrule(lr){2-6}\cmidrule(lr){7-11}
 Variant & 1 & 10 & 30 & 50 & 100 & 1 & 10 & 30 & 50 & 100 \\
 \midrule
@@ -875,7 +1027,7 @@ Regularized Compositional (ours)
 \begin{table}[H]
 \centering
 \caption{Per-seed reward-ablation results on the 8B model.  Seed columns and
-summary statistics report combine@10 verification rates.}
+summary statistics report compose@10 verification rates.}
 \label{tab:reward-ablation-complete}
 \begin{tabular}{lrrrrr}
 \toprule
@@ -893,7 +1045,7 @@ Regularized Compositional Credit    & \textsc{TBD} & \textsc{TBD} & \textsc{TBD}
 \begin{table}[H]
 \centering
 \caption{Per-seed negative-trace sampler ablation on the 8B model.  Seed
-columns and summary statistics report combine@10 verification rates.}
+columns and summary statistics report compose@10 verification rates.}
 \label{tab:sampler-ablation-complete}
 \begin{tabular}{lrrrrr}
 \toprule
@@ -911,49 +1063,107 @@ Structured sampler                  & \textsc{TBD} & \textsc{TBD} & \textsc{TBD}
 \begin{table}[H]
 \centering
 \footnotesize
-\setlength{\tabcolsep}{2.2pt}
-\caption{Complete main results by evaluation stratum (316 linear, 50 NLA,
-466 Loopy, 832 overall programs), reproducing every pass@\(k\)/combine@\(k\)
-row from Table~\ref{tab:cross-model-main} and adding reasoning-on reference
-rows: \emph{default} leaves reasoning\_effort unset (the provider's own
-default); \emph{medium} sets it explicitly.  GPT-5-mini has no setting that
-reaches true reasoning\_effort=none, so it is omitted from
-Table~\ref{tab:cross-model-main} and appears here only under default
-reasoning.}
-\label{tab:main-complete}
-\begin{tabular}{llcccccrr}
+\setlength{\tabcolsep}{3.0pt}
+\caption{Cross-model results by benchmark stratum (316 linear, 50 NLA, 466
+Loopy, 832 overall programs).  Each stratum reports pass@\(k\) (pass) and
+compose@\(k\) (comp) percentages side by side at the rollout budget \(k\)
+in the first column; within each compose column and budget block, the best
+value is in bold.  reasoning\_effort=none
+throughout; the \(k{=}10\) rows use ten independent single-response calls per
+task.  GPT-5-mini is omitted: it exposes no true reasoning-off setting, and
+even its lowest tier draws a stochastic, sometimes total, hidden-reasoning
+token budget on this benchmark, so no run of it satisfies the
+reasoning\_effort=none protocol used for every other row (this appendix
+quantifies this and the separate thinking-mode
+leak we found and fixed for DeepSeek V4-Flash).}
+\label{tab:cross-model-main}
+\begin{tabular}{lcccccccc}
 \toprule
-Model & Reasoning & \(k\) & Linear & NLA & Loopy & All &
-Time / task & Tokens / task \\
+& \multicolumn{8}{c}{Verified (\%)} \\
+\cmidrule(lr){2-9}
+& \multicolumn{2}{c}{Linear} & \multicolumn{2}{c}{NLA}
+  & \multicolumn{2}{c}{Loopy} & \multicolumn{2}{c}{All} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
+\(k\) & pass & comp & pass & comp & pass & comp & pass & comp \\
 \midrule
-GPT-5-nano        & none & 1  & 2.53/49.68 & 0.00/8.00 & 4.72/45.71
-  & 3.61/44.95 & 29.66\,s & 1,135.83 \\
-GPT-5-nano        & none & 10 & 17.72/67.72 & 4.00/10.00 & 19.74/71.24
-  & 18.03/66.23 & 190.35\,s & 4,322.38 \\
-GPT-5             & none & 1  & 24.05/62.03 & 2.00/10.00 & 24.46/63.52
-  & 22.96/59.74 & 18.22\,s & 1,230.92 \\
-GPT-5             & none & 10 & 53.16/71.20 & 10.00/8.00 & 57.73/68.88
-  & 53.13/66.11 & 75.53\,s & 12,250.89 \\
-Claude Sonnet-4.6 & none & 1  & 53.16/72.78 & 8.00/10.00 & 55.58/75.75
-  & 51.80/70.67 & 19.86\,s & 4,010.26 \\
-Claude Sonnet-4.6 & none & 10 & 43.67/66.77 & 10.00/12.00 & 51.07/64.81
-  & 45.79/62.38 & 66.94\,s & 13,071.64 \\
-DeepSeek-V4-Flash & none & 1  & 16.14/62.66 & 6.00/12.00 & 21.67/61.59
-  & 18.63/59.01 & 35.90\,s & 1,209.49 \\
-DeepSeek-V4-Flash & none & 10 & 47.47/72.15 & 8.00/8.00 & 55.15/72.53
-  & 49.40/68.51 & 105.24\,s & 13,580.48 \\
-\midrule
-DeepSeek-V4-Flash & default & 1 & 57.91/62.03 & 4.00/8.00 & 52.15/54.51
-  & 51.44/54.57 & 166.98\,s & 11,084.44 \\
-GPT-5-mini        & default & 1 & 55.70/77.85 & 4.00/10.00 & 60.94/75.75
-  & 55.53/72.60 & 58.36\,s & 4,509.32 \\
-GPT-5             & medium & 1 & 77.85/80.38 & 14.00/14.00 & 80.47/80.47
-  & 75.48/76.44 & 82.88\,s & 5,289.00 \\
+\multicolumn{9}{l}{\textit{GPT-5-nano}} \\
+1
+  & \acc{8/157}{2.53} & \acc{8/157}{49.68}
+  & \acc{0/4}{0.00} & \acc{0/4}{8.00}
+  & \acc{22/213}{4.72} & \acc{22/213}{45.71}
+  & \acc{30/374}{3.61} & \acc{30/374}{44.95} \\
+10
+  & \acc{56/214}{17.72} & \acc{56/214}{67.72}
+  & \acc{2/5}{4.00} & \acc{2/5}{10.00}
+  & \acc{92/332}{19.74} & \acc{92/332}{71.24}
+  & \acc{150/551}{18.03} & \acc{150/551}{66.23} \\
+\cmidrule(l{3pt}r{3pt}){1-9}
+\multicolumn{9}{l}{\textit{GPT-5}} \\
+1
+  & \acc{76/196}{24.05} & \acc{76/196}{62.03}
+  & \acc{1/5}{2.00} & \acc{1/5}{10.00}
+  & \acc{114/296}{24.46} & \textbf{\acc{114/296}{63.52}}
+  & \acc{191/497}{22.96} & \textbf{\acc{191/497}{59.74}} \\
+10
+  & \acc{168/225}{53.16} & \acc{168/225}{71.20}
+  & \acc{5/4}{10.00} & \acc{5/4}{8.00}
+  & \acc{269/321}{57.73} & \acc{269/321}{68.88}
+  & \acc{442/550}{53.13} & \acc{442/550}{66.11} \\
+\cmidrule(l{3pt}r{3pt}){1-9}
+\multicolumn{9}{l}{\textit{Claude Sonnet-4.6}} \\
+1
+  & \acc{102/186}{32.28} & \acc{102/186}{58.86}
+  & \acc{4/4}{8.00} & \acc{4/4}{8.00}
+  & \acc{183/295}{39.27} & \acc{183/295}{63.30}
+  & \acc{289/485}{34.74} & \acc{289/485}{58.29} \\
+10
+  & \acc{138/211}{43.67} & \acc{138/211}{66.77}
+  & \acc{5/6}{10.00} & \textbf{\acc{5/6}{12.00}}
+  & \acc{238/302}{51.07} & \acc{238/302}{64.81}
+  & \acc{381/519}{45.79} & \acc{381/519}{62.38} \\
+\cmidrule(l{3pt}r{3pt}){1-9}
+\multicolumn{9}{l}{\textit{DeepSeek V4-Flash}} \\
+1
+  & \acc{51/198}{16.14} & \textbf{\acc{51/198}{62.66}}
+  & \acc{3/6}{6.00} & \textbf{\acc{3/6}{12.00}}
+  & \acc{101/287}{21.67} & \acc{101/287}{61.59}
+  & \acc{155/491}{18.63} & \acc{155/491}{59.01} \\
+10
+  & \acc{150/228}{47.47} & \textbf{\acc{150/228}{72.15}}
+  & \acc{4/4}{8.00} & \acc{4/4}{8.00}
+  & \acc{257/338}{55.15} & \textbf{\acc{257/338}{72.53}}
+  & \acc{411/570}{49.40} & \textbf{\acc{411/570}{68.51}} \\
 \bottomrule
 \end{tabular}
 \end{table}
-All timing and token columns are full-workload means over 832 programs.  Each
-pass@\(k\)/combine@\(k\) pair at a given \(k\) is certified from the same
+
+\begin{table}[H]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{2.2pt}
+\caption{Reasoning-on reference rows complementing
+Table~\ref{tab:cross-model-main}: \emph{default} leaves reasoning\_effort
+unset (the provider's own default); \emph{medium} sets it explicitly.
+GPT-5-mini has no setting that reaches true reasoning\_effort=none, so it is
+omitted from Table~\ref{tab:cross-model-main} and appears here only under
+default reasoning.}
+\label{tab:main-complete}
+\begin{tabular}{llccccc}
+\toprule
+Model & Reasoning & \(k\) & Linear & NLA & Loopy & All \\
+\midrule
+\midrule
+DeepSeek-V4-Flash & default & 1 & 57.91/62.03 & 4.00/8.00 & 52.15/54.51
+  & 51.44/54.57 \\
+GPT-5-mini        & default & 1 & 55.70/77.85 & 4.00/10.00 & 60.94/75.75
+  & 55.53/72.60 \\
+GPT-5             & medium & 1 & 77.85/80.38 & 14.00/14.00 & 80.47/80.47
+  & 75.48/76.44 \\
+\bottomrule
+\end{tabular}
+\end{table}
+All rows are full-workload means over 832 programs.  Each
+pass@\(k\)/compose@\(k\) pair at a given \(k\) is certified from the same
 saved \(k\) responses.
 
 \subsection{Comparison with Specialized Tools}
@@ -970,48 +1180,67 @@ cell reports the verification rate under the common file-level denominator.}
 \label{tab:tools-complete}
 \begin{tabular}{llrrrrrr}
 \toprule
-Method & Reasoning & Linear / 316 & NLA / 50 & Loopy / 466 & Overall / 832 &
-Tokens / task & Time / task \\
+Method & Reasoning & Linear / 316 & NLA / 50 & Loopy / 466 & Overall / 832
+  & Tokens / task & Time / task \\
 \midrule
 AutoSpec & none & \acc{151}{47.78\%} & \acc{3}{6.00\%} & \acc{197}{42.27\%}
-  & \acc{351}{42.19\%} & 2,181.72 & 27.34\,s \\
+  & \acc{351}{42.19\%}
+  & 2,181.72 & 27.34\,s \\
 AutoSpec & medium & \acc{208}{65.82\%} & \acc{4}{8.00\%} & \acc{302}{64.81\%}
-  & \acc{514}{61.78\%} & 25,154.54 & 54.77\,s \\
+  & \acc{514}{61.78\%}
+  & 25,154.54 & 54.77\,s \\
 SESpec & none & \acc{91}{28.80\%} & \acc{2}{4.00\%} & \acc{154}{33.05\%}
-  & \acc{247}{29.69\%} & 22,081.61 & 68.50\,s \\
+  & \acc{247}{29.69\%}
+  & 22,081.61 & 68.50\,s \\
 SESpec & medium & \acc{180}{56.96\%} & \acc{3}{6.00\%} & \acc{231}{49.57\%}
-  & \acc{414}{49.76\%} & 44,807.05 & 117.31\,s \\
+  & \acc{414}{49.76\%}
+  & 44,807.05 & 117.31\,s \\
 Clause2Inv & none & \acc{66}{20.89\%} & \acc{0}{0.00\%} & \acc{0}{0.00\%}
-  & \acc{66}{7.93\%} & 1,056.25 & 8.41\,s \\
+  & \acc{66}{7.93\%}
+  & 1,056.25 & 8.41\,s \\
 Clause2Inv & medium & \acc{63}{19.94\%} & \acc{1}{2.00\%} & \acc{0}{0.00\%}
-  & \acc{64}{7.69\%} & 385.80 & 29.04\,s \\
+  & \acc{64}{7.69\%}
+  & 385.80 & 29.04\,s \\
 Daikon & --- & \acc{73}{23.10\%} & \acc{0}{0.00\%} & \acc{101}{21.67\%}
-  & \acc{174}{20.91\%} & 0 & 4.89\,s \\
+  & \acc{174}{20.91\%}
+  & 0 & 4.89\,s \\
 \textsc{Loopy} & none & \acc{64}{20.25\%} & \acc{0}{0.00\%} & \acc{92}{19.74\%}
-  & \acc{156}{18.75\%} & 14,513.37 & 147.16\,s \\
+  & \acc{156}{18.75\%}
+  & 14,513.37 & 147.16\,s \\
 \textsc{Loopy} & medium & \acc{230}{72.78\%} & \acc{6}{12.00\%} & \acc{330}{70.82\%}
-  & \acc{566}{68.03\%} & 111,973.15 & 381.01\,s \\
+  & \acc{566}{68.03\%}
+  & 111,973.15 & 381.01\,s \\
 \midrule
 Naive & none & \acc{48}{15.19\%} & \acc{1}{2.00\%} & \acc{88}{18.88\%}
-  & \acc{137}{16.47\%} & 225.95 & 2.98\,s \\
+  & \acc{137}{16.47\%}
+  & 225.95 & 2.98\,s \\
 Naive & medium & \acc{154}{48.73\%} & \acc{4}{8.00\%} & \acc{221}{47.42\%}
-  & \acc{379}{45.55\%} & 4,493.37 & 28.87\,s \\
+  & \acc{379}{45.55\%}
+  & 4,493.37 & 28.87\,s \\
 \sam{} (pass@1) & none & \acc{8}{2.53\%} & \acc{0}{0.00\%} & \acc{22}{4.72\%}
-  & \acc{30}{3.61\%} & 1,135.83 & 7.86\,s \\
+  & \acc{30}{3.61\%}
+  & 1,135.83 & 7.86\,s \\
 \sam{} (pass@1) & medium & \acc{193}{61.08\%} & \acc{7}{14.00\%} & \acc{252}{54.08\%}
-  & \acc{452}{54.33\%} & 6,928.30 & 53.52\,s \\
-\sam{} (combine@1) & none & \acc{157}{49.68\%} & \acc{4}{8.00\%} & \acc{213}{45.71\%}
-  & \acc{374}{44.95\%} & 1,135.83 & 29.66\,s \\
-\sam{} (combine@1) & medium & \acc{203}{64.24\%} & \acc{7}{14.00\%} & \acc{294}{63.09\%}
-  & \acc{504}{60.58\%} & 6,928.30 & 66.60\,s \\
-\sam{} (combine@5) & none & \acc{205}{64.87\%} & \acc{6}{12.00\%} & \acc{297}{63.73\%}
-  & \acc{508}{61.06\%} & 2,161.52 & 91.78\,s \\
-\sam{} (combine@5) & medium & \acc{250}{79.11\%} & \acc{7}{14.00\%} & \acc{365}{78.33\%}
-  & \acc{622}{74.76\%} & 33,404.56 & 114.95\,s \\
-\sam{} (combine@10) & none & \acc{214}{67.72\%} & \acc{5}{10.00\%} & \acc{332}{71.24\%}
-  & \acc{551}{66.23\%} & 4,322.38 & 190.35\,s \\
-\sam{} (combine@10) & medium & \acc{255}{80.70\%} & \acc{7}{14.00\%} & \acc{376}{80.69\%}
-  & \acc{638}{76.68\%} & 68,953.35 & 143.67\,s \\
+  & \acc{452}{54.33\%}
+  & 6,928.30 & 53.52\,s \\
+\sam{} (compose@1) & none & \acc{157}{49.68\%} & \acc{4}{8.00\%} & \acc{213}{45.71\%}
+  & \acc{374}{44.95\%}
+  & 1,135.83 & 29.66\,s \\
+\sam{} (compose@1) & medium & \acc{203}{64.24\%} & \acc{7}{14.00\%} & \acc{294}{63.09\%}
+  & \acc{504}{60.58\%}
+  & 6,928.30 & 66.60\,s \\
+\sam{} (compose@5) & none & \acc{205}{64.87\%} & \acc{6}{12.00\%} & \acc{297}{63.73\%}
+  & \acc{508}{61.06\%}
+  & 2,161.52 & 91.78\,s \\
+\sam{} (compose@5) & medium & \acc{250}{79.11\%} & \acc{7}{14.00\%} & \acc{365}{78.33\%}
+  & \acc{622}{74.76\%}
+  & 33,404.56 & 114.95\,s \\
+\sam{} (compose@10) & none & \acc{214}{67.72\%} & \acc{5}{10.00\%} & \acc{332}{71.24\%}
+  & \acc{551}{66.23\%}
+  & 4,322.38 & 190.35\,s \\
+\sam{} (compose@10) & medium & \acc{255}{80.70\%} & \acc{7}{14.00\%} & \acc{376}{80.69\%}
+  & \acc{638}{76.68\%}
+  & 68,953.35 & 143.67\,s \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1047,7 +1276,7 @@ for 828, 826, and 821 tasks, respectively; their accuracy retains the
 832-task denominator.  The 466 unsupported \textsc{Clause2Inv} tasks make no
 model call and contribute zero tokens.
 The retained \sam{} pass@1 timing covers the 466 Loopy tasks.  pass@1 and
-combine@1 reuse the same first model response.
+compose@1 reuse the same first model response.
 
 \clearpage
 \section{Detailed Limitations}
@@ -1076,20 +1305,21 @@ rates may therefore be conservative rather than engine-independent ceilings.
 \paragraph{Verifier and specification language.}
 Our filtering and all final judgments use Frama-C/WP, and candidates use ACSL.
 Parser behavior, generated obligations, prover integration, and syntax affect
-which clauses survive.  RCF is not intrinsically tied to this toolchain, but
+which clauses survive.  The pipeline is not intrinsically tied to this
+toolchain, but
 the quantitative conclusions may not transfer unchanged to other verifiers,
 specification languages, or source languages.
 
 \paragraph{Finite candidate-pool approximation.}
-Before Houdini, the combine implementation applies a lightweight AST-based
+Before Houdini, the pipeline implementation applies a lightweight AST-based
 filter to parse, normalize, and deduplicate candidate clauses.  This filter is
 deliberately conservative and does not provide a completeness guarantee for
 the full ACSL expression language: a semantically useful clause that is not
-handled by its restricted parser can be omitted.  In addition, combine@\(n\)
+handled by its restricted parser can be omitted.  In addition, compose@\(n\)
 caps the candidate union passed to verification at 300 clauses to keep WP
 cost bounded.  When an extreme response pool exceeds this limit, later
 clauses may be truncated even if they add useful information.  Both effects
-can make the reported combine@\(n\) underestimate an ideal unbounded
+can make the reported compose@\(n\) underestimate an ideal unbounded
 implementation.  They affect candidate recall, not the validity of reported
 successes, because every retained result must still pass the full
 Frama-C/WP final judge.
@@ -1128,14 +1358,14 @@ to keep both data generation and multi-rollout inference efficient.
 A single rollout may contain both valid and invalid candidate invariants.  The
 invariant output is explicitly decomposable into clauses: Houdini can remove a
 failing clause while retaining the useful clauses, and the retained clauses
-can then be combined across rollouts.  A CoT does not have this property.
+can then be composed across rollouts.  A CoT does not have this property.
 Correct and incorrect reasoning may be interleaved in one trace, with no
 reliable clause-level correspondence that would let us remove the reasoning
 associated with a rejected clause.  Nor is there a principled way to merge the
 remaining fragments from different rollouts into one faithful CoT for the
-combined invariant set.  Generating a new rationale after filtering would only
+composed invariant set.  Generating a new rationale after filtering would only
 produce a post-hoc explanation.  Consequently, CoT supervision is not aligned
-with the clause-wise filter-and-combine target.  For consistency, CoT remains
+with the clause-wise filter-and-compose target.  For consistency, CoT remains
 disabled throughout the local-model pipeline.
 
 \clearpage
@@ -1222,7 +1452,7 @@ closed-form Shapley allocation of negative-set coverage used by our reward.
 
 \paragraph{Implications and future correction.}
 The ordering difference makes standalone Houdini a slightly imperfect reward
-surrogate for combine@\(k\), but it does not alter inference-time
+surrogate for compose@\(k\), but it does not alter inference-time
 union-and-Houdini.  Future work can report the rescue rate represented by the
 gap between the two sides of Equation~\ref{eq:houdini-nondistributive} and test
 leave-one-out or randomized-subset credit when that rate is non-negligible.

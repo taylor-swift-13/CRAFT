@@ -171,7 +171,7 @@ only when every admitted clause in the response survives the positive and
 Houdini filters; otherwise it gives zero. For sampler ablations, set
 `sampler.negative_sampler` to `random` or `structured`. The two switches are
 independent, and omitted switches default to the complete method.
-`structured` combines relational perturbations, post-exit continuations,
+`structured` composes relational perturbations, post-exit continuations,
 range/bound escapes, and frame-value perturbations under their fixed family
 budgets.
 

@@ -11,7 +11,7 @@ mcmillan2003interpolation,kincaid2017compositional,alur2013sygus,
 garg2014ice,daikon}.  Houdini iteratively removes invalid candidates to retain
 an inductive subset~\citep{flanagan2001houdini}.  LLM workflows reuse this
 pattern: \textsc{Loopy} couples proposals with Houdini and repair,
-\textsc{iRank} ranks candidates, and \textsc{Clause2Inv} combines retained
+\textsc{iRank} ranks candidates, and \textsc{Clause2Inv} composes retained
 clauses while iteratively accumulating counterexamples
 ~\citep{kamath2023finding,chakraborty2023ranking,cao2025clause2inv}.
 \textsc{LaM4Inv}, \textsc{ACInv}, \textsc{AutoSpec}, \textsc{SpecGen},
@@ -26,7 +26,7 @@ composition.
 \paragraph{Specialized neural invariant learning.}
 \textsc{Code2Inv} learns a construction policy from solver feedback;
 \textsc{CLN2INV} and G-CLN learn continuous representations of linear and
-nonlinear relations; and \textsc{LIPuS} combines RL-based pruning with SMT
+nonlinear relations; and \textsc{LIPuS} composes RL-based pruning with SMT
 solving~\citep{si2018learning,si2020code2inv,ryan2020cln2inv,
 yao2020gcln,yu2023lipus}.  These task-specific models optimize one candidate
 or construction trajectory.  We instead post-train a general language model

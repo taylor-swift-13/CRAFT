@@ -142,7 +142,7 @@ def official_probe() -> None:
         ax.plot(
             RQ1_K,
             values["combine"],
-            label="combine@$k$",
+            label="compose@$k$",
             color="#2d7053",
             marker="s",
             linestyle="--",
@@ -183,7 +183,7 @@ def rlzero_probe() -> None:
     style_axis(axes[0], RL_K)
     style_axis(axes[1], RL_K)
     axes[0].set_title("(a) Complete responses")
-    axes[1].set_title("(b) Combined responses")
+    axes[1].set_title("(b) compose@$k$ (composed responses)")
     axes[0].set_ylim(0, 36)
     axes[1].set_ylim(39, 61)
     axes[1].annotate(

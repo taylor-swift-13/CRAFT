@@ -109,7 +109,7 @@ CLI: `python -m rl_pipeline.sampler.example_sampler <file.c>`
 
 Negative-sampler ablations are selected with `negative_sampler` (or the CLI
 flag `--negative-sampler`): `random` uses budget-matched unstructured
-perturbations, while `structured` combines relational perturbations,
+perturbations, while `structured` composes relational perturbations,
 post-exit continuations, and range/bound escapes. `structured` is the default.
 
 **Discrimination harness** — `python -m rl_pipeline.eval.discrimination` scores

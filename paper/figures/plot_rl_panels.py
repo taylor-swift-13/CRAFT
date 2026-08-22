@@ -4,8 +4,8 @@
 Two panels, SFT initialization, Qwen3-8B, three-seed means:
   (a) pass@k    before/after RL  -- expected flat (redistribution, not
                                      support expansion; yue2025rlcapacity)
-  (b) combine@k before/after RL  -- expected upward shift at small budgets,
-                                     with the SFT combine@100 ceiling drawn
+  (b) compose@k before/after RL  -- expected upward shift at small budgets,
+                                     with the SFT compose@100 ceiling drawn
                                      as a dotted reference line and the
                                      crossing budget k* annotated.
 
@@ -47,7 +47,7 @@ PANELS = {
 }
 
 # Large-budget ceiling of the initialization; keep in sync with
-# tab:rl-before-after (SFT 8B, before RL, combine@100).
+# tab:rl-before-after (SFT 8B, before RL, compose@100).
 SFT_COMBINE100 = 76.80
 
 
@@ -97,7 +97,7 @@ def plot_lines(ax: plt.Axes, metric: str) -> None:
 
 
 def crossing_budget(values: list[float], ceiling: float) -> int | None:
-    """Smallest k in K whose combine@k reaches the ceiling, if any."""
+    """Smallest k in K whose compose@k reaches the ceiling, if any."""
     for k, v in zip(K, values):
         if v >= ceiling:
             return k
@@ -123,7 +123,7 @@ def rl_panels() -> None:
     style_axis(axes[0])
     style_axis(axes[1])
     axes[0].set_title("(a) Complete responses")
-    axes[1].set_title("(b) Combined responses")
+    axes[1].set_title("(b) compose@$k$ (composed responses)")
 
     axes[1].axhline(
         SFT_COMBINE100,
@@ -134,7 +134,7 @@ def rl_panels() -> None:
     axes[1].text(
         1.1,
         SFT_COMBINE100 + 0.4,
-        "SFT combine@100",
+        "SFT compose@100",
         fontsize=7.0,
         color="#5b7185",
     )

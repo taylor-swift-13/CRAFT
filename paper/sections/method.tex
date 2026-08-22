@@ -3,7 +3,7 @@
 %% ============================================================
 
 \textsc{Craft} couples an inference protocol that proves targets by
-combining clauses across responses with a training pipeline that optimizes
+composing clauses across responses with a training pipeline that optimizes
 that protocol without ever seeing the target.  Three design decisions
 organize this section: (i)~\emph{target hiding}---generation, distillation,
 and reward computation all operate on the masked loop, and the target is
@@ -13,11 +13,11 @@ filtering and earns reward (Section~\ref{sec:method:core});
 (iii)~\emph{training mirrors inference}---credit rewards complementary
 coverage across a response group, because inference unions that group
 (Section~\ref{sec:method:reward}).  The guiding thesis is that because
-inference combines, training should optimize combinability: raising the
-combine@$k$ curve and reaching its large-pool performance with fewer
+inference composes, training should optimize composability: raising the
+compose@$k$ curve and reaching its large-pool performance with fewer
 rollouts.
 
-\subsection{Rollout--Combine--Filter}
+\subsection{Rollout--Decompose--Filter--Compose}
 \label{sec:method:core}
 
 For a target-masked loop \(\mathcal L\), the model emits ACSL loop-invariant
@@ -32,7 +32,7 @@ response, the unit that can survive filtering and earn credit.  We write
 \(\operatorname{set}(\bar A_i)\) for the underlying clause set when applying
 set operations.
 
-Given \(G\) responses, RCF unions their clauses,
+Given \(G\) responses, the pipeline unions their clauses,
 \[
   C_G^{\mathrm{pool}}=
   \bigcup_{i=1}^{G}\operatorname{set}(\bar A_i),
@@ -41,8 +41,8 @@ then iteratively removes syntax failures and applies Houdini to delete clauses
 whose establishment or preservation obligations fail
 ~\citep{flanagan2001houdini}.  We write the resulting inductive subset as
 \(\mathsf{Filter}_{\mathcal L}(C_G^{\mathrm{pool}})\).  Conjoining valid clauses preserves
-validity and can combine a bound from one response with a relation from
-another; filtering salvages such clauses from otherwise imperfect responses
+validity and can compose a bound from one response with a relation from
+another; filtering keeps such clauses from otherwise imperfect responses
 but cannot invent a missing relation.  Algorithm~\ref{alg:rcf} computes
 \(\mathsf{Filter}_{\mathcal L}\); we write its fixed point as
 \(\mathsf H_{\mathcal L}(C)\) and the conjunction of a clause set \(C\) as
@@ -50,7 +50,7 @@ but cannot invent a missing relation.  Algorithm~\ref{alg:rcf} computes
 SFT synthesis and inference.
 
 \begin{algorithm}[t]
-\caption{Rollout--combine--filter}
+\caption{Rollout--decompose--filter--compose}
 \label{alg:rcf}
 \begin{algorithmic}
 \alginput{masked loop \(\mathcal L\), parsed clause sequences \(A_{1:G}\), cap \(K\)}
@@ -72,7 +72,7 @@ SFT synthesis and inference.
 \end{algorithmic}
 \end{algorithm}
 
-The following statements formalize the composition used by RCF; all proofs
+The following statements formalize the composition used by the pipeline; all proofs
 are deferred to Appendix~\ref{app:composition-proofs}.
 
 \begin{proposition}[Closure and strengthening under conjunction]
@@ -134,7 +134,7 @@ Appendix~\ref{app:constants} gives normalization and filtering details.
 \subsection{Inference Objective}
 \label{sec:method:inference}
 
-At inference, RCF samples \(k\) masked responses and produces
+At inference, the pipeline samples \(k\) masked responses and produces
 \[
   C_k^{\mathrm{pool}}=
   \bigcup_{i=1}^{k}\operatorname{set}(\bar A_i),\qquad
@@ -150,7 +150,7 @@ Only then is \(Q\) restored.  The target utility and inference objective are
 Here \(\operatorname{Verify}\) requires establishment, preservation, and every
 restored target at its original location; for one post-loop target, its last
 obligation is \(I_k\wedge\neg B\Rightarrow q\).
-Its empirical counterpart is combine@\(k\), which can succeed even when no
+Its empirical counterpart is compose@\(k\), which can succeed even when no
 standalone response is sufficient.  The training sections below therefore
 optimize a target-hidden surrogate for this curve.
 
@@ -201,7 +201,7 @@ answers.
 The reward design responds directly to the sharpening tendency described in
 Section~\ref{sec:intro}.  Group-relative optimization with a whole-response
 reward concentrates probability mass on a few high-reward responses, eroding
-the clause diversity that RCF combines at inference.  We therefore decompose
+the clause diversity that the pipeline composes at inference.  We therefore decompose
 credit \emph{within} each rollout---surviving clauses earn reward even when
 siblings fail---and re-allocate credit \emph{across} the group by each
 rollout's marginal contribution to pooled coverage, paying the policy for

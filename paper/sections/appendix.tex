@@ -743,9 +743,9 @@ programs over 1,131 loop shapes; its
 total-variation distance to the evaluation cell distribution falls from
 0.62 (pool) to 0.42, and
 702 of 832 evaluation programs share a cell
-with at least one training program.  The SFT set keeps 11,141
-programs (963 audited archival answers,
-10,178 pipeline-synthesized answers); the two sets
+with at least one training program.  The SFT set keeps 14,858
+programs (3,058 audited archival answers,
+11,800 pipeline-synthesized answers); the two sets
 overlap on 180 programs, so
 reinforcement learning almost exclusively sees programs the SFT stage never
 showed the model.
@@ -762,10 +762,10 @@ removed, clauses logically implied by the rest of the set are eliminated with
 an integer SMT check (strongest first, forward selection with backward
 elimination), every relational clause is kept, and the remaining clauses are
 kept only while they reject additional negative traces; Houdini is re-run on
-the result.  Of 10,843 synthesized programs,
-10,178 yield an answer (380 empty after filtering,
-147 bounds-only, 124 over the clause cap);
-synthesized answers average 4.99 clauses (median
+the result.  Of 12,490 synthesized programs,
+11,800 yield an answer (388 empty after filtering,
+151 bounds-only, 137 over the clause cap);
+synthesized answers average 5.07 clauses (median
 4), and 98.8\% contain a relational
 transition law.
 
@@ -790,7 +790,7 @@ The 37,481 pooled records retain corpus-local identifiers but not
 per-record upstream-source identifiers; we therefore characterize the pool by
 content and audit its overlap, rather than inferring provenance from its IDs.
 The released sets curated from the pool (Appendix~\ref{app:data-curation})
-contain 5,000 RL and 11,141 SFT records with
+contain 5,000 RL and 14,858 SFT records with
 180 programs in common.
 The 832-file
 evaluation workload contains 316 linear programs (133 from \textsc{Code2Inv},

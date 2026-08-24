@@ -88,7 +88,7 @@ def main() -> None:
             "from_pool", "total", "rejected", "tv_distance_before", "tv_distance_after",
             "eval_programs_in_covered_cells_before", "eval_programs_in_covered_cells_after")},
         "sft_synthesis": _load("sft_synthesis_report.json"),
-        "sft_final": _sft_stats(ROOT / "traindata" / "craft_sft_synth.json"),
+        "sft_final": _sft_stats(ROOT / "traindata" / "craft_sft_train.json"),
         "sampler_discrimination_on_training": {k: v for k, v in _load("rl_sampler_discrimination.json").items()
                                                if k not in ("policy", "errors")},
     }

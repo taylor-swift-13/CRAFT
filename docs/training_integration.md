@@ -116,7 +116,7 @@ python paper/scripts/audit_training_negative_coverage.py rl \
 python paper/scripts/curate_training_pool.py rl \
   --input traindata/craft_rl_canonical.parquet \
   --ledger paper/artifacts/v4/rl_negative_coverage.jsonl \
-  --output traindata/craft_rl_curated.parquet --report paper/artifacts/v4/rl_curation_report.json
+  --output traindata/craft_rl_train.parquet --report paper/artifacts/v4/rl_curation_report.json
 python paper/scripts/curate_training_pool.py sft \
   --input traindata/craft_sft_canonical.json \
   --ledger paper/artifacts/v4/rl_negative_coverage.jsonl \
@@ -124,18 +124,18 @@ python paper/scripts/curate_training_pool.py sft \
   --per-shape-cap 32
 
 # 4. (cluster, vLLM) policy frontier: keep programs whose G-rollout group has reward variance
-python experiments/measure_policy_frontier.py --input traindata/craft_rl_curated.parquet \
+python experiments/measure_policy_frontier.py --input traindata/craft_rl_train.parquet \
   --ledger paper/artifacts/v4/rl_frontier.jsonl --policy <sft-checkpoint> --group 8 \
   --apply --output traindata/craft_rl_frontier.parquet --report paper/artifacts/v4/rl_frontier_report.json
 
 # 5. SFT targets distilled from the pipeline (OpenAI-compatible API + local Frama-C)
 python paper/scripts/select_sft_programs.py --sft traindata/craft_sft_curated.json \
-  --rl traindata/craft_rl_curated.parquet --output traindata/craft_sft_programs.json \
+  --rl traindata/craft_rl_train.parquet --output traindata/craft_sft_programs.json \
   --report paper/artifacts/v4/sft_program_selection.json --target 6000
 OPENAI_API_KEY=... OPENAI_BASE_URL=... CRAFT_MODEL=... \
 python experiments/synthesize_sft_from_rollouts.py all --dataset sft \
   --input traindata/craft_sft_programs.json --root results/sft_synth \
-  --output traindata/craft_sft_synth.json --report paper/artifacts/v4/sft_synthesis_report.json --k 8
+  --output traindata/craft_sft_train.json --report paper/artifacts/v4/sft_synthesis_report.json --k 8
 ```
 
 Gates applied by `curate_training_pool.py` (all recorded in the report and

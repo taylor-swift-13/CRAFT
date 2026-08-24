@@ -107,7 +107,7 @@ def _job(job: Tuple[str, str, List[str], int]) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--rl", type=Path, default=ROOT / "traindata/craft_rl_curated.parquet")
+    parser.add_argument("--rl", type=Path, default=ROOT / "traindata/craft_rl_train.parquet")
     parser.add_argument("--answers", type=Path, action="append", required=True,
                         help="SFT-format json(s) providing reference answers (repeatable)")
     parser.add_argument("--output", type=Path, required=True)

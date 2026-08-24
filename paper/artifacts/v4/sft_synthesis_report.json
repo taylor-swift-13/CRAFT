@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "negative_schema_version": 7,
+  "root": "results/sft_synth_v2",
+  "output": "traindata/craft_sft_synth.json",
+  "programs": 10843,
+  "rows_written": 10178,
+  "skipped": {
+    "bounds_only": 147,
+    "weak": 7,
+    "empty": 299,
+    "empty_survivors": 81,
+    "too_many_clauses": 124,
+    "error": 7
+  },
+  "clauses_per_answer": {
+    "mean": 4.99,
+    "median": 4,
+    "max": 20
+  },
+  "coverage_gain_over_best_rollout": {
+    "median": 0.0,
+    "p25": 0.0,
+    "p75": 0.0
+  },
+  "with_transition_law": 10057,
+  "paths": {
+    "core": 6518,
+    "cleaned_survivors": 3435,
+    "survivors": 225
+  },
+  "policy": "target-independent: union of k rollouts -> interface gate -> Houdini (target-hidden) -> drop frame/guarded/subsumed clauses -> keep every transition-law clause -> greedy coverage core -> Houdini recheck; write only non-empty, non-bounds-only answers",
+  "rows_passthrough_answered": 963,
+  "rows_total": 11141
+}

@@ -1,0 +1,34 @@
+{
+  "schema_version": 2,
+  "mode": "match_eval",
+  "sft_input": "traindata/craft_sft_canonical.json",
+  "pool": "/tmp/claude-1000/-home-yangfp-CRAFT/7772acef-c531-4e1e-afe3-658096187444/scratchpad/sft_pool.parquet",
+  "output": "traindata/craft_sft_programs.json",
+  "target": 20000,
+  "from_sft": 3058,
+  "dropped_existing_by_difficulty": {
+    "too_easy": 18,
+    "too_hard": 20
+  },
+  "dropped_existing_by_quota": -3058,
+  "from_pool": 11997,
+  "nla_extra_admitted": {
+    "archival": 668,
+    "pool": 493
+  },
+  "total": 15548,
+  "deficit_requested": 19374,
+  "deficit_unfilled": 7377,
+  "candidates": 13729,
+  "rejected": {
+    "too_easy": 13743,
+    "already_in_sft": 4311,
+    "cell_not_needed": 4883,
+    "too_hard": 294
+  },
+  "tv_distance_before": 0.8613,
+  "tv_distance_after": 0.6144,
+  "eval_programs_in_covered_cells_before": 454,
+  "eval_programs_in_covered_cells_after": 714,
+  "extra_shape_cap": 512
+}

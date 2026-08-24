@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "negative_schema_version": 7,
+  "filter": "auto",
+  "rl_input": "traindata/craft_rl_curated.parquet",
+  "programs": 125,
+  "scored": 125,
+  "errors": {},
+  "unscorable": 0,
+  "reward_medians": {
+    "gold": 0.845,
+    "loose": 0.0,
+    "trivial": 0.0,
+    "guard": 0.0,
+    "unsound": 0.0
+  },
+  "reward_means": {
+    "gold": 0.7629,
+    "loose": 0.1091,
+    "trivial": 0.0,
+    "guard": 0.0,
+    "unsound": 0.0
+  },
+  "gold_above_loose_by_margin": 0.792,
+  "gold_strictly_above_loose": 0.816,
+  "loose_saturated_ge_0.9": 0.0,
+  "gold_at_zero": 0.096,
+  "junk_nonzero": {
+    "trivial": 0.0,
+    "guard": 0.0,
+    "unsound": 0.0
+  },
+  "junk_above_gold": 0.096,
+  "group_std_median": 0.2086,
+  "group_std_p25": 0.1026,
+  "group_zero_variance_share": 0.112,
+  "group_distinct_median": 3,
+  "policy": "ladder scored with the production RewardCalculator on target-hidden training programs; gold = reference answer, loose = gold minus relational clauses; group = 8 random sub-answers of gold scored as one GRPO group"
+}

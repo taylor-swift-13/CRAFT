@@ -1,0 +1,251 @@
+{
+  "sampler": {
+    "schema_version": 7,
+    "relation_budget": 48,
+    "escape_budget": 12,
+    "total_budget": 60
+  },
+  "canonicalization": {
+    "rl": {
+      "unchanged": 22323,
+      "rewritten": 14419
+    },
+    "sft": {
+      "rewritten": 1442,
+      "unchanged": 1654
+    }
+  },
+  "generated_programs": {
+    "pass1": {
+      "programs_accepted": 1112,
+      "cells_filled": 54,
+      "eval_programs_newly_covered": 288,
+      "rejections": {
+        "accepted": 1112,
+        "self_copy_alpha_const": 40,
+        "self_copy_alpha_const_loop": 857,
+        "cell_full": 740,
+        "eval_copy_alpha_const_loop": 18,
+        "unsupported_type": 1231,
+        "cell_not_wanted": 1382
+      }
+    },
+    "pass2": {
+      "programs_accepted": 280,
+      "cells_filled": 25,
+      "eval_programs_newly_covered": 172,
+      "rejections": {
+        "self_copy_alpha_const_loop": 928,
+        "eval_copy_alpha_const_loop": 25,
+        "self_copy_alpha": 1,
+        "accepted": 280,
+        "cell_not_wanted": 2780,
+        "self_copy_alpha_const": 25,
+        "cell_full": 355
+      }
+    }
+  },
+  "rl": {
+    "input_rows": 37423,
+    "unique_programs": 35781,
+    "output_rows": 5000,
+    "parameters": {
+      "match_eval": true,
+      "target": 5000,
+      "dedup_levels": [
+        "exact",
+        "alpha",
+        "alpha_const"
+      ],
+      "min_traces": 16,
+      "min_relation": 8,
+      "min_relation_share": 0.1,
+      "per_shape_cap": 32,
+      "weight_floor": 0.25,
+      "weight_ceiling": 4.0
+    },
+    "first_failing_gate": {
+      "unscorable": 758,
+      "too_easy": 248,
+      "too_few_traces": 15206,
+      "kept": 5000,
+      "eval_quota": 12094,
+      "no_relation_signal": 104,
+      "too_hard": 1082,
+      "unrelated_to_eval": 1289
+    },
+    "loop_shapes": {
+      "distinct_before": 2846,
+      "distinct_after": 1131,
+      "programs_by_cap_after_other_gates": {
+        "1": 1131,
+        "2": 1465,
+        "4": 1991,
+        "8": 2763,
+        "16": 3814,
+        "32": 5000,
+        "64": 5000
+      },
+      "top_before": [
+        {
+          "programs": 6785,
+          "kept": 0
+        },
+        {
+          "programs": 5906,
+          "kept": 0
+        },
+        {
+          "programs": 1534,
+          "kept": 19
+        },
+        {
+          "programs": 985,
+          "kept": 32
+        },
+        {
+          "programs": 733,
+          "kept": 32
+        },
+        {
+          "programs": 528,
+          "kept": 18
+        },
+        {
+          "programs": 435,
+          "kept": 32
+        },
+        {
+          "programs": 434,
+          "kept": 32
+        },
+        {
+          "programs": 412,
+          "kept": 32
+        },
+        {
+          "programs": 380,
+          "kept": 32
+        }
+      ]
+    },
+    "eval_cell_distribution": {
+      "tv_distance_pool": 0.6205,
+      "tv_distance_kept": 0.4226,
+      "eval_programs_in_pool_cells": 757,
+      "eval_programs_in_kept_cells": 702
+    },
+    "overlap_with_sft": {
+      "kept_also_in_sft": 180,
+      "kept_unseen_by_sft": 4820
+    },
+    "copy_levels_observed": {
+      "alpha_const_loop": 18118
+    }
+  },
+  "sft_selection": {
+    "target": 15000,
+    "from_sft": 963,
+    "dropped_existing_by_difficulty": {
+      "too_easy": 18,
+      "too_hard": 178
+    },
+    "dropped_existing_by_quota": 1937,
+    "from_pool": 10499,
+    "total": 11806,
+    "rejected": {
+      "too_easy": 13743,
+      "already_in_sft": 4311,
+      "cell_not_needed": 4623,
+      "too_hard": 443
+    },
+    "tv_distance_before": 0.8549,
+    "tv_distance_after": 0.5374,
+    "eval_programs_in_covered_cells_before": 454,
+    "eval_programs_in_covered_cells_after": 714
+  },
+  "sft_synthesis": {
+    "schema_version": 1,
+    "negative_schema_version": 7,
+    "root": "results/sft_synth_v2",
+    "output": "traindata/craft_sft_synth.json",
+    "programs": 10843,
+    "rows_written": 10178,
+    "skipped": {
+      "bounds_only": 147,
+      "weak": 7,
+      "empty": 299,
+      "empty_survivors": 81,
+      "too_many_clauses": 124,
+      "error": 7
+    },
+    "clauses_per_answer": {
+      "mean": 4.99,
+      "median": 4,
+      "max": 20
+    },
+    "coverage_gain_over_best_rollout": {
+      "median": 0.0,
+      "p25": 0.0,
+      "p75": 0.0
+    },
+    "with_transition_law": 10057,
+    "paths": {
+      "core": 6518,
+      "cleaned_survivors": 3435,
+      "survivors": 225
+    },
+    "policy": "target-independent: union of k rollouts -> interface gate -> Houdini (target-hidden) -> drop frame/guarded/subsumed clauses -> keep every transition-law clause -> greedy coverage core -> Houdini recheck; write only non-empty, non-bounds-only answers",
+    "rows_passthrough_answered": 963,
+    "rows_total": 11141
+  },
+  "sft_final": {
+    "rows": 11141,
+    "synthesized_rows": 10178,
+    "archival_rows": 963,
+    "clauses_per_answer": {
+      "mean": 5.35,
+      "median": 4,
+      "p90": 10,
+      "max": 20
+    },
+    "with_relational_clause": 10057
+  },
+  "sampler_discrimination_on_training": {
+    "schema_version": 1,
+    "negative_schema_version": 7,
+    "filter": "auto",
+    "rl_input": "traindata/craft_rl_curated.parquet",
+    "programs": 125,
+    "scored": 125,
+    "unscorable": 0,
+    "reward_medians": {
+      "gold": 0.845,
+      "loose": 0.0,
+      "trivial": 0.0,
+      "guard": 0.0,
+      "unsound": 0.0
+    },
+    "reward_means": {
+      "gold": 0.7629,
+      "loose": 0.1091,
+      "trivial": 0.0,
+      "guard": 0.0,
+      "unsound": 0.0
+    },
+    "gold_above_loose_by_margin": 0.792,
+    "gold_strictly_above_loose": 0.816,
+    "loose_saturated_ge_0.9": 0.0,
+    "gold_at_zero": 0.096,
+    "junk_nonzero": {
+      "trivial": 0.0,
+      "guard": 0.0,
+      "unsound": 0.0
+    },
+    "junk_above_gold": 0.096,
+    "group_std_median": 0.2086,
+    "group_std_p25": 0.1026,
+    "group_zero_variance_share": 0.112,
+    "group_distinct_median": 3
+  }
+}

@@ -11,8 +11,12 @@ what drives the training gain (RQ5).
 \label{sec:exp:setup}
 
 \paragraph{Data and judge.}
-The cleaned training artifacts contain 37,481 target-masked scalar-integer
-single-loop RL records; 3,200 form SFT targets.  Evaluation uses the standard
+The sanitized pool contains 37,481 target-masked scalar-integer single-loop
+records; the released training sets are curated from it and from
+1,392 newly synthesized programs
+(Appendix~\ref{app:data-curation}): 5,000 RL records and
+11,141 SFT records (10,178 of them with
+pipeline-synthesized targets), overlapping on 180 programs.  Evaluation uses the standard
 benchmark suites of prior learning-based invariant-generation systems: 832~C
 programs, comprising 316 linear programs (133 \textsc{Code2Inv}
 \citep{si2020code2inv}, 84 SyGuS 2019 \citep{alur2013sygus}, 99 SV-COMP 2024
@@ -424,8 +428,11 @@ line) at $k^{*}$ samples, and compose@100 itself does not degrade.}
 \subsection{RQ5: What Drives the Training Gain?}
 \label{sec:exp:ablations}
 
-Both ablations use Qwen3-8B and three matched seeds with all other training
-and inference settings fixed; Appendix~\ref{app:ablation-definitions} reports per-seed compose@10.
+Both ablations use Qwen3-8B with all other training and inference settings
+fixed.  The reward ablation reports three matched seeds; the negative-sampler
+ablation compares matched runs after 200 training steps.
+Appendix~\ref{app:ablation-definitions} gives the exact reward definitions
+and per-seed reward results.
 
 \paragraph{Reward-function ablation.}
 Variants progress from binary inductiveness to whole-response coverage, then
@@ -438,10 +445,11 @@ control remains \(\{0,1\}\).
 \centering
 \includegraphics[width=0.98\linewidth]{figures/reward_ablation.pdf}
 \caption{Reward-function ablation on Qwen3-8B (three-seed means).
-  Binary and whole-rollout credit keep single-response accuracy high (a) but
-  train redundant outputs, so their compose curves flatten (b); clause-decomposed
-  and Shapley credit shift probability mass toward clauses that compose
-  well: both dominate the response-level variants at every $k$ in (b), and
+  Binary and whole-rollout credit raise response-level accuracy at small
+  budgets (b) but flatten compositional coverage (a).  Clause decomposition
+  reverses this trade-off, and Shapley credit shifts the compose curve further
+  toward the upper left: both dominate the response-level variants at every
+  $k$ in (a), and
   Shapley credit also ends above the untrained model at $k{=}100$ (41.11\%
   vs.\ 39.78\%).
   Exact numbers for all variants appear in
@@ -455,11 +463,12 @@ two effects (exact numbers in Table~\ref{tab:reward-ablation},
 Appendix~\ref{app:ablation-definitions}).  \emph{First, binary inductiveness collapses composition.}
 Although its pass@1 reaches 8.65\%, the policy degenerates into repeating a
 few safe clauses, so compose@100 stalls at 12.02\%, 27.8 points below the
-untrained model.  This is the sharpening failure mode anticipated in
-Section~\ref{sec:exp:rl}: whole-response credit preserves standalone
-accuracy but collapses the pool; the remaining variants show that clause
-decomposition and group-compositional allocation are each needed to avoid
-it.
+untrained model.  This is the sampling-limit failure mode anticipated in
+Section~\ref{sec:exp:rl}: whole-response RLVR sharpens the policy toward a
+small set of already-supported complete responses.  It raises pass@1, but
+its advantage vanishes with sampling---at $k{=}100$, both response-level
+variants reach only 13.46\% pass@100, below the untrained model's 15.02\%---and
+their compose curves saturate early.
 \emph{Second, credit must be decomposed to clauses.}  Moving from
 whole-rollout to clause-decomposed coverage raises compose@100 from 26.56\%
 to 39.06\%, and Shapley credit adds a further +2.05 points (41.11\%):
@@ -467,7 +476,7 @@ rewarding complementary coverage across the group translates directly into
 composable invariants, at the price of fragmenting individual responses
 (pass@1 drops to 2.31\%).
 
-\paragraph{Redistribution, not sharpening.}
+\paragraph{Breaking the response-level sampling limit.}
 Why does credit structure decide the outcome?  Whole-response rewards
 grade each rollout by its own clauses alone, so they can only push
 probability mass toward responses the policy already favors---the
@@ -476,7 +485,8 @@ initialization~\citep{yue2025rlcapacity}.  Shapley credit instead
 grades each rollout against its peers: a rejected negative earns more
 when fewer peers reject it.  The objective is the group's union rather
 than any single response, and the measured effect is the opposite of
-sharpening: pass@1 falls below the untrained model (2.31\% vs.\
+sharpening: once whole-response correctness is removed from the objective,
+pass@1 falls below the untrained model (2.31\% vs.\
 3.55\%) while compose@100 rises above it (41.11\% vs.\ 39.78\%).
 The same RL procedure can therefore collapse compose@100
 (binary credit, $-27.8$ points), preserve it (clause decomposition),
@@ -490,31 +500,18 @@ distribution is decided by what the reward values, not by RL itself.
   arc=2pt,
   left=5pt,right=5pt,top=4pt,bottom=4pt
 ]
-\textbf{Finding.}  The reward shapes what can be \emph{composed}, not only
-what is \emph{proven}.  Binary inductiveness trains repetition and
-whole-response credit trains redundant, individually complete responses;
-clause-decomposed Shapley credit is what improves
-the union, lifting compose@100 from 12.02\% to 41.11\% across the ablation
-ladder.
+\textbf{Finding (RLVR limits).}  Response-level RLVR sharpens rather than
+expands the sampled support: it improves pass@1 but falls below the untrained
+pass curve at large $k$, so additional sampling cannot break the limit.
+Shapley diversity delays saturation and shifts compositional coverage toward
+the upper left, but the decisive change is clause decomposition.  By no
+longer requiring an entire response to be correct, it supplies denser credit:
+pass@1 drops from 10.80\% to 2.66\%, while compose@100 rises from 26.56\% to
+39.06\% (and to 41.11\% with Shapley credit).
 \end{tcolorbox}
 
 \paragraph{Negative-sampling ablation.}
-\emph{Random} uses uniform local perturbations; \emph{Structured} uses
-relational, post-exit, and range families.  Both share executions, filters,
-seed, and a 512-trace maximum; cleaning may leave different realized sizes.
-
-\begin{table}[H]
-\centering
-\setlength{\tabcolsep}{3.5pt}
-\begin{tabular}{lrrrrrrr}
-\toprule
-Negative sampler & Reward var. & Collision & pass@1
-  & compose@1 & compose@10 & compose@100 & \(k_{95}\) \\
-\midrule
-Random & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
-Structured (ours) & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
-\bottomrule
-\end{tabular}
-\caption{Negative-sampler ablation under a shared maximum budget.}
-\label{tab:sampler-ablation}
-\end{table}
+After 200 training steps, structured sampling improves
+compose@1 and compose@10 over random perturbations by 0.84 and 1.56 points,
+respectively; complete results appear in
+Appendix~\ref{app:ablation-definitions}.

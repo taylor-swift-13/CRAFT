@@ -191,9 +191,8 @@ far probes & 3, plus 2 ordered multi-parameter probes & seed-hashed input-envelo
 relation deltas & dense: $\pm\{1,2\}$; terminal: $\pm\{1,2,3,5,8\}$ & single-axis and pairwise perturbations; terminal bases require a witnessed final transition rather than a forward dense window \\
 dense window & 3 & sampled successors required for a relation base \\
 relation base cap & 96 & bases stratified across positives \\
-range-perturbation steps & $\pm\{5,8,13,21,34\}$ & candidates kept only outside the sampled range \\
 post-exit steps & 24 & continuation length after a genuine exit (one negative trace per run) \\
-negative-example budgets & 320 ($\le 64$ fallback) / 64 / 128 & relational / post-exit / range examples; stable round-robin within each kind \\
+negative-example budgets & 48 / 12 & relational / post-exit traces (sampler schema v7); stable round-robin across structural buckets, nearest perturbations first \\
 iteration cap & $2 \times 10^6$ & divergence safety net (capped runs flagged) \\
 \midrule
 $(w_c, w_g)$ & $(1.0, 0.3)$ & negative rejection / Shapley group-credit weights \\
@@ -222,22 +221,25 @@ Algorithm~\ref{alg:negative-sampling} summarizes the sampler used for RL.
 \(\operatorname{Trace}\) records real loop-head states and, after each genuine
 exit, continues the real loop body to obtain one post-exit trace.
 \(\operatorname{Perturb}_{\Theta}\) applies the configured single-variable and
-pairwise changes, while \(\operatorname{RangeEscape}\) moves one variable just
-outside its sampled range.  The exact perturbations and budgets are those in
+pairwise changes.  The exact perturbations and budgets are those in
 Table~\ref{tab:constants}.
 
-The three families are complementary: each rejects a different class of weak
-but valid invariants, and none subsumes another.  Relational perturbations
-change one variable while fixing the rest, so they are rejected only by
-clauses that constrain relations among variables; pure bounds accept them.
-Post-exit continuations execute the real body past a witnessed exit and
-reach states that no finite perturbation of an observed state can produce,
-so only clauses that pin down the exit boundary reject them.  Range escapes
-probe the boundary tightness of individual variables, which relational
-clauses may leave unconstrained.  Coverage over their union therefore grades
-strength along three independent axes, and dropping any family leaves the
-corresponding weakness unpunished;
-Section~\ref{sec:exp:ablations} ablates these structured families against
+The two families are complementary and both are hard by construction.  A
+relational perturbation is admitted only when it (i)~stays inside the sampled
+envelope of its own \texttt{Pre}/\texttt{LoopEntry} context, (ii)~preserves
+the guard truth value, and (iii)~does not lie on the locally witnessed
+transition tangent (an integer multiple of the observed step, which would be
+reachable at another iteration).  Consequently a pure bound or a marginal
+range fact cannot reject a relational witness; only clauses that constrain
+relations among variables can.  Post-exit continuations execute the real body
+past a witnessed exit and reach states that no finite perturbation of an
+observed state can produce, so only clauses that pin down the exit boundary
+reject them.  Earlier sampler revisions carried two additional families ---
+single-variable range escapes and frame equalities --- whose witnesses are
+rejected by exactly the boilerplate clauses a strong answer does not need;
+offline audits showed they rewarded bounds-only and frame-only answers, so
+schema v7 removes both and coverage is relation-dominated.
+Section~\ref{sec:exp:ablations} ablates the structured families against
 uniform random perturbations.
 
 \begin{algorithm}[H]
@@ -260,29 +262,28 @@ uniform random perturbations.
 \algline \kw{if} \(\neg c\) \kw{then}
   \(C_{\mathrm{rel}}\leftarrow C_{\mathrm{rel}}\cup
   \operatorname{Perturb}_{\Theta}(\operatorname{Terminals}(\mathcal T_{\mathrm{exec}}),M)\)\\
-\algline \(C_{\mathrm{range}}\leftarrow
-  \operatorname{RangeEscape}(\mathcal P_{\mathrm{sample}},M,\mathcal P,\Theta)\) if \(\neg c\),
-  else \(\varnothing\)\\
-\algline \((C_{\mathrm{rel}},\mathcal T_{\mathrm{post}},C_{\mathrm{range}})
+\algline \(C_{\mathrm{rel}}\leftarrow
+  \operatorname{TangentAndEnvelopeFilter}(C_{\mathrm{rel}},
+  \mathcal T_{\mathrm{exec}})\)\\
+\algline \((C_{\mathrm{rel}},\mathcal T_{\mathrm{post}})
   \leftarrow\operatorname{Clean}_{\mathcal P}
-  (C_{\mathrm{rel}},\mathcal T_{\mathrm{post}},C_{\mathrm{range}})\)\\
-\algline \(\widehat C_{\mathrm{rel}},\mathcal N_{\mathrm{post}},
-  \widehat C_{\mathrm{range}}
+  (C_{\mathrm{rel}},\mathcal T_{\mathrm{post}})\)\\
+\algline \(\widehat C_{\mathrm{rel}},\mathcal N_{\mathrm{post}}
   \leftarrow\operatorname{BudgetAndRoundRobin}
-  (C_{\mathrm{rel}},\mathcal T_{\mathrm{post}},C_{\mathrm{range}},\Theta)\)\\
+  (C_{\mathrm{rel}},\mathcal T_{\mathrm{post}},\Theta)\)\\
 \algline \(\mathcal N\leftarrow
-  \{\langle s\rangle:s\in \widehat C_{\mathrm{rel}}\}\cup\mathcal N_{\mathrm{post}}
-  \cup\{\langle s\rangle:s\in \widehat C_{\mathrm{range}}\}\)\\
+  \{\langle s\rangle:s\in \widehat C_{\mathrm{rel}}\}\cup\mathcal N_{\mathrm{post}}\)\\
 \algline \kw{return} \((\mathcal P,\mathcal N)\)\\
 \end{algorithmic}
 \end{algorithm}
 
 \(\operatorname{Clean}_{\mathcal P}\) removes observed reachable states,
-possible fresh loop entries, duplicates, and unsupported candidates, using
-family priority relation, post-exit, then range.  A cleaned post-exit
-continuation remains one trace; relation and range candidates become singleton
-traces.  Within the relation budget, candidates that preserve the guard truth
-value and remain inside the sampled coordinate ranges are selected first.
+possible fresh loop entries, duplicates, and unsupported candidates, with
+relation taking de-duplication priority over post-exit.  A cleaned post-exit
+continuation remains one trace; relation candidates become singleton traces.
+Within each structural bucket the round-robin prefers the smallest
+counterfactual change, so surviving witnesses sit as close to the sampled
+manifold as the filters allow.
 
 \subsection{Group-Relative Optimization Details}
 \label{app:grpo-details}
@@ -329,6 +330,9 @@ each archive fall outside the scalar-integer, single-loop interface.  A
 Frama-C kernel pass over 36,301 unique RL sources removes another 463 rows with
 C/ACSL parse or name-resolution errors.  SFT cleaning removes 240 rows whose
 answers contain no surviving clause.
+
+The released training sets are further curated from this sanitized pool;
+Appendix~\ref{app:data-curation} documents that stage.
 
 SFT answers are parsed into clauses, conservatively deduplicated, stripped of
 malformed, out-of-scope, tautological, and dominated constant-bound clauses,
@@ -682,14 +686,112 @@ reordered independent statements, transformed loops, or distant semantic
 clones.  We therefore report no overlap under the stated normalizations rather
 than claiming complete semantic independence.
 
+\section{Training-Pool Curation}
+\label{app:data-curation}
+
+The sanitized pool of Appendix~\ref{app:prompt} is a cleaned archive, not a
+curriculum: 35,100 unique programs collapse to 2,165 loop shapes under
+alpha-renaming, constant abstraction, and initializer removal, the two largest
+shapes (single-variable counters) hold 36\% of the pool, about 40\% of
+programs use a \texttt{while (1) \{ if (!(c)) break; ... \}} idiom that never
+occurs in the evaluation corpus, and 43\% admit no relation-family negatives,
+so a bounds-only answer already saturates the coverage reward.  The released
+training sets are produced from the pool by the following target-independent
+stages; every count below is emitted by the pipeline into machine-readable
+reports.
+
+\paragraph{Canonicalization.}  The break idiom is rewritten to an explicit
+guard, \(\texttt{while (1) \{ if (!(c)) break; B \}}\rightarrow
+\texttt{while (c) \{ B \}}\), whenever the body contains no other
+\texttt{break} and no \texttt{else} is attached to the exit test.  The rewrite
+is semantics-preserving, restores the guard that guard-preserving relational
+perturbations require, and moves the surface form onto the evaluation
+distribution; 14,419 of 36,742 RL rows and
+1,442 of 3,096 SFT rows are rewritten with zero parse failures.
+
+\paragraph{Gradient and difficulty gates.}  A program is dropped when the
+schema-v7 sampler yields no negatives or fails (758),
+fewer than 16 negative traces (15,206) or fewer than
+8 relation traces (104) --- on such programs a
+bounds-only answer saturates the reward and a GRPO group carries no gradient
+--- when it is a single-variable straight-line counter
+(\emph{too easy}, 248), or when it multiplies two
+loop-modified variables with at least three modified variables or is very wide
+and long (\emph{too hard}, 1,082; the benchmark's NLA
+stratum, where compose@\(k\) remains at 0--4\%).  Near-copies of evaluation
+programs are removed at three normalization levels (exact, alpha-renamed,
+constant-abstracted); none occurred in the pool, and the audit records
+loop-level coincidences separately.
+
+\paragraph{Structural matching.}  Each program is assigned a structural
+cell (coarse control-flow profile, guard kind, nonlinearity,
+nondeterminism, variable band).  The evaluation corpus spans 122 cells;
+programs whose cell and control-flow skeleton never occur in evaluation are
+dropped (1,289 after canonicalization), and the
+survivors are selected by per-cell quotas proportional to the evaluation
+distribution, round-robin over loop shapes inside each cell.  For cells the
+pool did not cover at all, 1,392 fresh programs were synthesized from
+the cells' \emph{structural specifications only} (no evaluation text reaches
+the generation prompt; few-shot examples come from the training pool) and
+accepted only when they parse as a supported single-loop program, land in an
+under-supplied cell, and are no near-copy of any evaluation program or of one
+another at any of the four fingerprint levels, including loop-level
+alpha-const identity.
+
+\paragraph{Released sets.}  The RL set keeps 5,000
+programs over 1,131 loop shapes; its
+total-variation distance to the evaluation cell distribution falls from
+0.62 (pool) to 0.42, and
+702 of 832 evaluation programs share a cell
+with at least one training program.  The SFT set keeps 11,141
+programs (963 audited archival answers,
+10,178 pipeline-synthesized answers); the two sets
+overlap on 180 programs, so
+reinforcement learning almost exclusively sees programs the SFT stage never
+showed the model.
+
+\paragraph{SFT target synthesis.}  For every SFT program without a retained
+archival answer, four rollouts are
+sampled from a strong teacher with the canonical prompt, unioned with the
+archival answer when one exists, gated by the inference interface filter, and
+pruned by Houdini on the target-hidden program exactly as at inference.  The
+surviving set is then reduced target-independently: frame equalities of
+unmodified variables are dropped (the harness's \texttt{loop assigns}
+already states them), guarded copies and dominated constant bounds are
+removed, clauses logically implied by the rest of the set are eliminated with
+an integer SMT check (strongest first, forward selection with backward
+elimination), every relational clause is kept, and the remaining clauses are
+kept only while they reject additional negative traces; Houdini is re-run on
+the result.  Of 10,843 synthesized programs,
+10,178 yield an answer (380 empty after filtering,
+147 bounds-only, 124 over the clause cap);
+synthesized answers average 4.99 clauses (median
+4), and 98.8\% contain a relational
+transition law.
+
+\paragraph{Reward discrimination on the released RL set.}  On the
+125 released RL programs that retain an audited reference
+answer, the production reward (Houdini filter, schema-v7 sampler) gives the
+reference answer a median reward of 0.845, its
+bounds-and-frame-only projection a median of 0.0
+(never \(\ge 0.9\)), and exactly zero --- on every program --- to the
+tautology \texttt{1 == 1}, to the loop guard copied as an invariant, and to
+an unsound pinned-value clause.  The reference answer exceeds its projection
+on 81.6\% of programs, and a simulated
+group of eight random sub-answers has a median within-group reward standard
+deviation of 0.2086 (zero-variance share
+11.2\%), so group-relative updates retain a
+usable advantage signal.
+
 \section{Experimental Protocol Details}
 \label{app:experimental-protocol}
 
-The 37,481 RL records retain corpus-local identifiers but not
-per-record upstream-source identifiers.  The separately retained SFT artifact
-contains 3,200 unique sources, of which 2,600 also occur in the RL artifact.
-We therefore characterize the training pool by
+The 37,481 pooled records retain corpus-local identifiers but not
+per-record upstream-source identifiers; we therefore characterize the pool by
 content and audit its overlap, rather than inferring provenance from its IDs.
+The released sets curated from the pool (Appendix~\ref{app:data-curation})
+contain 5,000 RL and 11,141 SFT records with
+180 programs in common.
 The 832-file
 evaluation workload contains 316 linear programs (133 from \textsc{Code2Inv},
 84 from SyGuS 2019, and 99 from SV-COMP 2024), 50 nonlinear programs (30 from
@@ -1042,20 +1144,29 @@ Regularized Compositional Credit    & \textsc{TBD} & \textsc{TBD} & \textsc{TBD}
 \end{tabular}
 \end{table}
 
+The negative-trace sampler comparison is a matched-run ablation rather than a
+three-seed aggregate.  Random uses uniform local perturbations, whereas
+Structured uses relational, post-exit, and range families.  Both use matched
+Qwen3-8B RL runs and are evaluated after 200 training steps.
+
 \begin{table}[H]
 \centering
-\caption{Per-seed negative-trace sampler ablation on the 8B model.  Seed
-columns and summary statistics report compose@10 verification rates.}
-\label{tab:sampler-ablation-complete}
-\begin{tabular}{lrrrrr}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lrrrr}
 \toprule
-Sampler & Seed 1 & Seed 2 & Seed 3 & Mean & Std. \\
+Negative sampler & pass@1 & pass@10 & compose@1 & compose@10 \\
 \midrule
-Random perturbation                 & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
-Structured sampler                  & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} & \textsc{TBD} \\
+Random & \textbf{4.03\%} & \textbf{6.99\%} & 28.61\% & 34.74\% \\
+Structured (ours) & 2.45\% & 5.68\% & \textbf{29.45\%} & \textbf{36.30\%} \\
 \bottomrule
 \end{tabular}
+\caption{Negative-sampler ablation after 200 training steps.  Bold marks the
+better sampler for each metric.}
+\label{tab:sampler-ablation}
 \end{table}
+
+Structured sampling improves compose@1 and compose@10 by 0.84 and 1.56
+points, respectively, despite lower standalone pass rates.
 
 \subsection{Cross-Model Main Results}
 \label{app:reasoning-leakage}

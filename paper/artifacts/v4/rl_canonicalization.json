@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "dataset": "rl",
+  "input": "traindata/craft_rl_final.parquet",
+  "output": "traindata/craft_rl_canonical.parquet",
+  "rows": 36742,
+  "status": {
+    "unchanged": 22323,
+    "rewritten": 14419
+  },
+  "policy": "rewrite `while (1) { if (COND) break; REST }` to `while (!COND) { REST }` when REST has no other break and no else is attached to the exit test; keep the record unchanged when the rewrite does not parse or raw_code would desync"
+}

@@ -332,7 +332,7 @@ def main() -> None:
         raise SystemExit(f"unknown dedup levels: {sorted(unknown)}")
 
     input_path = args.input or (
-        ROOT / "traindata" / ("craft_rl_pool.parquet" if args.dataset == "rl" else "craft_sft_archive.json")
+        ROOT / "traindata" / ("craft_rl_pool.parquet" if args.dataset == "rl" else "craft_sft_pool.json")
     )
     records, table, sources = _load_records(args.dataset, input_path)
     ledger = _latest_by_digest(args.ledger)

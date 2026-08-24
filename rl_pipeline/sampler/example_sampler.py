@@ -9,31 +9,28 @@ union is the sampled reachable set. We produce:
   * negatives : synthetic candidate traces designed to depart from sampled
     behavior, stored as WITNESS states grouped in `neg_groups`: a perturbation
     is a singleton
-    ("real prefix + this state"); an over-run continuation is one group.
+    ("real prefix + this state"); an escape continuation is one group.
     A rollout rejects a history iff some invariant is false at ANY witness.
 
-Four negative-candidate families:
-  * relation : small perturbations (±1, ±2) around DENSE sampled bases and
-    observed terminal transitions;
-  * over-run : the body executed past an observed genuine exit;
-  * escape   : the nearest ladder step in each direction that leaves the
-    variable's sampled range.
-  * frame    : perturb a variable that the loop never writes while preserving
-    its exact Pre/LoopEntry snapshot.
+Two complementary negative-candidate families:
+  * relation : guard-preserving off-manifold perturbations around densely
+    witnessed transitions and observed terminal transitions;
+  * escape   : the body executed past an observed genuine exit.
 
-Families have independent trace budgets (320 relation, 64 over-run, 128
-escape, 64 frame). Candidates are selected round-robin across structural
-buckets, so a large collection of easy range/frame violations cannot crowd
-relational witnesses out of the score.
+Families have independent trace budgets (48 relation, 12 escape; 60 total).
+Candidates are selected round-robin across structural buckets.  There is no
+range family: a marginal bound alone must not dominate the quality score.
 
 Conservative filters (a reachable state mislabeled as negative would distort
 the tightness signal):
   * states observed reachable are never negatives;
   * states that could be a fresh loop ENTRY under their input are dropped;
-  * oracle calls are determinized into sampled parameters; variables whose body
-    transition remains oracle-tainted are not perturbed, and negatives are
-    disabled only when no safe movable variable remains;
-  * capped runs disable escapes.
+  * oracle calls are determinized into sampled parameters and retained in each
+    trace context, so relation candidates can use oracle-affected axes without
+    conflating executions that chose different oracle values;
+  * untracked persistent state and unsupported memory operations disable only
+    synthetic relation perturbations; genuine post-exit continuations remain
+    independently available.
 
 Soundness of scoring is delegated to the reward's filter cascade, which ends
 in real Houdini (Frama-C/WP).
@@ -43,9 +40,14 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import random
 import re
-from typing import Callable, Dict, List, Set, Tuple
+from typing import Callable, Dict, List, Optional, Set, Tuple
 
-from ..common.program import Program, parse_program
+from ..common.program import (
+    Program,
+    bind_integer_constants,
+    parse_program,
+    state_external_integer_constants,
+)
 from ..common.state import State, eval_predicate
 from . import cexec
 
@@ -57,31 +59,25 @@ NEGATIVE_SAMPLER_MODES = (
     "random",
     "structured",
 )
+# Bump whenever negative construction changes: persisted per-program coverage
+# ledgers stamped with an older version are stale and must be regenerated.
+NEGATIVE_SCHEMA_VERSION = 7
 
 _SMALL_DELTAS = (1, -1, 2, -2)
 # Terminal transitions are especially scarce in short loops.  Probe a slightly
 # wider local neighborhood there so relation-breaking, guard-preserving
-# witnesses are not outnumbered by easy control/range violations.
+# witnesses are not lost when only a few terminal transitions are available.
 _TERMINAL_DELTAS = (1, -1, 2, -2, 3, -3, 5, -5, 8, -8)
-_LADDER_DELTAS = (5, -5, 8, -8, 13, -13, 21, -21, 34, -34)
 _BASE_CAP = 96           # perturbation bases, stratified across all positives
 # Forward trace states required for a "dense" base: the entry state (it=0) and
 # the first head (it=1) carry the SAME valuation, so a value-jump of 2 along a
 # unit-step manifold is only witnessed by the state at it+3.
 _DENSE_WINDOW = 3
-_RELATION_GROUP_BUDGET = 320
-# Non-preferred relation candidates change the guard truth value or leave the
-# sampled envelope, so single-variable bounds reject them too easily.  They
-# remain useful for coverage, but may not fill unused hard-relation capacity.
-_RELATION_FALLBACK_BUDGET = 64
-_OVERRUN_GROUP_BUDGET = 64
-_ESCAPE_GROUP_BUDGET = 128
-_FRAME_GROUP_BUDGET = 64
+_RELATION_GROUP_BUDGET = 48
+_ESCAPE_GROUP_BUDGET = 12
 _NEGATIVE_GROUP_BUDGET = (
     _RELATION_GROUP_BUDGET
-    + _OVERRUN_GROUP_BUDGET
     + _ESCAPE_GROUP_BUDGET
-    + _FRAME_GROUP_BUDGET
 )
 
 
@@ -89,7 +85,9 @@ _NEGATIVE_GROUP_BUDGET = (
 class _NegativeCandidate:
     state: State
     bucket: Tuple
-    preferred: bool = True
+    # Smaller counterfactual changes stay nearer to the sampled manifold and
+    # are therefore harder than distant perturbations in the same bucket.
+    distance: int
 
 
 @dataclass
@@ -102,6 +100,7 @@ class ExampleSet:
     stats: Dict[int, dict] = field(default_factory=dict)
     # Kept after the historical fields for positional-constructor compatibility.
     negative_sampler: str = "structured"
+    neg_group_families: Dict[int, List[str]] = field(default_factory=dict)
 
     def pos(self, loop_idx: int = 0) -> List[State]:
         return self.positives.get(loop_idx, [])
@@ -114,6 +113,17 @@ class ExampleSet:
         if g is None:
             g = [[i] for i in range(len(self.neg(loop_idx)))]
         return g
+
+    def group_families(self, loop_idx: int = 0) -> List[str]:
+        families = self.neg_group_families.get(loop_idx)
+        if families is None:
+            return ["unknown"] * len(self.groups(loop_idx))
+        if len(families) != len(self.groups(loop_idx)):
+            raise ValueError(
+                "negative trace group/family length mismatch: "
+                f"{len(self.groups(loop_idx))} groups != {len(families)} families"
+            )
+        return families
 
 
 class ExampleSampler:
@@ -342,11 +352,15 @@ class ExampleSampler:
         # ACSL annotations describe proof obligations, not executable calls.
         body = re.sub(r"/\*.*?\*/|//[^\n]*", " ", body, flags=re.DOTALL)
         calls = set(re.findall(r"\b([A-Za-z_]\w*)\s*\(", body))
-        return bool(calls - {
-            "if", "while", "for", "switch", "sizeof",
-            "unknown", "unknown1", "unknown2", "unknown3", "nondet",
-            "__VERIFIER_nondet_int", "__VERIFIER_nondet_uint",
-        })
+        language = {"if", "while", "for", "switch", "sizeof"}
+        unsupported = {
+            name for name in calls - language
+            if not re.fullmatch(
+                r"(?:unknown\w*|nondet\w*|__VERIFIER_nondet_\w+)",
+                name,
+            )
+        }
+        return bool(unsupported)
 
     @staticmethod
     def _body_has_unsupported_state(prog: Program, loop_idx: int = 0) -> bool:
@@ -360,18 +374,82 @@ class ExampleSampler:
 
     @staticmethod
     def _bases(positives: List[State]) -> List[State]:
-        """Stratified subsample across ALL positives."""
+        """Subsample evenly inside every concrete trace/context.
+
+        A single long run must not consume the global base cap: doing so loses
+        the entry and terminal ranges of other inputs and turns parameterized
+        bounds such as ``i <= n`` into effectively unsampled behavior.
+        """
         if len(positives) <= _BASE_CAP:
             return positives
-        step = len(positives) // _BASE_CAP
-        return positives[::step][:_BASE_CAP]
+        traces: Dict[Tuple, List[State]] = {}
+        for state in positives:
+            key = (
+                state.run,
+                tuple(sorted(state.pre.items())),
+                tuple(sorted(state.loop_entry.items())),
+            )
+            traces.setdefault(key, []).append(state)
+
+        trace_values = list(traces.values())
+        quotas = [0] * len(trace_values)
+        remaining = min(_BASE_CAP, len(positives))
+        active = list(range(len(trace_values)))
+        while remaining and active:
+            next_active = []
+            for index in active:
+                if remaining == 0:
+                    break
+                if quotas[index] < len(trace_values[index]):
+                    quotas[index] += 1
+                    remaining -= 1
+                if quotas[index] < len(trace_values[index]):
+                    next_active.append(index)
+            active = next_active
+
+        selected: List[State] = []
+        for index, states in enumerate(trace_values):
+            limit = quotas[index]
+            if limit <= 0:
+                continue
+            if len(states) <= limit:
+                selected.extend(states)
+                continue
+            # Preserve enough of the dense prefix to witness a local forward
+            # transition, retain the terminal/end point for global coverage,
+            # then spread the remaining quota across the whole trace.
+            indices: List[int] = []
+
+            def keep(position: int) -> None:
+                if position not in indices and len(indices) < limit:
+                    indices.append(position)
+
+            for position in range(min(_DENSE_WINDOW + 1, limit)):
+                keep(position)
+            keep(len(states) - 1)
+            if limit > 1:
+                for slot in range(limit):
+                    keep(round(slot * (len(states) - 1) / (limit - 1)))
+            if len(indices) < limit:
+                for position in range(len(states)):
+                    keep(position)
+                    if len(indices) == limit:
+                        break
+            selected.extend(states[position] for position in sorted(indices))
+        return selected[:_BASE_CAP]
 
     def _entry_feasible_fn(self, prog: Program) -> Callable[[State], bool]:
         """A perturbed state that could be a FRESH LOOP ENTRY under its input is
         reachable and must never be labeled negative."""
-        checks = [(n, e) for n, e in prog.local_inits
-                  if e and e.strip() and not re.search(r"\bunknown\w*\s*\(", e)]
-        req = (prog.requires or "").strip()
+        constants = state_external_integer_constants(prog)
+        checks = [
+            (n, bind_integer_constants(e, constants))
+            for n, e in prog.local_inits
+            if e and e.strip() and not re.search(r"\bunknown\w*\s*\(", e)
+        ]
+        req = bind_integer_constants(
+            (prog.requires or "").strip(), constants
+        )
         params = list(prog.params)
 
         def feasible(s: State) -> bool:
@@ -405,27 +483,38 @@ class ExampleSampler:
         false).  This is what lets one-iteration loops produce relational
         witnesses without another execution.
 
-        Candidates that stay inside every sampled variable envelope and keep
-        the guard truth value are selected before range/control-changing
-        fallbacks.  They force the score to distinguish loop relations instead
-        of rewarding only easy extrema.
+        A relation candidate is admitted only when it stays inside the sampled
+        envelope for the *same* Pre/LoopEntry context and preserves the guard
+        truth value.  Reachability filtering later removes points already on
+        the joint trace manifold.  Consequently a simple marginal bound cannot
+        earn relation credit, and no range/control fallback contaminates this
+        family.
         """
         out: List[_NegativeCandidate] = []
         trace_index = {
             (s.run, s.it): s for s in raw_reach if s.run >= 0
         }
         dense_index = set(trace_index)
-        guard = prog.loops[0].guard or ""
-        lo = {
-            v: min(p.vars[v] for p in positives)
-            for v in prog.pre_vars
-            if all(v in p.vars for p in positives)
-        }
-        hi = {
-            v: max(p.vars[v] for p in positives)
-            for v in prog.pre_vars
-            if all(v in p.vars for p in positives)
-        }
+        guard = bind_integer_constants(
+            prog.loops[0].guard or "",
+            state_external_integer_constants(prog),
+        )
+
+        by_context: Dict[Tuple, List[State]] = {}
+        for state in positives:
+            by_context.setdefault(state.context_key(), []).append(state)
+
+        # Per Pre/LoopEntry context: variable -> (min, max) over its positives.
+        envelopes: Dict[Tuple, Dict[str, Tuple[int, int]]] = {}
+        for context, states in by_context.items():
+            names = set.intersection(*(set(state.vars) for state in states))
+            envelopes[context] = {
+                name: (
+                    min(state.vars[name] for state in states),
+                    max(state.vars[name] for state in states),
+                )
+                for name in names
+            }
 
         def is_terminal(r: State) -> bool:
             if capped or r.run < 0 or r.it <= 0:
@@ -454,23 +543,69 @@ class ExampleSampler:
             axes: Tuple[str, ...],
             directions: Tuple[int, ...],
             terminal: bool,
+            base_guard: Optional[bool],
+            envelope: Dict[str, Tuple[int, int]],
         ) -> None:
-            state = State(
-                vars=nv,
-                pre=dict(r.pre),
-                loop_entry=dict(r.loop_entry),
-            )
-            base_guard = eval_predicate(guard, r)
-            candidate_guard = eval_predicate(guard, state)
+            state = r.with_vars(nv)
             inside_envelope = all(
-                name in lo and lo[name] <= value <= hi[name]
-                for name, value in state.vars.items()
+                name in envelope
+                and envelope[name][0] <= value <= envelope[name][1]
+                for name, value in nv.items()
             )
+            candidate_guard = eval_predicate(guard, state)
             same_guard = (
                 base_guard is not None
                 and candidate_guard is not None
                 and base_guard == candidate_guard
             )
+            if not inside_envelope or not same_guard:
+                return
+
+            # A state predicate cannot reject a counterfactual point that is
+            # merely another position on the same locally observed trajectory.
+            # In particular, for ``x++`` every in-range scalar perturbation is
+            # reachable at another iteration. Reject perturbation vectors that
+            # are an integer multiple of the witnessed forward transition (or
+            # of the final transition at a terminal head).
+            neighbor = trace_index.get((r.run, r.it + 1))
+            if neighbor is not None:
+                step = {
+                    name: neighbor.vars[name] - r.vars[name]
+                    for name in r.vars
+                    if name in neighbor.vars
+                }
+            else:
+                predecessor = trace_index.get((r.run, r.it - 1))
+                step = (
+                    {
+                        name: r.vars[name] - predecessor.vars[name]
+                        for name in r.vars
+                        if name in predecessor.vars
+                    }
+                    if predecessor is not None
+                    else {}
+                )
+            multiplier = None
+            on_transition_tangent = bool(step)
+            for name, step_value in step.items():
+                change = nv[name] - r.vars[name]
+                if step_value == 0:
+                    if change != 0:
+                        on_transition_tangent = False
+                        break
+                    continue
+                if change % step_value:
+                    on_transition_tangent = False
+                    break
+                ratio = change // step_value
+                if multiplier is None:
+                    multiplier = ratio
+                elif ratio != multiplier:
+                    on_transition_tangent = False
+                    break
+            if on_transition_tangent and multiplier is not None:
+                return
+
             out.append(_NegativeCandidate(
                 state=state,
                 bucket=(
@@ -478,7 +613,7 @@ class ExampleSampler:
                     axes,
                     directions,
                 ),
-                preferred=inside_envelope and same_guard,
+                distance=sum(abs(nv[name] - r.vars[name]) for name in axes),
             ))
 
         for r in relation_bases:
@@ -490,13 +625,17 @@ class ExampleSampler:
             if not dense and not terminal:
                 continue
             base = r.vars
+            # Every base is a positive, so its context always has an envelope.
+            base_guard = eval_predicate(guard, r)
+            envelope = envelopes[r.context_key()]
             deltas = _TERMINAL_DELTAS if terminal else _SMALL_DELTAS
             for v in movable:
                 for d in deltas:
                     nv = dict(base)
                     nv[v] += d
                     add_candidate(
-                        r, nv, (v,), (1 if d > 0 else -1,), terminal
+                        r, nv, (v,), (1 if d > 0 else -1,), terminal,
+                        base_guard, envelope,
                     )
             for i in range(len(movable)):
                 for j in range(i + 1, len(movable)):
@@ -515,91 +654,23 @@ class ExampleSampler:
                                     1 if sw > 0 else -1,
                                 ),
                                 terminal,
+                                base_guard,
+                                envelope,
                             )
-        return out
-
-    def _escape_negatives(self, movable: List[str], bases: List[State],
-                          positives: List[State]) -> List[_NegativeCandidate]:
-        """Return one nearest outside-envelope step per base/axis/direction."""
-        lo = {v: min(p.vars[v] for p in positives) for v in movable}
-        hi = {v: max(p.vars[v] for p in positives) for v in movable}
-        out: List[_NegativeCandidate] = []
-        for r in bases:
-            base = r.vars
-            for v in movable:
-                for direction in (1, -1):
-                    outside = [
-                        d for d in _LADDER_DELTAS
-                        if (1 if d > 0 else -1) == direction
-                        and not lo[v] <= base[v] + d <= hi[v]
-                    ]
-                    if not outside:
-                        continue
-                    d = min(outside, key=abs)
-                    nv = dict(base)
-                    nv[v] = base[v] + d
-                    out.append(_NegativeCandidate(
-                        state=State(
-                            vars=nv,
-                            pre=dict(r.pre),
-                            loop_entry=dict(r.loop_entry),
-                        ),
-                        bucket=(v, direction),
-                    ))
-        return out
-
-    def _frame_negatives(
-        self,
-        prog: Program,
-        bases: List[State],
-        loop_idx: int = 0,
-    ) -> List[_NegativeCandidate]:
-        """Break variables that the loop transition never assigns.
-
-        These witnesses remain unreachable even when execution is capped or
-        oracle-controlled: for a fixed ``LoopEntry`` snapshot, a variable that
-        neither the guard nor body writes must retain that value at every loop
-        head. They are kept in a separate family because frame discrimination
-        is easier than discovering the loop's changing-state relation.
-        """
-        loop = prog.loops[loop_idx]
-        body = prog.source[loop.body_open + 1:loop.body_close]
-        assigned = self._assigned_names(body) | self._assigned_names(loop.guard or "")
-        framed = [name for name in prog.pre_vars if name not in assigned]
-        unsigned = set(prog.unsigned_vars)
-        out: List[_NegativeCandidate] = []
-        for base in bases:
-            for name in framed:
-                if name not in base.vars or name not in base.loop_entry:
-                    continue
-                # Only use a witnessed frame equality. This also avoids treating
-                # a pre-loop initialization as though it happened in the loop.
-                if base.vars[name] != base.loop_entry[name]:
-                    continue
-                deltas = (1, 2) if name in unsigned else (1, -1)
-                for delta in deltas:
-                    values = dict(base.vars)
-                    values[name] += delta
-                    out.append(_NegativeCandidate(
-                        state=State(
-                            vars=values,
-                            pre=dict(base.pre),
-                            loop_entry=dict(base.loop_entry),
-                        ),
-                        bucket=(name, 1 if delta > 0 else -1),
-                    ))
         return out
 
     @staticmethod
     def _round_robin(
         candidates: List[_NegativeCandidate], limit: int
     ) -> List[_NegativeCandidate]:
-        """Stable round-robin selection across candidate buckets."""
+        """Stable round-robin selection across buckets, nearest candidates first."""
         if limit <= 0 or not candidates:
             return []
         buckets: Dict[Tuple, List[_NegativeCandidate]] = {}
         for candidate in candidates:
             buckets.setdefault(candidate.bucket, []).append(candidate)
+        for values in buckets.values():
+            values.sort(key=lambda candidate: candidate.distance)
         positions = {bucket: 0 for bucket in buckets}
         selected: List[_NegativeCandidate] = []
         active = list(buckets)
@@ -621,7 +692,7 @@ class ExampleSampler:
     def _negatives(self, prog: Program, positives: List[State], overrun: List[State],
                    raw_reach: List[State], capped: bool,
                    analysis_prog: Program | None = None,
-                   ) -> Tuple[List[State], List[List[int]], dict]:
+                   ) -> Tuple[List[State], List[List[int]], List[str], dict]:
         # ``prog`` is the determinized execution program, which supplies exact
         # entry constraints for fresh oracle parameters. Safety checks still
         # inspect the original body so oracle-tainted variables stay immovable.
@@ -643,48 +714,32 @@ class ExampleSampler:
         def select_candidates(
             candidates: List[_NegativeCandidate],
             limit: int,
-            fallback_limit: int | None = None,
-            filter_fresh_entry: bool = True,
         ) -> List[State]:
             """Filter, stratify, and commit only candidates that are emitted."""
-            selected: List[_NegativeCandidate] = []
+            admissible: List[_NegativeCandidate] = []
             local_seen: Set[Tuple] = set()
-            for preferred in (True, False):
-                admissible: List[_NegativeCandidate] = []
-                for candidate in candidates:
-                    if candidate.preferred != preferred:
-                        continue
-                    state = candidate.state
-                    key = state.key()
-                    if key in reachable or key in seen or key in local_seen:
-                        continue
-                    if filter_fresh_entry and entry_feasible(state):
-                        continue
-                    local_seen.add(key)
-                    admissible.append(candidate)
-                remaining = limit - len(selected)
-                if remaining <= 0:
-                    break
-                tier_limit = remaining
-                if not preferred and fallback_limit is not None:
-                    tier_limit = min(tier_limit, fallback_limit)
-                chosen = self._round_robin(admissible, tier_limit)
-                selected.extend(chosen)
-                # If the tier overflowed its budget, the family is full.
-                if len(chosen) < len(admissible) and len(selected) == limit:
-                    break
+            for candidate in candidates:
+                state = candidate.state
+                key = state.key()
+                if key in reachable or key in seen or key in local_seen:
+                    continue
+                if entry_feasible(state):
+                    continue
+                local_seen.add(key)
+                admissible.append(candidate)
+            selected = self._round_robin(admissible, limit)
             states = [candidate.state for candidate in selected]
             seen.update(state.key() for state in states)
             return states
 
-        def select_overrun_groups() -> List[List[State]]:
+        def select_escape_groups() -> List[List[State]]:
             """Keep genuine continuations atomic and cap them in trace units."""
             by_run: Dict[int, List[State]] = {}
             for state in overrun:
                 by_run.setdefault(state.run, []).append(state)
             selected_groups: List[List[State]] = []
             for run in sorted(by_run):
-                if len(selected_groups) >= _OVERRUN_GROUP_BUDGET:
+                if len(selected_groups) >= _ESCAPE_GROUP_BUDGET:
                     break
                 group: List[State] = []
                 local_seen: Set[Tuple] = set()
@@ -711,40 +766,34 @@ class ExampleSampler:
         nondet = (self._guard_nondeterministic(analysis_prog, 0)
                   or any(re.search(rf"\b{re.escape(t)}\b", guard) for t in tainted))
         bases = self._bases(positives)
-        movable = [v for v in movable if v not in tainted]
 
-        # Incomplete transition state/control makes projected perturbations
-        # unreliable. Degrade to no synthetic negatives in that case.
-        uncontrolled = (
-            bool(untracked) or body_call or unsupported_state
-            or ((nondet or nondet_body) and not movable)
-        )
-        zero_blockers: List[str] = []
+        # Oracle call sites have already become sampled parameters in ``prog``;
+        # those parameter values are present in Pre/LoopEntry and therefore
+        # separate trace contexts.  Do not discard every variable controlled by
+        # an oracle branch: doing so erased all signal on 108 Full-832 tasks.
+        # Incomplete persistent/memory state still blocks arbitrary relation
+        # perturbations, but it does not invalidate a concretely executed
+        # post-exit continuation.
+        relation_blocked = bool(untracked) or body_call or unsupported_state
+        relation_blockers: List[str] = []
         if untracked:
-            zero_blockers.append("persistent_untracked_state")
+            relation_blockers.append("persistent_untracked_state")
         if body_call:
-            zero_blockers.append("body_call")
+            relation_blockers.append("body_call")
         if unsupported_state:
-            zero_blockers.append("unsupported_state")
-        if (nondet or nondet_body) and not movable:
-            zero_blockers.append("nondeterministic_no_safe_axis")
+            relation_blockers.append("unsupported_state")
 
-        # Family priority for cross-family de-duplication is intentional:
-        # relation > over-run > escape > frame. Each family keeps its own
-        # budget; an under-filled easy family never consumes relational
-        # capacity.
+        # Cross-family de-duplication follows the two-family semantic order:
+        # relation > escape. Each family keeps its own budget.
         relation: List[State] = []
-        overrun_groups: List[List[State]] = []
-        escape: List[State] = []
-        frame: List[State] = []
+        escape_groups: List[List[State]] = []
         random_states: List[State] = []
-        if not uncontrolled:
-            if self.negative_sampler == "random":
+        if self.negative_sampler == "random":
+            if not relation_blocked:
                 # Budget-matched unstructured baseline.  It uses the same
-                # reachable bases, movable-variable safety checks, entry
-                # filter, seed, and total trace cap as the structured sampler,
-                # but
-                # chooses one or two axes and local deltas uniformly.
+                # reachable bases, context-preserving axes, entry filter, seed,
+                # and total trace cap as the structured sampler, but chooses one
+                # or two axes and local deltas uniformly.
                 rng = random.Random(self.seed ^ 0x4C4F4F50)
                 deltas = tuple(range(-34, 0)) + tuple(range(1, 35))
                 attempts = 0
@@ -762,17 +811,14 @@ class ExampleSampler:
                     values = dict(base.vars)
                     for variable in axes:
                         values[variable] += rng.choice(deltas)
-                    state = State(
-                        vars=values,
-                        pre=dict(base.pre),
-                        loop_entry=dict(base.loop_entry),
-                    )
+                    state = base.with_vars(values)
                     key = state.key()
                     if key in reachable or key in seen or entry_feasible(state):
                         continue
                     seen.add(key)
                     random_states.append(state)
-            else:  # structured
+        else:  # structured
+            if not relation_blocked:
                 relation = select_candidates(
                     self._relation_negatives(
                         prog,
@@ -783,66 +829,48 @@ class ExampleSampler:
                         capped,
                     ),
                     _RELATION_GROUP_BUDGET,
-                    fallback_limit=_RELATION_FALLBACK_BUDGET,
                 )
-                overrun_groups = select_overrun_groups()
-                if not capped and positives:
-                    escape = select_candidates(
-                        self._escape_negatives(movable, bases, positives),
-                        _ESCAPE_GROUP_BUDGET,
-                    )
-        # Frame witnesses do not depend on termination or on a deterministic
-        # update axis, so they remain available when nondeterminism blocks the
-        # other structured families. Hidden state/calls can invalidate the
-        # projected no-write argument, hence the state-completeness blockers.
-        if (
-            self.negative_sampler == "structured"
-            and not (untracked or body_call or unsupported_state)
-        ):
-            frame = select_candidates(
-                self._frame_negatives(analysis_prog, bases),
-                _FRAME_GROUP_BUDGET,
-                filter_fresh_entry=False,
-            )
+            # Escape is generated from a real exit and an actually executed
+            # continuation, so it remains available even when arbitrary state
+            # perturbation is conservatively disabled.
+            escape_groups = select_escape_groups()
 
         negatives: List[State] = []
         groups: List[List[int]] = []
+        group_families: List[str] = []
         for state in relation:
             groups.append([len(negatives)])
+            group_families.append("relation")
             negatives.append(state)
-        for trace in overrun_groups:
+        for trace in escape_groups:
             indices = []
             for state in trace:
                 indices.append(len(negatives))
                 negatives.append(state)
             groups.append(indices)
-        for state in escape:
-            groups.append([len(negatives)])
-            negatives.append(state)
+            group_families.append("escape")
         for state in random_states:
             groups.append([len(negatives)])
+            group_families.append("random")
             negatives.append(state)
-        for state in frame:
-            groups.append([len(negatives)])
-            negatives.append(state)
-        if groups:
-            zero_blockers = []
+        zero_blockers: List[str] = []
+        if not groups:
+            zero_blockers.extend(relation_blockers)
+            if not relation:
+                zero_blockers.append("no_admissible_relation_trace")
+            if not escape_groups:
+                zero_blockers.append("no_admissible_escape_trace")
 
         stats = {
             "n_traces": len(groups),
             "n_witness_states": len(negatives),
             "relation": len(relation),
-            "bound_overrun": len(overrun_groups),
-            "bound_escape": len(escape),
+            "escape": len(escape_groups),
             "random": len(random_states),
-            "frame": len(frame),
             "negative_sampler": self.negative_sampler,
             "negative_budget": _NEGATIVE_GROUP_BUDGET,
             "relation_budget": _RELATION_GROUP_BUDGET,
-            "relation_fallback_budget": _RELATION_FALLBACK_BUDGET,
-            "overrun_budget": _OVERRUN_GROUP_BUDGET,
             "escape_budget": _ESCAPE_GROUP_BUDGET,
-            "frame_budget": _FRAME_GROUP_BUDGET,
             "capped": capped,
             "nondet_guard": nondet,
             "nondet_body": nondet_body,
@@ -850,12 +878,17 @@ class ExampleSampler:
             "body_call": body_call,
             "unsupported_state": unsupported_state,
             "safe_movable": sorted(movable),
+            "relation_movable": sorted(movable),
+            "relation_blockers": relation_blockers,
             "tainted_persistent": sorted(
                 set(analysis_prog.pre_vars) & tainted
             ),
+            "tainted_relation_axes": sorted(
+                set(movable) & tainted
+            ),
             "zero_blockers": zero_blockers,
         }
-        return negatives, groups, stats
+        return negatives, groups, group_families, stats
 
     # ── driver ───────────────────────────────────────────────────────────────
     @staticmethod
@@ -972,13 +1005,14 @@ class ExampleSampler:
             return_stats=True,
         )
         positives = self._dedup(reach)
-        negatives, groups, stats = self._negatives(
+        negatives, groups, group_families, stats = self._negatives(
             sampling_prog, positives, overrun, reach, capped,
             analysis_prog=prog,
         )
         es.positives[0] = positives
         es.negatives[0] = negatives
         es.neg_groups[0] = groups
+        es.neg_group_families[0] = group_families
         es.stats[0] = {
             "n_pos": len(positives),
             "n_neg": len(groups),
@@ -1019,9 +1053,8 @@ def _cli():
     for li in sorted(es.positives):
         st = es.stats[li]
         print(f"\nloop {li}: positives={st['n_pos']} negative-traces={st['n_neg']} "
-              f"(relation={st.get('relation','-')} overrun={st.get('bound_overrun','-')} "
-              f"escape={st.get('bound_escape','-')} random={st.get('random','-')} "
-              f"capped={st.get('capped','-')})")
+              f"(relation={st.get('relation','-')} escape={st.get('escape','-')} "
+              f"random={st.get('random','-')} capped={st.get('capped','-')})")
         print("  positives:")
         for s in es.pos(li)[:args.show]:
             print("    +", s.render())

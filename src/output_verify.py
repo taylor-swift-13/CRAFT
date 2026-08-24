@@ -89,9 +89,10 @@ class OutputVerifier:
 
     @staticmethod
     def _is_content_valid(content: str) -> bool:
-        return "Valid" in content and not any(
-            marker in content for marker in ("Unknown", "Timeout", "Failed")
-        )
+        # A portfolio block may contain one timeout and one successful prover.
+        # One kernel/prover ``Valid`` result discharges the goal regardless of
+        # another prover's outcome.
+        return bool(re.search(r"\breturns\s+Valid\b", content))
 
     def check_valid_pairs(self, goals: List[str]) -> List[bool]:
         """Require both establishment and preservation for each source line."""
@@ -116,16 +117,26 @@ class OutputVerifier:
 
     @staticmethod
     def filter_goal_assertion(contents: List[str]) -> List[str]:
-        """Return non-invariant WP goals (assertions, ensures, and contracts)."""
-        invariant_prefixes = (
-            "Goal Establishment of Invariant",
-            "Goal Preservation of Invariant",
-        )
-        return [
-            item for item in contents
-            if item.strip().startswith("Goal ")
-            and not item.strip().startswith(invariant_prefixes)
-        ]
+        """Return source-level assertion/postcondition goals only.
+
+        WP also prints ``Goal Loop assigns`` and generated runtime obligations
+        such as ``Goal Assertion 'missing_return'``.  Those are not benchmark
+        targets and previously turned a proved source assertion into a false
+        label.  Invariant obligations are handled separately by
+        ``validate_result``.
+        """
+        targets = []
+        for item in contents:
+            stripped = item.strip()
+            if stripped.startswith("Goal Assertion 'missing_return'"):
+                continue
+            if stripped.startswith((
+                "Goal Assertion",
+                "Goal Post-condition",
+                "Goal Ensures",
+            )):
+                targets.append(item)
+        return targets
 
     @staticmethod
     def filter_invariant(contents: List[str]) -> List[str]:
@@ -169,11 +180,18 @@ class OutputVerifier:
         )
         if not wp_timeout.isdigit() or int(wp_timeout) < 1:
             wp_timeout = "5"
+        wp_provers = os.environ.get(
+            "CRAFT_WP_PROVERS",
+            os.environ.get("LOOPGYM_WP_PROVERS", "alt-ergo,z3"),
+        ).strip() or "alt-ergo,z3"
         command = [
             "frama-c", "-wp", "-wp-print", "-wp-timeout", wp_timeout,
             "-wp-par", wp_parallel,
-            "-wp-prover", "alt-ergo", "-wp-model", "Typed",
-            "-wp-prop=-@terminates", file_path,
+            "-wp-prover", wp_provers, "-wp-model", "Typed",
+            # Termination and the C front-end's synthetic missing-return check
+            # are not benchmark targets. Excluding the latter also avoids a
+            # needless five-second timeout on otherwise proved NLA cases.
+            "-wp-prop=-@terminates,-missing_return", file_path,
         ]
         try:
             result = subprocess.run(command, capture_output=True, text=True, check=True)

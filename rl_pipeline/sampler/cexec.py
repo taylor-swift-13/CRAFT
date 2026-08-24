@@ -36,10 +36,10 @@ from ..common.state import State, eval_predicate
 
 _ITER_CAP = 2_000_000    # safety net for divergent loops (wall-clock is the real guard)
 _OVERRUN_STEPS = 24      # body executions past the exit (out-of-bounds negatives)
-_PRINT_DENSE = 512       # print every state for the first N iterations
-_PRINT_STRIDE = 251      # afterwards print bursts every STRIDE iterations…
-_PRINT_BURST = 8         # …of BURST consecutive states (keeps windows dense)
-_PRINT_MAX = 20_000      # hard per-run print budget
+_PRINT_DENSE = 128       # enough dense heads for local relation witnesses
+_PRINT_STRIDE = 4_093    # sparse prime stride still spans the whole long run
+_PRINT_BURST = 4         # exactly one dense relation window per sparse probe
+_PRINT_MAX = 2_048       # bounded real-time parsing/memory cost per run
 _MARK = "__LH__"
 _DEFAULT_MIN = -64
 _DEFAULT_MAX = 64

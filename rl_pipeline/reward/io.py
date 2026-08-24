@@ -124,15 +124,8 @@ def batch_reward_to_rows(batch: Batch, br, include_program: bool = False) -> Lis
             "filter_mode": br.filter_mode,
             "reward_variant": br.reward_variant,
             "negative_sampler": br.negative_sampler,
-            "reward_mode": (
-                "binary_frama_c_validation"
-                if br.reward_variant == "binary" or not br.n_negatives
-                else (
-                    "whole_response_negative_coverage"
-                    if br.reward_variant == "whole_coverage"
-                    else "negative_coverage"
-                )
-            ),
+            "reward_mode": br.reward_mode,
+            "scorable": br.scorable,
             "n_positives": br.n_positives,
             "n_negatives": br.n_negatives,
         }

@@ -1,4 +1,9 @@
-__all__ = ["ExampleSampler", "ExampleSet", "NEGATIVE_SAMPLER_MODES"]
+__all__ = [
+    "ExampleSampler",
+    "ExampleSet",
+    "NEGATIVE_SAMPLER_MODES",
+    "NEGATIVE_SCHEMA_VERSION",
+]
 
 
 def __getattr__(name):
@@ -8,11 +13,13 @@ def __getattr__(name):
             ExampleSampler,
             ExampleSet,
             NEGATIVE_SAMPLER_MODES,
+            NEGATIVE_SCHEMA_VERSION,
         )
 
         return {
             "ExampleSampler": ExampleSampler,
             "ExampleSet": ExampleSet,
             "NEGATIVE_SAMPLER_MODES": NEGATIVE_SAMPLER_MODES,
+            "NEGATIVE_SCHEMA_VERSION": NEGATIVE_SCHEMA_VERSION,
         }[name]
     raise AttributeError(name)

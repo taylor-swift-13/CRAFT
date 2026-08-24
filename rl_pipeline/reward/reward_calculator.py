@@ -5,19 +5,23 @@ Given a program and a GROUP of rollouts (each a candidate invariant set), score
 each rollout and the batch, using synthetic negative candidates from the sampler:
 
   whole[A]    = base[A] iff every clause in A survives, else zero
-  base[A]     = fraction of candidates rejected by Houdini(A alone)
+  base[A]     = stratified rejection of relation, dynamic-escape, and hard
+                goal-escape traces by Houdini(A alone)
   shapley[A]  = Shapley allocation of the group's rejection coverage
   reward[A]   = w_base * base[A] + w_shapley * shapley[A]
                 - redundancy_penalty[A] - overflow_penalty[A]
   batch_score = fraction of candidates rejected by Houdini(union)    (batch performance)
 
-Scoring uses ONE canonical example set; soundness is delegated entirely to the
-filter cascade, which ends in real Houdini (Frama-C/WP).
+Scoring uses one canonical target-hidden execution sample.  The full source is
+used only after Houdini to mine concrete assertion-failing escape traces; it is
+never included in the model prompt.  Soundness is delegated to the filter
+cascade, which ends in real Houdini (Frama-C/WP).
 
 A candidate set "rejects" a negative valuation s iff some (Houdini-surviving)
-invariant evaluates to False at s — a cheap pure-Python check on states.  When
-the sampler retains no negatives, the fallback is binary: one iff every candidate in a
-non-empty rollout survives Frama-C/WP validation, otherwise zero.
+invariant evaluates to False at s — a cheap pure-Python check on states.
+When no negative traces remain, coverage variants are explicitly
+unscorable and return an all-zero reward group; they never promote a tautology
+to full strength.  The explicit ``binary`` ablation remains available.
 """
 from __future__ import annotations
 
@@ -28,7 +32,12 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from typing import List, Optional, Set
 
-from ..common.program import parse_program, strip_postcondition
+from ..common.program import (
+    bind_integer_constants,
+    parse_program,
+    state_external_integer_constants,
+    strip_postcondition,
+)
 from ..common.state import (
     MAX_INVARIANTS_PER_RESPONSE,
     State,
@@ -38,6 +47,7 @@ from ..common.state import (
     normalize_invariant,
 )
 from ..sampler import ExampleSampler, ExampleSet
+from ..sampler.goal_escape import mine_goal_escape_groups
 from . import filters
 
 REWARD_VARIANTS = (
@@ -47,6 +57,15 @@ REWARD_VARIANTS = (
     "base_shapley",
     "full",
 )
+
+# Full-832 protocol V4.  Relation and ordinary post-exit escape measure general
+# invariant strength; goal escape is a hard anti-saturation stratum.  Raising
+# its rejection rate to the fifth power means missing one of twelve goal traces
+# lowers an otherwise-perfect base below 0.9.
+RELATION_WEIGHT = 0.55
+DYNAMIC_ESCAPE_WEIGHT = 0.15
+GOAL_ESCAPE_WEIGHT = 0.30
+GOAL_ESCAPE_HARDNESS_POWER = 5
 
 
 @dataclass
@@ -64,6 +83,9 @@ class RolloutScore:
     overflow_penalty: float
     reward: float
     rejected: int                 # negatives rejected standalone
+    relation_rejection_rate: Optional[float] = None
+    dynamic_escape_rejection_rate: Optional[float] = None
+    goal_escape_rejection_rate: Optional[float] = None
 
 @dataclass
 class BatchReward:
@@ -76,6 +98,26 @@ class BatchReward:
     # Kept after the historical fields for positional-constructor compatibility.
     reward_variant: str = "full"
     negative_sampler: str = "structured"
+    n_relation_traces: int = 0
+    n_dynamic_escape_traces: int = 0
+    n_goal_escape_traces: int = 0
+    goal_escape_parseable: bool = False
+    goal_escape_mining_seconds: float = 0.0
+
+    @property
+    def scorable(self) -> bool:
+        """Coverage variants need at least one negative trace to say anything."""
+        return self.reward_variant == "binary" or self.n_negatives > 0
+
+    @property
+    def reward_mode(self) -> str:
+        if self.reward_variant == "binary":
+            return "binary_frama_c_validation"
+        if not self.scorable:
+            return "unscorable_no_negative_traces"
+        if self.reward_variant == "whole_coverage":
+            return "whole_response_negative_coverage"
+        return "negative_coverage"
 
     def to_dict(self) -> dict:
         return {
@@ -86,15 +128,16 @@ class BatchReward:
             "filter_mode": self.filter_mode,
             "reward_variant": self.reward_variant,
             "negative_sampler": self.negative_sampler,
-            "reward_mode": (
-                "binary_frama_c_validation"
-                if self.reward_variant == "binary" or not self.n_negatives
-                else (
-                    "whole_response_negative_coverage"
-                    if self.reward_variant == "whole_coverage"
-                    else "negative_coverage"
-                )
-            ),
+            "negative_protocol": "relation_dynamic_goal_escape_v4",
+            "reward_mode": self.reward_mode,
+            "scorable": self.scorable,
+            "negative_strata": {
+                "relation": self.n_relation_traces,
+                "dynamic_escape": self.n_dynamic_escape_traces,
+                "goal_escape": self.n_goal_escape_traces,
+            },
+            "goal_escape_parseable": self.goal_escape_parseable,
+            "goal_escape_mining_seconds": self.goal_escape_mining_seconds,
             "rollout_rewards": [r.reward for r in self.rollouts],
             "base": [r.base for r in self.rollouts],
             "shapley_credit": [r.shapley_credit for r in self.rollouts],
@@ -117,6 +160,9 @@ class BatchReward:
                  "generated": r.generated, "accepted": r.accepted,
                  "overflow": r.overflow,
                  "rejected": r.rejected,
+                 "relation_rejection_rate": r.relation_rejection_rate,
+                 "dynamic_escape_rejection_rate": r.dynamic_escape_rejection_rate,
+                 "goal_escape_rejection_rate": r.goal_escape_rejection_rate,
                  "survivors": r.survivors}
                 for r in self.rollouts
             ],
@@ -177,6 +223,7 @@ class RewardCalculator:
         logger: Optional[logging.Logger] = None,
         sampler_kwargs: Optional[dict] = None,
         reward_variant: str = "full",
+        goal_escape: bool = True,
     ):
         if reward_variant not in REWARD_VARIANTS:
             raise ValueError(
@@ -193,6 +240,8 @@ class RewardCalculator:
         self.n_jobs = n_jobs or min(16, (os.cpu_count() or 8))
         self.sampler_kwargs = sampler_kwargs or {}
         self.reward_variant = reward_variant
+        self.goal_escape = goal_escape
+        self.logger = log
         if min(
             self.w_base,
             self.w_shapley,
@@ -208,11 +257,17 @@ class RewardCalculator:
 
     # ── negative-rejection bookkeeping ───────────────────────────────────────
     @staticmethod
-    def _rejected_set(negatives: List[State], invariants: List[str]) -> Set[int]:
+    def _rejected_set(
+        negatives: List[State],
+        invariants: List[str],
+        constants: Optional[dict[str, int]] = None,
+    ) -> Set[int]:
         """Indices of negatives excluded by at least one invariant."""
         rej: Set[int] = set()
         for inv in invariants:
-            cond = normalize_invariant(inv)
+            cond = bind_integer_constants(
+                normalize_invariant(inv), constants or {}
+            )
             for i, s in enumerate(negatives):
                 if i in rej:
                     continue
@@ -261,6 +316,7 @@ class RewardCalculator:
                      loop_idx: int = 0,
                      cap_responses: bool = True) -> BatchReward:
         prog = parse_program(source)
+        constants = state_external_integer_constants(prog)
         if not 0 <= loop_idx < len(prog.loops):
             raise ValueError(
                 f"loop_idx {loop_idx} is out of range for {len(prog.loops)} loops"
@@ -273,6 +329,7 @@ class RewardCalculator:
         else:
             groups = [[i] for i in range(len(negatives))]
         n_neg = len(groups)
+        scorable = self.reward_variant == "binary" or n_neg > 0
 
         # Preserve the model's actual clause count for overflow and duplicate
         # accounting. Filtering/scoring uses a canonical de-duplicated set.
@@ -311,7 +368,7 @@ class RewardCalculator:
         rollout_survivors = [survive(invs) for invs in roll_invs]
         rollout_base_rejections = [
             self._to_groups(
-                self._rejected_set(negatives, survivors), groups
+                self._rejected_set(negatives, survivors, constants), groups
             )
             for survivors in rollout_survivors
         ]
@@ -326,7 +383,9 @@ class RewardCalculator:
             1.0 / count if count else 0.0
             for count in group_reject_count
         ]
-        union_rej = self._to_groups(self._rejected_set(negatives, union_surv), groups)
+        union_rej = self._to_groups(
+            self._rejected_set(negatives, union_surv, constants), groups
+        )
         def fully_verified(
             candidates: List[str], survivors: List[str]
         ) -> bool:
@@ -338,19 +397,17 @@ class RewardCalculator:
             )
             return bool(candidate_set) and survivor_set == candidate_set
 
-        if self.reward_variant == "binary":
+        if not scorable:
+            batch_score = 0.0
+        elif self.reward_variant == "binary":
             batch_score = 1.0 if fully_verified(union, union_surv) else 0.0
-        elif self.reward_variant == "whole_coverage" and n_neg:
+        elif self.reward_variant == "whole_coverage":
             batch_score = (
                 len(union_rej) / n_neg
                 if fully_verified(union, union_surv) else 0.0
             )
-        elif n_neg:
-            batch_score = len(union_rej) / n_neg
         else:
-            batch_score = (
-                1.0 if fully_verified(union, union_surv) else 0.0
-            )
+            batch_score = len(union_rej) / n_neg
 
         scores: List[RolloutScore] = []
         for idx, invs in enumerate(roll_invs):
@@ -369,12 +426,20 @@ class RewardCalculator:
                 if cap_responses else 0
             )
             overflow_penalty = self.w_overflow * overflow
-            if self.reward_variant == "binary":
+            if not scorable:
+                # No scored negatives means strength is unknown. Return an
+                # all-zero group so clients that have not consumed the public
+                # ``scorable`` flag still cannot reward a tautology.
+                redundancy_penalty = 0.0
+                redundant_clauses = 0
+                overflow_penalty = 0.0
+                reward = 0.0
+            elif self.reward_variant == "binary":
                 redundancy_penalty = 0.0
                 redundant_clauses = 0
                 overflow_penalty = 0.0
                 reward = 1.0 if fully_verified(invs, surv) else 0.0
-            elif self.reward_variant == "whole_coverage" and n_neg:
+            elif self.reward_variant == "whole_coverage":
                 # All-or-nothing response control: use the same dense
                 # negative-coverage signal as ``base``, but do not salvage a
                 # sound subset from an imperfect response. Keep the overflow
@@ -386,7 +451,7 @@ class RewardCalculator:
                     (base if fully_verified(invs, surv) else 0.0)
                     - overflow_penalty
                 )
-            elif n_neg:
+            else:
                 redundant_clauses = self._duplicate_clause_count(
                     roll_invs_capped[idx]
                 )
@@ -402,14 +467,6 @@ class RewardCalculator:
                     - redundancy_penalty
                     - overflow_penalty
                 )
-            else:
-                # Pure binary fallback: every candidate in this non-empty
-                # rollout must survive Frama-C/WP validation. Do not mix
-                # structural penalties into its public {0, 1} contract.
-                redundancy_penalty = 0.0
-                redundant_clauses = 0
-                overflow_penalty = 0.0
-                reward = 1.0 if fully_verified(invs, surv) else 0.0
             scores.append(RolloutScore(
                 index=idx, invariants=invs, survivors=surv,
                 generated=n_generated, accepted=n_accepted, overflow=overflow,

@@ -1,14 +1,20 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from collections import Counter
 import gzip
 import json
 import os
 from pathlib import Path
+import time
 
 from rl_pipeline.common.program import parse_program
 from rl_pipeline.common.state import State
-from rl_pipeline.sampler import ExampleSampler, ExampleSet
+from rl_pipeline.sampler import (
+    ExampleSampler,
+    ExampleSet,
+    NEGATIVE_SCHEMA_VERSION,
+)
 
 from .common import (
     Task,
@@ -20,8 +26,8 @@ from .common import (
 )
 
 
-SAMPLE_SCHEMA_VERSION = 2
-LOADABLE_SAMPLE_SCHEMA_VERSIONS = {1, SAMPLE_SCHEMA_VERSION}
+SAMPLE_SCHEMA_VERSION = NEGATIVE_SCHEMA_VERSION
+LOADABLE_SAMPLE_SCHEMA_VERSIONS = set(range(1, SAMPLE_SCHEMA_VERSION + 1))
 SAMPLER_CONFIG = {"n_runs": 12, "seed": 0}
 SAMPLER_RUNTIME_POLICY = "skip_and_record_abnormal_concrete_runs_v1"
 
@@ -70,6 +76,7 @@ def _payload(task: Task, examples: ExampleSet) -> dict:
         "positives": [_state_to_dict(state) for state in positives],
         "negatives": [_state_to_dict(state) for state in negatives],
         "negative_trace_groups": groups,
+        "negative_trace_families": examples.group_families(0),
         "stats": examples.stats.get(0, {}),
     }
 
@@ -138,6 +145,10 @@ def _manifest_row(
     payload: dict,
     content_hash: str,
 ) -> dict:
+    families = [str(value) for value in payload.get(
+        "negative_trace_families", []
+    )]
+    stats = payload.get("stats", {})
     return {
         "schema_version": SAMPLE_SCHEMA_VERSION,
         "protocol_sha256": protocol_sha256(),
@@ -155,6 +166,14 @@ def _manifest_row(
         "positive_state_count": len(payload["positives"]),
         "negative_state_count": len(payload["negatives"]),
         "negative_trace_count": len(payload["negative_trace_groups"]),
+        "negative_family_counts": dict(sorted(Counter(families).items())),
+        "zero_blockers": list(stats.get("zero_blockers", [])),
+        "nondet_guard": bool(stats.get("nondet_guard", False)),
+        "nondet_body": bool(stats.get("nondet_body", False)),
+        "tainted_relation_axis_count": len(
+            stats.get("tainted_relation_axes", [])
+        ),
+        "sampling_seconds": payload.get("sampling_seconds"),
     }
 
 
@@ -169,11 +188,13 @@ def materialize_samples(results_root: Path, workers: int = 4) -> dict[tuple[str,
             payload, content_hash = existing
             return _manifest_row(task, path, payload, content_hash)
 
+        started = time.perf_counter()
         try:
             examples = ExampleSampler(task.hidden_source, **SAMPLER_CONFIG).sample()
             payload = _payload(task, examples)
         except Exception as exc:
             payload = _failure_payload(task, exc)
+        payload["sampling_seconds"] = time.perf_counter() - started
         compressed, content_hash = _encode_payload(payload)
         path.parent.mkdir(parents=True, exist_ok=True)
         temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
@@ -307,6 +328,8 @@ def load_sample(task: Task, manifest_row: dict) -> ExampleSet:
             f"fixed sampler failure for {task.suite}/{task.case_id}: "
             f"{payload.get('sample_error')}"
         )
+    # Schema < 3 payloads carry no per-trace family labels.
+    families = payload.get("negative_trace_families")
     return ExampleSet(
         program=parse_program(task.hidden_source),
         positives={0: [_state_from_dict(item) for item in payload["positives"]]},
@@ -318,4 +341,7 @@ def load_sample(task: Task, manifest_row: dict) -> ExampleSet:
             ]
         },
         stats={0: payload.get("stats", {})},
+        neg_group_families=(
+            {} if families is None else {0: [str(family) for family in families]}
+        ),
     )

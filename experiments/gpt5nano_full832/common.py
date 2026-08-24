@@ -333,12 +333,10 @@ def score_negative_rejection_many(
             )
             rollout = reward.rollouts[0]
             has_negatives = reward.n_negatives > 0
+            binary_mode = reward.reward_mode == "binary_frama_c_validation"
             results.append({
                 "negative_score_status": "completed",
-                "reward_mode": (
-                    "negative_coverage" if has_negatives
-                    else "binary_frama_c_validation"
-                ),
+                "reward_mode": reward.reward_mode,
                 "positive_state_count": reward.n_positives,
                 "negative_trace_count": reward.n_negatives,
                 "rejected_negative_count": (
@@ -348,7 +346,7 @@ def score_negative_rejection_many(
                     rollout.base if has_negatives else None
                 ),
                 "binary_frama_c_validation": (
-                    rollout.reward if not has_negatives else None
+                    rollout.reward if binary_mode else None
                 ),
                 "score_surviving_invariants": rollout.survivors,
                 "negative_score_error": None,

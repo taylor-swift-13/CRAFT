@@ -11,6 +11,9 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "paper" / "scripts" / "filter_training_by_negative_coverage.py"
+sys.path.insert(0, str(ROOT))
+
+from rl_pipeline.sampler.example_sampler import NEGATIVE_SCHEMA_VERSION  # noqa: E402
 
 
 def _record(source: str) -> dict:
@@ -25,6 +28,7 @@ def _record(source: str) -> dict:
 
 def _coverage(source: str, *, scorable: bool, negatives: int) -> dict:
     return {
+        "coverage_schema_version": NEGATIVE_SCHEMA_VERSION,
         "source_sha256": hashlib.sha256(source.encode("utf-8")).hexdigest(),
         "scorable": scorable,
         "n_negative_traces": negatives,
@@ -101,6 +105,18 @@ class NegativeCoverageFilterTests(unittest.TestCase):
 
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("unscorable rows", result.stderr)
+        self.assertFalse(output.exists())
+        self.assertFalse(report.exists())
+
+    def test_release_fails_closed_on_stale_sampler_schema(self):
+        source = "void f(void) { int x = 0; while (x < 2) { x++; } }"
+        stale = _coverage(source, scorable=True, negatives=1)
+        stale["coverage_schema_version"] = NEGATIVE_SCHEMA_VERSION - 1
+
+        result, output, report = self._run([_record(source)], [stale])
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("stale sampler schema", result.stderr)
         self.assertFalse(output.exists())
         self.assertFalse(report.exists())
 

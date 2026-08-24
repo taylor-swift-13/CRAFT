@@ -37,7 +37,7 @@ run passes through):
 - **negative candidate** = a synthetic trace intended to depart from observed
   loop behavior. Each is stored as its *witness states* (where the synthetic
   history departs from sampled behavior, grouped in `neg_groups`): a one-shot perturbation is a
-  singleton ("real prefix + this state"); an over-run continuation is one
+  singleton ("real prefix + this state"); an escape continuation is one
   group holding its whole past-the-exit segment.  A rollout **rejects** the
   history iff some invariant is false at any witness — and rewards count in
   trace units, so one long fake continuation is one negative, not twenty-four.
@@ -48,45 +48,48 @@ parameters.
 
 The training signal favors invariants that are sound on sampled positives and
 exclude many audited negative candidates. The design is deliberately minimal:
-three candidate families, conservative construction guards, and no scoring-side
+two complementary candidate families, conservative construction guards, and no scoring-side
 patch layers. Finite execution is not a proof of global unreachability; the real
 Frama-C/WP Houdini stage proves candidate invariants, while the audit below
 checks the sampled labels for observed collisions.
 
-Three negative families:
+Two negative families:
 
 - **relation** — small perturbations around bases whose next three trace
   coordinates were printed, plus a wider local neighborhood around witnessed
-  true-guard → false-guard terminal transitions. Guard-preserving candidates
-  inside the sampled envelope are selected first; easy guard/range-changing
-  fallbacks are capped at 64 groups;
-- **over-run** — the loop body executed past a **genuine** exit: real dynamics
+  true-guard → false-guard terminal transitions. Every candidate must preserve
+  the guard truth value and remain inside the sampled envelope for the same
+  `Pre`/`LoopEntry` context; perturbations parallel to a witnessed transition
+  are removed because they are merely another reachable trace position;
+- **escape** — the loop body executed past a **genuine** exit: real dynamics
   (preserves every relation, linear *and* nonlinear, e.g. `z==x*y`), out of the
   reachable range;
-- **escape** — only the nearest ladder step per base, variable, and direction
-  that leaves the sampled range.
 
-The independent trace-group caps are 320 relation, 64 over-run, and 128
-escape (512 total maximum), selected round-robin across structural buckets.
+The independent trace-group caps are 48 relation and 12 escape (60 total
+maximum), selected round-robin across structural buckets. Range and frame
+perturbation families are not generated.
 
 Conservative construction guards:
 
 - states observed **reachable** are never negatives;
 - states that could be a **fresh loop entry** (params free, `requires`
   satisfiable) are never negatives — they are reachable under other inputs;
-- `unknown()` call sites are replaced by fresh sampled parameters only during
-  concrete execution; body-tainted variables are not perturbed, but other
-  deterministic-transition variables can still produce negatives;
-- untracked block-local state, pointer/array state, and function calls in the
-  loop body likewise disable synthetic negatives;
-- capped deterministic runs disable escapes because their sampled range is
-  incomplete.
+- `unknown*()` call sites are replaced by fresh sampled parameters only during
+  concrete execution. Their values remain in each trace's `Pre`/`LoopEntry`
+  context, so oracle-affected relation axes no longer disappear globally;
+- untracked persistent state, pointer/array state, and non-oracle function calls
+  disable arbitrary relation perturbations, but do not suppress a genuinely
+  executed post-exit continuation;
+- capped/nonterminating runs can still contribute witnessed relation traces,
+  but never fabricate an exit continuation.
 
 Supporting mechanics: loops run to their real exit (printing is throttled, not
 the execution); inputs satisfy the full multi-clause `requires` incl.
 param-vs-param constraints (or sampling fails explicitly); unsigned values keep
-their C signedness; far input placement is seed-hashed; ACSL predicates use
-C-style truncating `/` and `%`.
+their C signedness; perturbation bases retain a dense prefix, distributed
+mid-trace points, and the end of every concrete trace; integer macros are bound
+before guard/invariant evaluation; far input placement is seed-hashed; ACSL
+predicates use C-style truncating `/` and `%`.
 
 The supported sampling model is one braced `while` loop over scalar C `int`
 parameters, locals, and file-scope variables. Multiple loops, `for` loops, and
@@ -104,13 +107,14 @@ es = ExampleSampler(
 es.pos(0)      # reachable loop-head valuations
 es.neg(0)      # witness states of synthetic negative candidates
 es.groups(0)   # witness-index groups, one per candidate trace unit
+es.group_families(0)  # relation / escape label for each trace
 ```
 CLI: `python -m rl_pipeline.sampler.example_sampler <file.c>`
 
 Negative-sampler ablations are selected with `negative_sampler` (or the CLI
 flag `--negative-sampler`): `random` uses budget-matched unstructured
-perturbations, while `structured` composes relational perturbations,
-post-exit continuations, and range/bound escapes. `structured` is the default.
+perturbations, while `structured` composes relational perturbations and
+post-exit escapes. `structured` is the default.
 
 **Discrimination harness** — `python -m rl_pipeline.eval.discrimination` scores
 rollout families of known quality (gold / loose / trivial / guard / post /
@@ -155,10 +159,11 @@ units — one fake continuation is ONE negative, not twenty-four):
   not enter filtering or scoring, and each overflow line subtracts 0.05. The
   response exposes `generated`, `accepted`, `overflow`, and
   `overflow_penalty`;
-- `batch_score` = candidates rejected by `Houdini(∪)`. If no synthetic
-  negatives are available, rollout and batch rewards fall back to binary
-  Frama-C/WP validation: 1 iff the non-empty candidate set survives Houdini
-  without any clause being removed, otherwise 0.
+- `batch_score` = candidate traces rejected by `Houdini(∪)`. If no
+  negatives are available, coverage rewards are zero and the response reports
+  `scorable=false`; trainers must mask that group. This prevents a tautology
+  from receiving full strength merely because sampling produced no evidence.
+  Binary inductiveness remains an explicit `reward_variant="binary"` ablation.
 
 ```python
 from rl_pipeline.reward import RewardCalculator

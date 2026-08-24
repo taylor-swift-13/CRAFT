@@ -11,8 +11,8 @@ import re
 from dataclasses import dataclass
 from typing import Iterable
 
-from .program import Program
-from .state import _acsl_to_py, normalize_invariant
+from .program import Program, integer_source_constants
+from .state import _acsl_to_py, _python_name, normalize_invariant
 
 
 _AT_CALL = re.compile(
@@ -154,7 +154,16 @@ def parse_scalar_invariant(expression: str, program: Program) -> ParseVerdict:
     # ordinary identifiers.  This preserves implication/equivalence precedence.
     try:
         tree = ast.parse(_acsl_to_py(without_at).strip(), mode="eval")
-        allowed = set(program.pre_vars) | at_names | {"True", "False"}
+        # ``_acsl_to_py`` aliases program variables that are Python keywords.
+        allowed = (
+            {_python_name(name) for name in program.pre_vars}
+            | {
+                _python_name(name)
+                for name in integer_source_constants(program.source)
+            }
+            | at_names
+            | {"True", "False"}
+        )
         if _kind(tree, allowed) != "bool":
             return ParseVerdict(False, "not_a_proposition")
     except (SyntaxError, TypeError, ValueError, _InvalidExpression) as error:

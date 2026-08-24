@@ -87,6 +87,65 @@ class LLMRegressionTests(unittest.TestCase):
 
 
 class PredicateRegressionTests(unittest.TestCase):
+    def test_integer_macro_is_in_scope_and_evaluated_on_positive_states(self):
+        program = parse_program(
+            "#define LIMIT 4\n"
+            "void f(void) { int x = 0; while (x < LIMIT) { x++; } }"
+        )
+        positives = [State(vars={"x": value}) for value in range(5)]
+
+        self.assertEqual(
+            PositiveFilter().filter(
+                program, 0, ["x <= LIMIT", "x < LIMIT"], positives
+            ),
+            ["x <= LIMIT"],
+        )
+
+    def test_mutable_file_global_uses_sampled_value_not_initializer(self):
+        source = (
+            "int LIMIT = 4; "
+            "void f(void) { while (LIMIT > 0) { LIMIT--; } }"
+        )
+        program = parse_program(source)
+        positives = [
+            State(vars={"LIMIT": 4}),
+            State(vars={"LIMIT": 3}),
+        ]
+
+        self.assertEqual(
+            PositiveFilter().filter(program, 0, ["LIMIT == 4"], positives),
+            [],
+        )
+
+        examples = ExampleSet(
+            program=program,
+            positives={0: [State(vars={"LIMIT": 4})]},
+            negatives={0: [State(vars={"LIMIT": 3})]},
+            neg_groups={0: [[0]]},
+        )
+        rollout = RewardCalculator(n_jobs=1).compute(
+            source, [["LIMIT == 4"]], examples=examples
+        ).rollouts[0]
+        self.assertEqual(rollout.base, 1.0)
+        self.assertEqual(rollout.rejected, 1)
+
+    def test_python_keyword_c_identifier_is_evaluated_scalar_and_vector(self):
+        states = [
+            State(vars={"in": 1, "buf": 1}, pre={"in": 0}),
+            State(vars={"in": 2, "buf": 1}, pre={"in": 0}),
+        ]
+
+        self.assertIs(eval_predicate("in == buf", states[0]), True)
+        self.assertIs(eval_predicate("in == buf", states[1]), False)
+        self.assertIs(
+            eval_predicate(r"in >= \at(in, Pre)", states[1]),
+            True,
+        )
+        self.assertIs(
+            first_falsifying_state("in == buf", states),
+            states[1],
+        )
+
     def test_model_response_invariant_parser_can_enforce_twenty_line_cap(self):
         response = "\n".join(
             f"loop invariant x >= {-index};"
@@ -317,7 +376,7 @@ class ParserAndAnnotationRegressionTests(unittest.TestCase):
         self.assertEqual(program.func_name, "target")
         self.assertEqual(program.loop.guard, "x < 1")
 
-    def test_prefix_and_postfix_updates_are_loop_assigns(self):
+    def test_annotation_does_not_synthesize_a_frame_clause(self):
         source = (
             "void f(void) { int x = 0; int y = 3; "
             "while (x < y) { x++; --y; } }"
@@ -326,9 +385,10 @@ class ParserAndAnnotationRegressionTests(unittest.TestCase):
 
         annotated = annotate.build_annotated(program, ["x <= y + 1"])
 
-        self.assertIn("loop assigns x, y;", annotated)
+        self.assertIn("loop invariant x <= y + 1;", annotated)
+        self.assertNotIn("loop assigns", annotated)
 
-    def test_loop_assigns_excludes_block_scoped_integer_locals(self):
+    def test_annotation_contains_only_requested_invariants(self):
         source = (
             "void f(int n) { while (n > 0) { "
             "int __n = n; n--; __n++; } }"
@@ -337,8 +397,9 @@ class ParserAndAnnotationRegressionTests(unittest.TestCase):
 
         annotated = annotate.build_annotated(program, ["n >= 0"])
 
-        self.assertIn("loop assigns n;", annotated)
-        self.assertNotIn("loop assigns __n", annotated)
+        self.assertIn("loop invariant n >= 0;", annotated)
+        self.assertNotIn("loop assigns", annotated)
+        self.assertNotIn("loop invariant __n", annotated)
 
     def test_annotation_never_injects_helper_logic_definitions(self):
         source = (
@@ -592,6 +653,31 @@ class Full832ExperimentRegressionTests(unittest.TestCase):
 
 
 class SyntaxScrubRegressionTests(unittest.TestCase):
+    def test_target_filter_excludes_frame_and_generated_missing_return(self):
+        goals = [
+            "Goal Assertion (file p.c, line 7):\nProver Qed returns Valid",
+            "Goal Assertion 'missing_return' (file p.c, line 8):\n"
+            "Prover Alt-Ergo returns Timeout",
+            "Goal Loop assigns (file p.c, line 5):\n"
+            "Prover Alt-Ergo returns Timeout",
+            "Goal Preservation of Invariant (file p.c, line 4):\n"
+            "Prover Qed returns Valid",
+        ]
+
+        self.assertEqual(
+            OutputVerifier.filter_goal_assertion(goals),
+            [goals[0]],
+        )
+
+    def test_portfolio_goal_is_valid_when_any_prover_succeeds(self):
+        goal = (
+            "Goal Assertion (file p.c, line 7):\n"
+            "Prover Alt-Ergo returns Timeout\n"
+            "Prover Z3 returns Valid"
+        )
+
+        self.assertTrue(OutputVerifier._is_content_valid(goal))
+
     def test_wp_timeout_defaults_to_five_seconds_and_allows_override(self):
         source = (
             "void f(void) { int x = 0; "
@@ -613,10 +699,20 @@ class SyntaxScrubRegressionTests(unittest.TestCase):
                     mock.patch.dict(os.environ, {}, clear=False):
                 os.environ.pop("CRAFT_WP_TIMEOUT", None)
                 os.environ.pop("LOOPGYM_WP_TIMEOUT", None)
+                os.environ.pop("CRAFT_WP_PROVERS", None)
+                os.environ.pop("LOOPGYM_WP_PROVERS", None)
                 OutputVerifier().run(source_file.name)
                 default_command = run.call_args.args[0]
                 self.assertEqual(
                     default_command[default_command.index("-wp-timeout") + 1], "5"
+                )
+                self.assertEqual(
+                    default_command[default_command.index("-wp-prover") + 1],
+                    "alt-ergo,z3",
+                )
+                self.assertIn(
+                    "-wp-prop=-@terminates,-missing_return",
+                    default_command,
                 )
 
                 os.environ["CRAFT_WP_TIMEOUT"] = "9"
@@ -995,7 +1091,7 @@ class RewardPatchRegressionTests(unittest.TestCase):
             - 0.02,
         )
 
-    def test_zero_negative_fallback_uses_binary_frama_c_validation(self):
+    def test_zero_negative_coverage_is_unscorable_and_cannot_reward_tautology(self):
         source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
         examples = ExampleSet(
             program=parse_program(source),
@@ -1022,15 +1118,35 @@ class RewardPatchRegressionTests(unittest.TestCase):
         self.assertEqual(result.batch_score, 0.0)
         self.assertEqual(
             [rollout.reward for rollout in result.rollouts],
-            [1.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0],
         )
+        self.assertFalse(result.scorable)
         self.assertEqual(
             result.to_dict()["reward_mode"],
-            "binary_frama_c_validation",
+            "unscorable_no_negative_traces",
         )
         self.assertNotIn("survival_bonus", result.to_dict())
         self.assertNotIn("marginal", result.to_dict())
         self.assertNotIn("should_reroll", result.to_dict())
+
+        binary = RewardCalculator(
+            invariant_filter=SelectiveFilter(),
+            reward_variant="binary",
+            n_jobs=1,
+        ).compute(
+            source,
+            [["x >= 0"], ["x == 42"], []],
+            examples=examples,
+        )
+        self.assertTrue(binary.scorable)
+        self.assertEqual(
+            [rollout.reward for rollout in binary.rollouts],
+            [1.0, 0.0, 0.0],
+        )
+        self.assertEqual(
+            binary.reward_mode,
+            "binary_frama_c_validation",
+        )
 
     def test_default_reward_adds_coverage_game_shapley_credit(self):
         source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
@@ -1239,8 +1355,21 @@ class RewardPatchRegressionTests(unittest.TestCase):
 
 @unittest.skipUnless(shutil.which("gcc"), "gcc is required for sampler tests")
 class SamplerIntegrationRegressionTests(unittest.TestCase):
+    def test_relation_generation_evaluates_integer_macros_in_guard(self):
+        source = (
+            "#define LIMIT 8\n"
+            "void f(void) { int x = 0; while (x < LIMIT) { x += 2; } }"
+        )
+
+        examples = ExampleSampler(source, n_runs=1).sample()
+
+        self.assertGreater(examples.stats[0]["relation"], 0)
+
     def test_negative_sampler_ablation_modes_are_isolated_and_deterministic(self):
-        source = "void f(void) { int x = 0; while (x < 4) { x++; } }"
+        source = (
+            "void f(void) { int x = 0; int y = 0; "
+            "while (x < 4) { x++; y += 2; } }"
+        )
         self.assertEqual(
             NEGATIVE_SAMPLER_MODES, ("random", "structured")
         )
@@ -1257,8 +1386,8 @@ class SamplerIntegrationRegressionTests(unittest.TestCase):
         random_stats = sampled["random"].stats[0]
         self.assertGreater(random_stats["random"], 0)
         self.assertEqual(random_stats["relation"], 0)
-        self.assertEqual(random_stats["bound_overrun"], 0)
-        self.assertEqual(random_stats["bound_escape"], 0)
+        self.assertEqual(random_stats["escape"], 0)
+        self.assertNotIn("range", random_stats)
         repeated = ExampleSampler(
             source,
             n_runs=1,
@@ -1272,28 +1401,124 @@ class SamplerIntegrationRegressionTests(unittest.TestCase):
 
         structured_stats = sampled["structured"].stats[0]
         self.assertGreater(structured_stats["relation"], 0)
-        self.assertGreater(structured_stats["bound_overrun"], 0)
-        self.assertGreater(structured_stats["bound_escape"], 0)
+        self.assertGreater(structured_stats["escape"], 0)
         self.assertEqual(structured_stats["random"], 0)
+        self.assertNotIn("range", structured_stats)
+        self.assertEqual(
+            set(sampled["structured"].group_families()),
+            {"relation", "escape"},
+        )
 
         with self.assertRaisesRegex(ValueError, "negative_sampler"):
             ExampleSampler(source, negative_sampler="not-a-sampler")
 
-    def test_escape_uses_only_nearest_step_per_axis_and_direction(self):
-        source = "void f(void) { int x = 0; while (x < 10) { x++; } }"
-        sampler = ExampleSampler(source, n_runs=1)
+    def test_unknown_call_names_are_oracles_not_body_call_blockers(self):
+        source = (
+            "extern int unknown_int(void); "
+            "void f(void) { int x = 0; int y = 0; "
+            "while (x < 6) { if (unknown_int()) { x++; y += 2; } "
+            "else { x++; y += 2; } } }"
+        )
+
+        examples = ExampleSampler(source, n_runs=4).sample()
+        stats = examples.stats[0]
+
+        self.assertFalse(stats["body_call"])
+        self.assertGreater(stats["relation"], 0)
+        self.assertEqual(set(stats["tainted_relation_axes"]), {"x", "y"})
+        self.assertNotIn("nondeterministic_no_safe_axis", stats["zero_blockers"])
+
+    def test_escape_remains_available_when_relation_has_body_call_blocker(self):
+        source = (
+            "int step(int x) { return x + 1; } "
+            "void f(void) { int x = 0; while (x < 3) { x = step(x); } }"
+        )
+
+        examples = ExampleSampler(source, n_runs=1).sample()
+        stats = examples.stats[0]
+
+        self.assertTrue(stats["body_call"])
+        self.assertEqual(stats["relation"], 0)
+        self.assertGreater(stats["escape"], 0)
+        self.assertEqual(set(examples.group_families()), {"escape"})
+
+    def test_base_cap_is_stratified_across_traces(self):
         positives = [
-            State(vars={"x": value}) for value in range(11)
+            State(vars={"x": value}, pre={"n": 1000}, run=0, it=value)
+            for value in range(1000)
+        ] + [
+            State(vars={"x": value}, pre={"n": 2}, run=1, it=value)
+            for value in range(3)
         ]
 
-        candidates = sampler._escape_negatives(
-            ["x"], [State(vars={"x": 0})], positives
-        )
+        bases = ExampleSampler._bases(positives)
 
+        self.assertEqual(len(bases), 96)
         self.assertEqual(
-            [candidate.state.vars["x"] for candidate in candidates],
-            [13, -5],
+            [state.vars["x"] for state in bases if state.run == 1],
+            [0, 1, 2],
         )
+        long_trace = [state for state in bases if state.run == 0]
+        self.assertEqual(
+            [state.it for state in long_trace[:4]],
+            [0, 1, 2, 3],
+        )
+        self.assertEqual(long_trace[-1].it, 999)
+
+    def test_relation_traces_stay_in_context_range_and_preserve_guard(self):
+        source = (
+            "void f(void) { int x = 0; int y = 0; "
+            "while (x < 4) { x++; y += 2; } }"
+        )
+        examples = ExampleSampler(source, n_runs=1).sample()
+        relation_indices = [
+            index
+            for group, family in zip(
+                examples.groups(0), examples.group_families(0)
+            )
+            if family == "relation"
+            for index in group
+        ]
+        positives_by_context = {}
+        positives_by_coordinate = {}
+        for state in examples.pos(0):
+            positives_by_context.setdefault(state.context_key(), []).append(state)
+            positives_by_coordinate[(state.run, state.it)] = state
+
+        self.assertGreater(len(relation_indices), 0)
+        for index in relation_indices:
+            negative = examples.neg(0)[index]
+            context_states = positives_by_context[negative.context_key()]
+            for variable, value in negative.vars.items():
+                observed = [state.vars[variable] for state in context_states]
+                self.assertGreaterEqual(value, min(observed))
+                self.assertLessEqual(value, max(observed))
+            base = positives_by_coordinate[(negative.run, negative.it)]
+            self.assertEqual(
+                eval_predicate("x < 4", negative),
+                eval_predicate("x < 4", base),
+            )
+
+    def test_relation_drops_reachable_unit_tangent_but_keeps_lattice_holes(self):
+        unit = ExampleSampler(
+            "void f(void) { int x = 0; while (x < 8) { x++; } }",
+            n_runs=1,
+        ).sample()
+        stride = ExampleSampler(
+            "void f(void) { int x = 0; while (x < 8) { x += 2; } }",
+            n_runs=1,
+        ).sample()
+
+        self.assertEqual(unit.stats[0]["relation"], 0)
+        self.assertGreater(stride.stats[0]["relation"], 0)
+        relation_states = [
+            stride.neg(0)[group[0]]
+            for group, family in zip(
+                stride.groups(0), stride.group_families(0)
+            )
+            if family == "relation"
+        ]
+        self.assertTrue(all(state.vars["x"] % 2 for state in relation_states))
 
     def test_unknown_initialized_local_retains_loop_entry_snapshot(self):
         source = (
@@ -1343,9 +1568,14 @@ class SamplerIntegrationRegressionTests(unittest.TestCase):
 
         self.assertGreater(stats["relation"], 0)
         self.assertLessEqual(stats["relation"], stats["relation_budget"])
-        self.assertLessEqual(stats["bound_overrun"], stats["overrun_budget"])
-        self.assertLessEqual(stats["bound_escape"], stats["escape_budget"])
+        self.assertLessEqual(stats["escape"], stats["escape_budget"])
         self.assertLessEqual(stats["n_traces"], stats["negative_budget"])
+        self.assertEqual(stats["negative_budget"], 60)
+        self.assertEqual(stats["relation_budget"], 48)
+        self.assertEqual(stats["escape_budget"], 12)
+        self.assertNotIn("range", stats)
+        self.assertNotIn("frame", stats)
+        self.assertNotIn("relation_fallback_budget", stats)
         self.assertTrue(any(
             eval_predicate("0 <= k && k <= 1", state) is True
             and eval_predicate("k == 0 || a <= m", state) is False
@@ -1459,6 +1689,9 @@ class SamplerIntegrationRegressionTests(unittest.TestCase):
         self.assertIsInstance(rows[0]["survivors"], list)
         self.assertEqual(rows[0]["reward_variant"], "full")
         self.assertEqual(rows[0]["negative_sampler"], "structured")
+        self.assertTrue(rows[1]["scorable"])
+        self.assertEqual(rows[1]["base"], 0.0)
+        self.assertEqual(rows[1]["reward"], 0.0)
 
     def test_oracle_sampling_repeats_a_fixed_valid_input(self):
         inputs = cexec.sample_inputs(
@@ -1511,7 +1744,7 @@ class SamplerIntegrationRegressionTests(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn("gcc failed", response.json()["detail"])
 
-    def test_nondeterministic_guard_and_body_keep_safe_negatives(self):
+    def test_nondeterministic_scalar_tangent_has_no_fake_relation_or_escape(self):
         programs = {
             "guard": (
                 "int unknown(void); void f(void) { int x = 0; "
@@ -1527,8 +1760,16 @@ class SamplerIntegrationRegressionTests(unittest.TestCase):
             with self.subTest(label=label):
                 examples = ExampleSampler(source, n_runs=1).sample()
                 self.assertGreater(len(examples.pos(0)), 0)
-                self.assertGreater(len(examples.neg(0)), 0)
-                self.assertGreater(len(examples.groups(0)), 0)
+                self.assertEqual(examples.neg(0), [])
+                self.assertEqual(examples.groups(0), [])
+                self.assertIn(
+                    "no_admissible_relation_trace",
+                    examples.stats[0]["zero_blockers"],
+                )
+                self.assertIn(
+                    "no_admissible_escape_trace",
+                    examples.stats[0]["zero_blockers"],
+                )
 
     def test_sampling_determinizes_oracle_calls_without_rewriting_declarations(self):
         source = (
@@ -1558,7 +1799,7 @@ class SamplerIntegrationRegressionTests(unittest.TestCase):
         self.assertEqual(ExampleSampler._nondet_tainted(preloop), set())
         self.assertEqual(ExampleSampler._nondet_tainted(in_body), {"x", "y"})
 
-    def test_zero_negative_stats_explain_no_safe_nondeterministic_axis(self):
+    def test_oracle_affected_axis_can_still_supply_real_escape(self):
         source = (
             "int unknown(void); void f(void) { int x = 0; "
             "while (x < 10) { if (unknown()) x++; } }"
@@ -1566,15 +1807,14 @@ class SamplerIntegrationRegressionTests(unittest.TestCase):
 
         examples = ExampleSampler(source, n_runs=1).sample()
 
-        self.assertEqual(examples.neg(0), [])
-        self.assertEqual(examples.stats[0]["safe_movable"], [])
+        self.assertGreater(len(examples.neg(0)), 0)
+        self.assertEqual(set(examples.group_families()), {"escape"})
+        self.assertEqual(examples.stats[0]["safe_movable"], ["x"])
         self.assertEqual(examples.stats[0]["tainted_persistent"], ["x"])
-        self.assertIn(
-            "nondeterministic_no_safe_axis",
-            examples.stats[0]["zero_blockers"],
-        )
+        self.assertEqual(examples.stats[0]["tainted_relation_axes"], ["x"])
+        self.assertEqual(examples.stats[0]["zero_blockers"], [])
 
-    def test_frame_negatives_survive_capped_oracle_execution(self):
+    def test_capped_oracle_execution_does_not_fabricate_frame_traces(self):
         source = (
             "int unknown(void); void f(int n) { int x = 0; int frozen = unknown(); "
             "while (unknown()) { if (unknown()) x++; } }"
@@ -1582,21 +1822,22 @@ class SamplerIntegrationRegressionTests(unittest.TestCase):
 
         examples = ExampleSampler(source, n_runs=1).sample()
 
-        self.assertGreater(examples.stats[0]["frame"], 0)
-        self.assertTrue(any(
-            state.vars["n"] != state.loop_entry["n"]
-            for state in examples.neg(0)
-        ))
-        self.assertTrue(any(
-            state.vars["frozen"] != state.loop_entry["frozen"]
-            for state in examples.neg(0)
-        ))
+        self.assertEqual(examples.neg(0), [])
+        self.assertNotIn("frame", examples.stats[0])
+        self.assertIn(
+            "no_admissible_relation_trace",
+            examples.stats[0]["zero_blockers"],
+        )
+        self.assertIn(
+            "no_admissible_escape_trace",
+            examples.stats[0]["zero_blockers"],
+        )
 
     def test_reachability_dedup_is_relative_to_pre_and_loop_entry(self):
         source = (
             "/*@ requires x >= 0; */ void f(int x) { "
-            "while (1) { int old = x; if (!(old < 268435455)) break; "
-            "x = old + 1; } }"
+            "while (1) { if (!(x < 268435454)) break; "
+            "x = x + 2; } }"
         )
 
         examples = ExampleSampler(source, n_runs=2).sample()
@@ -1630,7 +1871,9 @@ class SamplerIntegrationRegressionTests(unittest.TestCase):
 
         examples = ExampleSampler(source, n_runs=1).sample()
 
-        self.assertEqual(examples.neg(0), [])
+        self.assertEqual(examples.stats[0]["relation"], 0)
+        self.assertGreater(examples.stats[0]["escape"], 0)
+        self.assertEqual(set(examples.group_families()), {"escape"})
         self.assertEqual(examples.stats[0]["untracked_state"], ["hidden"])
 
 

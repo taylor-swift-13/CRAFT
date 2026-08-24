@@ -25,7 +25,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 
 @dataclass
@@ -52,6 +52,67 @@ class Program:
     @property
     def loop(self) -> Optional[LoopInfo]:
         return self.loops[0] if self.loops else None
+
+
+def integer_source_constants(source: str) -> Dict[str, int]:
+    """Return literal integer macros and initialized file-scope globals."""
+    constants: Dict[str, int] = {}
+    literal = r"[+-]?(?:0[xX][0-9A-Fa-f]+|\d+)[uUlL]*"
+    for match in re.finditer(
+        rf"(?m)^\s*#\s*define\s+([A-Za-z_]\w*)\s+\(?\s*({literal})\s*\)?\s*$",
+        source,
+    ):
+        raw = re.sub(r"[uUlL]+$", "", match.group(2))
+        constants[match.group(1)] = int(raw, 0)
+
+    clean = re.sub(
+        r"/\*.*?\*/", lambda match: " " * len(match.group(0)), source,
+        flags=re.DOTALL,
+    )
+    clean = re.sub(r"//[^\n]*", lambda match: " " * len(match.group(0)), clean)
+    top = list(clean)
+    depth = 0
+    for index, char in enumerate(clean):
+        if char == "{":
+            depth += 1
+            top[index] = " "
+        elif char == "}":
+            top[index] = " "
+            depth = max(0, depth - 1)
+        elif depth and char != "\n":
+            top[index] = " "
+    declaration = re.compile(
+        rf"(?m)^\s*(?:(?:static|extern|const|volatile|unsigned|signed)\s+)*"
+        rf"(?:int|long|short)\s+([A-Za-z_]\w*)\s*=\s*({literal})\s*;"
+    )
+    for match in declaration.finditer("".join(top)):
+        raw = re.sub(r"[uUlL]+$", "", match.group(2))
+        constants[match.group(1)] = int(raw, 0)
+    return constants
+
+
+def state_external_integer_constants(program: Program) -> Dict[str, int]:
+    """Return source constants that are absent from dynamic loop states.
+
+    File-scope integers are part of ``pre_vars`` and therefore have a value in
+    every sampled state. Substituting their initializer would be wrong if a
+    loop mutates the global. Macros (and any other untracked literal source
+    constants) have no state component, so evaluators must still bind them.
+    """
+    return {
+        name: value
+        for name, value in integer_source_constants(program.source).items()
+        if name not in program.pre_vars
+    }
+
+
+def bind_integer_constants(expression: str, constants: Dict[str, int]) -> str:
+    """Replace known integer constant identifiers in an expression."""
+    for name in sorted(constants, key=len, reverse=True):
+        expression = re.sub(
+            rf"\b{re.escape(name)}\b", str(constants[name]), expression
+        )
+    return expression
 
 
 def _match_brace(src: str, open_idx: int) -> int:

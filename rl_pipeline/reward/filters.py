@@ -21,7 +21,12 @@ import shutil
 import tempfile
 from typing import List, Optional, Tuple
 
-from ..common.program import Program
+from ..common.program import (
+    Program,
+    bind_integer_constants,
+    integer_source_constants,
+    state_external_integer_constants,
+)
 from ..common.acsl_parser import lightweight_syntax_filter
 from ..common.state import (
     State,
@@ -68,6 +73,8 @@ class PositiveFilter:
         # This is a soundness filter over the sampled reachable set.  Checking a
         # stride-based subset let predicates target a skipped reachable state.
         sample = positives or []
+        source_constants = integer_source_constants(prog.source)
+        constants = state_external_integer_constants(prog)
         kept: List[str] = []
         for inv in invariants:
             cond = normalize_invariant(inv)
@@ -76,10 +83,14 @@ class PositiveFilter:
             # scope gate: reject invariants naming out-of-scope identifiers
             # (Frama-C would reject them, and an undeclared name can break parsing
             #  of the whole file).
-            bad = out_of_scope_ids(cond, prog.pre_vars)
+            bad = out_of_scope_ids(
+                cond, set(prog.pre_vars) | set(source_constants)
+            )
             if bad:
                 continue
-            witness = first_falsifying_state(cond, sample)
+            witness = first_falsifying_state(
+                bind_integer_constants(cond, constants), sample
+            )
             if witness is not None:
                 continue
             kept.append(cond)

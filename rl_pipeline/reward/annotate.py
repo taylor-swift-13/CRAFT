@@ -27,14 +27,18 @@ def modified_vars(body: str) -> List[str]:
 
 
 def build_annotated(prog: Program, invariants: List[str], loop_idx: int = 0) -> str:
-    """Return the program source with an ACSL block (invariants + assigns) before the loop."""
+    """Return the program source with only candidate invariants before the loop.
+
+    ``loop assigns`` used to be synthesized here.  Besides being a separate
+    frame specification that the model never proposed, its WP obligations were
+    accidentally mixed with benchmark assertion results.  Omitting it gives
+    Frama-C the conservative default (the loop may assign everything) and keeps
+    both filtering and final judgment about the invariant clauses themselves.
+    """
     loop = prog.loops[loop_idx]
     invs = [normalized for invariant in invariants
             if (normalized := normalize_invariant(invariant))]
     lines = [f"      loop invariant {i};" for i in invs]
-    assigns = modified_vars(loop.body)
-    if assigns:
-        lines.append(f"      loop assigns {', '.join(assigns)};")
     block = "/*@\n" + "\n".join(lines) + "\n    */\n    "
     src = prog.source
     return src[:loop.kw_start] + block + src[loop.kw_start:]

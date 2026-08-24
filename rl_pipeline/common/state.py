@@ -17,6 +17,7 @@ honest division/modulo invariants.
 from __future__ import annotations
 
 import ast
+import keyword
 import re
 from dataclasses import dataclass, field
 from typing import Dict, Hashable, List, Optional
@@ -29,22 +30,41 @@ class State:
     loop_entry: Dict[str, int] = field(default_factory=dict)
     # trace coordinates (run index, loop-head iteration) — metadata only, NOT part
     # of identity: used by the sampler to tell which states have their local trace
-    # window sampled (perturbation-base density check).  -1 = synthetic/unknown.
+    # window sampled (perturbation-base density check).  -1 = unknown; a state
+    # derived via ``with_vars`` keeps the coordinates of the base it came from.
     run: int = -1
     it: int = -1
 
     def key(self) -> tuple:
+        pre_key, loop_entry_key = self.context_key()
         return (
             self.vars_key()
             + (("__pre__",),)
-            + tuple(sorted(self.pre.items()))
+            + pre_key
             + (("__loop_entry__",),)
-            + tuple(sorted(self.loop_entry.items()))
+            + loop_entry_key
         )
 
     def vars_key(self) -> tuple:
         """Reachability/identity key over the loop-entry valuation (ignores pre)."""
         return tuple(sorted(self.vars.items()))
+
+    def context_key(self) -> tuple:
+        """Identity of the Pre/LoopEntry context this valuation was observed in."""
+        return (
+            tuple(sorted(self.pre.items())),
+            tuple(sorted(self.loop_entry.items())),
+        )
+
+    def with_vars(self, vars: Dict[str, int]) -> "State":
+        """Derive a synthetic state in this state's context and trace position."""
+        return State(
+            vars=vars,
+            pre=dict(self.pre),
+            loop_entry=dict(self.loop_entry),
+            run=self.run,
+            it=self.it,
+        )
 
     def __hash__(self):
         return hash(self.key())
@@ -201,6 +221,34 @@ def _translate_logic(expr: str) -> str:
     return "".join(out)
 
 
+_PYTHON_KEYWORD_ALIASES = {
+    name: f"__craft_c_keyword_{name}__"
+    for name in keyword.kwlist
+    if name not in {"and", "or", "not", "True", "False", "None"}
+}
+_PYTHON_ALIAS_TO_IDENTIFIER = {
+    alias: name for name, alias in _PYTHON_KEYWORD_ALIASES.items()
+}
+_PYTHON_KEYWORD_RE = re.compile(
+    r"\b(?:" + "|".join(map(re.escape, _PYTHON_KEYWORD_ALIASES)) + r")\b"
+)
+
+
+def _escape_python_keywords(expr: str) -> str:
+    """Make C identifiers such as ``in`` legal Python expression names."""
+    return _PYTHON_KEYWORD_RE.sub(
+        lambda match: _PYTHON_KEYWORD_ALIASES[match.group(0)], expr
+    )
+
+
+def _python_name(identifier: str) -> str:
+    return _PYTHON_KEYWORD_ALIASES.get(identifier, identifier)
+
+
+def _c_name(python_name: str) -> str:
+    return _PYTHON_ALIAS_TO_IDENTIFIER.get(python_name, python_name)
+
+
 def _acsl_to_py(expr: str) -> str:
     """Convert an ACSL boolean expression to a Python expression string."""
     s = re.sub(r"\\true\b", "True", expr)
@@ -214,7 +262,8 @@ def _acsl_to_py(expr: str) -> str:
     s = re.sub(r"\b(\w+)@pre\b", r"\1__PRE__", s)
     s = _translate_logic(s)
     s = re.sub(r"(?<![<>=!])=(?![=])", "==", s)
-    return re.sub(r"(?<![/])/(?![/])", "//", s)
+    s = re.sub(r"(?<![/])/(?![/])", "//", s)
+    return _escape_python_keywords(s)
 
 
 class _UnsupportedCanonicalNode(ValueError):
@@ -470,31 +519,31 @@ _VECTOR_COMPILE_CACHE: Dict[str, object] = {}
 _SAFE_GLOBALS = {"__builtins__": {}}
 
 
-def _compile(expr: str):
+def _cached_compile(expr: str, cache: Dict[str, object], filename: str,
+                    *transformers: ast.NodeTransformer):
     # strip: `!` -> ` not ` substitution can leave leading whitespace, which
     # ast.parse(mode="eval") rejects as an IndentationError — silently turning
     # every `!(...)`-shaped invariant into dead weight (never evaluated)
-    py = _acsl_to_py(expr).strip()
-    code = _COMPILE_CACHE.get(py)
+    cache_key = expr.strip()
+    code = cache.get(cache_key)
     if code is None:
-        tree = _CDivTransformer().visit(ast.parse(py, mode="eval"))
+        tree = ast.parse(_acsl_to_py(cache_key).strip(), mode="eval")
+        for transformer in (_CDivTransformer(), *transformers):
+            tree = transformer.visit(tree)
         ast.fix_missing_locations(tree)
-        code = compile(tree, "<acsl>", "eval")
-        _COMPILE_CACHE[py] = code
+        code = compile(tree, filename, "eval")
+        cache[cache_key] = code
     return code
+
+
+def _compile(expr: str):
+    return _cached_compile(expr, _COMPILE_CACHE, "<acsl>")
 
 
 def _compile_vector(expr: str):
-    py = _acsl_to_py(expr).strip()
-    code = _VECTOR_COMPILE_CACHE.get(py)
-    if code is None:
-        tree = ast.parse(py, mode="eval")
-        tree = _CDivTransformer().visit(tree)
-        tree = _VectorTransformer().visit(tree)
-        ast.fix_missing_locations(tree)
-        code = compile(tree, "<acsl-vector>", "eval")
-        _VECTOR_COMPILE_CACHE[py] = code
-    return code
+    return _cached_compile(
+        expr, _VECTOR_COMPILE_CACHE, "<acsl-vector>", _VectorTransformer()
+    )
 
 
 def eval_predicate(expr: str, state: "State") -> Optional[bool]:
@@ -515,7 +564,7 @@ def eval_predicate(expr: str, state: "State") -> Optional[bool]:
         return None
     ns: Dict[str, int] = {}
     for k, v in state.vars.items():
-        ns[k] = int(v)
+        ns[_python_name(k)] = int(v)
     for k, v in state.pre.items():
         ns[f"{k}__PRE__"] = int(v)
     for k, v in state.loop_entry.items():
@@ -587,10 +636,13 @@ def first_falsifying_state(expr: str, states: List[State]) -> Optional[State]:
                     (state.pre[key] for state in states), dtype=object, count=len(states)
                 )
             else:
-                if any(name not in state.vars for state in states):
+                key = _c_name(name)
+                if any(key not in state.vars for state in states):
                     return None
                 columns[name] = np.fromiter(
-                    (state.vars[name] for state in states), dtype=object, count=len(states)
+                    (state.vars[key] for state in states),
+                    dtype=object,
+                    count=len(states),
                 )
 
         def cdiv(left, right):

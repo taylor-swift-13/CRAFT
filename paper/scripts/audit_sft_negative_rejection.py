@@ -20,7 +20,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
-from paper.scripts._curation_common import record_source_and_answer  # noqa: E402
+from paper.scripts._curation_common import family_rejections, record_source_and_answer  # noqa: E402
 from rl_pipeline.common.state import eval_predicate, extract_invariants, normalize_invariant  # noqa: E402
 from rl_pipeline.sampler.example_sampler import ExampleSampler  # noqa: E402
 
@@ -60,32 +60,6 @@ def _score(job: tuple[int, str, str, str, list[str], int, int]) -> dict:
         group for group, indices in enumerate(groups)
         if any(index in rejected_states for index in indices)
     }
-    stats = examples.stats[0]
-    relation_count = int(stats.get("relation", 0))
-    post_count = int(stats.get("bound_overrun", 0))
-    range_count = int(stats.get("bound_escape", 0))
-    frame_count = int(stats.get("frame", 0))
-    # Groups are emitted in this exact order by ExampleSampler._negatives.
-    boundaries = {
-        "relation": (0, relation_count),
-        "post_exit": (relation_count, relation_count + post_count),
-        "range": (
-            relation_count + post_count,
-            relation_count + post_count + range_count,
-        ),
-        "frame": (
-            relation_count + post_count + range_count,
-            relation_count + post_count + range_count + frame_count,
-        ),
-    }
-    by_family = {}
-    for family, (start, end) in boundaries.items():
-        family_rejected = sorted(group - start for group in rejected if start <= group < end)
-        by_family[family] = {
-            "total": end - start,
-            "rejected": len(family_rejected),
-            "indices": family_rejected,
-        }
     return {
         "row": row,
         "source_sha256": source_sha256,
@@ -98,8 +72,8 @@ def _score(job: tuple[int, str, str, str, list[str], int, int]) -> dict:
         "rejected": len(rejected),
         "rejected_indices": sorted(rejected),
         "coverage": len(rejected) / len(groups) if groups else None,
-        "families": by_family,
-        "sampler_stats": stats,
+        "families": family_rejections(examples, rejected),
+        "sampler_stats": examples.stats[0],
     }
 
 

@@ -19,7 +19,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
-from paper.scripts._curation_common import record_source_and_answer  # noqa: E402
+from paper.scripts._curation_common import family_rejections, record_source_and_answer  # noqa: E402
 from paper.scripts.strengthen_bounds_only_sft import candidates_for  # noqa: E402
 from rl_pipeline.common.program import parse_program  # noqa: E402
 from rl_pipeline.common.state import (  # noqa: E402
@@ -100,24 +100,17 @@ def _score_rejections(examples, invariants):
         group for group, indices in enumerate(groups)
         if any(index in rejected_states for index in indices)
     }
-    stats = examples.stats[0]
-    relation = int(stats.get("relation", 0))
-    post = int(stats.get("bound_overrun", 0))
-    bound = int(stats.get("bound_escape", 0))
-    family_ranges = {
-        "relation": (0, relation),
-        "post_exit": (relation, relation + post),
-        "range": (relation + post, relation + post + bound),
+    families = {
+        family: {"rejected": summary["indices"], "total": summary["total"]}
+        for family, summary in family_rejections(
+            examples, rejected, ("relation", "post_exit", "range")
+        ).items()
     }
-    families = {}
-    for family, (start, end) in family_ranges.items():
-        indices = sorted(group - start for group in rejected if start <= group < end)
-        families[family] = {"rejected": indices, "total": end - start}
     return {
         "rejected_indices": sorted(rejected),
         "n_negative_traces": len(groups),
         "families": families,
-        "sampler_stats": stats,
+        "sampler_stats": examples.stats[0],
     }
 
 

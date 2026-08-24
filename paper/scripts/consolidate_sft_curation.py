@@ -19,7 +19,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
-from paper.scripts._curation_common import record_source_and_answer  # noqa: E402
+from paper.scripts._curation_common import family_rejections, record_source_and_answer  # noqa: E402
 from paper.scripts.sanitize_training_prompts import (  # noqa: E402
     _rejection_reason,
 )
@@ -61,34 +61,12 @@ def _rejections(examples, invariants: list[str]) -> dict:
         group for group, indices in enumerate(groups)
         if any(index in rejected_states for index in indices)
     }
-    stats = examples.stats[0]
-    relation = int(stats.get("relation", 0))
-    post = int(stats.get("bound_overrun", 0))
-    ranges = int(stats.get("bound_escape", 0))
-    frame = int(stats.get("frame", 0))
-    boundaries = {
-        "relation": (0, relation),
-        "post_exit": (relation, relation + post),
-        "range": (relation + post, relation + post + ranges),
-        "frame": (
-            relation + post + ranges,
-            relation + post + ranges + frame,
-        ),
-    }
-    families = {}
-    for family, (start, end) in boundaries.items():
-        indices = sorted(group - start for group in rejected if start <= group < end)
-        families[family] = {
-            "total": end - start,
-            "rejected": len(indices),
-            "indices": indices,
-        }
     return {
         "n_negative_traces": len(groups),
         "rejected": len(rejected),
         "rejected_indices": sorted(rejected),
         "coverage": len(rejected) / len(groups) if groups else None,
-        "families": families,
+        "families": family_rejections(examples, rejected),
     }
 
 

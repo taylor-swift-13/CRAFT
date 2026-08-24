@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import os
+import sys
 import tempfile
 from pathlib import Path
 
@@ -15,6 +16,12 @@ import pyarrow.parquet as pq
 
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
+
+from rl_pipeline.sampler.example_sampler import (  # noqa: E402
+    NEGATIVE_SCHEMA_VERSION as COVERAGE_SCHEMA_VERSION,
+)
+
 PROGRAM_MARKER = "Program:\n"
 
 
@@ -63,6 +70,39 @@ def _atomic_json(value, output: Path) -> None:
         temporary.unlink(missing_ok=True)
 
 
+def _partition(records, source_of, latest: dict, label: str):
+    """Split records into (kept, dropped row indices); fail closed otherwise."""
+    keep, dropped, missing, stale, unscorable = [], [], [], [], []
+    for row, record in enumerate(records):
+        digest = hashlib.sha256(source_of(record).encode("utf-8")).hexdigest()
+        result = latest.get(digest)
+        if result is None:
+            missing.append(row)
+        elif result.get("coverage_schema_version") != COVERAGE_SCHEMA_VERSION:
+            stale.append(row)
+        elif not result.get("scorable"):
+            unscorable.append(row)
+        elif int(result["n_negative_traces"]) > 0:
+            keep.append(record)
+        else:
+            dropped.append(row)
+    if missing:
+        raise ValueError(
+            f"{label} coverage ledger is incomplete: {len(missing)} rows missing"
+        )
+    if stale:
+        raise ValueError(
+            f"{label} coverage ledger uses a stale sampler schema for "
+            f"{len(stale)} rows; rerun the coverage audit"
+        )
+    if unscorable:
+        raise ValueError(
+            f"{label} coverage ledger contains "
+            f"{len(unscorable)} unscorable rows; retry the audit before filtering"
+        )
+    return keep, dropped
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="dataset", required=True)
@@ -82,58 +122,15 @@ def main() -> None:
     rl.add_argument("--report", type=Path, default=ROOT / "paper/artifacts/rl_negative_filter.json")
     args = parser.parse_args()
 
-    dropped = []
+    latest = _latest_by_digest(args.ledger)
     if args.dataset == "sft":
         records = json.loads(args.input.read_text(encoding="utf-8"))
-        latest = _latest_by_digest(args.ledger)
-        keep = []
-        unscorable = []
-        for row, record in enumerate(records):
-            source = _source_from_sft(record)
-            digest = hashlib.sha256(source.encode("utf-8")).hexdigest()
-            result = latest.get(digest)
-            if result is None:
-                raise ValueError(
-                    f"SFT coverage ledger is incomplete: row {row} source is missing"
-                )
-            if not result.get("scorable"):
-                unscorable.append(row)
-            elif int(result.get("n_negative_traces", 0)) > 0:
-                keep.append(record)
-            else:
-                dropped.append(row)
-        if unscorable:
-            raise ValueError(
-                "SFT coverage ledger contains "
-                f"{len(unscorable)} unscorable rows; retry the audit before filtering"
-            )
+        keep, dropped = _partition(records, _source_from_sft, latest, "SFT")
         _atomic_json(keep, args.output)
     else:
         table = pq.read_table(args.input)
         records = table.to_pylist()
-        latest = _latest_by_digest(args.ledger)
-        keep = []
-        missing = []
-        unscorable = []
-        for row, record in enumerate(records):
-            source = _source_from_rl(record)
-            digest = hashlib.sha256(source.encode("utf-8")).hexdigest()
-            result = latest.get(digest)
-            if result is None:
-                missing.append(row)
-            elif not result.get("scorable"):
-                unscorable.append(row)
-            elif int(result.get("n_negative_traces", 0)) > 0:
-                keep.append(record)
-            else:
-                dropped.append(row)
-        if missing:
-            raise ValueError(f"RL coverage ledger is incomplete: {len(missing)} rows missing")
-        if unscorable:
-            raise ValueError(
-                "RL coverage ledger contains "
-                f"{len(unscorable)} unscorable rows; retry the audit before filtering"
-            )
+        keep, dropped = _partition(records, _source_from_rl, latest, "RL")
         args.output.parent.mkdir(parents=True, exist_ok=True)
         fd, name = tempfile.mkstemp(prefix=f".{args.output.name}.", dir=args.output.parent)
         os.close(fd)
@@ -145,7 +142,7 @@ def main() -> None:
             temporary.unlink(missing_ok=True)
 
     report = {
-        "schema_version": 1,
+        "schema_version": COVERAGE_SCHEMA_VERSION,
         "dataset": args.dataset,
         "input": _display_path(args.input),
         "output": _display_path(args.output),
@@ -153,7 +150,10 @@ def main() -> None:
         "output_rows": len(records) - len(dropped),
         "dropped_rows": dropped,
         "coverage_ledger": _display_path(args.ledger),
-        "policy": "retain iff scorable and n_negative_traces > 0",
+        "policy": (
+            "retain iff sampler succeeded and n_negative_traces > 0; "
+            "all generated traces are scored"
+        ),
     }
     _atomic_json(report, args.report)
     print(json.dumps(report, indent=2))

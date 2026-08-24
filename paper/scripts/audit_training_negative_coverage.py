@@ -24,7 +24,10 @@ sys.path.insert(0, str(ROOT))
 
 from paper.scripts.sanitize_training_prompts import PROGRAM_MARKER  # noqa: E402
 from rl_pipeline.common.program import parse_program  # noqa: E402
-from rl_pipeline.sampler.example_sampler import ExampleSampler  # noqa: E402
+from rl_pipeline.sampler.example_sampler import (  # noqa: E402
+    NEGATIVE_SCHEMA_VERSION as COVERAGE_SCHEMA_VERSION,
+    ExampleSampler,
+)
 
 
 DEFAULT_RL = ROOT / "traindata" / "craft_rl_clean.parquet"
@@ -88,12 +91,21 @@ def _latest(path: Path) -> dict[str, dict]:
     return latest
 
 
+def _error_result(digest: str, runs: int, seed: int, error: BaseException) -> dict:
+    return {
+        "source_sha256": digest,
+        "scorable": False,
+        "seed": seed,
+        "runs_requested": runs,
+        "error": f"{type(error).__name__}: {error}",
+    }
+
+
 def _score(job: tuple[str, str, int, int]) -> dict:
     digest, source, runs, seed = job
     try:
         program = parse_program(source)
         examples = ExampleSampler(source, n_runs=runs, seed=seed).sample()
-        stats = examples.stats[0]
         return {
             "source_sha256": digest,
             "scorable": True,
@@ -104,16 +116,10 @@ def _score(job: tuple[str, str, int, int]) -> dict:
             "n_negative_states": len(examples.neg(0)),
             "seed": seed,
             "runs_requested": runs,
-            "sampler_stats": stats,
+            "sampler_stats": examples.stats[0],
         }
     except Exception as error:
-        return {
-            "source_sha256": digest,
-            "scorable": False,
-            "seed": seed,
-            "runs_requested": runs,
-            "error": f"{type(error).__name__}: {error}",
-        }
+        return _error_result(digest, runs, seed, error)
 
 
 def main() -> None:
@@ -166,6 +172,9 @@ def main() -> None:
         previous = latest.get(digest)
         if previous is not None:
             retry = (
+                previous.get("coverage_schema_version")
+                != COVERAGE_SCHEMA_VERSION
+            ) or (
                 args.retry_errors and not previous.get("scorable", False)
             ) or (
                 args.retry_zero_negatives
@@ -186,13 +195,8 @@ def main() -> None:
                     try:
                         result = future.result()
                     except Exception as error:
-                        result = {
-                            "source_sha256": digest,
-                            "scorable": False,
-                            "seed": args.seed,
-                            "runs_requested": args.runs,
-                            "error": f"{type(error).__name__}: {error}",
-                        }
+                        result = _error_result(digest, args.runs, args.seed, error)
+                    result["coverage_schema_version"] = COVERAGE_SCHEMA_VERSION
                     handle.write(json.dumps(result, sort_keys=True) + "\n")
                     handle.flush()
                     if count % 25 == 0 or count == len(futures):

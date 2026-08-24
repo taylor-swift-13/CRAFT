@@ -15,7 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
-from paper.scripts._curation_common import record_source_and_answer
+from paper.scripts._curation_common import family_rejections, record_source_and_answer
 from rl_pipeline.common.program import parse_program
 from rl_pipeline.common.state import eval_predicate, extract_invariants, normalize_invariant
 from rl_pipeline.reward.filters import HoudiniFilter
@@ -142,10 +142,8 @@ def rejected(examples, invariants):
         for i,s in enumerate(neg):
             if i not in state_rej and eval_predicate(cond,s) is False: state_rej.add(i)
     groups_rej={g for g,ix in enumerate(groups) if any(i in state_rej for i in ix)}
-    st=examples.stats[0]; rel=int(st.get("relation",0)); post=int(st.get("bound_overrun",0)); ran=int(st.get("bound_escape",0))
-    bounds={"relation":(0,rel),"post_exit":(rel,rel+post),"range":(rel+post,rel+post+ran)}
-    fam={k:{"total":b-a,"rejected":len([i for i in groups_rej if a<=i<b]),"indices":[i-a for i in sorted(groups_rej) if a<=i<b]} for k,(a,b) in bounds.items()}
-    return {"rejected_indices":sorted(groups_rej),"rejected":len(groups_rej),"n_negative_traces":len(groups),"families":fam,"coverage":len(groups_rej)/len(groups) if groups else None,"sampler_stats":st}
+    fam=family_rejections(examples, groups_rej, ("relation","post_exit","range"))
+    return {"rejected_indices":sorted(groups_rej),"rejected":len(groups_rej),"n_negative_traces":len(groups),"families":fam,"coverage":len(groups_rej)/len(groups) if groups else None,"sampler_stats":examples.stats[0]}
 
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument("--jobs",type=int,default=8); ap.add_argument("--out",type=Path,default=OUT); args=ap.parse_args()

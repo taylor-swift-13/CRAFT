@@ -38,7 +38,7 @@ This first writes the auditable intermediate files
 `traindata/craft_rl_clean.parquet` and `traindata/craft_sft_clean.json`. Do not
 train from these intermediates: a syntactically valid loop can still have no
 sound perturbation axis from which the deployed sampler can construct a
-negative example. Build the negative-complete release files with:
+negative trace. Build the negative-complete release files with:
 
 ```bash
 python paper/scripts/audit_training_negative_coverage.py rl --jobs 16
@@ -81,6 +81,91 @@ clauses. The 5-second setting is
 per WP proof obligation, not per training record. Per-problem power rewrite
 decisions are saved in `paper/artifacts/power_rewrite_audit.json`. Train only
 from these clean outputs.
+
+## 0b. Curate the pool: test-related, de-duplicated, gradient-bearing
+
+The released `craft_*_final` files are a sanitized pool, not a curriculum:
+35,100 unique RL programs collapse to ~2,200 loop shapes (alpha-renamed,
+constant-abstracted guard + body), the two largest shapes
+(`while (v0 < NUM) { v0 = v0 + 1; }` and `while (v0 < v1) { ... }`) hold 36%
+of the pool, ~40% of programs use the `while (1) { if (!(c)) break; ... }`
+idiom that never occurs in the 832-program evaluation corpus, and ~30% of
+loops have no relation-family negatives at all, so a bounds-only answer
+already saturates the coverage reward. GRPO gets no gradient from saturated
+or hopeless groups. The curation below fixes all of that target-independently.
+
+```bash
+eval "$(opam env --switch=frama-c.27.1 --set-switch)"   # Frama-C for stages 3-4
+
+# 1. canonicalize the break idiom (semantics-preserving; restores a real guard)
+python paper/scripts/canonicalize_training_pool.py rl \
+  --input traindata/craft_rl_final.parquet --output traindata/craft_rl_canonical.parquet \
+  --report paper/artifacts/v4/rl_canonicalization.json
+python paper/scripts/canonicalize_training_pool.py sft \
+  --input traindata/craft_sft_final.json --output traindata/craft_sft_canonical.json \
+  --report paper/artifacts/v4/sft_canonicalization.json
+
+# 2. schema-current negative ledger (gcc only; ~1 h with 6 workers)
+python paper/scripts/audit_training_negative_coverage.py rl \
+  --input traindata/craft_rl_canonical.parquet \
+  --ledger paper/artifacts/v4/rl_negative_coverage.jsonl \
+  --manifest paper/artifacts/v4/rl_negative_coverage_manifest.json --jobs 6
+#   (use --start/--stop slices on small machines; the pool is memory-hungry)
+
+# 3. static gates + near-duplicate removal + test relatedness + shape cap
+python paper/scripts/curate_training_pool.py rl \
+  --input traindata/craft_rl_canonical.parquet \
+  --ledger paper/artifacts/v4/rl_negative_coverage.jsonl \
+  --output traindata/craft_rl_curated.parquet --report paper/artifacts/v4/rl_curation_report.json
+python paper/scripts/curate_training_pool.py sft \
+  --input traindata/craft_sft_canonical.json \
+  --ledger paper/artifacts/v4/rl_negative_coverage.jsonl \
+  --output traindata/craft_sft_curated.json --report paper/artifacts/v4/sft_curation_report.json \
+  --per-shape-cap 32
+
+# 4. (cluster, vLLM) policy frontier: keep programs whose G-rollout group has reward variance
+python experiments/measure_policy_frontier.py --input traindata/craft_rl_curated.parquet \
+  --ledger paper/artifacts/v4/rl_frontier.jsonl --policy <sft-checkpoint> --group 8 \
+  --apply --output traindata/craft_rl_frontier.parquet --report paper/artifacts/v4/rl_frontier_report.json
+
+# 5. SFT targets distilled from the pipeline (OpenAI-compatible API + local Frama-C)
+python paper/scripts/select_sft_programs.py --sft traindata/craft_sft_curated.json \
+  --rl traindata/craft_rl_curated.parquet --output traindata/craft_sft_programs.json \
+  --report paper/artifacts/v4/sft_program_selection.json --target 6000
+OPENAI_API_KEY=... OPENAI_BASE_URL=... CRAFT_MODEL=... \
+python experiments/synthesize_sft_from_rollouts.py all --dataset sft \
+  --input traindata/craft_sft_programs.json --root results/sft_synth \
+  --output traindata/craft_sft_synth.json --report paper/artifacts/v4/sft_synthesis_report.json --k 8
+```
+
+Gates applied by `curate_training_pool.py` (all recorded in the report and
+in `extra_info.curation` of every kept row):
+
+| gate | rule | why |
+|---|---|---|
+| `duplicate_of_eval` | exact / alpha-renamed / constant-abstracted copy of an evaluation program | leakage |
+| `unscorable` | sampler failed or no negatives (schema-current ledger) | masked group |
+| `too_few_traces` | `< 8` negative traces | reward takes too few values |
+| `no_relation_signal` | `< 4` relation traces | bounds saturate the reward |
+| `bounds_saturated` | relation share `< 0.10` | a bounds-only answer scores >= 0.9 |
+| `unrelated_to_eval` | structural cell and control-flow skeleton absent from the evaluation corpus | not what the benchmark tests |
+| `shape_cap` | `> 8` programs per loop shape (RL) | the pool is thousands of copies of a few shapes |
+
+Kept rows carry `extra_info.curation = {weight, cell, relatedness,
+related_level, stratum_guess, n_negative_traces, relation, tags}`; `weight`
+re-balances the survivors toward the evaluation corpus' distribution over
+structural cells (clipped to [0.25, 4]). Loop shapes that match an evaluation
+program after renaming, constant abstraction and initializer removal are
+*related*, not duplicates, and are kept (capped).
+
+SFT targets from `synthesize_sft_from_rollouts.py` are the union of k rollouts
+(plus the archival answer) -> interface gate -> Houdini on the target-hidden
+program (exactly the inference filter) -> frame equalities of unmodified
+variables dropped (`loop assigns` states them) -> z3 implication pruning
+(weaker clauses implied by the rest are dropped, strongest first) -> every
+relational clause kept, other clauses kept only while they add negative-trace
+coverage -> Houdini re-check. Typical answers shrink from ~10 clauses to 3-6
+and always contain the relational law when any rollout produced one.
 
 ## 1. Start the service
 
@@ -145,8 +230,9 @@ The response is order-aligned with the submitted rollouts:
   "reward_variant": "full",
   "negative_sampler": "structured",
   "reward_mode": "negative_coverage",
+  "scorable": true,
   "batch_score": 0.83,
-  "n_negatives": 118,
+  "n_negatives": 60,
   "filter_mode": "cascade(pre-frama->houdini)"
 }
 ```
@@ -158,9 +244,12 @@ to each. The default reward is
 `base + 0.3 * shapley_credit - redundancy_penalty - overflow_penalty`.
 
 Only the first 20 invariant lines enter Houdini. Every later line incurs the
-configured overflow penalty. If the sampler produces no negatives, the service
-uses a binary Frama-C/WP fallback: reward 1 iff the non-empty canonical
-candidate set survives standalone Houdini unchanged, otherwise 0.
+configured overflow penalty. All generated relation and escape traces
+enter `base`, Shapley credit, and `n_negatives`. If the sampler produces no
+negative traces, the service returns zero rewards with `scorable=false` and
+`reward_mode="unscorable_no_negative_traces"`. The trainer must mask the whole
+group. Binary Frama-C/WP inductiveness is available only through the explicit
+`reward_variant="binary"` ablation.
 
 The `POST /sample` endpoint exposes sampled positives and negatives for
 debugging. `GET /health` reports filter mode and cache size.
@@ -171,9 +260,10 @@ only when every admitted clause in the response survives the positive and
 Houdini filters; otherwise it gives zero. For sampler ablations, set
 `sampler.negative_sampler` to `random` or `structured`. The two switches are
 independent, and omitted switches default to the complete method.
-`structured` composes relational perturbations, post-exit continuations,
-range/bound escapes, and frame-value perturbations under their fixed family
-budgets.
+`structured` scores guard-preserving relational perturbations and post-exit
+escape continuations under fixed family caps of 48 and 12 trace units. It
+removes perturbations parallel to a witnessed transition, conditions envelopes
+on `Pre`/`LoopEntry`, and generates neither range nor frame families.
 
 ## 3. GRPO recipe
 
@@ -184,8 +274,8 @@ For each RL step:
 2. Sample a group of responses from the policy.
 3. Send `full_program` and the group to `POST /reward`; the service enforces
    target hiding internally.
-4. Use `rollout_rewards` as the group rewards, normalize them inside
-   the group, and update the policy.
+4. If `scorable=false`, mask the whole group. Otherwise use
+   `rollout_rewards`, normalize them inside the group, and update the policy.
 
 Keep `sampler.seed` and `sampler.n_runs` fixed within a sweep so
 the cached example sets and rewards remain comparable. Also record

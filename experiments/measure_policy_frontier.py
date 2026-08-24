@@ -19,7 +19,6 @@ program and by policy name.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
 import statistics
@@ -33,6 +32,7 @@ from typing import Dict, List, Optional, Tuple
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from paper.scripts._curation_common import digest_of, latest_rows as _latest_rows  # noqa: E402
 from paper.scripts.filter_training_by_negative_coverage import (  # noqa: E402
     _atomic_json,
     _display_path,
@@ -52,19 +52,8 @@ from rl_pipeline.sampler.example_sampler import (  # noqa: E402
 FRONTIER_SCHEMA_VERSION = 1
 
 
-def digest_of(source: str) -> str:
-    return hashlib.sha256(source.encode("utf-8")).hexdigest()
-
-
 def latest_rows(path: Path) -> Dict[str, dict]:
-    rows: Dict[str, dict] = {}
-    if path.is_file():
-        with path.open(encoding="utf-8") as handle:
-            for line in handle:
-                if line.strip():
-                    row = json.loads(line)
-                    rows[row["digest"]] = row
-    return rows
+    return _latest_rows(path, key="digest")
 
 
 # ---------------------------------------------------------------------------
@@ -73,18 +62,16 @@ def latest_rows(path: Path) -> Dict[str, dict]:
 class BatchedVLLM:
     """Generate ``n`` rollouts for MANY programs in one vLLM call."""
 
-    def __init__(self, model: str, *, temperature: float, top_p: float, max_tokens: int,
+    def __init__(self, model: str, *, group: int, temperature: float, top_p: float, max_tokens: int,
                  enable_thinking: bool = False, **llm_kwargs):
         from vllm import LLM, SamplingParams
         self.llm = LLM(model=model, **llm_kwargs)
-        self.sampling = SamplingParams(n=1, temperature=temperature, top_p=top_p, max_tokens=max_tokens)
+        self.sampling = SamplingParams(n=group, temperature=temperature, top_p=top_p, max_tokens=max_tokens)
         self.chat_kwargs = {"chat_template_kwargs": {"enable_thinking": enable_thinking}}
         self.system = prompts.system_prompt()
 
     def __call__(self, sources: List[str], n: int) -> List[List[List[str]]]:
-        from vllm import SamplingParams
-        sampling = SamplingParams(n=n, temperature=self.sampling.temperature,
-                                  top_p=self.sampling.top_p, max_tokens=self.sampling.max_tokens)
+        sampling = self.sampling
         conversations = [
             [{"role": "system", "content": self.system},
              {"role": "user", "content": prompts.GENERATE_PROMPT.format(program=strip_postcondition(s))}]
@@ -130,12 +117,21 @@ class MockBatched:
 _CALC: Optional[RewardCalculator] = None
 
 
+# The reward the frontier is measured under (RewardCalculator defaults); the
+# trainer must POST the same configuration or the verdicts do not transfer.
+REWARD_CONFIG = {
+    "w_base": 1.0, "w_shapley": 0.3, "w_redundancy": 0.02, "w_overflow": 0.05,
+    "reward_variant": "full",
+}
+
+
 def _init_scorer(filter_mode: str, n_runs: int, seed: int) -> None:
     global _CALC
     invariant_filter = PreFramaFilter() if filter_mode == "lite" else auto_filter()
     _CALC = RewardCalculator(
         invariant_filter=invariant_filter, n_jobs=1,
         sampler_kwargs={"n_runs": n_runs, "seed": seed},
+        **{k: v for k, v in REWARD_CONFIG.items()},
     )
 
 
@@ -189,7 +185,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--input", type=Path, required=True, help="curated RL parquet")
     parser.add_argument("--ledger", type=Path, required=True)
-    parser.add_argument("--policy", default="mock", help="vLLM model path/name, or 'mock'")
+    parser.add_argument("--policy", required=True, help="vLLM model path/name, or 'mock'")
     parser.add_argument("--group", type=int, default=8)
     parser.add_argument("--chunk", type=int, default=64, help="programs per vLLM call")
     parser.add_argument("--temperature", type=float, default=1.0)
@@ -234,7 +230,8 @@ def main() -> None:
                if not (d in ledger and ledger[d].get("policy") == args.policy and ledger[d].get("status") == "ok")]
     if pending:
         provider = MockBatched(args.seed) if args.policy == "mock" else BatchedVLLM(
-            args.policy, temperature=args.temperature, top_p=args.top_p, max_tokens=args.max_tokens,
+            args.policy, group=args.group, temperature=args.temperature, top_p=args.top_p,
+            max_tokens=args.max_tokens,
         )
         os.environ["CRAFT_WP_TIMEOUT"] = str(args.wp_timeout)
         os.environ["CRAFT_WP_PAR"] = str(args.wp_par)
@@ -250,8 +247,11 @@ def main() -> None:
                 futures = {pool.submit(_score_job, (d, s, r)): d for (d, s), r in zip(chunk, rollouts)}
                 for future in as_completed(futures):
                     row = future.result()
+                    # Frontier verdicts are only meaningful under one reward
+                    # configuration; stamp it so drift is detectable.
                     row.update({"policy": args.policy, "group": args.group, "filter": args.filter,
-                                "negative_schema_version": NEGATIVE_SCHEMA_VERSION})
+                                "negative_schema_version": NEGATIVE_SCHEMA_VERSION,
+                                "reward_config": REWARD_CONFIG})
                     row["verdict"] = frontier_verdict(row, min_std=args.min_std, min_mean=args.min_mean, max_mean=args.max_mean)
                     status[row["verdict"]] += 1
                     handle.write(json.dumps(row, sort_keys=True) + "\n")
@@ -272,6 +272,7 @@ def main() -> None:
         "policy": args.policy,
         "group": args.group,
         "filter": args.filter,
+        "reward_config": REWARD_CONFIG,
         "programs": len(programs),
         "verdicts": dict(verdicts),
         "thresholds": {"min_std": args.min_std, "min_mean": args.min_mean, "max_mean": args.max_mean},

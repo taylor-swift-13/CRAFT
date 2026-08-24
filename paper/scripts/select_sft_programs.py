@@ -12,10 +12,9 @@ cap so no loop shape dominates the additions.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import sys
-from collections import Counter, defaultdict
+from collections import Counter
 from pathlib import Path
 
 import pyarrow.parquet as pq
@@ -23,6 +22,7 @@ import pyarrow.parquet as pq
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
+from paper.scripts._curation_common import digest_of as _digest  # noqa: E402
 from paper.scripts.filter_training_by_negative_coverage import (  # noqa: E402
     _atomic_json,
     _display_path,
@@ -34,6 +34,7 @@ from paper.scripts.program_fingerprint import (  # noqa: E402
     EvaluationIndex,
     difficulty_verdict,
     fingerprint,
+    nla_admissible,
     quota_select,
     relatedness_score,
     tv_distance,
@@ -41,9 +42,35 @@ from paper.scripts.program_fingerprint import (  # noqa: E402
 from paper.scripts.sanitize_training_prompts import _canonical_user  # noqa: E402
 from rl_pipeline.common import prompts  # noqa: E402
 
+NLA_SHAPE_CAP = 64
 
-def _digest(source: str) -> str:
-    return hashlib.sha256(source.encode("utf-8")).hexdigest()
+
+def _sft_row(source: str, selection: dict) -> dict:
+    return {
+        "conversations": [
+            {"from": "system", "value": prompts.system_prompt()},
+            {"from": "human", "value": _canonical_user(source)},
+            {"from": "gpt", "value": ""},
+        ],
+        "selection": selection,
+    }
+
+
+class NlaBudget:
+    """Admission counter for the NLA-boost exception (shape-capped)."""
+
+    def __init__(self, budget: int):
+        self.remaining = budget
+        self.shapes: Counter = Counter()
+        self.admitted: Counter = Counter()
+
+    def admit(self, features: dict, shape: str, origin: str) -> bool:
+        if self.remaining <= 0 or not nla_admissible(features) or self.shapes[shape] >= NLA_SHAPE_CAP:
+            return False
+        self.remaining -= 1
+        self.shapes[shape] += 1
+        self.admitted[origin] += 1
+        return True
 
 
 def main() -> None:
@@ -145,37 +172,27 @@ def main() -> None:
 def match_eval(args) -> None:
     index = EvaluationIndex.from_evaluation_dirs()
     sft_records = json.loads(args.sft.read_text(encoding="utf-8"))
-    def _nla_admissible(features: dict) -> bool:
-        """Nonlinear, not a trivial counter, not the very-wide-and-long case."""
-        return (
-            bool(features.get("nonlinear"))
-            and difficulty_verdict(features) != "too_easy"
-            and not (int(features.get("n_modified", 0)) >= 5 and int(features.get("body_stmts", 0)) >= 8)
-        )
-
     chosen, seen, sft_cells = [], set(), Counter()
+    chosen_cells: list = []  # cell per kept archival record, aligned with ``chosen``
     dropped_existing = Counter()
-    nla_budget = args.nla_extra
-    nla_admitted = Counter()
-    nla_shapes: Counter = Counter()
+    nla = NlaBudget(args.nla_extra)
+    fingerprints: dict = {}
     for record in sft_records:
         source = _source_from_sft(record)
         digest = _digest(source)
         if digest in seen:
             continue
         seen.add(digest)
-        fp = fingerprint(source)
+        fp = fingerprints[digest] = fingerprint(source)
         difficulty = difficulty_verdict(fp.features)
         if difficulty:
-            if (nla_budget > 0 and difficulty == "too_hard" and _nla_admissible(fp.features)
-                    and nla_shapes[fp.alpha_const_loop] < 64):
-                nla_budget -= 1
-                nla_admitted["archival"] += 1
-                nla_shapes[fp.alpha_const_loop] += 1
+            if difficulty == "too_hard" and nla.admit(fp.features, fp.alpha_const_loop, "archival"):
+                pass
             else:
                 dropped_existing[difficulty] += 1
                 continue
         chosen.append(record)
+        chosen_cells.append(fp.cell)
         sft_cells[fp.cell] += 1
     # Existing rows are quota candidates too (highest priority, so they are
     # kept first), which trims over-represented cells of the archive.
@@ -191,10 +208,11 @@ def match_eval(args) -> None:
         for record in chosen:
             source = _source_from_sft(record)
             digest = _digest(source)
-            fp = fingerprint(source)
-            existing_by_digest[digest] = record
+            fp = fingerprints[digest]
+            existing_by_digest[digest] = (record, fp.cell)
             candidates[digest] = (fp.cell, fp.alpha_const_loop, 1e9, source)
         chosen = []
+        chosen_cells = []
     else:
         # All surviving archival rows are kept; pool quotas shrink accordingly.
         for cell, count in sft_cells.items():
@@ -213,28 +231,18 @@ def match_eval(args) -> None:
             continue
         features = verdict["fingerprint"]["features"]
         difficulty = difficulty_verdict(features)
-        nla_pick = False
         if difficulty:
-            if (nla_budget > 0 and _nla_admissible(features)
-                    and nla_shapes[verdict["fingerprint"]["alpha_const_loop"]] < 64):
-                nla_pick = True
+            # NOTE: unlike the archival stream, gated pool programs are also
+            # eligible for the NLA budget when too-easy (vacuous for nonlinear
+            # programs, kept for parity with the released selection).
+            if nla.admit(features, verdict["fingerprint"]["alpha_const_loop"], "pool"):
+                seen.add(digest)
+                extras_nla.append(_sft_row(source, {
+                    "source": "nla_extra", "cell": verdict["cell"],
+                    "relatedness": relatedness_score(verdict),
+                }))
             else:
                 rejected[difficulty] += 1
-                continue
-        if nla_pick:
-            nla_budget -= 1
-            nla_admitted["pool"] += 1
-            nla_shapes[verdict["fingerprint"]["alpha_const_loop"]] += 1
-            seen.add(digest)
-            extras_nla.append({
-                "conversations": [
-                    {"from": "system", "value": prompts.system_prompt()},
-                    {"from": "human", "value": _canonical_user(source)},
-                    {"from": "gpt", "value": ""},
-                ],
-                "selection": {"source": "nla_extra", "cell": verdict["cell"],
-                              "relatedness": relatedness_score(verdict)},
-            })
             continue
         if demand.get(verdict["cell"], 0) <= 0:
             rejected["cell_not_needed"] += 1
@@ -247,23 +255,15 @@ def match_eval(args) -> None:
     extras = []
     for digest in selected:
         if digest in existing_by_digest:
-            chosen.append(existing_by_digest[digest])
+            record, cell = existing_by_digest[digest]
+            chosen.append(record)
+            chosen_cells.append(cell)
             continue
         cell, _, relatedness, source = candidates[digest]
-        extras.append({
-            "conversations": [
-                {"from": "system", "value": prompts.system_prompt()},
-                {"from": "human", "value": _canonical_user(source)},
-                {"from": "gpt", "value": ""},
-            ],
-            "selection": {"source": "rl_pool", "cell": cell, "relatedness": relatedness},
-        })
-    # Nonlinear pool programs admitted outside the quota also get boosted by
-    # any remaining budget from pool candidates that are nonlinear but were
-    # only reachable through the quota path.
+        extras.append(_sft_row(source, {"source": "rl_pool", "cell": cell, "relatedness": relatedness}))
     output = chosen + extras + extras_nla
     _atomic_json(output, args.output)
-    kept_existing_cells = Counter(fingerprint(_source_from_sft(r)).cell for r in chosen)
+    kept_existing_cells = Counter(chosen_cells)
     final_cells = kept_existing_cells + Counter(c["selection"]["cell"] for c in extras + extras_nla)
     report = {
         "schema_version": 2,
@@ -276,7 +276,7 @@ def match_eval(args) -> None:
         "dropped_existing_by_difficulty": dict(dropped_existing),
         "dropped_existing_by_quota": len(existing_by_digest) - len(chosen),
         "from_pool": len(extras),
-        "nla_extra_admitted": dict(nla_admitted),
+        "nla_extra_admitted": dict(nla.admitted),
         "total": len(output),
         "deficit_requested": sum(demand.values()),
         "deficit_unfilled": sum(demand.values()) - len(extras),

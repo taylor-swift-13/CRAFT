@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import multiprocessing
 import sys
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from concurrent.futures.process import BrokenProcessPool
@@ -22,10 +23,11 @@ import pyarrow.parquet as pq
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
+from paper.scripts._curation_common import limit_memory  # noqa: E402
 from paper.scripts.sanitize_training_prompts import PROGRAM_MARKER  # noqa: E402
 from rl_pipeline.common.program import parse_program  # noqa: E402
 from rl_pipeline.sampler.example_sampler import (  # noqa: E402
-    NEGATIVE_SCHEMA_VERSION as COVERAGE_SCHEMA_VERSION,
+    NEGATIVE_SCHEMA_VERSION,
     ExampleSampler,
 )
 
@@ -134,6 +136,9 @@ def main() -> None:
     parser.add_argument("--start", type=int, default=0)
     parser.add_argument("--stop", type=int)
     parser.add_argument("--retry-errors", action="store_true")
+    parser.add_argument("--memory-cap", type=int, default=2_500_000_000,
+                        help="per-worker address-space cap; pathological programs fail "
+                             "with MemoryError instead of taking the pool down (0 = off)")
     parser.add_argument("--retry-zero-negatives", action="store_true")
     args = parser.parse_args()
 
@@ -173,7 +178,7 @@ def main() -> None:
         if previous is not None:
             retry = (
                 previous.get("coverage_schema_version")
-                != COVERAGE_SCHEMA_VERSION
+                != NEGATIVE_SCHEMA_VERSION
             ) or (
                 args.retry_errors and not previous.get("scorable", False)
             ) or (
@@ -188,7 +193,13 @@ def main() -> None:
     ledger.parent.mkdir(parents=True, exist_ok=True)
     with ledger.open("a", encoding="utf-8") as handle:
         try:
-            with ProcessPoolExecutor(max_workers=args.jobs) as executor:
+            # spawn: workers must not inherit the parent's multi-GB parquet heap
+            with ProcessPoolExecutor(
+                max_workers=args.jobs,
+                mp_context=multiprocessing.get_context("spawn"),
+                initializer=limit_memory,
+                initargs=(args.memory_cap,),
+            ) as executor:
                 futures = {executor.submit(_score, job): job[0] for job in jobs}
                 for count, future in enumerate(as_completed(futures), 1):
                     digest = futures[future]
@@ -196,7 +207,8 @@ def main() -> None:
                         result = future.result()
                     except Exception as error:
                         result = _error_result(digest, args.runs, args.seed, error)
-                    result["coverage_schema_version"] = COVERAGE_SCHEMA_VERSION
+                    # the ledger field name is historical; it carries the sampler version
+                    result["coverage_schema_version"] = NEGATIVE_SCHEMA_VERSION
                     handle.write(json.dumps(result, sort_keys=True) + "\n")
                     handle.flush()
                     if count % 25 == 0 or count == len(futures):

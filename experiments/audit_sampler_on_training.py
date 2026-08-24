@@ -20,11 +20,9 @@ with zero spread carries no gradient.  Everything is target-independent.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import multiprocessing
 import random
-import resource
 import statistics
 import sys
 from collections import Counter
@@ -37,6 +35,7 @@ import pyarrow.parquet as pq
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from paper.scripts._curation_common import digest_of, limit_memory, quantile  # noqa: E402
 from paper.scripts.audit_sft_invariant_quality import _clause_features  # noqa: E402
 from paper.scripts.filter_training_by_negative_coverage import (  # noqa: E402
     _atomic_json,
@@ -55,8 +54,7 @@ _CALC: Optional[RewardCalculator] = None
 
 def _init(filter_mode: str, memory_cap: int) -> None:
     global _CALC
-    if memory_cap:
-        resource.setrlimit(resource.RLIMIT_AS, (memory_cap, memory_cap))
+    limit_memory(memory_cap)
     _CALC = RewardCalculator(
         invariant_filter=PreFramaFilter() if filter_mode == "lite" else auto_filter(), n_jobs=1,
     )
@@ -81,7 +79,10 @@ def _job(job: Tuple[str, str, List[str], int]) -> dict:
             "unsound": [f"{pin} == 123456789"],
         }
         names = list(families)
-        batch = _CALC.compute(source, [families[n] for n in names])
+        # Sample once; both compute calls share the example set (the sampler
+        # dominates per-job cost).
+        examples = ExampleSampler(source, **(_CALC.sampler_kwargs or {})).sample()
+        batch = _CALC.compute(source, [families[n] for n in names], examples=examples)
         rewards = {n: round(r.reward, 4) for n, r in zip(names, batch.rollouts)}
         bases = {n: round(r.base, 4) for n, r in zip(names, batch.rollouts)}
         # Simulated GRPO group: 8 random sub-answers of gold.
@@ -90,7 +91,7 @@ def _job(job: Tuple[str, str, List[str], int]) -> dict:
         for _ in range(8):
             size = rng.randint(1, max(1, len(gold)))
             group.append(rng.sample(gold, size))
-        gbatch = _CALC.compute(source, group)
+        gbatch = _CALC.compute(source, group, examples=examples)
         grewards = [r.reward for r in gbatch.rollouts]
         return {
             "digest": digest, "status": "ok", "n_negatives": batch.n_negatives,
@@ -126,11 +127,11 @@ def main() -> None:
             source = _source_from_sft(record)
             clauses = extract_invariants(next(t["value"] for t in record["conversations"] if t["from"] == "gpt"))
             if clauses:
-                answers.setdefault(hashlib.sha256(source.encode("utf-8")).hexdigest(), clauses)
+                answers.setdefault(digest_of(source), clauses)
     jobs = []
     for row in pq.read_table(args.rl, columns=["prompt"]).to_pylist():
         source = _source_from_rl(row)
-        digest = hashlib.sha256(source.encode("utf-8")).hexdigest()
+        digest = digest_of(source)
         if digest in answers:
             jobs.append((digest, source, answers[digest], args.seed))
     jobs.sort()
@@ -155,8 +156,8 @@ def main() -> None:
     def share(pred) -> float:
         return round(sum(1 for r in ok if pred(r)) / len(ok), 4) if ok else None
     def q(values, p):
-        values = sorted(values)
-        return round(values[min(len(values) - 1, int(p * len(values)))], 4) if values else None
+        value = quantile(values, p)
+        return round(value, 4) if value is not None else None
     report = {
         "schema_version": 1,
         "negative_schema_version": NEGATIVE_SCHEMA_VERSION,

@@ -5,8 +5,7 @@ Given a program and a GROUP of rollouts (each a candidate invariant set), score
 each rollout and the batch, using synthetic negative candidates from the sampler:
 
   whole[A]    = base[A] iff every clause in A survives, else zero
-  base[A]     = stratified rejection of relation, dynamic-escape, and hard
-                goal-escape traces by Houdini(A alone)
+  base[A]     = fraction of negative traces rejected by Houdini(A alone)
   shapley[A]  = Shapley allocation of the group's rejection coverage
   reward[A]   = w_base * base[A] + w_shapley * shapley[A]
                 - redundancy_penalty[A] - overflow_penalty[A]
@@ -47,7 +46,6 @@ from ..common.state import (
     normalize_invariant,
 )
 from ..sampler import ExampleSampler, ExampleSet
-from ..sampler.goal_escape import mine_goal_escape_groups
 from . import filters
 
 REWARD_VARIANTS = (
@@ -57,16 +55,6 @@ REWARD_VARIANTS = (
     "base_shapley",
     "full",
 )
-
-# Full-832 protocol V4.  Relation and ordinary post-exit escape measure general
-# invariant strength; goal escape is a hard anti-saturation stratum.  Raising
-# its rejection rate to the fifth power means missing one of twelve goal traces
-# lowers an otherwise-perfect base below 0.9.
-RELATION_WEIGHT = 0.55
-DYNAMIC_ESCAPE_WEIGHT = 0.15
-GOAL_ESCAPE_WEIGHT = 0.30
-GOAL_ESCAPE_HARDNESS_POWER = 5
-
 
 @dataclass
 class RolloutScore:
@@ -83,9 +71,6 @@ class RolloutScore:
     overflow_penalty: float
     reward: float
     rejected: int                 # negatives rejected standalone
-    relation_rejection_rate: Optional[float] = None
-    dynamic_escape_rejection_rate: Optional[float] = None
-    goal_escape_rejection_rate: Optional[float] = None
 
 @dataclass
 class BatchReward:
@@ -98,11 +83,6 @@ class BatchReward:
     # Kept after the historical fields for positional-constructor compatibility.
     reward_variant: str = "full"
     negative_sampler: str = "structured"
-    n_relation_traces: int = 0
-    n_dynamic_escape_traces: int = 0
-    n_goal_escape_traces: int = 0
-    goal_escape_parseable: bool = False
-    goal_escape_mining_seconds: float = 0.0
 
     @property
     def scorable(self) -> bool:
@@ -128,16 +108,8 @@ class BatchReward:
             "filter_mode": self.filter_mode,
             "reward_variant": self.reward_variant,
             "negative_sampler": self.negative_sampler,
-            "negative_protocol": "relation_dynamic_goal_escape_v4",
             "reward_mode": self.reward_mode,
             "scorable": self.scorable,
-            "negative_strata": {
-                "relation": self.n_relation_traces,
-                "dynamic_escape": self.n_dynamic_escape_traces,
-                "goal_escape": self.n_goal_escape_traces,
-            },
-            "goal_escape_parseable": self.goal_escape_parseable,
-            "goal_escape_mining_seconds": self.goal_escape_mining_seconds,
             "rollout_rewards": [r.reward for r in self.rollouts],
             "base": [r.base for r in self.rollouts],
             "shapley_credit": [r.shapley_credit for r in self.rollouts],
@@ -160,9 +132,6 @@ class BatchReward:
                  "generated": r.generated, "accepted": r.accepted,
                  "overflow": r.overflow,
                  "rejected": r.rejected,
-                 "relation_rejection_rate": r.relation_rejection_rate,
-                 "dynamic_escape_rejection_rate": r.dynamic_escape_rejection_rate,
-                 "goal_escape_rejection_rate": r.goal_escape_rejection_rate,
                  "survivors": r.survivors}
                 for r in self.rollouts
             ],
@@ -223,7 +192,6 @@ class RewardCalculator:
         logger: Optional[logging.Logger] = None,
         sampler_kwargs: Optional[dict] = None,
         reward_variant: str = "full",
-        goal_escape: bool = True,
     ):
         if reward_variant not in REWARD_VARIANTS:
             raise ValueError(
@@ -240,8 +208,6 @@ class RewardCalculator:
         self.n_jobs = n_jobs or min(16, (os.cpu_count() or 8))
         self.sampler_kwargs = sampler_kwargs or {}
         self.reward_variant = reward_variant
-        self.goal_escape = goal_escape
-        self.logger = log
         if min(
             self.w_base,
             self.w_shapley,

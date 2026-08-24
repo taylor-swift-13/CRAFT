@@ -9,12 +9,12 @@ from __future__ import annotations
 
 import json
 import sys
-from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
+from paper.scripts._curation_common import quantile  # noqa: E402
 from paper.scripts.filter_training_by_negative_coverage import _atomic_json  # noqa: E402
 from rl_pipeline.common.state import extract_invariants  # noqa: E402
 from rl_pipeline.sampler.example_sampler import (  # noqa: E402
@@ -29,7 +29,13 @@ V4 = ROOT / "paper" / "artifacts" / "v4"
 
 def _load(name: str) -> dict:
     path = V4 / name
-    return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+    if not path.is_file():
+        # The paper quotes these numbers; a silently-empty section is worse
+        # than a loud failure.
+        print(f"WARNING: missing report {path}; the corresponding paper "
+              "section will be empty", file=sys.stderr)
+        return {}
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def _sft_stats(path: Path) -> dict:
@@ -44,8 +50,8 @@ def _sft_stats(path: Path) -> dict:
         "archival_rows": len(rows) - synthesized,
         "clauses_per_answer": {
             "mean": round(sum(counts) / len(counts), 2) if counts else None,
-            "median": counts[len(counts) // 2] if counts else None,
-            "p90": counts[int(0.9 * len(counts))] if counts else None,
+            "median": quantile(counts, 0.5),
+            "p90": quantile(counts, 0.9),
             "max": counts[-1] if counts else None,
         },
         "with_relational_clause": sum(1 for r in rows if r.get("synthesis", {}).get("has_transition_law")),
@@ -67,10 +73,12 @@ def main() -> None:
             "sft": _load("sft_canonicalization.json").get("status"),
         },
         "generated_programs": {
-            "pass1": {k: _load("../../../results/gen_programs/generated_report.json").get(k) for k in
-                      ("programs_accepted", "cells_filled", "eval_programs_newly_covered", "rejections")},
-            "pass2": {k: _load("../../../results/gen_programs/generated2_report.json").get(k) for k in
-                      ("programs_accepted", "cells_filled", "eval_programs_newly_covered", "rejections")},
+            name: {k: report.get(k) for k in
+                   ("programs_accepted", "cells_filled", "eval_programs_newly_covered", "rejections")}
+            for name, report in (
+                ("pass1", _load("generated_pass1_report.json")),
+                ("pass2", _load("generated_pass2_report.json")),
+            )
         },
         "rl": {
             "input_rows": rl.get("input_rows"),

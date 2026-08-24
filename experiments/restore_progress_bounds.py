@@ -14,19 +14,19 @@ every clause survives.  Rows are updated in place; a report records counts.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import multiprocessing
-import resource
+import os
 import sys
 from collections import Counter
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from paper.scripts._curation_common import digest_of, limit_memory  # noqa: E402
 from paper.scripts.audit_sft_invariant_quality import _clause_features  # noqa: E402
 from paper.scripts.filter_training_by_negative_coverage import _atomic_json, _source_from_sft  # noqa: E402
 from rl_pipeline.common.program import parse_program, strip_postcondition  # noqa: E402
@@ -37,9 +37,7 @@ from rl_pipeline.sampler.example_sampler import ExampleSampler  # noqa: E402
 MAX_RESTORED = 3
 
 
-def _init(memory_cap: int) -> None:
-    if memory_cap:
-        resource.setrlimit(resource.RLIMIT_AS, (memory_cap, memory_cap))
+_init = limit_memory
 
 
 def _job(job: Tuple[str, str, List[str], List[str]]) -> dict:
@@ -71,7 +69,6 @@ def main() -> None:
     parser.add_argument("--wp-timeout", type=int, default=5)
     args = parser.parse_args()
 
-    import os
     os.environ.setdefault("CRAFT_WP_TIMEOUT", str(args.wp_timeout))
     os.environ.setdefault("CRAFT_WP_PAR", "2")
 
@@ -86,7 +83,7 @@ def main() -> None:
     status = Counter()
     for record in rows:
         source = _source_from_sft(record)
-        digest = hashlib.sha256(source.encode("utf-8")).hexdigest()
+        digest = digest_of(source)
         row_by_digest[digest] = record
         if "synthesis" not in record:
             status["archival_untouched"] += 1

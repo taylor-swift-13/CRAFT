@@ -36,14 +36,11 @@ either sample by weight or ignore them.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
-import os
 import sys
-import tempfile
 from collections import Counter, defaultdict
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Sequence
+from typing import Dict, List, Optional, Sequence
 
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -51,6 +48,7 @@ import pyarrow.parquet as pq
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
+from paper.scripts._curation_common import atomic_parquet, digest_of as _digest, quantile  # noqa: E402
 from paper.scripts.filter_training_by_negative_coverage import (  # noqa: E402
     _atomic_json,
     _display_path,
@@ -82,10 +80,6 @@ HARD_GATES = (
     "eval_quota",
 )
 CURATION_SCHEMA_VERSION = 1
-
-
-def _digest(source: str) -> str:
-    return hashlib.sha256(source.encode("utf-8")).hexdigest()
 
 
 def _load_records(dataset: str, path: Path):
@@ -283,15 +277,7 @@ def write_rl(
     schema = pa.schema(fields + [pa.field("extra_info", extra_type)])
     # Preserve column order of the source table.
     schema = pa.schema([schema.field(name) for name in table.schema.names])
-    output.parent.mkdir(parents=True, exist_ok=True)
-    fd, name = tempfile.mkstemp(prefix=f".{output.name}.", dir=output.parent)
-    os.close(fd)
-    temporary = Path(name)
-    try:
-        pq.write_table(pa.Table.from_pylist(kept, schema=schema), temporary)
-        os.replace(temporary, output)
-    finally:
-        temporary.unlink(missing_ok=True)
+    atomic_parquet(kept, schema, output)
 
 
 def main() -> None:
@@ -390,6 +376,7 @@ def main() -> None:
             "stratum_guess": verdict["stratum_guess"],
             "n_negative_traces": verdict["n_negative_traces"],
             "relation": verdict["relation"],
+            "shape": verdict["shape"],
             "tags": verdict["tags"],
         }
         for row in chosen:
@@ -417,6 +404,7 @@ def main() -> None:
         for cap in (1, 2, 4, 8, 16, 32, 64)
     }
     copy_levels = Counter(level for v in verdicts.values() for level in v["copy_levels"])
+    survivor_set = set(survivors)
     eval_cells_covered = {verdicts[d]["cell"] for d in survivors}
     pool_cells = Counter(v["cell"] for v in verdicts.values())
     kept_cells = Counter(verdicts[d]["cell"] for d in survivors)
@@ -425,13 +413,10 @@ def main() -> None:
         for cell, count in index.cell_counts.most_common()
         if cell not in eval_cells_covered
     ]
-    related_levels = Counter(str(v["related_level"]) for d, v in verdicts.items() if d in set(survivors))
+    related_levels = Counter(str(v["related_level"]) for d, v in verdicts.items() if d in survivor_set)
     stratum_guess = Counter(verdicts[d]["stratum_guess"] for d in survivors)
     tags = Counter(tag for d in survivors for tag in verdicts[d]["tags"])
     weight_values = sorted(weights.values())
-
-    def quantile(values, p):
-        return values[min(len(values) - 1, int(p * len(values)))] if values else None
 
     report = {
         "schema_version": CURATION_SCHEMA_VERSION,

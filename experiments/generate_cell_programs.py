@@ -21,7 +21,6 @@ appended to the RL pool (schema rows) and to the SFT program list.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import random
 import re
@@ -30,12 +29,17 @@ import threading
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from paper.scripts.filter_training_by_negative_coverage import _atomic_json, _display_path  # noqa: E402
+from paper.scripts._curation_common import digest_of  # noqa: E402
+from paper.scripts.filter_training_by_negative_coverage import (  # noqa: E402
+    _atomic_json,
+    _display_path,
+    _source_from_rl,
+)
 from paper.scripts.program_fingerprint import (  # noqa: E402
     DUPLICATE_LEVELS,
     EvaluationIndex,
@@ -103,15 +107,26 @@ def _extract_programs(text: str) -> List[str]:
 
 
 class Acceptor:
-    def __init__(self, index: EvaluationIndex, wanted_cells: Dict[str, int]):
+    def __init__(self, index: EvaluationIndex, wanted_cells: Dict[str, int],
+                 previous: Optional[List[dict]] = None):
         self.index = index
         self.wanted = dict(wanted_cells)
         self.seen_levels: Dict[str, set] = {level: set() for level in DUPLICATE_LEVELS}
         self.lock = threading.Lock()
         self.reasons: Counter = Counter()
         self.accepted: List[dict] = []
+        for item in previous or []:  # earlier output seeds de-duplication
+            keys = fingerprint(item["source"]).level_keys()
+            for level in DUPLICATE_LEVELS:
+                self.seen_levels[level].add(keys[level])
 
     def offer(self, source: str, target_cell: str) -> Optional[str]:
+        reason = self._verdict(source, target_cell)
+        with self.lock:
+            self.reasons[reason or "accepted"] += 1
+        return reason
+
+    def _verdict(self, source: str, target_cell: str) -> Optional[str]:
         source, _ = canonicalize_break_idiom(source)
         try:
             program = parse_program(strip_postcondition(source))
@@ -122,7 +137,7 @@ class Acceptor:
         # arrays, pointer declarations, non-integer types
         if re.search(r"\[|\b(?:int|long|short|unsigned|signed)\s*\*\s*[A-Za-z_]|\bfloat\b|\bdouble\b|\bchar\b", source):
             return "unsupported_type"
-        verdict = self.index.assess(source, dedup_levels=DUPLICATE_LEVELS)
+        verdict = self.index.assess(source, neighbours=0, dedup_levels=DUPLICATE_LEVELS)
         if verdict["copy_levels"]:
             return "eval_copy_" + verdict["copy_levels"][0]
         fp = verdict["fingerprint"]
@@ -170,28 +185,24 @@ def main() -> None:
     for row in specs:
         gap = min(args.max_per_cell, max(0, row["demand_at_6000"] - row["supply_full_pool"] - previous_cells.get(row["cell"], 0)))
         if gap > 0:
-            gaps.append((row["cell"], gap, row["spec"], row["eval_programs"]))
+            gaps.append((row["cell"], gap, row["spec"]))
     gaps.sort(key=lambda g: -g[1])
     if args.limit_cells:
         gaps = gaps[: args.limit_cells]
-    wanted = {cell: gap for cell, gap, _, _ in gaps}
+    wanted = {cell: gap for cell, gap, _ in gaps}
     print(f"cells to fill: {len(gaps)}, programs wanted: {sum(wanted.values())}", flush=True)
 
     rng = random.Random(args.seed)
-    pool = [r["prompt"][-1]["content"].split("Program:\n", 1)[1].strip()
+    pool = [_source_from_rl(r).strip()
             for r in pq.read_table(args.pool, columns=["prompt"]).to_pylist()]
     pool = [p for p in pool if 120 < len(p) < 600]
     index = EvaluationIndex.from_evaluation_dirs()
-    acceptor = Acceptor(index, wanted)
-    for item in previous:  # seed de-duplication with earlier output
-        fp = fingerprint(item["source"]).level_keys()
-        for level in DUPLICATE_LEVELS:
-            acceptor.seen_levels[level].add(fp[level])
+    acceptor = Acceptor(index, wanted, previous=previous)
     chat = RecordingChat(model=args.model, system_prompt=SYSTEM_PROMPT, use_default_system_prompt=False,
                          reasoning_effort="omit", max_completion_tokens=args.max_tokens)
 
     jobs = []
-    for cell, gap, spec, n_eval in gaps:
+    for cell, gap, spec in gaps:
         calls = max(1, round(gap * args.overshoot / args.per_call))
         for k in range(calls):
             examples = rng.sample(pool, 2)
@@ -220,15 +231,14 @@ def main() -> None:
             if error:
                 errors[error[:40]] += 1
             for source in programs:
-                reason = acceptor.offer(source, cell)
-                acceptor.reasons[reason or "accepted"] += 1
+                acceptor.offer(source, cell)
             if count % 20 == 0 or count == len(futures):
                 print(f"[generate] {count}/{len(futures)} accepted={len(acceptor.accepted)} "
                       f"reasons={dict(acceptor.reasons.most_common(6))} usage={chat.usage()}", flush=True)
 
     accepted = acceptor.accepted
     for item in accepted:
-        item["digest"] = hashlib.sha256(item["source"].encode("utf-8")).hexdigest()
+        item["digest"] = digest_of(item["source"])
     _atomic_json(accepted, args.output)
     filled = Counter(item["cell"] for item in accepted)
     report = {

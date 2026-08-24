@@ -537,6 +537,25 @@ class ExampleSampler:
                     relation_bases.append(state)
                     base_keys.add(state.key())
 
+        def transition_step(r: State) -> Dict[str, int]:
+            """The locally witnessed transition at base ``r`` (forward step,
+            or the final transition at a terminal head); {} when unknown."""
+            neighbor = trace_index.get((r.run, r.it + 1))
+            if neighbor is not None:
+                return {
+                    name: neighbor.vars[name] - r.vars[name]
+                    for name in r.vars
+                    if name in neighbor.vars
+                }
+            predecessor = trace_index.get((r.run, r.it - 1))
+            if predecessor is None:
+                return {}
+            return {
+                name: r.vars[name] - predecessor.vars[name]
+                for name in r.vars
+                if name in predecessor.vars
+            }
+
         def add_candidate(
             r: State,
             nv: Dict[str, int],
@@ -545,6 +564,7 @@ class ExampleSampler:
             terminal: bool,
             base_guard: Optional[bool],
             envelope: Dict[str, Tuple[int, int]],
+            step: Dict[str, int],
         ) -> None:
             state = r.with_vars(nv)
             inside_envelope = all(
@@ -567,24 +587,6 @@ class ExampleSampler:
             # reachable at another iteration. Reject perturbation vectors that
             # are an integer multiple of the witnessed forward transition (or
             # of the final transition at a terminal head).
-            neighbor = trace_index.get((r.run, r.it + 1))
-            if neighbor is not None:
-                step = {
-                    name: neighbor.vars[name] - r.vars[name]
-                    for name in r.vars
-                    if name in neighbor.vars
-                }
-            else:
-                predecessor = trace_index.get((r.run, r.it - 1))
-                step = (
-                    {
-                        name: r.vars[name] - predecessor.vars[name]
-                        for name in r.vars
-                        if name in predecessor.vars
-                    }
-                    if predecessor is not None
-                    else {}
-                )
             multiplier = None
             on_transition_tangent = bool(step)
             for name, step_value in step.items():
@@ -625,9 +627,11 @@ class ExampleSampler:
             if not dense and not terminal:
                 continue
             base = r.vars
-            # Every base is a positive, so its context always has an envelope.
+            # Every base is a positive, so its context always has an envelope;
+            # the witnessed transition step is likewise fixed per base.
             base_guard = eval_predicate(guard, r)
             envelope = envelopes[r.context_key()]
+            step = transition_step(r)
             deltas = _TERMINAL_DELTAS if terminal else _SMALL_DELTAS
             for v in movable:
                 for d in deltas:
@@ -635,7 +639,7 @@ class ExampleSampler:
                     nv[v] += d
                     add_candidate(
                         r, nv, (v,), (1 if d > 0 else -1,), terminal,
-                        base_guard, envelope,
+                        base_guard, envelope, step,
                     )
             for i in range(len(movable)):
                 for j in range(i + 1, len(movable)):
@@ -656,6 +660,7 @@ class ExampleSampler:
                                 terminal,
                                 base_guard,
                                 envelope,
+                                step,
                             )
         return out
 

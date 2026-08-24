@@ -27,10 +27,8 @@ judge is the same Houdini filter the inference pipeline uses.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
-import resource
 import sys
 import threading
 import time
@@ -43,8 +41,13 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from paper.scripts.audit_sft_invariant_quality import _clause_features  # noqa: E402
+from paper.scripts._curation_common import (  # noqa: E402
+    digest_of,
+    latest_rows as _latest_rows,
+    limit_memory,
+    quantile,
+)
 from paper.scripts.filter_training_by_negative_coverage import (  # noqa: E402
-    PROGRAM_MARKER,
     _atomic_json,
     _display_path,
     _source_from_rl,
@@ -59,12 +62,15 @@ from paper.scripts.sanitize_training_prompts import (  # noqa: E402
     _remove_subsumed_constant_bounds,
 )
 from rl_pipeline.common import prompts  # noqa: E402
-from rl_pipeline.common.program import parse_program, strip_postcondition  # noqa: E402
+from rl_pipeline.common.program import (  # noqa: E402
+    integer_source_constants,
+    parse_program,
+    strip_postcondition,
+)
 from rl_pipeline.common.state import (  # noqa: E402
     MAX_INVARIANTS_PER_RESPONSE,
     dedup_normalized,
     extract_invariants,
-    normalize_invariant,
 )
 from rl_pipeline.reward.filters import HoudiniFilter, frama_c_available  # noqa: E402
 from rl_pipeline.reward.reward_calculator import RewardCalculator  # noqa: E402
@@ -81,18 +87,13 @@ SYNTH_SCHEMA_VERSION = 1
 # ---------------------------------------------------------------------------
 # shared helpers
 # ---------------------------------------------------------------------------
-def digest_of(source: str) -> str:
-    return hashlib.sha256(source.encode("utf-8")).hexdigest()
-
-
-def latest_rows(path: Path, key: str = "digest") -> Dict[str, dict]:
-    rows: Dict[str, dict] = {}
-    if path.is_file():
-        with path.open(encoding="utf-8") as handle:
-            for line in handle:
-                if line.strip():
-                    row = json.loads(line)
-                    rows[row[key]] = row
+def latest_rows(path: Path, drop: Tuple[str, ...] = ()) -> Dict[str, dict]:
+    """Stage ledgers are keyed by program digest; ``drop`` sheds bulky fields
+    (e.g. raw responses) that the caller does not need in memory."""
+    rows = _latest_rows(path, key="digest")
+    for row in rows.values():
+        for field in drop:
+            row.pop(field, None)
     return rows
 
 
@@ -107,15 +108,11 @@ def append_row(path: Path, row: dict, lock: Optional[threading.Lock] = None) -> 
             handle.write(text)
 
 
-EXISTING_ANSWERS: Dict[str, List[str]] = {}
-
-
-def load_programs(dataset: str, path: Path) -> List[Tuple[str, str]]:
-    """Unique (digest, visible source) pairs in file order.
-
-    For ``sft`` inputs the existing ``gpt`` answer is remembered in
-    ``EXISTING_ANSWERS`` so it can join the union as one more rollout.
-    """
+def load_programs(dataset: str, path: Path):
+    """Return (unique (digest, source) pairs, digest -> existing answer clauses,
+    raw records).  Answers/records are only populated for ``sft`` inputs."""
+    answers: Dict[str, List[str]] = {}
+    records: List[dict] = []
     if dataset == "sft":
         records = json.loads(path.read_text(encoding="utf-8"))
         sources = []
@@ -123,7 +120,7 @@ def load_programs(dataset: str, path: Path) -> List[Tuple[str, str]]:
             source = _source_from_sft(record)
             answer = next(t["value"] for t in record["conversations"] if t["from"] == "gpt")
             sources.append(source)
-            EXISTING_ANSWERS.setdefault(
+            answers.setdefault(
                 digest_of(source), extract_invariants(answer, max_invariants=MAX_INVARIANTS_PER_RESPONSE)
             )
     elif dataset == "rl":
@@ -134,26 +131,16 @@ def load_programs(dataset: str, path: Path) -> List[Tuple[str, str]]:
     seen: Dict[str, str] = {}
     for source in sources:
         seen.setdefault(digest_of(source), source)
-    return list(seen.items())
+    answers = {d: a for d, a in answers.items() if a}
+    return list(seen.items()), answers, records
 
 
 # ---------------------------------------------------------------------------
 # Stage A: rollouts
 # ---------------------------------------------------------------------------
-def _rollout_job(chat, source: str, k: int, per_request: int, retries: int = 2) -> dict:
+def _rollout_job(chat, source: str, k: int, retries: int = 2) -> dict:
     prompt = prompts.GENERATE_PROMPT.format(program=strip_postcondition(source))
-    responses: List[str] = []
-    remaining = k
-    while remaining > 0:
-        n = min(per_request, remaining)
-        try:
-            batch = chat.chat_n(prompt, n)
-        except Exception:
-            if n == 1:
-                raise
-            batch = [chat.chat(prompt) for _ in range(n)]
-        responses.extend(batch)
-        remaining -= n
+    responses: List[str] = [chat.chat(prompt) for _ in range(k)]
     # Reasoning endpoints sometimes return an empty/unparsable choice when the
     # completion budget is spent on hidden reasoning; retry those individually.
     empty_retries = 0
@@ -174,7 +161,7 @@ def _rollout_job(chat, source: str, k: int, per_request: int, retries: int = 2) 
     }
 
 
-def stage_rollouts(programs, root: Path, *, k: int, per_request: int, workers: int,
+def stage_rollouts(programs, root: Path, *, k: int, workers: int,
                    model: Optional[str], max_tokens: int) -> Counter:
     from experiments.gpt5nano_full832.api import RecordingChat
     path = root / "rollouts.jsonl"
@@ -186,7 +173,7 @@ def stage_rollouts(programs, root: Path, *, k: int, per_request: int, workers: i
     chat = RecordingChat(model=model, reasoning_effort="omit", max_completion_tokens=max_tokens)
     lock = threading.Lock()
     with ThreadPoolExecutor(max_workers=workers) as pool:
-        futures = {pool.submit(_rollout_job, chat, s, k, per_request): (d, s) for d, s in pending}
+        futures = {pool.submit(_rollout_job, chat, s, k): (d, s) for d, s in pending}
         for count, future in enumerate(as_completed(futures), 1):
             d, s = futures[future]
             try:
@@ -206,9 +193,6 @@ def stage_rollouts(programs, root: Path, *, k: int, per_request: int, workers: i
 # ---------------------------------------------------------------------------
 # Stage B: compose + prune
 # ---------------------------------------------------------------------------
-def _limit_memory(cap: int) -> None:
-    if cap > 0:
-        resource.setrlimit(resource.RLIMIT_AS, (cap, cap))
 
 
 def _coverage(examples, clauses: Sequence[str], constants) -> Tuple[float, Set[int]]:
@@ -294,7 +278,6 @@ COVERAGE_MIN_TRACES = 8
 
 def prune_to_core(program, examples, survivors: List[str]) -> dict:
     """Target-independent core of a Houdini-surviving clause set."""
-    from rl_pipeline.common.program import integer_source_constants
     constants = integer_source_constants(program.source)
     modified = set(ExampleSampler._modified_vars(program))
     kept = list(survivors)
@@ -343,6 +326,7 @@ def prune_to_core(program, examples, survivors: List[str]) -> dict:
     core_cov = len(covered) / len(examples.groups(0)) if examples.groups(0) else 0.0
     return {
         "core": core,
+        "cleaned": kept,
         "core_coverage": round(core_cov, 4),
         "union_coverage": round(union_cov, 4),
         "dropped": dropped,
@@ -379,17 +363,13 @@ def _compose_job(job: Tuple[str, str, List[List[str]], int, int, int]) -> dict:
         if houdini_lost:
             # Support clauses were pruned away; fall back to the cleaned
             # survivor set (frame/guarded/subsumed removed) if that is intact.
-            cleaned = [c for c in survivors if c not in set(
-                pruned["dropped"]["frame"] + pruned["dropped"]["guarded_copy"]
-                + pruned["dropped"]["subsumed_bound"] + pruned["dropped"]["implied"]
-            )]
+            cleaned = pruned["cleaned"]
             recheck = dedup_normalized(houdini.filter(program, 0, cleaned, None))
             if set(recheck) == set(cleaned):
                 final, path = cleaned, "cleaned_survivors"
             else:
                 final, path = survivors, "survivors"
-        from rl_pipeline.common.program import integer_source_constants
-        constants = integer_source_constants(program.source)
+            constants = integer_source_constants(program.source)
         final_cov, _ = _coverage(examples, final, constants)
         rollout_cov = [
             _coverage(examples, [c for c in dedup_normalized(r) if c in set(survivors)], constants)[0]
@@ -425,10 +405,10 @@ def _compose_job(job: Tuple[str, str, List[List[str]], int, int, int]) -> dict:
                 "seconds": round(time.perf_counter() - started, 2)}
 
 
-def stage_compose(programs, root: Path, *, workers: int, n_runs: int, seed: int,
+def stage_compose(programs, answers, root: Path, *, workers: int, n_runs: int, seed: int,
                   memory_cap: int, wp_timeout: int, wp_par: int, min_traces: int,
                   include_existing: bool) -> Counter:
-    rollouts = latest_rows(root / "rollouts.jsonl")
+    rollouts = latest_rows(root / "rollouts.jsonl", drop=("responses",))
     path = root / "cores.jsonl"
     done = latest_rows(path)
     jobs = []
@@ -442,16 +422,16 @@ def stage_compose(programs, root: Path, *, workers: int, n_runs: int, seed: int,
             status["done"] += 1
             continue
         invariants = list(row["invariants"])
-        if include_existing and EXISTING_ANSWERS.get(d):
+        if include_existing and answers.get(d):
             # The archival answer joins the pool as one more rollout; it is
             # filtered and pruned exactly like the model's responses.
-            invariants.append(EXISTING_ANSWERS[d])
+            invariants.append(answers[d])
         jobs.append((d, s, invariants, n_runs, seed, min_traces))
     if not jobs:
         return status
     os.environ["CRAFT_WP_TIMEOUT"] = str(wp_timeout)
     os.environ["CRAFT_WP_PAR"] = str(wp_par)
-    with ProcessPoolExecutor(max_workers=workers, initializer=_limit_memory, initargs=(memory_cap,)) as pool:
+    with ProcessPoolExecutor(max_workers=workers, initializer=limit_memory, initargs=(memory_cap,)) as pool:
         futures = {pool.submit(_compose_job, job): job[0] for job in jobs}
         for count, future in enumerate(as_completed(futures), 1):
             digest = futures[future]
@@ -471,9 +451,9 @@ def stage_compose(programs, root: Path, *, workers: int, n_runs: int, seed: int,
 # ---------------------------------------------------------------------------
 def stage_write(programs, root: Path, *, output: Path, report_path: Path,
                 min_coverage: float, allow_bounds_only: bool, max_clauses: int,
-                model: Optional[str]) -> dict:
+                model: Optional[str], passthrough: Optional[List[dict]] = None) -> dict:
     cores = latest_rows(root / "cores.jsonl")
-    rollouts = latest_rows(root / "rollouts.jsonl")
+    rollouts = latest_rows(root / "rollouts.jsonl", drop=("responses",))
     system = prompts.system_prompt()
     rows = []
     reasons = Counter()
@@ -522,10 +502,9 @@ def stage_write(programs, root: Path, *, output: Path, report_path: Path,
         reasons["written"] += 1
         clause_counts.append(len(final))
         gains.append(core["final_coverage"] - core["best_single_rollout_coverage"])
-    _atomic_json(rows, output)
-    clause_counts.sort()
-    gains.sort()
-    q = lambda a, p: a[min(len(a) - 1, int(p * len(a)))] if a else None  # noqa: E731
+    passthrough = passthrough or []
+    _atomic_json(passthrough + rows, output)
+    q = quantile
     report = {
         "schema_version": SYNTH_SCHEMA_VERSION,
         "negative_schema_version": NEGATIVE_SCHEMA_VERSION,
@@ -539,6 +518,8 @@ def stage_write(programs, root: Path, *, output: Path, report_path: Path,
         "coverage_gain_over_best_rollout": {"median": q(gains, 0.5), "p25": q(gains, 0.25), "p75": q(gains, 0.75)},
         "with_transition_law": sum(1 for r in rows if r["synthesis"]["has_transition_law"]),
         "paths": dict(Counter(r["synthesis"]["path"] for r in rows)),
+        "rows_passthrough_answered": len(passthrough),
+        "rows_total": len(passthrough) + len(rows),
         "policy": (
             "target-independent: union of k rollouts -> interface gate -> Houdini "
             "(target-hidden) -> drop frame/guarded/subsumed clauses -> keep every "
@@ -563,7 +544,6 @@ def main() -> None:
     parser.add_argument("--offset", type=int, default=0)
     parser.add_argument("--model", default=None, help="default: CRAFT_MODEL env / protocol model")
     parser.add_argument("--k", type=int, default=8)
-    parser.add_argument("--per-request", type=int, default=1, help="choices per API request (falls back to 1)")
     parser.add_argument("--max-tokens", type=int, default=8192)
     parser.add_argument("--api-workers", type=int, default=8)
     parser.add_argument("--workers", type=int, default=2)
@@ -586,10 +566,11 @@ def main() -> None:
     args = parser.parse_args()
 
     args.root.mkdir(parents=True, exist_ok=True)
-    programs = load_programs(args.dataset, args.input)[args.offset:]
+    programs, answers, records = load_programs(args.dataset, args.input)
+    programs = programs[args.offset:]
     if args.limit is not None:
         programs = programs[: args.limit]
-    answered = {d for d, s in programs if EXISTING_ANSWERS.get(d)}
+    answered = {d for d, s in programs if answers.get(d)}
     if args.keep_answered:
         # Rows that already carry an answer are passed through untouched; only
         # unanswered programs are rolled out, composed and written.
@@ -598,37 +579,29 @@ def main() -> None:
 
     if args.stage in ("rollouts", "all"):
         print("[rollouts]", dict(stage_rollouts(
-            programs, args.root, k=args.k, per_request=args.per_request,
+            programs, args.root, k=args.k,
             workers=args.api_workers, model=args.model, max_tokens=args.max_tokens,
         )), flush=True)
     if args.stage in ("compose", "all"):
         if not frama_c_available():
             raise SystemExit("frama-c is not on PATH (eval \"$(opam env --switch=frama-c.27.1 --set-switch)\")")
         print("[compose]", dict(stage_compose(
-            programs, args.root, workers=args.workers, n_runs=args.n_runs, seed=args.seed,
+            programs, answers, args.root, workers=args.workers, n_runs=args.n_runs, seed=args.seed,
             memory_cap=args.memory_cap, wp_timeout=args.wp_timeout, wp_par=args.wp_par,
             min_traces=args.min_traces, include_existing=not args.no_existing_answer,
         )), flush=True)
     if args.stage in ("write", "all"):
         if not args.output or not args.report:
             raise SystemExit("--output and --report are required for the write stage")
+        passthrough = [
+            r for r in records
+            if args.keep_answered and digest_of(_source_from_sft(r)) in answered
+        ] if args.keep_answered else []
         report = stage_write(
             programs, args.root, output=args.output, report_path=args.report,
             min_coverage=args.min_coverage, allow_bounds_only=args.allow_bounds_only,
-            max_clauses=args.max_clauses, model=args.model,
+            max_clauses=args.max_clauses, model=args.model, passthrough=passthrough,
         )
-        if args.keep_answered and answered:
-            records = json.loads(args.input.read_text(encoding="utf-8"))
-            passthrough = [
-                r for r in records
-                if digest_of(_source_from_sft(r)) in answered
-                and next(t["value"] for t in r["conversations"] if t["from"] == "gpt").strip()
-            ]
-            rows = json.loads(args.output.read_text(encoding="utf-8"))
-            _atomic_json(passthrough + rows, args.output)
-            report["rows_passthrough_answered"] = len(passthrough)
-            report["rows_total"] = len(passthrough) + len(rows)
-            _atomic_json(report, args.report)
         print(json.dumps(report, indent=2))
 
 

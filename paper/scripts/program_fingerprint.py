@@ -261,10 +261,7 @@ class Fingerprint:
         }
 
     def to_dict(self) -> dict:
-        value = asdict(self)
-        value["features"] = dict(self.features)
-        value["features"]["update_kinds"] = list(self.features.get("update_kinds", ()))
-        return value
+        return asdict(self)
 
 
 def fingerprint(source: str) -> Fingerprint:
@@ -359,11 +356,25 @@ class EvaluationIndex:
             if keys[level] in self.by_level[level]:
                 related_level = level
                 break
+        if neighbours <= 0:
+            # Callers that only need dedup/cell verdicts skip the 832-bag scan.
+            return {
+                "fingerprint": fp.to_dict(),
+                "copy_levels": copy_levels,
+                "duplicate_level": duplicate_level,
+                "related_level": related_level,
+                "similarity": 0.0,
+                "cell": fp.cell,
+                "cell_eval_count": self.cell_counts.get(fp.cell, 0),
+                "stratum_guess": None,
+            }
+        import heapq
         bag = feature_bag(fp.features)
-        scored = sorted(
+        scored = heapq.nlargest(
+            neighbours,
             ((jaccard(bag, other), stratum) for other, stratum in self.bags),
-            key=lambda item: -item[0],
-        )[:neighbours]
+            key=lambda item: item[0],
+        )
         similarity = scored[0][0] if scored else 0.0
         # Informational only: features separate NLA well but linear/Loopy
         # poorly (leave-one-out kNN accuracy ~0.59 on the evaluation corpus).
@@ -415,7 +426,6 @@ def quota_select(
     still have candidates, proportionally to their evaluation share, until the
     target is met or every candidate cell is exhausted.
     """
-    total_eval = sum(eval_cells.values()) or 1
     by_cell: Dict[str, Dict[str, List[str]]] = {}
     for cid, (cell, shape, priority) in candidates.items():
         by_cell.setdefault(cell, {}).setdefault(shape, []).append(cid)
@@ -426,9 +436,15 @@ def quota_select(
     taken: Dict[str, List[str]] = {cell: [] for cell in by_cell}
     cursor: Dict[str, Dict[str, int]] = {cell: {shape: 0 for shape in shapes} for cell, shapes in by_cell.items()}
 
+    # Shape order within a cell never changes; compute it once.
+    shape_order = {
+        cell: sorted(shapes, key=lambda sh: (-max(candidates[c][2] for c in shapes[sh]), sh))
+        for cell, shapes in by_cell.items()
+    }
+
     def draw(cell: str, want: int) -> int:
         got = 0
-        shapes = sorted(by_cell[cell], key=lambda sh: (-max(candidates[c][2] for c in by_cell[cell][sh]), sh))
+        shapes = shape_order[cell]
         while got < want:
             progressed = False
             for shape in shapes:
@@ -473,24 +489,49 @@ def quota_select(
     return selected[:target]
 
 
+def _trivial_counter(features: Dict[str, object]) -> bool:
+    """A single-variable straight-line counter: the answer is one bound."""
+    kinds = set(features.get("update_kinds", ()))
+    return (
+        int(features.get("n_modified", 0)) <= 1
+        and int(features.get("n_pre_vars", 0)) <= 2
+        and not features.get("nondet")
+        and not features.get("nonlinear")
+        and int(features.get("n_if", 0)) == 0
+        and kinds <= {"increment"}
+    )
+
+
+def _nonlinear_recurrence(features: Dict[str, object]) -> bool:
+    """Products of loop-modified variables over many variables (NLA stratum)."""
+    return bool(features.get("product_of_modified")) and int(features.get("n_modified", 0)) >= 3
+
+
+def _wide_and_long(features: Dict[str, object]) -> bool:
+    return int(features.get("n_modified", 0)) >= 5 and int(features.get("body_stmts", 0)) >= 8
+
+
 def difficulty_verdict(features: Dict[str, object]) -> Optional[str]:
     """Static difficulty screen shared by RL and SFT curation.
 
-    ``too_easy``: a single-variable straight-line counter (the answer is one
-    bound).  ``too_hard``: nonlinear arithmetic over >= 4 variables (the
-    benchmark's NLA stratum, where compose@k stays at 0-4%), or very wide and
-    long bodies.  Returns None for everything in between.
+    ``too_easy``: a trivial counter.  ``too_hard``: a nonlinear recurrence
+    over many variables (the benchmark's NLA stratum, where compose@k stays at
+    0-4%), or a very wide and long body.  Returns None in between.
     """
-    n_vars = int(features.get("n_pre_vars", 0))
-    n_mod = int(features.get("n_modified", 0))
-    kinds = set(features.get("update_kinds", ()))
-    if (
-        n_mod <= 1 and n_vars <= 2 and not features.get("nondet") and not features.get("nonlinear")
-        and int(features.get("n_if", 0)) == 0 and kinds <= {"increment"}
-    ):
+    if _trivial_counter(features):
         return "too_easy"
-    if features.get("product_of_modified") and n_mod >= 3:
-        return "too_hard"
-    if n_mod >= 5 and int(features.get("body_stmts", 0)) >= 8:
+    if _nonlinear_recurrence(features) or _wide_and_long(features):
         return "too_hard"
     return None
+
+
+def nla_admissible(features: Dict[str, object]) -> bool:
+    """SFT NLA-boost exception to the difficulty screen: nonlinear programs
+    are admitted even when ``difficulty_verdict`` says too-hard, except the
+    trivial-counter and wide-and-long cases (composed from the same
+    predicates, so the screen and the exception cannot drift apart)."""
+    return (
+        bool(features.get("nonlinear"))
+        and not _trivial_counter(features)
+        and not _wide_and_long(features)
+    )

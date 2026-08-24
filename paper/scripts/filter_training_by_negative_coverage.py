@@ -18,9 +18,7 @@ import pyarrow.parquet as pq
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
-from rl_pipeline.sampler.example_sampler import (  # noqa: E402
-    NEGATIVE_SCHEMA_VERSION as COVERAGE_SCHEMA_VERSION,
-)
+from rl_pipeline.sampler.example_sampler import NEGATIVE_SCHEMA_VERSION  # noqa: E402
 
 PROGRAM_MARKER = "Program:\n"
 
@@ -78,7 +76,7 @@ def _partition(records, source_of, latest: dict, label: str):
         result = latest.get(digest)
         if result is None:
             missing.append(row)
-        elif result.get("coverage_schema_version") != COVERAGE_SCHEMA_VERSION:
+        elif result.get("coverage_schema_version") != NEGATIVE_SCHEMA_VERSION:
             stale.append(row)
         elif not result.get("scorable"):
             unscorable.append(row)
@@ -142,7 +140,8 @@ def main() -> None:
             temporary.unlink(missing_ok=True)
 
     report = {
-        "schema_version": COVERAGE_SCHEMA_VERSION,
+        "schema_version": 1,
+        "negative_schema_version": NEGATIVE_SCHEMA_VERSION,
         "dataset": args.dataset,
         "input": _display_path(args.input),
         "output": _display_path(args.output),

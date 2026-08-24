@@ -36,6 +36,14 @@ SUM = "/*@ requires n >= 0; */ void f(int n) { int i = 0; int s = 0; while (i < 
 NLA_WIDE = "void f(int a, int b) { int x = 0; int y = 1; int z = 1; while (x < a) { y = y * b; z = z * y; x = x + 1; } }"
 
 
+def _sft_record(source: str, answer: str = "loop invariant x >= 0;") -> dict:
+    return {"conversations": [
+        {"from": "system", "value": "s"},
+        {"from": "human", "value": "task\nProgram:\n" + source},
+        {"from": "gpt", "value": answer},
+    ]}
+
+
 def _ledger_row(traces: int, relation: int, *, scorable: bool = True,
                 schema: int = NEGATIVE_SCHEMA_VERSION, error: str = "") -> dict:
     row = {
@@ -154,12 +162,7 @@ class GateTests(unittest.TestCase):
 
 class EndToEndTests(unittest.TestCase):
     def test_sft_curation_cli(self):
-        def record(source: str) -> dict:
-            return {"conversations": [
-                {"from": "system", "value": "s"},
-                {"from": "human", "value": "task\nProgram:\n" + source},
-                {"from": "gpt", "value": "loop invariant x >= 0;"},
-            ]}
+        record = _sft_record
         sources = [COUNTER_OTHER_INIT, NONDET, COUNTER_RENAMED]
         ledger = []
         for source, (traces, relation) in zip(sources, ((60, 30), (60, 30), (60, 30))):
@@ -186,10 +189,6 @@ class EndToEndTests(unittest.TestCase):
         self.assertIn("gate_failures", report)
         self.assertIn("evaluation_cells", report)
         self.assertLessEqual(len(out), 3)
-
-
-if __name__ == "__main__":
-    unittest.main()
 
 
 class SynthesisPruningTests(unittest.TestCase):
@@ -250,13 +249,6 @@ class SelectSftProgramsTests(unittest.TestCase):
         import pyarrow as pa
         import pyarrow.parquet as pq
 
-        def sft_record(source: str, answer: str = "loop invariant x >= 0;") -> dict:
-            return {"conversations": [
-                {"from": "system", "value": "s"},
-                {"from": "human", "value": "task\nProgram:\n" + source},
-                {"from": "gpt", "value": answer},
-            ]}
-
         def rl_record(source: str, relatedness: float, relation: int, traces: int) -> dict:
             return {
                 "data_source": "loopgym",
@@ -270,7 +262,7 @@ class SelectSftProgramsTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as directory:
             d = Path(directory)
-            (d / "sft.json").write_text(json.dumps([sft_record(COUNTER_OTHER_INIT)]))
+            (d / "sft.json").write_text(json.dumps([_sft_record(COUNTER_OTHER_INIT)]))
             rl = [
                 rl_record(COUNTER_OTHER_INIT, 0.9, 10, 50),   # already in SFT -> skipped
                 rl_record(PRODUCT, 0.95, 40, 100),             # related extra
@@ -293,3 +285,7 @@ class SelectSftProgramsTests(unittest.TestCase):
         self.assertEqual(out[0]["conversations"][2]["value"], "loop invariant x >= 0;")
         self.assertEqual(out[1]["conversations"][2]["value"], "")
         self.assertIn("y = y * x", out[1]["conversations"][1]["value"])
+
+
+if __name__ == "__main__":
+    unittest.main()

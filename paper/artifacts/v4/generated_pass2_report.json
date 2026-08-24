@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "specs": "paper/artifacts/v4/eval_cell_specs.json",
+  "output": "results/gen_programs/generated2.json",
+  "model": "gpt-5.6-luna",
+  "cells_targeted": 60,
+  "programs_wanted": 1449,
+  "programs_accepted": 280,
+  "on_target_cell": 271,
+  "cells_filled": 25,
+  "eval_programs_newly_covered": 172,
+  "rejections": {
+    "self_copy_alpha_const_loop": 928,
+    "eval_copy_alpha_const_loop": 25,
+    "self_copy_alpha": 1,
+    "accepted": 280,
+    "cell_not_wanted": 2780,
+    "self_copy_alpha_const": 25,
+    "cell_full": 355
+  },
+  "api_errors": {},
+  "usage": {
+    "prompt_tokens": 308672,
+    "completion_tokens": 1060201,
+    "total_tokens": 1368873,
+    "api_call_count": 549,
+    "token_accounting": "exact"
+  },
+  "policy": "only the structural spec is prompted; every evaluation-program fingerprint level (exact/alpha/alpha_const/alpha_const_loop) is a rejection; generated programs are also de-duplicated against each other at every level"
+}

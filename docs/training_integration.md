@@ -99,10 +99,10 @@ eval "$(opam env --switch=frama-c.27.1 --set-switch)"   # Frama-C for stages 3-4
 
 # 1. canonicalize the break idiom (semantics-preserving; restores a real guard)
 python paper/scripts/canonicalize_training_pool.py rl \
-  --input traindata/craft_rl_final.parquet --output traindata/craft_rl_canonical.parquet \
+  --input traindata/craft_rl_pool.parquet --output traindata/craft_rl_canonical.parquet \
   --report paper/artifacts/v4/rl_canonicalization.json
 python paper/scripts/canonicalize_training_pool.py sft \
-  --input traindata/craft_sft_final.json --output traindata/craft_sft_canonical.json \
+  --input traindata/craft_sft_archive.json --output traindata/craft_sft_canonical.json \
   --report paper/artifacts/v4/sft_canonicalization.json
 
 # 2. schema-current negative ledger (gcc only; ~1 h with 6 workers)

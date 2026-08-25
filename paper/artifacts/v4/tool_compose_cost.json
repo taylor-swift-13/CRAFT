@@ -1,0 +1,27 @@
+{
+ "schema_version": 1,
+ "source_pool": "gpt5nano_tools_no_reasoning_cap8192",
+ "tokens_per_task": {
+  "prompt_per_call": 880.72,
+  "completion_per_rollout": 256.09,
+  "k1": 1136.82,
+  "k4": 1905.1,
+  "k8": 2929.47,
+  "sanity": "k1 estimate vs dedicated single-call billed 1135.83"
+ },
+ "seconds_per_task": {
+  "generation_single_request": 7.86,
+  "verify_mean": {
+   "k1": 16.66,
+   "k4": 38.54,
+   "k8": 62.13
+  },
+  "total": {
+   "k1": 24.52,
+   "k4": 46.4,
+   "k8": 69.99
+  },
+  "verify_source": "grid_recompute.jsonl (this-machine replay, WP timeout 5s)"
+ },
+ "policy": "tokens@k = mean prompt/call + k * mean completion/rollout from the archived pool's billed usage; time@k = dedicated-run single-request latency + measured filter+judge time of the prefix recompute at budget k"
+}

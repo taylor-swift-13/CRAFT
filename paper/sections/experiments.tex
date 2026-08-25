@@ -266,15 +266,15 @@ Naive
 \sam{} (compose@1)
   & \acc{110}{34.81\%} & \acc{11}{22.00\%} & \acc{161}{34.55\%}
   & \acc{282}{33.89\%}
-  & TBD & TBD \\
+  & 1,136.82 & 24.52\,s \\
 \sam{} (compose@4)
   & \acc{152}{48.10\%} & \acc{15}{30.00\%} & \acc{241}{51.72\%}
   & \acc{408}{49.04\%}
-  & TBD & TBD \\
+  & 1,905.10 & 46.40\,s \\
 \sam{} (compose@8)
   & \acc{175}{55.38\%} & \acc{22}{44.00\%} & \acc{265}{56.87\%}
   & \acc{462}{55.53\%}
-  & TBD & TBD \\
+  & 2,929.47 & 69.99\,s \\
 \bottomrule
 \end{tabular}
 \caption{Common target-hidden comparison with
@@ -283,7 +283,9 @@ Frama-C/WP final judge.  All LLM-driven rows share the same fixed
 backbone model; tokens and time are mean totals per task.  The three
 compose rows are recomputed from one archived ten-rollout pool by
 prefix-subset composition, unioning the first \(k\) responses through the
-same filter chain.}
+same filter chain; their tokens count one prompt plus \(k\) archived
+completions, and their time adds the measured filter-and-judge time at
+budget \(k\) to the single-request latency.}
 \label{tab:tool-comparison}
 \end{table}
 

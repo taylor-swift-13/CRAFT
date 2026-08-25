@@ -27,7 +27,9 @@ from .run import _score_fixed_task, event_path, new_attempt_dir, save_hidden_sou
 
 
 METHOD = "loopgym_r10_houdini"
-N_ROLLOUTS = 10
+# Budget of archived rollouts per task; the compose grid is recomputed from
+# prefixes of this pool, so it only needs to cover the largest reported k.
+N_ROLLOUTS = int(craft_env("R10_N_ROLLOUTS") or "10")
 # Some providers behind the shared OpenAI-compatible endpoint silently return
 # fewer choices than requested for n>1 (observed for gpt-5 and
 # claude-sonnet-4-6), rather than raising. Those models must use

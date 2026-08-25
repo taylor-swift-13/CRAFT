@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "run": "claude_sonnet_4_6_full832_r10_no_thinking",
+  "ks": [
+    1,
+    4,
+    8
+  ],
+  "compose": {
+    "1": {
+      "linear": 175,
+      "all": 474,
+      "scored_linear": 316,
+      "scored": 832,
+      "NLA_lipus": 22,
+      "scored_NLA_lipus": 50,
+      "Loopy": 277,
+      "scored_Loopy": 466
+    },
+    "4": {
+      "linear": 199,
+      "all": 534,
+      "scored_linear": 316,
+      "scored": 832,
+      "NLA_lipus": 26,
+      "scored_NLA_lipus": 50,
+      "Loopy": 309,
+      "scored_Loopy": 466
+    },
+    "8": {
+      "linear": 210,
+      "all": 557,
+      "scored_linear": 316,
+      "scored": 832,
+      "NLA_lipus": 32,
+      "scored_NLA_lipus": 50,
+      "Loopy": 315,
+      "scored_Loopy": 466
+    }
+  },
+  "pass_estimate": {
+    "1": {
+      "all": 302.4,
+      "linear": 109.0,
+      "NLA_lipus": 3.9,
+      "Loopy": 189.5
+    },
+    "4": {
+      "all": 352.09,
+      "linear": 127.4,
+      "NLA_lipus": 4.4,
+      "Loopy": 220.28
+    },
+    "8": {
+      "all": 373.82,
+      "linear": 135.47,
+      "NLA_lipus": 4.8,
+      "Loopy": 233.56
+    }
+  },
+  "pass_rows": 832,
+  "policy": "compose@k = union of the FIRST k archived rollouts -> inference filter chain -> target judge; pass@k = unbiased estimator over the archived per-rollout verdicts"
+}

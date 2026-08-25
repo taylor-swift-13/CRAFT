@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "run": "deepseek_v4_flash_full832_r10_no_thinking_v2",
+  "ks": [
+    1,
+    4,
+    8
+  ],
+  "compose": {
+    "1": {
+      "linear": 165,
+      "all": 428,
+      "scored_linear": 316,
+      "scored": 832,
+      "NLA_lipus": 22,
+      "scored_NLA_lipus": 50,
+      "Loopy": 241,
+      "scored_Loopy": 466
+    },
+    "4": {
+      "linear": 210,
+      "all": 566,
+      "scored_linear": 316,
+      "scored": 832,
+      "NLA_lipus": 30,
+      "scored_NLA_lipus": 50,
+      "Loopy": 326,
+      "scored_Loopy": 466
+    },
+    "8": {
+      "linear": 226,
+      "all": 619,
+      "scored_linear": 316,
+      "scored": 832,
+      "NLA_lipus": 36,
+      "scored_NLA_lipus": 50,
+      "Loopy": 357,
+      "scored_Loopy": 466
+    }
+  },
+  "pass_estimate": {
+    "1": {
+      "all": 233.6,
+      "linear": 90.6,
+      "NLA_lipus": 2.5,
+      "Loopy": 140.5
+    },
+    "4": {
+      "all": 360.01,
+      "linear": 133.82,
+      "NLA_lipus": 3.76,
+      "Loopy": 222.42
+    },
+    "8": {
+      "all": 401.11,
+      "linear": 147.38,
+      "NLA_lipus": 4.0,
+      "Loopy": 249.73
+    }
+  },
+  "pass_rows": 832,
+  "policy": "compose@k = union of the FIRST k archived rollouts -> inference filter chain -> target judge; pass@k = unbiased estimator over the archived per-rollout verdicts"
+}

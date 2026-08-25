@@ -449,54 +449,34 @@ control remains \(\{0,1\}\).
 \centering
 \includegraphics[width=0.98\linewidth]{figures/reward_ablation.pdf}
 \caption{Reward-function ablation on Qwen3-8B (Zero initialization).
-  Binary and whole-rollout credit raise response-level accuracy (b) but
-  flatten compositional coverage (a): whole-rollout credit gains only 5.4
-  points of compose@$k$ across the full budget range.  Clause decomposition
-  reverses this trade-off (compose@1 jumps from 27.76\% to 58.29\%), and
-  the full compositional credit ends highest at $k{=}16$ and $32$.  Dotted
-  lines mark the untrained model at $k{=}1$.
-  Exact numbers for all variants appear in
-  Table~\ref{tab:reward-ablation}
-  (Appendix~\ref{app:ablation-definitions}).}
+  Response-level credit (Binary, Whole-rollout) raises pass@$k$ (b) but
+  flattens compose@$k$ (a); clause-decomposed credit reverses the
+  trade-off, and the full compositional credit is best at large budgets.
+  Dotted lines: the untrained model at $k{=}1$.  Exact numbers in
+  Table~\ref{tab:reward-ablation} (Appendix~\ref{app:ablation-definitions}).}
 \label{fig:reward-ablation}
 \end{figure}
 
-Figure~\ref{fig:reward-ablation} reveals
-two effects (exact numbers in Table~\ref{tab:reward-ablation},
-Appendix~\ref{app:ablation-definitions}).  \emph{First, response-level
-credit collapses composition.}  Binary inductiveness raises pass@1 to
-9.88\%, but the policy degenerates into repeating a few safe clauses:
-compose@1 falls to 8.77\%, 17.6 points below the untrained model, and even
-thirty-two unions (27.88\%) barely recover the untrained model's
-single-union rate (26.32\%).  Whole-rollout coverage sharpens harder
-still---its pass@$k$ leads every variant at every budget, reaching 25.35\%
-at $k{=}1$---yet its compose curve is nearly flat, gaining only 5.4 points
-from one union to thirty-two.  This is the sampling-limit failure mode
-anticipated in Section~\ref{sec:exp:rl}: whole-response RLVR sharpens the
-policy toward a small set of already-supported complete responses.
-\emph{Second, credit must be decomposed to clauses.}  Moving from
-whole-rollout to clause-decomposed coverage drops pass@1 from 25.35\% to
-4.60\% yet more than doubles compose@1 (27.76\%$\to$58.29\%) and lifts
-compose@32 from 33.17\% to 70.19\%; the full compositional credit trades
-a few points of small-budget composition for the best large-budget coverage
-(71.51\% at $k{=}32$) while recovering pass@1 to 8.77\%: rewarding
-complementary coverage across the group translates directly into composable
-invariants.
+Figure~\ref{fig:reward-ablation} reveals two effects.
+\emph{First, response-level credit collapses composition.}  Binary
+inductiveness degenerates into repeating a few safe clauses: compose@1
+falls 17.6 points below the untrained model.  Whole-rollout coverage
+sharpens harder still---the best pass@$k$ at every budget---yet its compose
+curve gains only 5.4 points from one union to thirty-two.  This is the
+sampling-limit failure mode anticipated in Section~\ref{sec:exp:rl}.
+\emph{Second, credit must be decomposed to clauses.}  Clause-decomposed
+coverage more than doubles compose@1 (27.76\%$\to$58.29\%) and lifts
+compose@32 from 33.17\% to 70.19\%; the full compositional credit is best
+at large budgets (71.51\% at $k{=}32$) while keeping a higher pass@1.
 
 \paragraph{Breaking the response-level sampling limit.}
 Why does credit structure decide the outcome?  Whole-response rewards
 grade each rollout by its own clauses alone, so they can only push
-probability mass toward responses the policy already favors---the
-sharpening dynamic that confines per-sample RL to the support of its
-initialization~\citep{yue2025rlcapacity}.  Group-compositional credit
-instead grades each rollout against its peers: a rejected negative earns
-more when fewer peers reject it.  The objective is the group's union rather
-than any single response, and the measured effect is the opposite of
-sharpening: the compose curve more than doubles at every budget (53.85\%
-vs.\ 26.32\% at $k{=}1$) while pass@1 still improves (8.77\% vs.\
-3.55\%).  The same RL procedure can therefore collapse composition (binary
-credit, $-17.6$ points of compose@1), saturate it (whole-rollout credit),
-or more than double it (decomposed credit).  What RL does to the sampling
+probability mass toward responses the policy already
+favors~\citep{yue2025rlcapacity}.  Group-compositional credit instead
+grades each rollout against its peers, making the objective the group's
+union rather than any single response: the compose curve more than doubles
+at every budget while pass@1 still improves.  What RL does to the sampling
 distribution is decided by what the reward values, not by RL itself.
 
 \begin{tcolorbox}[
@@ -507,16 +487,13 @@ distribution is decided by what the reward values, not by RL itself.
   left=5pt,right=5pt,top=4pt,bottom=4pt
 ]
 \textbf{Finding (RLVR limits).}  Response-level RLVR sharpens rather than
-expands the sampled support: whole-rollout credit lifts pass@1 to 25.35\%,
-yet its compose curve gains only 5.4 points from one response to
-thirty-two.  The decisive change is clause decomposition.  By no longer
-requiring an entire response to be correct, it supplies denser credit:
-pass@1 drops from 25.35\% to 4.60\%, while compose@32 rises from 33.17\%
-to 70.19\% (and to 71.51\% with the full compositional credit).
+expands the sampled support: it lifts pass@1 but leaves composition nearly
+flat.  Clause decomposition supplies denser credit and reverses this:
+compose@32 rises from 33.17\% to 70.19\% (71.51\% with the full
+compositional credit).
 \end{tcolorbox}
 
 \paragraph{Negative-sampling ablation.}
-Structured sampling matches or exceeds uniform random perturbations at
-every budget under both metrics, improving compose@1 and compose@32 by 1.8
-and 2.8 points; complete results appear in
-Appendix~\ref{app:ablation-definitions}.
+Structured sampling matches or exceeds random perturbations at every
+budget, improving compose@1 and compose@32 by 1.8 and 2.8 points
+(Appendix~\ref{app:ablation-definitions}).

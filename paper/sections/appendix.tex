@@ -780,11 +780,11 @@ configuration.}
 \label{tab:rl-complete}
 \begin{tabular}{llrrrrrrr}
 \toprule
-Path & Model & pass@1 & compose@1 & compose@8 &
+Path & Model & pass@1 & compose@1 & compose@4 &
 compose@16 & compose@32 & \(k_{95}\) \\
 \midrule
 Zero & Base 8B      & 3.55\% & 26.32\% & TBD & TBD & TBD & TBD \\
-Zero & Base 8B + RL & TBD & TBD & TBD & TBD & TBD & TBD \\
+Zero & Base 8B + RL & 8.77\% & 53.85\% & 63.82\% & 70.19\% & 71.51\% & 16 \\
 SFT  & SFT 8B       & 7.10\% & 25.60\% & TBD & TBD & TBD & TBD \\
 SFT  & SFT 8B + RL  & TBD & TBD & TBD & TBD & TBD & TBD \\
 \bottomrule
@@ -793,10 +793,6 @@ SFT  & SFT 8B + RL  & TBD & TBD & TBD & TBD & TBD & TBD \\
 
 \subsection{Ablation Results}
 \label{app:ablation-definitions}
-
-Reward variance is the mean within-group variance before GRPO normalization.
-Reachability collision is the fraction of sampled negative traces containing
-a state observed under an expanded execution sweep.
 
 The reward variants correspond directly to the two levels of
 Equation~\ref{eq:generation-reward}.  \emph{Binary Inductiveness} assigns one
@@ -810,91 +806,76 @@ uses negative coverage only when every capped clause survives,
    \frac{|R_i|}{|\mathcal N|}-w_o o(A_i).
 \]
 \emph{Clause-Decomposed Strength} removes this all-or-nothing indicator and
-scores the surviving \(C_i^{\mathrm{train}}\); \emph{Compositional Credit} additionally adds
-\(w_g\phi_i\); and \emph{Regularized Compositional Credit} additionally
-subtracts \(w_d d_{\mathrm{dup}}(A_i)\), yielding the full reward.  These are
-\texttt{binary}, \texttt{whole\_coverage}, \texttt{base},
-\texttt{base\_shapley}, and \texttt{full}, respectively.
+scores the surviving \(C_i^{\mathrm{train}}\); the \emph{Full Compositional
+Credit} additionally adds \(w_g\phi_i\) and subtracts
+\(w_d d_{\mathrm{dup}}(A_i)\).  These are \texttt{binary},
+\texttt{whole\_coverage}, \texttt{base}, and \texttt{full}, respectively.
+All variants train from the Zero initialization on the curated pool with
+identical optimization and inference settings.
 
 \begin{table}[H]
 \centering
 \footnotesize
 \setlength{\tabcolsep}{2.4pt}
-\caption{Reward-function ablation on Qwen3-8B (three-seed means, \%);
-  exact numbers for Figure~\ref{fig:reward-ablation}.
+\caption{Reward-function ablation on Qwen3-8B, trained from the Zero
+  initialization (\%); exact numbers for Figure~\ref{fig:reward-ablation}.
   Best result per column among trained variants in bold.}
 \label{tab:reward-ablation}
-\begin{tabular}{lrrrrrrrrrr}
+\begin{tabular}{lrrrrrrrr}
 \toprule
-& \multicolumn{5}{c}{pass@$k$} & \multicolumn{5}{c}{compose@$k$} \\
-\cmidrule(lr){2-6}\cmidrule(lr){7-11}
-Variant & 1 & 4 & 8 & 16 & 32 & 1 & 4 & 8 & 16 & 32 \\
+& \multicolumn{4}{c}{pass@$k$} & \multicolumn{4}{c}{compose@$k$} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}
+Variant & 1 & 4 & 16 & 32 & 1 & 4 & 16 & 32 \\
 \midrule
 Untrained 8B (reference)
-  & 3.55 & TBD & TBD & TBD & TBD
-  & 26.32 & TBD & TBD & TBD & TBD \\
+  & 3.55 & TBD & TBD & TBD
+  & 26.32 & TBD & TBD & TBD \\
 \midrule
 Binary Inductiveness
-  & 8.65 & TBD & TBD & TBD & TBD
-  & 1.80 & TBD & TBD & TBD & TBD \\
+  & 9.88 & 13.33 & 17.08 & 19.30
+  & 8.77 & 15.62 & 24.04 & 27.88 \\
 Whole-Rollout Strength
-  & \textbf{10.80} & TBD & TBD & TBD
-  & TBD
-  & 22.24 & TBD & TBD & TBD & TBD \\
+  & \textbf{25.35} & \textbf{28.10} & \textbf{30.10} & \textbf{31.32}
+  & 27.76 & 29.21 & 31.13 & 33.17 \\
 Clause-Decomposed Strength
-  & 2.66 & TBD & TBD & TBD & TBD
-  & 29.57 & TBD & TBD & TBD & TBD \\
-Compositional Credit
-  & 2.31 & TBD & TBD & TBD & TBD
-  & \textbf{30.77} & TBD & TBD & TBD
-  & TBD \\
-Regularized Compositional (ours)
-  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
+  & 4.60 & 10.16 & 16.27 & 19.03
+  & \textbf{58.29} & \textbf{65.99} & 69.35 & 70.19 \\
+Full Compositional Credit (ours)
+  & 8.77 & 15.25 & 20.69 & 22.92
+  & 53.85 & 63.82 & \textbf{70.19} & \textbf{71.51} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\begin{table}[H]
-\centering
-\caption{Per-seed reward-ablation results on the 8B model.  Seed columns and
-summary statistics report compose@8 verification rates.}
-\label{tab:reward-ablation-complete}
-\begin{tabular}{lrrrrr}
-\toprule
-Reward & Seed 1 & Seed 2 & Seed 3 & Mean & Std. \\
-\midrule
-Binary Inductiveness                & TBD & TBD & TBD & TBD & TBD \\
-Whole-Rollout Strength              & TBD & TBD & TBD & TBD & TBD \\
-Clause-Decomposed Strength          & TBD & TBD & TBD & TBD & TBD \\
-Compositional Credit                & TBD & TBD & TBD & TBD & TBD \\
-Regularized Compositional Credit    & TBD & TBD & TBD & TBD & TBD \\
-\bottomrule
-\end{tabular}
-\end{table}
 
-The negative-trace sampler comparison is a matched-run ablation rather than a
-three-seed aggregate.  Random uses uniform local perturbations, whereas
-Structured uses the relation and post-exit families.  Both use matched
-Qwen3-8B RL runs and are evaluated after 200 training steps.
+The negative-trace sampler comparison uses matched Qwen3-8B runs from the
+Zero initialization that differ only in the sampler.  Random uses uniform
+local perturbations, whereas Structured uses the relation and post-exit
+families with matched budgets.
 
 \begin{table}[H]
 \centering
 \setlength{\tabcolsep}{5pt}
-\begin{tabular}{lrrrr}
+\begin{tabular}{lrrrrrrrr}
 \toprule
-Negative sampler & pass@1 & pass@8 & compose@1 & compose@8 \\
+& \multicolumn{4}{c}{pass@$k$} & \multicolumn{4}{c}{compose@$k$} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}
+Negative sampler & 1 & 4 & 16 & 32 & 1 & 4 & 16 & 32 \\
 \midrule
-Random & \textbf{4.03\%} & TBD & 28.61\% & TBD \\
-Structured (ours) & 2.45\% & TBD & \textbf{29.45\%} & TBD \\
+Random & 8.63 & 14.40 & 19.43 & 21.82
+  & 52.04 & 60.46 & 67.31 & 68.75 \\
+Structured (ours) & \textbf{8.77} & \textbf{15.25} & \textbf{20.69}
+  & \textbf{22.92} & \textbf{53.85} & \textbf{63.82} & \textbf{70.19}
+  & \textbf{71.51} \\
 \bottomrule
 \end{tabular}
-\caption{Negative-sampler ablation after 200 training steps.  Bold marks the
-better sampler for each metric.}
+\caption{Negative-sampler ablation (\%).  Bold marks the better sampler for
+each metric.}
 \label{tab:sampler-ablation}
 \end{table}
 
-Structured sampling improves compose@1 and compose@8 by 0.84 and
-TBD points, respectively, despite lower standalone pass rates.
+Structured sampling improves compose@1 and compose@32 by 1.8 and 2.8
+points and is at least as good at every budget under both metrics.
 
 \subsection{Cross-Model Main Results}
 \label{app:reasoning-leakage}

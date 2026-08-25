@@ -111,8 +111,7 @@ Its fixed point \(\mathsf H_{\mathcal L}(C)\) is jointly inductive, and every
 jointly inductive subset \(C'\subseteq C\) satisfies
 \(C'\subseteq\mathsf H_{\mathcal L}(C)\).  Consequently,
 \(I_{\mathsf H_{\mathcal L}(C)}\preceq I_{C'}\): the result is the strongest
-conjunction expressible as a subset of \(C\).  This maximality is relative to
-the supplied pool and the exact-oracle assumption.
+conjunction expressible as a subset of \(C\).
 \end{theorem}
 
 This is the classic Houdini greatest-fixpoint
@@ -126,8 +125,7 @@ states \(\mathcal P\) before Houdini:
   \mathsf{PF}_{\mathcal P}(C)
   =\{c\in C:\forall p\in\mathcal P,\ p\models c\}.
 \]
-This positive filter is a cheap refutation step used only for RL scoring, not
-a validity proof; Frama-C/WP remains the authority.
+This positive filter is a cheap refutation step used only for RL scoring.
 Appendix~\ref{app:constants} gives normalization and filtering details.
 
 \subsection{Inference Objective}
@@ -163,8 +161,7 @@ families: local one- or two-variable perturbations that break relations, and
 continuations of the real body after a witnessed loop exit.  Cleaning is
 deliberately conservative---any candidate that executions cannot rule out is
 dropped: it removes observed reachable states, possible fresh entries,
-duplicates, and candidates involving unsupported state.  These examples are
-training signals, not proofs of global unreachability; unsupported or
+duplicates, and candidates involving unsupported state.  Unsupported or
 incomplete executions disable the affected family.  Figure~\ref{fig:negative-sampling}, Algorithm~\ref{alg:negative-sampling},
 and exact budgets appear in Appendix~\ref{app:negative-sampling}.
 
@@ -244,10 +241,7 @@ Thus a unique rejection receives full credit, whereas \(f(n)\) redundant
 rejections split it.  The Shapley allocation is the unique credit rule
 satisfying efficiency, symmetry, linearity, and the null-player
 axiom~
-\citep{shapley1953value}; unlike a leave-one-out marginal, which credits
-only rejections supplied by no peer and does not account for the full union,
-it splits credit for shared rejections instead of discarding it.  This closed
-form uses already-computed rejection sets and adds no verifier calls.  It implements \emph{inter-rollout composition}:
+\citep{shapley1953value}.  It implements \emph{inter-rollout composition}:
 the same response earns less group credit when its verified constraints are
 already supplied by peers.
 
@@ -261,10 +255,7 @@ With the within-response duplicate count
 \end{equation}
 where \((w_c,w_g,w_d,w_o)=(1.0,0.3,0.02,0.05)\);
 Section~\ref{sec:exp:ablations} ablates each term.  GRPO normalizes these
-group-conditioned rewards within the sampled response group.  Shapley credit
-distinguishes equal-coverage rollouts when their rejection sets overlap
-differently, favoring less redundant coverage.  It remains a target-independent
-behavioral surrogate rather than credit for final \(Q\)-sufficiency.
+group-conditioned rewards within the sampled response group.
 Each training step samples a group of \(G\) responses per masked loop,
 scores them by Equation~\eqref{eq:generation-reward}, and applies one GRPO
 update; this training-time group is distinct from the inference sweep over

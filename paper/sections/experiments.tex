@@ -37,24 +37,22 @@ checkpoints use non-thinking decoding to match data synthesis and training.  Dec
 temperature 1.0 and top-\(p\) 1.0.  API calls cap completions at 8,192 tokens,
 including provider-internal reasoning tokens; local vLLM calls cap each
 response at 2,048 emitted tokens.  We use no re-roll or target feedback.  RQ1
-reuses one saved batch of 100 stochastic responses per task.
+reuses one saved pool of stochastic responses per task (32 for local
+checkpoints).
 Appendix~\ref{app:experimental-protocol} gives benchmark provenance, serving,
 and training details.
 
 \paragraph{Metrics.}
 Throughout evaluation, success means \(Q\)-sufficiency under the final
 verifier.  pass@\(k\) is the probability that at least one of \(k\) responses
-proves \(Q\).  Whenever a saved pool contains \(c\) successful responses among
-\(n=100\), we use the unbiased estimator
+proves \(Q\).  Whenever a saved pool contains \(c\) successful responses among its
+\(n\) responses, we use the unbiased estimator
 \(\widehat{\operatorname{pass@}k}=1-\binom{n-c}{k}/\binom{n}{k}\) for that
-program and average it over programs.
-Only responses that prove \(Q\) count as successes.  compose@\(k\) is the
+program and average it over programs.  compose@\(k\) is the
 fraction of programs proved by unioning the first \(k\) responses and applying
 Houdini.  pass@\(k\) requires one response to contain the whole proof, whereas
-compose@\(k\) can compose clauses from different responses.  We do not compute
-the exact all-subset analogue for compose@\(k\), because it would require
-filtering \(\binom{100}{k}\) unions per program; we evaluate the fixed saved
-prefix instead.  For the measured budget grid
+compose@\(k\) can compose clauses from different responses; it composes the
+fixed saved prefix rather than all \(\binom{n}{k}\) subsets.  For the measured budget grid
 \(\mathcal K=\{1,4,8,16,32\}\), we report
 \(k_{95}=\min\{k\in\mathcal K:
 \operatorname{Comp}_\pi(k)\geq0.95\,\operatorname{Comp}_\pi(32)\}\), where
@@ -226,9 +224,8 @@ exit facts.  This trades single-response reliability for clause coverage:
 pass@1 judges all clauses in a response as an indivisible conjunction, so
 one invalid or non-inductive clause fails the whole response, and \sam{}'s
 richer raw outputs score below Naive before filtering (3.61\% vs.\
-16.47\%).  The gap is by design---the discarded clauses carry no cost,
-because the pipeline keeps only what survives filtering, which is what
-compose@1 measures.
+16.47\%).  The discarded clauses carry no cost: the pipeline keeps only
+what survives filtering, which is what compose@1 measures.
 Clause2Inv's unsupported inputs remain failures in the common
 832-program denominator.  Budgets are fixed before comparison but not matched:
 each system retains its predeclared native orchestration.
@@ -320,19 +317,14 @@ retains only pre-state and transition counterexamples, removing its principal
 goal-directed feedback signal; its required transition VCs are also
 unavailable for all 466 Loopy programs.
 
-Loopy exhibits a separate interface failure.  Its extractor accepts
-only the first valid Markdown-fenced code block.  Although 98.8\% of the
-non-reasoning initial responses contain textual \texttt{loop invariant}
-clauses, only 1.75\% use the required fence and reach Houdini; for repair
-responses the corresponding rates are 94.5\% and 1.13\%.  Houdini can prune
-bad clauses but cannot recover discarded ones.  Target hiding further removes
-the assertion-specific checker diagnostic expected by Loopy's repair prompt,
-leaving only generic inductiveness feedback: repair adds just 15 successes to
-the 141 initially solved tasks, for 156/832 (18.75\%) overall.  Thus this row
-primarily measures a brittle parser and a repair protocol mismatched to the
-hidden-target setting, rather than the quality of the invariants present in
-the raw responses.  The archived medium-reasoning run is reported separately
-in the appendix.
+Loopy exhibits a separate interface failure: its extractor accepts only
+the first valid Markdown-fenced code block, so although 98.8\% of initial
+responses contain textual \texttt{loop invariant} clauses, only 1.75\%
+reach Houdini.  Target hiding further removes the assertion-specific
+diagnostic expected by its repair prompt: repair adds just 15 successes to
+the 141 initially solved tasks (156/832 overall).  This row therefore
+measures interface brittleness as much as invariant quality.  The archived
+medium-reasoning run is reported separately in the appendix.
 
 \begin{tcolorbox}[
   colback=algobg,

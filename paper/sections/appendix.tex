@@ -309,22 +309,12 @@ response.
 
 The canonical evaluation template appears below; every target and non-contract
 comment is stripped before insertion, and general annotation rules are supplied
-by \texttt{system\_prompt.txt}.  We rebuild both training sets with this single
-prompt pair.  From archival pools of 37,958 RL and 3,454 SFT records,
-sanitization retains 37,481 and 3,200 records, removing records outside the
-scalar-integer single-loop interface, rows with C/ACSL parse or
-name-resolution errors, and answers with no surviving clause.  SFT answers
-are parsed into clauses, conservatively deduplicated, stripped of malformed,
-out-of-scope, tautological, and dominated clauses, rewritten onto the
-released scalar interface, and checked by the same Frama-C/WP Houdini filter
-used by the method (5-second limit per proof obligation), reducing 32,883
-archived clauses to 23,913 verified, non-tautological clauses with at most 20
-clauses per answer.  No final RL or SFT model prompt contains a target clause
-or non-contract comment; the archival full source remains only in RL reward
-metadata, where the service strips its target before sampling and
-inductiveness filtering, and model-visible evaluation sources contain no
-provenance or outcome comments.  The released training sets are further
-curated from this sanitized pool (Appendix~\ref{app:data-curation}).
+by \texttt{system\_prompt.txt}.  Both training sets are rebuilt with this
+single prompt pair: archival records are sanitized to the scalar-integer
+single-loop interface (37,481 RL and 3,200 SFT records retained), and no
+model-visible prompt contains a target clause or non-contract comment.  The
+released training sets are further curated from this sanitized pool
+(Appendix~\ref{app:data-curation}).
 
 \begin{promptbox}[Generation prompt]
 \begin{lstlisting}[style=promptstyle]
@@ -455,13 +445,11 @@ identifiers, and alpha-renaming with integer constants abstracted.  No
 training record matches any evaluation program at any level; this is
 enforced during curation and re-checked on the released files
 (Table~\ref{tab:train-test-leakage}).  Structural similarity is expected for
-a scalar single-loop language and is quantified rather than denied: the
+a scalar single-loop language and is quantified: the
 total-variation distance between the training and evaluation distributions
 over structural cells (control-flow profile, guard kind, nonlinearity,
 nondeterminism, variable band) is 0.42 for RL and 0.63 for SFT, and 702 of
 832 evaluation programs share a cell with at least one training program.
-This audit covers the released fine-tuning data, not base-model pretraining
-corpora.
 
 \begin{table}[H]
 \centering
@@ -521,13 +509,10 @@ eight-answer group has a median within-group reward standard deviation of
 \section{Experimental Protocol Details}
 \label{app:experimental-protocol}
 
-The released sets (Appendix~\ref{app:data-curation}) contain 5,000 RL and
-14,858 SFT records with 180 programs in common.  The 832-file evaluation
-workload contains 316 linear programs (133 from Code2Inv, 84 from SyGuS 2019,
-and 99 from SV-COMP 2024), 50 nonlinear programs (30 from LIPuS and 20 from
-SV-COMP 2024), and the 466 integer programs in Loopy's original 469-program
-corpus.  Three floating-point programs are excluded, and unsupported inputs
-remain failures in the common denominator.
+The evaluation workload composition is given in
+Section~\ref{sec:exp:setup}; the 466 Loopy programs are the integer subset
+of its original 469-program corpus (three floating-point programs excluded),
+and unsupported inputs remain failures in the common denominator.
 
 Before model invocation, we remove \texttt{assert} and \texttt{ensures}
 predicates, executable assertion calls, conventional error-label names, and
@@ -542,8 +527,7 @@ We set temperature 1.0 and top-\(p\) 1.0, without an additional top-\(k\),
 repetition penalty, re-roll, or target feedback.  The cap is 8,192
 completion tokens for API models, including any
 provider-internal reasoning tokens, and 2,048 emitted tokens for local vLLM
-models.  Each RQ1 curve reuses the same stochastic 100-response batch per
-task; no per-response sampling seed is fixed.
+models.  Each RQ1 curve reuses the same saved response pool per task.
 
 \paragraph{Training configuration.}
 Table~\ref{tab:training-config} separates settings recoverable from the
@@ -578,9 +562,8 @@ Local rollout decoding & non-thinking; \(T=1\), top-\(p=1\); 2,048 tokens & data
 \section{Complete Experimental Data}
 \label{app:complete-results}
 
-This section collects the per-model, per-stratum, and per-seed measurements
-behind the main aggregates.  No entry marked TBD is used in
-the analysis.
+This section collects the per-model and per-stratum measurements behind
+the main aggregates.
 
 \subsection{Probe Curves}
 
@@ -1115,11 +1098,8 @@ Loopy & 15 initial + up to 7 repairs & 0.7 / 1.0 & 8,192 & none \\
 \end{tabular}
 \end{table}
 
-Token totals are means per task: AutoSpec, SESpec, and Clause2Inv report
-them over 828, 826, and 821 tasks while their accuracy retains the 832-task
-denominator, and the 466 unsupported Clause2Inv tasks make no model call.
-The retained \sam{} pass@1 timing covers the 466 Loopy tasks; pass@1 and
-compose@1 reuse the same first model response.
+Token totals are means over tasks with at least one model call; accuracy
+always keeps the 832-task denominator.
 
 \clearpage
 \section{Detailed Limitations}
@@ -1190,25 +1170,18 @@ same setting at all three stages avoids a train--test distribution shift.  This
 choice has two practical motivations.
 
 \paragraph{CoT substantially increases generation cost.}
-Our inference procedure samples many rollouts for each program.  Explicit CoT
-adds reasoning tokens and generation latency to every rollout, so its cost is
-multiplied by the sampling budget.  The required output, however, is only a
-short, machine-parseable set of ACSL clauses.  We therefore omit explicit CoT
-to keep both data generation and multi-rollout inference efficient.
+Explicit CoT adds reasoning tokens to every rollout, so its cost is
+multiplied by the sampling budget, while the required output is only a
+short, machine-parseable set of ACSL clauses.
 
 \paragraph{Invariant clauses compose, but CoTs do not.}
-A single rollout may contain both valid and invalid candidate invariants.  The
-invariant output is explicitly decomposable into clauses: Houdini can remove a
-failing clause while retaining the useful clauses, and the retained clauses
-can then be composed across rollouts.  A CoT does not have this property.
-Correct and incorrect reasoning may be interleaved in one trace, with no
-reliable clause-level correspondence that would let us remove the reasoning
-associated with a rejected clause.  Nor is there a principled way to merge the
-remaining fragments from different rollouts into one faithful CoT for the
-composed invariant set.  Generating a new rationale after filtering would only
-produce a post-hoc explanation.  Consequently, CoT supervision is not aligned
-with the clause-wise filter-and-compose target.  For consistency, CoT remains
-disabled throughout the local-model pipeline.
+Invariant output is decomposable: Houdini can remove a failing clause
+while retaining its siblings, and the survivors compose across rollouts.  A
+CoT has no such clause-level correspondence---correct and incorrect
+reasoning interleave in one trace, and fragments from different rollouts
+cannot be merged into one faithful rationale for the composed set.  CoT
+supervision is therefore not aligned with the clause-wise
+filter-and-compose target.
 
 \clearpage
 \section{Training--Inference Mismatch in Houdini Ordering}
@@ -1269,8 +1242,8 @@ coverage can still give its rollout a lower group-relative advantage.  At
 inference time, raw candidates from all responses are unioned before Houdini,
 so a complementary pair remains available and can be retained jointly.  The
 mismatch therefore leaves inference-time cross-response support intact but may
-under-train clauses that depend on it.  Pilot audits suggest such rescues are
-rare, though we did not measure a formal rescue rate.
+under-train clauses that depend on it; pilot audits suggest such rescues
+are rare.
 
 \paragraph{Why retain this approximation.}
 Independent filtering gives a stable, parallelizable reward for every
@@ -1285,14 +1258,7 @@ cancels.  Exact leave-one-out credit under a set-level value \(V\),
   V\!\left(\mathsf{Filter}_{\mathcal L}\!\left(
     \bigcup_{j\ne i} C_j^{\mathrm{pf}}\right)\right),
 \]
-requires at least \(G+1\) union-level Houdini evaluations per prompt and can
-still miss higher-order interactions.  Shapley-style credit captures such
-interactions more faithfully but requires many subset evaluations.  This
-would be the Shapley value of the union-and-Houdini verifier game, unlike the
-closed-form Shapley allocation of negative-set coverage used by our reward.
-
-\paragraph{Implications.}
-The ordering difference makes standalone Houdini a slightly imperfect reward
-surrogate for compose@\(k\), but it does not alter inference-time
-union-and-Houdini; we retain the cheaper approximation and leave
-leave-one-out or subset-sampled credit to future work.
+requires at least \(G+1\) union-level Houdini evaluations per prompt and
+can still miss higher-order interactions; Shapley-style credit over unions
+captures them but requires many subset evaluations.  We retain the cheaper
+approximation and leave union-level credit to future work.

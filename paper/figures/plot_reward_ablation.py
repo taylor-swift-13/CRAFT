@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Generate the reward-function ablation figure (RQ5).
 
-Budget grid: k in {1, 4, 16, 32}, matching the cluster ablation runs
-(Zero-initialized Qwen3-8B on the curated pool).  The untrained model is
-measured at k=1 only and drawn as a dotted reference line.
+Budget grid: k in {1, 4, 8, 16, 32}, matching the cluster ablation runs
+(Zero-initialized Qwen3-8B on the curated pool); the untrained model is
+the matched base-probe curve, drawn dotted.
 """
 
 from pathlib import Path
@@ -16,33 +16,33 @@ import matplotlib.pyplot as plt
 
 OUT = Path(__file__).resolve().parent
 
-K = [1, 4, 16, 32]
+K = [1, 4, 8, 16, 32]
 
 VARIANTS = {
     "Binary": {
-        "pass": [9.88, 13.33, 17.08, 19.30],
-        "combine": [8.77, 15.62, 24.04, 27.88],
+        "pass": [9.88, 13.33, 15.11, 17.08, 19.30],
+        "combine": [8.77, 15.62, 20.19, 24.04, 27.88],
         "color": "#9D6652",   # muted terracotta
         "marker": "o",
         "style": "-",
     },
     "Whole-rollout": {
-        "pass": [25.35, 28.10, 30.10, 31.32],
-        "combine": [27.76, 29.21, 31.13, 33.17],
+        "pass": [25.35, 28.10, 29.07, 30.10, 31.32],
+        "combine": [27.76, 29.21, 29.93, 31.13, 33.17],
         "color": "#A17B45",   # muted ochre
         "marker": "s",
         "style": "-",
     },
     "Clause-decomp.": {
-        "pass": [4.60, 10.16, 16.27, 19.03],
-        "combine": [58.29, 65.99, 69.35, 70.19],
+        "pass": [4.60, 10.16, 13.31, 16.27, 19.03],
+        "combine": [58.29, 65.99, 67.79, 69.35, 70.19],
         "color": "#708C7C",   # desaturated sage
         "marker": "^",
         "style": "-",
     },
     "Full (ours)": {
-        "pass": [8.77, 15.25, 20.69, 22.92],
-        "combine": [53.85, 63.82, 70.19, 71.51],
+        "pass": [8.77, 15.25, 18.12, 20.69, 22.92],
+        "combine": [53.85, 63.82, 67.67, 70.19, 71.51],
         "color": "#2D7053",   # paper deep green
         "marker": "D",
         "style": "-",
@@ -50,8 +50,8 @@ VARIANTS = {
 }
 
 UNTRAINED = {
-    "pass": [8.3, 16.5, 24.4, 28.1],
-    "combine": [43.8, 55.2, 61.2, 62.5],
+    "pass": [8.3, 16.5, 20.5, 24.4, 28.1],
+    "combine": [43.8, 55.2, 59.0, 61.2, 62.5],
 }
 
 

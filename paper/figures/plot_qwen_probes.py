@@ -2,7 +2,7 @@
 """Generate the base-checkpoint exploration and RL-Zero figures.
 
 Probe grid: k in {1, 4, 8, 16, 32} (32-response pools, new stack); the
-RL-Zero comparison uses k in {1, 4, 16, 32} to match the ablation runs.
+RL-Zero comparison shares the same grid.
 """
 
 from pathlib import Path
@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 OUT = Path(__file__).resolve().parent
 
 RQ1_K = [1, 4, 8, 16, 32]
-RL_K = [1, 4, 16, 32]
+RL_K = [1, 4, 8, 16, 32]
 
 OFFICIAL = {
     "Qwen3-1.7B": {
@@ -67,15 +67,15 @@ OFFICIAL = {
 # checkpoint (combine@k measured at k in {1, 4, 16, 32}).
 RL_COMPARISON = {
     "Qwen3-8B": {
-        "direct": [8.3, 16.5, 24.4, 28.1],
-        "combine": [43.8, 55.2, 61.2, 62.5],
+        "direct": [8.3, 16.5, 20.5, 24.4, 28.1],
+        "combine": [43.8, 55.2, 59.0, 61.2, 62.5],
         "color": "#5b7185",
         "marker": "s",
         "style": "--",
     },
     "8B-RL-Zero": {
-        "direct": [8.77, 15.25, 20.69, 22.92],
-        "combine": [53.85, 63.82, 70.19, 71.51],
+        "direct": [8.77, 15.25, 18.12, 20.69, 22.92],
+        "combine": [53.85, 63.82, 67.67, 70.19, 71.51],
         "color": "#2d7053",
         "marker": "o",
         "style": "-",

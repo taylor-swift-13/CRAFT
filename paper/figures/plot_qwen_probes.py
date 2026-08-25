@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""Generate the base-checkpoint exploration and RL-Zero figures."""
+"""Generate the base-checkpoint exploration and RL-Zero figures.
+
+Budget grid: k in {1, 4, 8, 16, 32}.  Only the k=1 entries below are
+measured; every other entry is a placeholder (None) until the new-grid
+recomputation finishes (compose@k by prefix-subset composition of the
+archived pools, pass@k by the unbiased estimator over the archived
+per-rollout verdicts).  The guard below refuses to render a figure from
+placeholder data.
+"""
 
 from pathlib import Path
 
@@ -11,48 +19,50 @@ import matplotlib.pyplot as plt
 
 OUT = Path(__file__).resolve().parent
 
-RQ1_K = [1, 10, 30, 50, 100]
-RL_K = [1, 10, 30, 50, 100]
+RQ1_K = [1, 4, 8, 16, 32]
+RL_K = [1, 4, 8, 16, 32]
 
+# k=1 values are measured; None marks the k in {4, 8, 16, 32} slots that
+# still await the new-grid recomputation.
 OFFICIAL = {
     "Qwen3-0.6B": {
-        "direct": [0.58, 3.63, 6.88, 8.82, 11.54],
-        "combine": [9.50, 22.84, 27.40, 28.85, 29.21],
+        "direct": [0.58, None, None, None, None],
+        "combine": [9.50, None, None, None, None],
         "color": "#b47a5f",
         "marker": "P",
         "style": "-",
     },
     "Qwen3-4B": {
-        "direct": [3.49, 8.05, 9.91, 10.69, 11.54],
-        "combine": [23.08, 31.49, 34.13, 34.74, 36.06],
+        "direct": [3.49, None, None, None, None],
+        "combine": [23.08, None, None, None, None],
         "color": "#9d6652",
         "marker": "o",
         "style": "-",
     },
     "Qwen3-8B": {
-        "direct": [3.55, 9.86, 12.78, 13.83, 15.02],
-        "combine": [26.32, 36.78, 38.22, 39.06, 39.78],
+        "direct": [3.55, None, None, None, None],
+        "combine": [26.32, None, None, None, None],
         "color": "#4f8a6b",
         "marker": "s",
         "style": "--",
     },
     "Qwen3-14B": {
-        "direct": [4.99, 10.37, 12.48, 13.40, 14.66],
-        "combine": [30.17, 35.10, 37.14, 37.50, 37.74],
+        "direct": [4.99, None, None, None, None],
+        "combine": [30.17, None, None, None, None],
         "color": "#2d7053",
         "marker": "^",
         "style": "-.",
     },
     "Qwen3-30B-A3B": {
-        "direct": [5.00, 10.01, 11.52, 12.11, 12.98],
-        "combine": [28.73, 35.10, 35.82, 36.06, 36.54],
+        "direct": [5.00, None, None, None, None],
+        "combine": [28.73, None, None, None, None],
         "color": "#5b7185",
         "marker": "D",
         "style": ":",
     },
     "Llama 3.1 8B": {
-        "direct": [0.48, 3.38, 6.48, 8.19, 10.46],
-        "combine": [18.03, 27.28, 28.25, 28.37, 28.37],
+        "direct": [0.48, None, None, None, None],
+        "combine": [18.03, None, None, None, None],
         "color": "#75618f",
         "marker": "v",
         "style": "-",
@@ -61,20 +71,36 @@ OFFICIAL = {
 
 RL_COMPARISON = {
     "Qwen3-8B": {
-        "direct": [9.30, 22.87, 28.30, 30.47, 33.29],
-        "combine": [41.23, 52.76, 56.37, 57.09, 58.05],
+        "direct": [9.30, None, None, None, None],
+        "combine": [41.23, None, None, None, None],
         "color": "#5b7185",
         "marker": "s",
         "style": "--",
     },
     "8B-RL-Zero": {
-        "direct": [4.88, 18.12, 25.80, 28.92, 32.93],
-        "combine": [43.15, 56.97, 58.53, 58.77, 58.77],
+        "direct": [4.88, None, None, None, None],
+        "combine": [43.15, None, None, None, None],
         "color": "#2d7053",
         "marker": "o",
         "style": "-",
     },
 }
+
+
+def require_complete(data: dict, name: str, ks: list[int]) -> None:
+    """SystemExit on placeholder data so stale plots are never rendered."""
+    missing = [
+        f"{label}.{metric}"
+        for label, values in data.items()
+        for metric in ("direct", "combine")
+        if values[metric] is None or any(v is None for v in values[metric])
+    ]
+    if missing:
+        raise SystemExit(
+            f"plot_qwen_probes ({name}): placeholder data on the k={ks} "
+            "grid; fill from the new-grid recomputation first: "
+            + ", ".join(missing)
+        )
 
 
 def configure() -> None:
@@ -123,6 +149,7 @@ def plot_lines(ax: plt.Axes, data: dict, metric: str, ks: list[int]) -> None:
 
 
 def official_probe() -> None:
+    require_complete(OFFICIAL, "official_probe", RQ1_K)
     fig, axes = plt.subplots(2, 3, figsize=(7.2, 3.75), sharex=True, sharey=True)
     panel_names = ["(a)", "(b)", "(c)", "(d)", "(e)", "(f)"]
     for panel, (model, values) in enumerate(OFFICIAL.items()):
@@ -177,6 +204,7 @@ def official_probe() -> None:
 
 
 def rlzero_probe() -> None:
+    require_complete(RL_COMPARISON, "rlzero_probe", RL_K)
     fig, axes = plt.subplots(1, 2, figsize=(7.15, 2.55))
     plot_lines(axes[0], RL_COMPARISON, "direct", RL_K)
     plot_lines(axes[1], RL_COMPARISON, "combine", RL_K)
@@ -186,14 +214,8 @@ def rlzero_probe() -> None:
     axes[1].set_title("(b) compose@$k$ (composed responses)")
     axes[0].set_ylim(0, 36)
     axes[1].set_ylim(39, 61)
-    axes[1].annotate(
-        "Base@$10$ = 52.76\%\nRL-Zero@$10$ = 56.97\%",
-        xy=(10, 56.97),
-        xytext=(16, 48.2),
-        fontsize=7.4,
-        color="#2d7053",
-        arrowprops={"arrowstyle": "->", "color": "#2d7053", "lw": 0.8},
-    )
+    # TODO(regrid): re-add the Base@8 vs RL-Zero@8 annotation once the
+    # recomputed k=8 values are filled in above.
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="upper center", ncol=2, frameon=False)
     fig.tight_layout(rect=(0, 0, 1, 0.86), w_pad=2.0)

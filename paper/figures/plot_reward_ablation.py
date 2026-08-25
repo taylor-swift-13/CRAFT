@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Generate the reward-function ablation figure (RQ5)."""
+"""Generate the reward-function ablation figure (RQ5).
+
+Budget grid: k in {1, 4, 8, 16, 32}.  Only the k=1 entries below are
+measured; every other entry is a placeholder (None) until the new-grid
+recomputation finishes.  The guard below refuses to render a figure from
+placeholder data.
+"""
 
 from pathlib import Path
 
@@ -11,33 +17,35 @@ import matplotlib.pyplot as plt
 
 OUT = Path(__file__).resolve().parent
 
-K = [1, 10, 30, 50, 100]
+K = [1, 4, 8, 16, 32]
 
+# k=1 values are measured; None marks the k in {4, 8, 16, 32} slots that
+# still await the new-grid recomputation.
 VARIANTS = {
     "Binary": {
-        "pass": [8.65, 10.84, 12.09, 12.66, 13.46],
-        "combine": [1.80, 5.89, 8.53, 9.98, 12.02],
+        "pass": [8.65, None, None, None, None],
+        "combine": [1.80, None, None, None, None],
         "color": "#9D6652",   # muted terracotta
         "marker": "o",
         "style": "-",
     },
     "Whole-rollout": {
-        "pass": [10.80, 12.25, 12.81, 13.10, 13.46],
-        "combine": [22.24, 24.88, 25.72, 25.96, 26.56],
+        "pass": [10.80, None, None, None, None],
+        "combine": [22.24, None, None, None, None],
         "color": "#A17B45",   # muted ochre
         "marker": "s",
         "style": "-",
     },
     "Clause-decomp.": {
-        "pass": [2.66, 6.32, 7.65, 8.10, 8.65],
-        "combine": [29.57, 34.74, 37.14, 38.22, 39.06],
+        "pass": [2.66, None, None, None, None],
+        "combine": [29.57, None, None, None, None],
         "color": "#708C7C",   # desaturated sage
         "marker": "^",
         "style": "-",
     },
     "+Shapley": {
-        "pass": [2.31, 5.35, 6.59, 6.97, 7.33],
-        "combine": [30.77, 36.06, 38.46, 39.30, 41.11],
+        "pass": [2.31, None, None, None, None],
+        "combine": [30.77, None, None, None, None],
         "color": "#2D7053",   # paper deep green
         "marker": "D",
         "style": "-",
@@ -45,9 +53,31 @@ VARIANTS = {
 }
 
 UNTRAINED = {
-    "pass": [3.55, 9.86, 12.78, 13.83, 15.02],
-    "combine": [26.32, 36.78, 38.22, 39.06, 39.78],
+    "pass": [3.55, None, None, None, None],
+    "combine": [26.32, None, None, None, None],
 }
+
+
+def require_complete() -> None:
+    """SystemExit on placeholder data so stale plots are never rendered."""
+    series = dict(VARIANTS)
+    missing = [
+        f"{label}.{metric}"
+        for label, values in series.items()
+        for metric in ("pass", "combine")
+        if values[metric] is None or any(v is None for v in values[metric])
+    ]
+    missing += [
+        f"Untrained.{metric}"
+        for metric in ("pass", "combine")
+        if UNTRAINED[metric] is None or any(v is None for v in UNTRAINED[metric])
+    ]
+    if missing:
+        raise SystemExit(
+            f"plot_reward_ablation: placeholder data on the k={K} grid; "
+            "fill from the new-grid recomputation first: " + ", ".join(missing)
+        )
+
 
 def configure() -> None:
     plt.rcParams.update(
@@ -110,6 +140,7 @@ def plot_panel(ax: plt.Axes, metric: str) -> None:
 
 
 def reward_ablation() -> None:
+    require_complete()
     fig, axes = plt.subplots(1, 2, figsize=(9.2, 3.45))
     plot_panel(axes[0], "combine")
     plot_panel(axes[1], "pass")
@@ -120,7 +151,7 @@ def reward_ablation() -> None:
     axes[0].set_ylim(0, 44)
     axes[1].set_ylim(0, 17)
     for ax in axes:
-        ax.set_xlim(0.85, 118)
+        ax.set_xlim(0.85, 38)
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="upper center", ncol=5, frameon=False,
                handlelength=2.4, columnspacing=1.35, bbox_to_anchor=(0.5, 1.02))

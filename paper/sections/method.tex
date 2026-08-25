@@ -2,7 +2,7 @@
 \section{Method}\label{sec:method}
 %% ============================================================
 
-\textsc{Craft} couples an inference protocol that proves targets by
+CRAFT couples an inference protocol that proves targets by
 composing clauses across responses with a training pipeline that optimizes
 that protocol without ever seeing the target.  Three design decisions
 organize this section: (i)~\emph{target hiding}---generation, distillation,
@@ -126,9 +126,8 @@ states \(\mathcal P\) before Houdini:
   \mathsf{PF}_{\mathcal P}(C)
   =\{c\in C:\forall p\in\mathcal P,\ p\models c\}.
 \]
-This positive filter is a cheap refutation step, not a validity proof;
-Frama-C/WP remains the authority.  It is used only for RL scoring; inference
-performs the same identifier-scope checks but no execution-based rejection.
+This positive filter is a cheap refutation step used only for RL scoring, not
+a validity proof; Frama-C/WP remains the authority.
 Appendix~\ref{app:constants} gives normalization and filtering details.
 
 \subsection{Inference Objective}
@@ -159,15 +158,14 @@ optimize a target-hidden surrogate for this curve.
 
 To grade inductive sets without \(Q\), we execute a deterministic,
 precondition-checked input sweep and record reachable loop-head states
-\(\mathcal P\).  From these executions we construct three negative-example
-families: local one- or two-variable perturbations that break relations,
-continuations of the real body after a witnessed loop exit, and perturbations
-outside observed variable ranges.  Cleaning is deliberately conservative---
-any candidate that executions cannot rule out is dropped: it removes
-observed reachable states, possible fresh entries, duplicates, and
-candidates involving unsupported state.  These examples are training signals, not proofs of global
-unreachability; unsupported or incomplete executions disable the affected
-family.  Figure~\ref{fig:negative-sampling}, Algorithm~\ref{alg:negative-sampling},
+\(\mathcal P\).  From these executions we construct two negative-example
+families: local one- or two-variable perturbations that break relations, and
+continuations of the real body after a witnessed loop exit.  Cleaning is
+deliberately conservative---any candidate that executions cannot rule out is
+dropped: it removes observed reachable states, possible fresh entries,
+duplicates, and candidates involving unsupported state.  These examples are
+training signals, not proofs of global unreachability; unsupported or
+incomplete executions disable the affected family.  Figure~\ref{fig:negative-sampling}, Algorithm~\ref{alg:negative-sampling},
 and exact budgets appear in Appendix~\ref{app:negative-sampling}.
 
 Let \(\mathcal N\) be the retained negative traces.  For a retained clause set
@@ -191,9 +189,7 @@ serialize every nonempty result as one SFT target:
       C_{\mathcal L}^{\mathrm{sft}}\neq\varnothing\}.
 \]
 Neither input nor target contains \(Q\): SFT serializes a Houdini-retained
-multi-response search result as one response.  The execution states of
-Section~\ref{sec:method:sampler} are used only for RL rewards, never as SFT
-answers.
+multi-response search result as one response.
 
 \subsection{Clause-Decomposed, Group-Compositional Reward}
 \label{sec:method:reward}

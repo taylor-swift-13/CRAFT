@@ -10,12 +10,12 @@ traces~\citep{cousot1977abstract,karr1976affine,colon2003linear,
 mcmillan2003interpolation,kincaid2017compositional,alur2013sygus,
 garg2014ice,daikon}.  Houdini iteratively removes invalid candidates to retain
 an inductive subset~\citep{flanagan2001houdini}.  LLM workflows reuse this
-pattern: \textsc{Loopy} couples proposals with Houdini and repair,
-\textsc{iRank} ranks candidates, and \textsc{Clause2Inv} composes retained
+pattern: Loopy couples proposals with Houdini and repair,
+iRank ranks candidates, and Clause2Inv composes retained
 clauses while iteratively accumulating counterexamples
 ~\citep{kamath2023finding,chakraborty2023ranking,cao2025clause2inv}.
-\textsc{LaM4Inv}, \textsc{ACInv}, \textsc{AutoSpec}, \textsc{SpecGen},
-\textsc{SESpec}, \textsc{LEMUR}, and \textsc{Baldur} similarly organize
+LaM4Inv, ACInv, AutoSpec, SpecGen,
+SESpec, LEMUR, and Baldur similarly organize
 generation with static analysis, symbolic execution, verification, or repair
 ~\citep{wu2024lam4inv,liu2024acinv,wen2024enchanting,ma2024specgen,
 yang2026sespec,wu2024lemur,first2023baldur}.  These are inference workflows;
@@ -24,18 +24,18 @@ verifier feedback between calls, and trains responses for fixed-group
 composition.
 
 \paragraph{Specialized neural invariant learning.}
-\textsc{Code2Inv} learns a construction policy from solver feedback;
-\textsc{CLN2INV} and G-CLN learn continuous representations of linear and
-nonlinear relations; and \textsc{LIPuS} composes RL-based pruning with SMT
+Code2Inv learns a construction policy from solver feedback;
+CLN2INV and G-CLN learn continuous representations of linear and
+nonlinear relations; and LIPuS composes RL-based pruning with SMT
 solving~\citep{si2018learning,si2020code2inv,ryan2020cln2inv,
 yao2020gcln,yu2023lipus}.  These task-specific models optimize one candidate
 or construction trajectory.  We instead post-train a general language model
 so independently sampled responses contribute jointly under a fixed budget.
 
 \paragraph{Behavioral-example objectives for specification strength.}
-\textsc{COINS} assesses specifications using trusted positive and
+COINS assesses specifications using trusted positive and
 mutation-derived negative input--output cases~\citep{yang2026coins};
-\textsc{SpecRL} rewards complete method-level specifications that reject
+SpecRL rewards complete method-level specifications that reject
 impossible input--output pairs~\citep{huang2026specrl}; it neither targets
 loop invariants nor derives negatives from loop dynamics.  Both show that
 behavioral examples distinguish weak but valid specifications from stronger
@@ -44,8 +44,8 @@ response to an inductive clause subset, and conditions its credit on negative
 states already rejected by peer rollouts.
 
 \paragraph{Language-model training from formal feedback.}
-\textsc{InvBench} and Wonda use verified data for invariant fine-tuning;
-\textsc{CodeRL} uses execution signals; and \textsc{Re:Form} applies
+InvBench and Wonda use verified data for invariant fine-tuning;
+CodeRL uses execution signals; and Re:Form applies
 verifier-guided RL to individual Dafny proofs
 ~\citep{wei2025invbench,pinto2026notall,le2022coderl,yan2025reform}.
 Unlike whole-output verifier rewards, \sam{} trains toward a filtered clause

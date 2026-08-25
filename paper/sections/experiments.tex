@@ -11,20 +11,18 @@ what drives the training gain (RQ5).
 \label{sec:exp:setup}
 
 \paragraph{Data and judge.}
-The sanitized pool contains 37,481 target-masked scalar-integer single-loop
-records; the released training sets are curated from it and from
-1,392 newly synthesized programs
-(Appendix~\ref{app:data-curation}): 5,000 RL records and
-14,858 SFT records (11,800 of them with
-pipeline-synthesized targets), overlapping on 180 programs.  Evaluation uses the standard
+Training data comprise 5,000 RL records and 14,858 SFT records of
+target-masked scalar-integer single-loop programs; SFT targets are
+synthesized with \texttt{gpt-5.6-luna} and verified by Frama-C/WP
+(Appendix~\ref{app:data-curation}).  Evaluation uses the standard
 benchmark suites of prior learning-based invariant-generation systems: 832~C
-programs, comprising 316 linear programs (133 \textsc{Code2Inv}
+programs, comprising 316 linear programs (133 Code2Inv
 \citep{si2020code2inv}, 84 SyGuS 2019 \citep{alur2013sygus}, 99 SV-COMP 2024
 \citep{svcomp}) and 50 nonlinear-arithmetic (NLA) programs (30 LIPuS
 \citep{yu2023lipus}, 20 SV-COMP 2024) as released with
-\textsc{Clause2Inv}~\citep{cao2025clause2inv}, plus 466 integer programs from
-Loopy~\citep{kamath2023finding}.  The overlap and prompt-sanitation audits
-are in Appendix~\ref{app:data-leakage}.  We remove non-contract comments and
+Clause2Inv~\citep{cao2025clause2inv}, plus 466 integer programs from
+Loopy~\citep{kamath2023finding}.  The training--evaluation overlap audit is
+in Appendix~\ref{app:data-leakage}.  We remove non-contract comments and
 mask all target predicates before generation, then restore the untouched
 source only after invariants are fixed.
 Success requires Frama-C/WP~\citep{framac}, under a 5-second per-obligation
@@ -57,9 +55,9 @@ compose@\(k\) can compose clauses from different responses.  We do not compute
 the exact all-subset analogue for compose@\(k\), because it would require
 filtering \(\binom{100}{k}\) unions per program; we evaluate the fixed saved
 prefix instead.  For the measured budget grid
-\(\mathcal K=\{1,10,30,50,100\}\), we report
+\(\mathcal K=\{1,4,8,16,32\}\), we report
 \(k_{95}=\min\{k\in\mathcal K:
-\operatorname{Comp}_\pi(k)\geq0.95\,\operatorname{Comp}_\pi(100)\}\), where
+\operatorname{Comp}_\pi(k)\geq0.95\,\operatorname{Comp}_\pi(32)\}\), where
 \(\operatorname{Comp}_\pi(k)\) is the measured compose@\(k\) curve.  A smaller
 \(k_{95}\) means the retained pool reaches its large-budget performance
 sooner.
@@ -78,7 +76,7 @@ Table~\ref{tab:probe-stratum}.
 \centering
 \includegraphics[width=0.94\textwidth]{figures/base_model_probe.pdf}
 \caption{pass@\(k\) (unbiased estimate) and prefix compose@\(k\).
-Composition saturates by \(k=30\), while pass@\(k\) keeps growing.}
+Composition saturates by \(k=\)TBD, while pass@\(k\) keeps growing.}
 \label{fig:base-model-probe}
 \end{figure}
 
@@ -87,18 +85,20 @@ estimate across checkpoints.  Because these are different estimands rather
 than paired first-response outcomes, we treat this gap as descriptive; RQ2
 reports the paired effect of processing the same response.  In the retained
 response pools, every model
-reaches 95\% of compose@100 by \(k=50\), with at most 1.56 additional points
-through \(k=100\).  In contrast, pass@30 reaches only 59.6--88.8\% of
-pass@100 on the five Qwen checkpoints and gains another 1.46--4.66 points by
-\(k=100\).  Llama 3.1 8B is harder in standalone proof generation---pass@100
-is 10.46\%---but shows the same compositional pattern: compose rises from
-18.03\% at \(k=1\) to 28.25\% at \(k=30\), then changes by only 0.12 points.
+reaches 95\% of compose@32 by \(k=\)TBD, with at most TBD
+additional points through \(k=32\).  In contrast, pass@8 reaches only
+TBD of pass@32 on the five Qwen checkpoints and gains another
+TBD points by \(k=32\).  Llama 3.1 8B is harder in standalone proof
+generation---pass@32
+is TBD---but shows the same compositional pattern: compose rises from
+18.03\% at \(k=1\) to TBD at \(k=16\), then changes by only
+TBD points.
 Composition thus
 finds most of its useful clauses within the first few dozen samples,
 whereas standalone proofs require wider sampling.
-The compose@100 values (28.37--39.78\%) further suggest that these pools
+The compose@32 values (TBD) further suggest that these pools
 remain limited by clause quality or diversity: extending the budget to
-100 responses does not remove the gap.
+32 responses does not remove the gap.
 
 \begin{tcolorbox}[
   colback=algobg,
@@ -119,8 +119,9 @@ budget form a sufficient invariant after filtering.
 \subsection{RQ2: What Does Each Component Contribute?}
 \label{sec:exp:main}
 
-The main neural experiment evaluates one and ten saved responses per
-program and decomposes the pipeline into cumulative stages.  Framework-free
+The main neural experiment evaluates saved responses per program at
+budgets \(k{=}1\) and \(k{=}8\) and decomposes the pipeline into cumulative
+stages.  Framework-free
 rows judge each response as one indivisible conjunction (pass@\(k\));
 pipeline rows decompose the same responses into clauses, filter them, and
 compose the survivors (compose@\(k\)).  The three Qwen3 models add the
@@ -137,58 +138,58 @@ SFT rows without RL.
 & \multicolumn{2}{c}{Linear / 316} & \multicolumn{2}{c}{NLA / 50}
   & \multicolumn{2}{c}{Loopy / 466} & \multicolumn{2}{c}{All / 832} \\
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
-Stage & \(k{=}1\) & \(k{=}10\) & \(k{=}1\) & \(k{=}10\)
-  & \(k{=}1\) & \(k{=}10\) & \(k{=}1\) & \(k{=}10\) \\
+Stage & \(k{=}1\) & \(k{=}8\) & \(k{=}1\) & \(k{=}8\)
+  & \(k{=}1\) & \(k{=}8\) & \(k{=}1\) & \(k{=}8\) \\
 \midrule
 \multicolumn{9}{l}{\textit{Qwen3-4B}} \\
 \quad bare (pass)
-  & 2.80 & 7.52 & 0.00 & 0.00 & 4.34 & 9.28 & 3.49 & 8.05 \\
+  & 2.80 & TBD & 0.00 & TBD & 4.34 & TBD & 3.49 & TBD \\
 \quad +pipeline (compose)
-  & 23.42 & 30.38 & 2.00 & 2.00 & 25.11 & 35.41 & 23.08 & 31.49 \\
+  & 23.42 & TBD & 2.00 & TBD & 25.11 & TBD & 23.08 & TBD \\
 \quad\enspace +SFT
-  & 26.27 & 38.29 & 2.00 & 4.00 & 28.54 & 42.27 & 26.08 & 38.46 \\
+  & 26.27 & TBD & 2.00 & TBD & 28.54 & TBD & 26.08 & TBD \\
 \quad\enspace +SFT+RL
   & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad SFT, no pipeline (pass)
-  & 6.89 & 17.68 & 0.10 & 0.90 & 8.53 & 20.93 & 7.40 & 18.49 \\
+  & 6.89 & TBD & 0.10 & TBD & 8.53 & TBD & 7.40 & TBD \\
 \quad SFT+RL, no pipeline (pass)
   & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \cmidrule(l{3pt}r{3pt}){1-9}
 \multicolumn{9}{l}{\textit{Qwen3-8B}} \\
 \quad bare (pass)
-  & 2.79 & 9.37 & 0.00 & 0.00 & 4.44 & 11.24 & 3.55 & 9.86 \\
+  & 2.79 & TBD & 0.00 & TBD & 4.44 & TBD & 3.55 & TBD \\
 \quad +pipeline (compose)
-  & 25.63 & 37.03 & 2.00 & 2.00 & 29.40 & 40.34 & 26.32 & 36.78 \\
+  & 25.63 & TBD & 2.00 & TBD & 29.40 & TBD & 26.32 & TBD \\
 \quad\enspace +SFT
-  & 29.11 & 40.19 & 2.00 & 4.00 & 25.75 & 42.06 & 25.60 & 39.06 \\
+  & 29.11 & TBD & 2.00 & TBD & 25.75 & TBD & 25.60 & TBD \\
 \quad\enspace +SFT+RL
   & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad SFT, no pipeline (pass)
-  & 6.53 & 17.68 & 0.02 & 0.20 & 8.25 & 20.07 & 7.10 & 17.97 \\
+  & 6.53 & TBD & 0.02 & TBD & 8.25 & TBD & 7.10 & TBD \\
 \quad SFT+RL, no pipeline (pass)
   & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \cmidrule(l{3pt}r{3pt}){1-9}
 \multicolumn{9}{l}{\textit{Qwen3-14B}} \\
 \quad bare (pass)
-  & 4.36 & 9.35 & 0.12 & 0.96 & 5.94 & 12.07 & 4.99 & 10.37 \\
+  & 4.36 & TBD & 0.12 & TBD & 5.94 & TBD & 4.99 & TBD \\
 \quad +pipeline (compose)
-  & 31.01 & 35.44 & 0.00 & 0.00 & 32.83 & 38.63 & 30.17 & 35.10 \\
+  & 31.01 & TBD & 0.00 & TBD & 32.83 & TBD & 30.17 & TBD \\
 \quad\enspace +SFT
-  & 31.01 & 41.14 & 2.00 & 4.00 & 31.12 & 41.42 & 29.33 & 39.06 \\
+  & 31.01 & TBD & 2.00 & TBD & 31.12 & TBD & 29.33 & TBD \\
 \quad\enspace +SFT+RL
   & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad SFT, no pipeline (pass)
-  & 7.70 & 16.59 & 0.22 & 1.71 & 9.51 & 20.33 & 8.26 & 17.79 \\
+  & 7.70 & TBD & 0.22 & TBD & 9.51 & TBD & 8.26 & TBD \\
 \quad SFT+RL, no pipeline (pass)
   & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \cmidrule(l{3pt}r{3pt}){1-9}
 \multicolumn{9}{l}{\textit{Llama 3.1 8B}} \\
 \quad +pipeline (compose)
-  & 16.77 & 25.00 & 4.00 & 4.00 & 20.39 & 31.33 & 18.03 & 27.28 \\
+  & 16.77 & TBD & 4.00 & TBD & 20.39 & TBD & 18.03 & TBD \\
 \quad\enspace +SFT
-  & 26.27 & 37.66 & 0.00 & 2.00 & 25.11 & 40.34 & 24.04 & 37.02 \\
+  & 26.27 & TBD & 0.00 & TBD & 25.11 & TBD & 24.04 & TBD \\
 \quad SFT, no pipeline (pass)
-  & 5.41 & 14.23 & 0.04 & 0.38 & 5.48 & 16.13 & 5.12 & 14.46 \\
+  & 5.41 & TBD & 0.04 & TBD & 5.48 & TBD & 5.12 & TBD \\
 \bottomrule
 \end{tabular}
 \caption{Cumulative contribution of each pipeline component, by benchmark
@@ -206,10 +207,10 @@ Stage & \(k{=}1\) & \(k{=}10\) & \(k{=}1\) & \(k{=}10\)
 Because framework-free and pipeline rows reuse the same saved responses,
 their paired difference isolates the net effect of clause extraction,
 normalization, and Houdini without additional model calls: composing lifts
-every model by 19.6--25.2 points at \(k{=}1\) and by 23.4--26.9 points at
-\(k{=}10\) in aggregate.  Per stratum the lift is positive everywhere except
+every model by 19.6--25.2 points at \(k{=}1\) and by TBD points at
+\(k{=}8\) in aggregate.  Per stratum the lift is positive everywhere except
 NLA under Qwen3-14B, where composing trails pass@\(k\) (0.12\(\to\)0.00 at
-\(k{=}1\), 0.96\(\to\)0.00 at \(k{=}10\))---the large-model NLA anomaly of
+\(k{=}1\), TBD at \(k{=}8\))---the large-model NLA anomaly of
 Table~\ref{tab:probe-stratum}.
 All rows report full-workload means over the same 832 programs.  Per-model
 probe curves appear in Appendix~\ref{tab:probe-complete}.
@@ -219,7 +220,7 @@ probe curves appear in Appendix~\ref{tab:probe-complete}.
 \label{sec:exp:tools}
 
 We compare against the target-hidden pipelines of
-\textsc{AutoSpec}, \textsc{SESpec}, and \textsc{Clause2Inv}, and against
+AutoSpec, SESpec, and Clause2Inv, and against
 Daikon 5.8.24
 ~\citep{wen2024enchanting,yang2026sespec,cao2025clause2inv,daikon}.
 All tool rows use \texttt{gpt-5-nano} where they call an LLM.  The Naive row
@@ -234,7 +235,7 @@ richer raw outputs score below Naive before filtering (3.61\% vs.\
 16.47\%).  The gap is by design---the discarded clauses carry no cost,
 because the pipeline keeps only what survives filtering, which is what
 compose@1 measures.
-\textsc{Clause2Inv}'s unsupported inputs remain failures in the common
+Clause2Inv's unsupported inputs remain failures in the common
 832-program denominator.  Budgets are fixed before comparison but not matched:
 each system retains its predeclared native orchestration.
 
@@ -246,19 +247,19 @@ each system retains its predeclared native orchestration.
 System & Linear / 316 & NLA / 50 & Loopy / 466 & All / 832
   & Tokens / task & Time / task \\
 \midrule
-\textsc{AutoSpec} & \acc{151}{47.78\%} & \acc{3}{6.00\%} & \acc{197}{42.27\%}
+AutoSpec & \acc{151}{47.78\%} & \acc{3}{6.00\%} & \acc{197}{42.27\%}
   & \acc{351}{42.19\%}
   & 2,181.72 & 27.34\,s \\
-\textsc{SESpec} & \acc{91}{28.80\%} & \acc{2}{4.00\%} & \acc{154}{33.05\%}
+SESpec & \acc{91}{28.80\%} & \acc{2}{4.00\%} & \acc{154}{33.05\%}
   & \acc{247}{29.69\%}
   & 22,081.61 & 68.50\,s \\
-\textsc{Clause2Inv} & \acc{66}{20.89\%} & \acc{0}{0.00\%} & \acc{0}{0.00\%}
+Clause2Inv & \acc{66}{20.89\%} & \acc{0}{0.00\%} & \acc{0}{0.00\%}
   & \acc{66}{7.93\%}
   & 1,056.25 & 8.41\,s \\
-\textsc{Daikon} & \acc{73}{23.10\%} & \acc{0}{0.00\%} & \acc{101}{21.67\%}
+Daikon & \acc{73}{23.10\%} & \acc{0}{0.00\%} & \acc{101}{21.67\%}
   & \acc{174}{20.91\%}
   & 0 & 4.89\,s \\
-\textsc{Loopy}
+Loopy
   & \acc{64}{20.25\%} & \acc{0}{0.00\%} & \acc{92}{19.74\%}
   & \acc{156}{18.75\%}
   & 14,513.37 & 147.16\,s \\
@@ -272,58 +273,60 @@ Naive
   & \acc{30}{3.61\%}
   & 1,135.83 & 7.86\,s \\
 \sam{} (compose@1)
-  & \acc{157}{49.68\%} & \acc{4}{8.00\%} & \acc{213}{45.71\%}
-  & \acc{374}{44.95\%}
-  & 1,135.83 & 29.66\,s \\
-\sam{} (compose@5)
-  & \acc{205}{64.87\%} & \acc{6}{12.00\%} & \acc{297}{63.73\%}
-  & \acc{508}{61.06\%}
-  & 2,161.52 & 91.78\,s \\
-\sam{} (compose@10)
-  & \acc{214}{67.72\%} & \acc{5}{10.00\%} & \acc{332}{71.24\%}
-  & \acc{551}{66.23\%}
-  & 4,322.38 & 190.35\,s \\
+  & \acc{110}{34.81\%} & \acc{11}{22.00\%} & \acc{161}{34.55\%}
+  & \acc{282}{33.89\%}
+  & TBD & TBD \\
+\sam{} (compose@4)
+  & \acc{152}{48.10\%} & \acc{15}{30.00\%} & \acc{241}{51.72\%}
+  & \acc{408}{49.04\%}
+  & TBD & TBD \\
+\sam{} (compose@8)
+  & \acc{175}{55.38\%} & \acc{22}{44.00\%} & \acc{265}{56.87\%}
+  & \acc{462}{55.53\%}
+  & TBD & TBD \\
 \bottomrule
 \end{tabular}
 \caption{Common target-hidden comparison with
 \texttt{reasoning\_effort=none}, using the same untouched inputs and
 Frama-C/WP final judge.  All LLM-driven rows share the same fixed
-backbone model.  Tokens and time are mean totals per task.}
+backbone model; tokens and time are mean totals per task.  The three
+compose rows are recomputed from one archived ten-rollout pool by
+prefix-subset composition, unioning the first \(k\) responses through the
+same filter chain.}
 \label{tab:tool-comparison}
 \end{table}
 
 
-The main table reports only the completed non-reasoning rerun.  The archived
-reasoning-enabled comparison is retained in
-Appendix~\ref{tab:tools-complete}; no archived value is reused as a
-non-reasoning result.  On three further API models the same pairing lifts
-compose@1 over pass@1 by 23.6--40.4 points (mean 33.6;
-Appendix~\ref{tab:cross-model-main}), on top of the backbone's 41.3: the
-gain is a property of the pipeline, not of one model.
-Under this setting, increasing \sam{} from five to ten candidates raises
-verification from 508/832 (61.06\%) to 551/832 (66.23\%).
+The archived reasoning-enabled comparison appears in
+Appendix~\ref{tab:tools-complete}.  On four further API models the same
+pairing lifts compose@1 over pass@1 by 3.8--23.4 points (mean 16.6;
+Appendix~\ref{tab:cross-model-main}), on top of the backbone's 30.3: the
+gain is a property of the pipeline, and it compresses as single-shot
+accuracy rises (GPT-5.6-luna already passes 81.3\% of tasks in one shot).
+Under this setting, increasing \sam{} from four to eight candidates raises
+verification from 49.0\% to 55.5\%.
 
 \paragraph{Failure modes under target hiding.}
 The specialized systems degrade for different structural reasons.  In the
-evaluated one-round configuration, \textsc{AutoSpec} requests eight
+evaluated one-round configuration, AutoSpec requests eight
 completions in parallel, pools their clauses, and verifier-filters the union;
 it is therefore already an eight-proposal composition method rather than a
 single-proposal baseline.  Nevertheless, it verifies 351 programs, 23 fewer
 than \sam{} compose@1.
 Its extra samples mainly add redundant or weak clauses rather than the
-complementary facts recovered by \sam{}'s clause processing.  \textsc{SESpec}
+complementary facts recovered by \sam{}'s clause processing.  SESpec
 instead makes 5.09 sequential calls per completed task on average.  This
 refinement-heavy schedule does not provide the
 independent parallel exploration needed when the target is absent; moreover,
 errors from the target-hidden verifier diagnose syntax and inductiveness, not
-which missing relation would establish the hidden goal.  \textsc{Clause2Inv}'s
+which missing relation would establish the hidden goal.  Clause2Inv's
 ICE loop normally uses false-state (\texttt{F:}) counterexamples induced by the
 postcondition.  Target-hidden execution suppresses the postcondition check and
 retains only pre-state and transition counterexamples, removing its principal
 goal-directed feedback signal; its required transition VCs are also
 unavailable for all 466 Loopy programs.
 
-\textsc{Loopy} exhibits a separate interface failure.  Its extractor accepts
+Loopy exhibits a separate interface failure.  Its extractor accepts
 only the first valid Markdown-fenced code block.  Although 98.8\% of the
 non-reasoning initial responses contain textual \texttt{loop invariant}
 clauses, only 1.75\% use the required fence and reach Houdini; for repair
@@ -345,11 +348,11 @@ in the appendix.
   left=5pt,right=5pt,top=4pt,bottom=4pt
 ]
 \textbf{Finding.} Target visibility is a problem boundary, not an
-implementation detail.  Goal-directed feedback---\textsc{Clause2Inv}'s
-postcondition-induced counterexamples, \textsc{Loopy}'s assertion-specific
+implementation detail.  Goal-directed feedback---Clause2Inv's
+postcondition-induced counterexamples, Loopy's assertion-specific
 diagnostics---vanishes once the target is hidden, and the two systems fall
-to 7.93\% and 18.75\%; five target-hidden responses composed by \sam{}
-verify 61.06\%.  Under target hiding, complementary composition survives
+to 7.93\% and 18.75\%; four target-hidden responses composed by \sam{}
+verify TBD.  Under target hiding, complementary composition survives
 where iterative goal-directed repair does not.
 \end{tcolorbox}
 
@@ -370,8 +373,8 @@ compose@\(k\) shifts up at small budgets without degrading at large ones.
 
 The SFT stage distills the filtered multi-response union into single
 responses (Section~\ref{sec:method:sft}).  On Qwen3-8B it doubles
-pass@1 (3.55\%$\to$7.10\%) and lifts compose@10 from 36.78\% to
-39.06\%, while compose@1 stays flat (26.32\%$\to$25.60\%): the
+pass@1 (3.55\%$\to$7.10\%) and lifts compose@8 from TBD to
+TBD, while compose@1 stays flat (26.32\%$\to$25.60\%): the
 distilled clauses help once several responses pool, not in
 isolation (Table~\ref{tab:rl-before-after}); full SFT curves across
 four backbones appear in Appendix~\ref{app:sft-probe}.
@@ -381,12 +384,12 @@ four backbones appear in Appendix~\ref{app:sft-probe}.
 \setlength{\tabcolsep}{4pt}
 \begin{tabular}{llrrrrr}
 \toprule
-Initialization & Training stage & pass@1 & compose@1 & compose@10
-  & compose@100 & \(k_{95}\) \\
+Initialization & Training stage & pass@1 & compose@1 & compose@8
+  & compose@32 & \(k_{95}\) \\
 \midrule
-Base 8B & before RL (Zero) & 3.55\% & 26.32\% & 36.78\% & 39.78\% & 30 \\
+Base 8B & before RL (Zero) & 3.55\% & 26.32\% & TBD & TBD & TBD \\
 Base 8B & after RL (RL-Zero) & TBD & TBD & TBD & TBD & TBD \\
-SFT 8B & before RL (SFT) & 7.10\% & 25.60\% & 39.06\% & TBD & TBD \\
+SFT 8B & before RL (SFT) & 7.10\% & 25.60\% & TBD & TBD & TBD \\
 SFT 8B & after RL (SFT+RL) & TBD & TBD & TBD & TBD & TBD \\
 \bottomrule
 \end{tabular}
@@ -396,31 +399,32 @@ SFT 8B & after RL (SFT+RL) & TBD & TBD & TBD & TBD & TBD \\
 
 \paragraph{Results.}
 Consistent with the redistribution view, response-level accuracy does not
-improve after RL (Figure~\ref{fig:rl-panels}, left; pass@1 TBD vs.\ TBD).
+improve after RL (Figure~\ref{fig:rl-panels}, left; pass@1 TBD
+vs.\ TBD).
 The redistribution is instead steered toward the complementary tail of the
 clause pool: compose@\(k^{*}\) with \(k^{*}{=}\)TBD matches its
-initialization's compose@100 (TBD), an effective TBD-fold budget
-reduction,
-and compose@100 itself does not degrade (TBD vs.\ TBD).  RL thus
-packs into \(k^{*}\) samples the useful clauses its initialization
-produces only across one hundred.  A
-clause-frequency analysis against TBD initialization samples attributes part
-of the gain to clauses the initialization produces with probability below TBD
-per response.
+initialization's compose@32 (TBD), an effective TBD-fold
+budget reduction,
+and compose@32 itself does not degrade (TBD vs.\ TBD).  RL
+thus packs into \(k^{*}\) samples the useful clauses its initialization
+produces only across thirty-two.  A
+clause-frequency analysis against TBD initialization samples
+attributes part of the gain to clauses the initialization produces with
+probability below TBD per response.
 
 \begin{figure}[t]
 \centering
 \fbox{\parbox[c][4.2cm][c]{0.92\linewidth}{\centering
 \texttt{rl\_panels.pdf} placeholder --- generated by
 \texttt{figures/plot\_rl\_panels.py} from the canonical RL pool artifact
-(three-seed means; pass@$k$ left, compose@$k$ right with the SFT compose@100
+(three-seed means; pass@$k$ left, compose@$k$ right with the SFT compose@32
 reference line and the crossing budget $k^{*}$ annotated).}}
 \caption{Response-level vs.\ compositional effects of RL (Qwen3-8B, SFT
 initialization).  (a)~pass@$k$ is expected to remain flat, consistent with
 redistribution rather than support
 expansion~\citep{yue2025rlcapacity}.  (b)~compose@$k$ shifts upward at small
-budgets: the RL policy reaches its initialization's compose@100 (dotted
-line) at $k^{*}$ samples, and compose@100 itself does not degrade.}
+budgets: the RL policy reaches its initialization's compose@32 (dotted
+line) at $k^{*}$ samples, and compose@32 itself does not degrade.}
 \label{fig:rl-panels}
 \end{figure}
 
@@ -450,8 +454,8 @@ control remains \(\{0,1\}\).
   reverses this trade-off, and Shapley credit shifts the compose curve further
   toward the upper left: both dominate the response-level variants at every
   $k$ in (a), and
-  Shapley credit also ends above the untrained model at $k{=}100$ (41.11\%
-  vs.\ 39.78\%).
+  Shapley credit also ends above the untrained model at $k{=}32$
+  (TBD vs.\ TBD).
   Exact numbers for all variants appear in
   Table~\ref{tab:reward-ablation}
   (Appendix~\ref{app:ablation-definitions}).}
@@ -462,16 +466,18 @@ Figure~\ref{fig:reward-ablation} reveals
 two effects (exact numbers in Table~\ref{tab:reward-ablation},
 Appendix~\ref{app:ablation-definitions}).  \emph{First, binary inductiveness collapses composition.}
 Although its pass@1 reaches 8.65\%, the policy degenerates into repeating a
-few safe clauses, so compose@100 stalls at 12.02\%, 27.8 points below the
-untrained model.  This is the sampling-limit failure mode anticipated in
+few safe clauses, so compose@32 stalls at TBD, TBD points
+below the untrained model.  This is the sampling-limit failure mode anticipated in
 Section~\ref{sec:exp:rl}: whole-response RLVR sharpens the policy toward a
 small set of already-supported complete responses.  It raises pass@1, but
-its advantage vanishes with sampling---at $k{=}100$, both response-level
-variants reach only 13.46\% pass@100, below the untrained model's 15.02\%---and
+its advantage vanishes with sampling---at $k{=}32$, both response-level
+variants reach only TBD pass@32, below the untrained
+model's TBD---and
 their compose curves saturate early.
 \emph{Second, credit must be decomposed to clauses.}  Moving from
-whole-rollout to clause-decomposed coverage raises compose@100 from 26.56\%
-to 39.06\%, and Shapley credit adds a further +2.05 points (41.11\%):
+whole-rollout to clause-decomposed coverage raises compose@32 from
+TBD to TBD, and Shapley credit adds a further TBD
+points (TBD):
 rewarding complementary coverage across the group translates directly into
 composable invariants, at the price of fragmenting individual responses
 (pass@1 drops to 2.31\%).
@@ -487,9 +493,9 @@ when fewer peers reject it.  The objective is the group's union rather
 than any single response, and the measured effect is the opposite of
 sharpening: once whole-response correctness is removed from the objective,
 pass@1 falls below the untrained model (2.31\% vs.\
-3.55\%) while compose@100 rises above it (41.11\% vs.\ 39.78\%).
-The same RL procedure can therefore collapse compose@100
-(binary credit, $-27.8$ points), preserve it (clause decomposition),
+3.55\%) while compose@32 rises above it (TBD vs.\ TBD).
+The same RL procedure can therefore collapse compose@32
+(binary credit, TBD points), preserve it (clause decomposition),
 or raise it (Shapley credit).  What RL does to the sampling
 distribution is decided by what the reward values, not by RL itself.
 
@@ -506,12 +512,13 @@ pass curve at large $k$, so additional sampling cannot break the limit.
 Shapley diversity delays saturation and shifts compositional coverage toward
 the upper left, but the decisive change is clause decomposition.  By no
 longer requiring an entire response to be correct, it supplies denser credit:
-pass@1 drops from 10.80\% to 2.66\%, while compose@100 rises from 26.56\% to
-39.06\% (and to 41.11\% with Shapley credit).
+pass@1 drops from 10.80\% to 2.66\%, while compose@32 rises from
+TBD to TBD (and to TBD with Shapley credit).
 \end{tcolorbox}
 
 \paragraph{Negative-sampling ablation.}
 After 200 training steps, structured sampling improves
-compose@1 and compose@10 over random perturbations by 0.84 and 1.56 points,
+compose@1 and compose@8 over random perturbations by 0.84 and TBD
+points,
 respectively; complete results appear in
 Appendix~\ref{app:ablation-definitions}.

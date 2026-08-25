@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 """Generate the RQ4 RL panels figure (fig:rl-panels).
 
-Two panels, SFT initialization, Qwen3-8B, three-seed means:
+Two panels, SFT initialization, Qwen3-8B, three-seed means, on the budget
+grid k in {1, 4, 8, 16, 32}:
   (a) pass@k    before/after RL  -- expected flat (redistribution, not
                                      support expansion; yue2025rlcapacity)
   (b) compose@k before/after RL  -- expected upward shift at small budgets,
-                                     with the SFT compose@100 ceiling drawn
+                                     with the SFT compose@32 ceiling drawn
                                      as a dotted reference line and the
                                      crossing budget k* annotated.
 
 Data source: the canonical RL program-level pool artifact required by
 paper/EXPERIMENT_PLAN.md (RQ4 evidence).  Every series below is a
-placeholder (None) until the cleaned-data retraining finishes; fill them
-from the archived pool and keep the SFT row consistent with
-tab:rl-before-after in sections/experiments.tex.
+placeholder (None) until the cleaned-data retraining and the new-grid
+recomputation finish; fill them from the archived pool and keep the SFT
+row consistent with tab:rl-before-after in sections/experiments.tex.
 """
 
 from pathlib import Path
@@ -25,14 +26,15 @@ import matplotlib.pyplot as plt
 
 OUT = Path(__file__).resolve().parent
 
-K = [1, 10, 30, 50, 100]
+K = [1, 4, 8, 16, 32]
 
 # TODO(rl-rerun): replace every None with a list of five three-seed means
-# (percent) aligned with K, read from the canonical RL pool artifact.
+# (percent) aligned with K = [1, 4, 8, 16, 32], read from the canonical RL
+# pool artifact.
 PANELS = {
     "SFT (before RL)": {
-        "pass": None,  # e.g. [25.98, ...]
-        "combine": None,  # e.g. [49.88, ..., 74.04(k=10), ..., 76.80]
+        "pass": None,
+        "combine": None,
         "color": "#5b7185",
         "marker": "s",
         "style": "--",
@@ -47,8 +49,9 @@ PANELS = {
 }
 
 # Large-budget ceiling of the initialization; keep in sync with
-# tab:rl-before-after (SFT 8B, before RL, compose@100).
-SFT_COMBINE100 = 76.80
+# tab:rl-before-after (SFT 8B, before RL, compose@32).  None until the
+# new-grid recomputation fills that cell.
+SFT_COMBINE32 = None
 
 
 def configure() -> None:
@@ -109,12 +112,14 @@ def rl_panels() -> None:
         f"{name}.{metric}"
         for name, values in PANELS.items()
         for metric in ("pass", "combine")
-        if values[metric] is None
+        if values[metric] is None or any(v is None for v in values[metric])
     ]
+    if SFT_COMBINE32 is None:
+        missing.append("SFT_COMBINE32")
     if missing:
         raise SystemExit(
             "plot_rl_panels: placeholder data, fill from the canonical RL "
-            f"pool artifact first: {', '.join(missing)}"
+            f"pool artifact on the k={K} grid first: {', '.join(missing)}"
         )
 
     fig, axes = plt.subplots(1, 2, figsize=(7.15, 2.55))
@@ -126,25 +131,25 @@ def rl_panels() -> None:
     axes[1].set_title("(b) compose@$k$ (composed responses)")
 
     axes[1].axhline(
-        SFT_COMBINE100,
+        SFT_COMBINE32,
         color="#5b7185",
         linestyle=":",
         linewidth=1.1,
     )
     axes[1].text(
         1.1,
-        SFT_COMBINE100 + 0.4,
-        "SFT compose@100",
+        SFT_COMBINE32 + 0.4,
+        "SFT compose@32",
         fontsize=7.0,
         color="#5b7185",
     )
 
-    k_star = crossing_budget(PANELS["SFT+RL"]["combine"], SFT_COMBINE100)
+    k_star = crossing_budget(PANELS["SFT+RL"]["combine"], SFT_COMBINE32)
     if k_star is not None:
         axes[1].annotate(
             f"$k^{{*}}={k_star}$",
-            xy=(k_star, SFT_COMBINE100),
-            xytext=(k_star * 0.35, SFT_COMBINE100 - 6.0),
+            xy=(k_star, SFT_COMBINE32),
+            xytext=(k_star * 0.35, SFT_COMBINE32 - 6.0),
             fontsize=7.4,
             color="#2d7053",
             arrowprops={"arrowstyle": "->", "color": "#2d7053", "lw": 0.8},

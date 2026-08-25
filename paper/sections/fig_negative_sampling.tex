@@ -5,85 +5,100 @@
 \centering
 \resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[
-  font=\sffamily\small,
+  font=\sffamily\footnotesize,
   >=Stealth,
-  flow/.style={-{Stealth[length=2.0mm]}, draw=paperink!64,
-    line width=0.9pt},
-  branch/.style={draw=codepurple!72, line width=0.9pt},
-  candidateflow/.style={-{Stealth[length=2.0mm]}, draw=codepurple!78,
-    line width=0.9pt},
-  card/.style={draw=promptframe, fill=white, rounded corners=2.5pt,
-    line width=0.75pt, align=center, inner xsep=5pt, inner ysep=4pt},
-  tag/.style={rounded corners=2pt, inner xsep=5pt, inner ysep=2.3pt,
-    font=\scriptsize\bfseries, text=white},
-  note/.style={font=\tiny, text=codegray, align=center}
+  flow/.style={-{Stealth[length=2.2mm]}, draw=paperink!58, line width=1.1pt},
+  panel/.style={rounded corners=6pt, fill=algobg!58, draw=promptframe,
+    line width=0.8pt},
+  subcard/.style={rounded corners=3.5pt, fill=white, line width=0.8pt},
+  stage/.style={font=\scriptsize\bfseries, text=codegray},
+  ttl/.style={font=\scriptsize\bfseries, text=paperink, anchor=west},
+  ann/.style={font=\tiny, text=codegray, align=center},
+  pdot/.style={circle, fill=codegreen, inner sep=1.55pt},
+  neg/.style={circle, draw=codered, fill=wrongred!35, line width=0.8pt,
+    inner sep=1.35pt},
+  pedge/.style={-{Stealth[length=1.5mm]}, draw=codegreen!75, line width=0.75pt},
+  nedge/.style={-{Stealth[length=1.5mm]}, draw=codered!80, line width=0.75pt},
+  perturb/.style={-{Stealth[length=1.6mm]}, draw=codered!80, line width=0.8pt,
+    dashed}
 ]
 
-%% -----------------------------------------------------------------
-%% Source: concrete executions -> observed reachable states
-%% -----------------------------------------------------------------
-\node[card, draw=paperink!34, text width=0.95cm] (execute) at (0.80,2.20)
-  {{\tiny\bfseries Execute}\\[-1pt]
-   {\tiny\textcolor{codered}{\(Q\) hidden}}};
+%% ---------------- Stage 1: execute ----------------
+\node[stage] at (1.30,1.62) {Execute};
+\draw[panel] (0,-1.30) rectangle (2.60,1.30);
+\node[ann, text=paperink] at (1.30,0.88)
+  {masked loop\\[-1pt]{\color{codered}\(Q\) hidden}};
+\node[pdot] (e1) at (0.50,0.02) {};
+\node[pdot] (e2) at (1.15,0.02) {};
+\node[pdot] (e3) at (1.80,0.02) {};
+\node[pdot] (e4) at (2.25,0.02) {};
+\draw[pedge] (e1) -- (e2);
+\draw[pedge] (e2) -- (e3);
+\draw[pedge] (e3) -- (e4);
+\node[ann] at (1.30,-0.78) {observed reachable\\[-1pt]states \(\mathcal P\)};
 
-\node[card, draw=codegreen!58, text width=1.30cm] (positives) at (2.75,2.20)
-  {{\tiny\bfseries Observed \(\mathcal P\)}\\[-1pt]
-   {\scriptsize\textcolor{codegreen!82}{\(\bullet\!\rightarrow\!\bullet\!
-   \!\rightarrow\!\bullet\)}}};
+\draw[flow] (2.60,0) -- (3.30,0);
 
-\draw[flow] (execute) -- (positives);
+%% ---------------- Stage 2: two families ----------------
+\node[stage] at (6.65,2.18) {Perturb};
+\draw[panel] (3.30,-1.90) rectangle (10.00,1.90);
 
-%% -----------------------------------------------------------------
-%% Two candidate families (panel); red marks the perturbation
-%% -----------------------------------------------------------------
-\draw[rounded corners=5pt, fill=white, draw=codepurple!34,
-  line width=0.8pt] (4.15,0.95) rectangle (9.55,3.98);
-\node[tag, fill=codepurple!84, anchor=west] at (4.37,3.68)
-  {CANDIDATE FAMILIES};
+% relation family
+\draw[subcard, draw=codepurple!50] (3.55,0.12) rectangle (9.75,1.66);
+\node[ttl] at (3.75,1.42) {Relation};
+\node[pdot] (r1) at (4.15,0.62) {};
+\node[pdot] (r2) at (5.05,0.62) {};
+\node[pdot] (r3) at (5.95,0.62) {};
+\draw[pedge] (r1) -- (r2);
+\draw[pedge] (r2) -- (r3);
+\node[ann] at (5.05,0.36) {\((2,3)\)};
+\node[neg] (roff) at (6.75,1.18) {};
+\draw[perturb] (r2) -- (roff);
+\node[ann, text=codered] at (7.32,1.18) {\((3,3)\)};
+\node[ann, anchor=east] at (9.62,0.70)
+  {guard preserved,\\[-1pt]off the transition\\[-1pt]tangent};
 
-\node[card, draw=codepurple!48, text width=2.75cm]
-  (rel) at (6.85,2.80)
-  {{\tiny\bfseries Relation}\\[-1pt]
-   {\scriptsize \((x,y){=}(2,3)\;\mapsto\;(\textcolor{wrongred}{3},3)\)}};
+% post-exit family
+\draw[subcard, draw=codeblue!50] (3.55,-1.66) rectangle (9.75,-0.12);
+\node[ttl] at (3.75,-0.38) {Post-exit};
+\node[pdot] (p1) at (4.15,-1.10) {};
+\node[pdot] (p2) at (4.95,-1.10) {};
+\node[pdot] (p3) at (5.75,-1.10) {};
+\draw[pedge] (p1) -- (p2);
+\draw[pedge] (p2) -- (p3);
+\draw[dashed, draw=codegray!85, line width=0.7pt] (6.15,-1.50) -- (6.15,-0.62);
+\node[ann] at (6.15,-0.42) {exit};
+\node[neg] (q1) at (6.60,-1.10) {};
+\node[neg] (q2) at (7.40,-1.10) {};
+\node[neg] (q3) at (8.20,-1.10) {};
+\draw[nedge] (p3) -- (q1);
+\draw[nedge] (q1) -- (q2);
+\draw[nedge] (q2) -- (q3);
+\node[ann, anchor=east] at (9.62,-1.08) {real body\\[-1pt]continues};
 
-\node[card, draw=codepurple!48, text width=2.75cm]
-  (post) at (6.85,1.75)
-  {{\tiny\bfseries Post-exit}\\[-1pt]
-   {\scriptsize \(s_{\mathrm{exit}}\!\rightarrow\!
-   \textcolor{wrongred}{s_1^-\!\rightarrow\!s_2^-\cdots}\)}};
+\draw[flow] (10.00,0) -- (10.70,0);
 
-\coordinate (fork) at (3.95,2.20);
-\draw[branch] (positives.east) -- (fork);
-\draw[candidateflow] (fork) |- (rel.west);
-\draw[candidateflow] (fork) |- (post.west);
+%% ---------------- Stage 3: clean + budget ----------------
+\node[stage] at (12.10,1.62) {Clean \& budget};
+\draw[panel] (10.70,-1.30) rectangle (13.50,1.30);
+\node[ann, anchor=west] at (10.95,0.82)
+  {{\color{codered}\(\times\)} observed state};
+\node[ann, anchor=west] at (10.95,0.44)
+  {{\color{codered}\(\times\)} fresh loop entry};
+\node[ann, anchor=west] at (10.95,0.06)
+  {{\color{codered}\(\times\)} duplicate};
+\draw[draw=promptframe, line width=0.6pt] (10.95,-0.28) -- (13.25,-0.28);
+\node[ann, text=paperink] at (12.10,-0.62)
+  {\textbf{48} relation \(\cdot\) \textbf{12} post-exit};
+\node[ann] at (12.10,-0.98) {nearest perturbations first};
 
-%% -----------------------------------------------------------------
-%% Merge -> clean -> budgets -> N
-%% -----------------------------------------------------------------
-\coordinate (merge) at (9.70,2.20);
-\draw[branch] (rel.east) -| (merge);
-\draw[branch] (post.east) -| (merge);
+\draw[flow] (13.50,0) -- (14.20,0);
 
-\node[card, draw=codered!48, text width=1.30cm]
-  (clean) at (10.80,2.20)
-  {{\tiny\bfseries Clean}\\[-1pt]
-   {\tiny \(\times\) observed, fresh, dup}};
-\draw[flow] (merge) -- (clean);
-
-\node[card, draw=codeblue!54, text width=1.30cm]
-  (budget) at (12.85,2.20)
-  {{\tiny\bfseries Budgets}\\[-1pt]
-   {\tiny rel 48 \(\cdot\) post 12}};
-\draw[flow] (clean) -- (budget);
-
-\node[card, draw=codegreen!62, text width=0.85cm]
-  (negatives) at (14.75,2.20)
-  {{\tiny\bfseries Negatives}\\[-1pt]
-   \(\mathcal N\)};
-\draw[flow] (budget) -- (negatives);
-
-\node[note, text=codered!78] at (14.75,1.42)
-  {reward only; not a proof};
+%% ---------------- Output ----------------
+\node[circle, draw=codered!70, fill=wrongred!22, line width=1.1pt,
+  inner sep=0pt, minimum size=1.18cm] (out) at (14.95,0)
+  {\(\mathcal N\)};
+\node[ann] at (14.95,-0.98) {negative traces\\[-1pt]for the RL reward};
 
 \end{tikzpicture}
 }%

@@ -1,5 +1,5 @@
 MAIN = main
-LATEX = pdflatex
+LATEX = pdflatex -interaction=nonstopmode
 BIBTEX = bibtex
 
 all: $(MAIN).pdf

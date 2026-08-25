@@ -79,7 +79,7 @@ def style_axis(ax: plt.Axes) -> None:
     ax.set_xticks(K)
     ax.set_xticklabels([str(k) for k in K])
     ax.set_xlabel("Number of responses, $k$")
-    ax.set_ylabel("Verification rate (\%)")
+    ax.set_ylabel("Verification rate (%)")
     ax.grid(True, which="major", alpha=0.72)
     ax.tick_params(color="#92A39A", width=0.6)
     ax.spines[["top", "right"]].set_visible(False)

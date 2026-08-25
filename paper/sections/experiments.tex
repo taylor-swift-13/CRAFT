@@ -458,26 +458,27 @@ control remains \(\{0,1\}\).
 \end{figure}
 
 Figure~\ref{fig:reward-ablation} reveals two effects.
-\emph{First, response-level credit collapses composition.}  Binary
-inductiveness degenerates into repeating a few safe clauses: compose@1
-falls 17.6 points below the untrained model.  Whole-rollout coverage
-sharpens harder still---the best pass@$k$ at every budget---yet its compose
-curve gains only 5.4 points from one union to thirty-two.  This is the
-sampling-limit failure mode anticipated in Section~\ref{sec:exp:rl}.
-\emph{Second, credit must be decomposed to clauses.}  Clause-decomposed
-coverage more than doubles compose@1 (27.76\%$\to$58.29\%) and lifts
-compose@32 from 33.17\% to 70.19\%; the full compositional credit is best
-at large budgets (71.51\% at $k{=}32$) while keeping a higher pass@1.
+\emph{First, response-level credit collapses composition.}  Rewarding whole
+responses sharpens the policy toward a few already-supported answers:
+pass@$k$ rises, but the clause pool loses diversity, so composing more
+responses adds almost nothing---the sampling-limit failure mode anticipated
+in Section~\ref{sec:exp:rl}.
+\emph{Second, credit must be decomposed to clauses.}  Once each surviving
+clause is rewarded for the negatives it alone rejects, the policy spreads
+mass over complementary clauses: compose@1 more than doubles, and the
+compose curve keeps rising through $k{=}32$.  The full compositional credit
+trades a little small-budget composition for the best large-budget
+coverage.
 
 \paragraph{Breaking the response-level sampling limit.}
 Why does credit structure decide the outcome?  Whole-response rewards
 grade each rollout by its own clauses alone, so they can only push
 probability mass toward responses the policy already
-favors~\citep{yue2025rlcapacity}.  Group-compositional credit instead
-grades each rollout against its peers, making the objective the group's
-union rather than any single response: the compose curve more than doubles
-at every budget while pass@1 still improves.  What RL does to the sampling
-distribution is decided by what the reward values, not by RL itself.
+favors~\citep{yue2025rlcapacity}.  Group-compositional credit grades each
+rollout against its peers, making the objective the group's union rather
+than any single response---so RL learns to cover, not to repeat.  What RL
+does to the sampling distribution is decided by what the reward values, not
+by RL itself.
 
 \begin{tcolorbox}[
   colback=algobg,
@@ -487,13 +488,12 @@ distribution is decided by what the reward values, not by RL itself.
   left=5pt,right=5pt,top=4pt,bottom=4pt
 ]
 \textbf{Finding (RLVR limits).}  Response-level RLVR sharpens rather than
-expands the sampled support: it lifts pass@1 but leaves composition nearly
-flat.  Clause decomposition supplies denser credit and reverses this:
-compose@32 rises from 33.17\% to 70.19\% (71.51\% with the full
-compositional credit).
+expands the sampled support: pass@1 rises while composition stays nearly
+flat.  Decomposing credit to clauses reverses the trade-off, more than
+doubling compositional coverage at every budget.
 \end{tcolorbox}
 
 \paragraph{Negative-sampling ablation.}
 Structured sampling matches or exceeds random perturbations at every
-budget, improving compose@1 and compose@32 by 1.8 and 2.8 points
+budget and both metrics, with the largest gains in composition
 (Appendix~\ref{app:ablation-definitions}).

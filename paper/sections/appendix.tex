@@ -1005,7 +1005,10 @@ saved \(k\) responses.
 \texttt{reasoning\_effort=none} rows from the main text alongside the
 archived \texttt{reasoning\_effort=medium} rerun; Daikon makes no model call
 and is listed once.  Each cell reports the verification rate under the
-common file-level denominator.}
+common file-level denominator.  The compose@1 rows are the dedicated
+single-call runs paired with pass@1; the compose@4 and compose@8 rows are
+prefix compositions of the archived ten-rollout pool, as in
+Table~\ref{tab:tool-comparison}.}
 \label{tab:tools-complete}
 \begin{tabular}{llrrrrrr}
 \toprule
@@ -1058,15 +1061,15 @@ Naive & medium & \acc{154}{48.73\%} & \acc{4}{8.00\%} & \acc{221}{47.42\%}
 \sam{} (compose@1) & medium & \acc{203}{64.24\%} & \acc{7}{14.00\%} & \acc{294}{63.09\%}
   & \acc{504}{60.58\%}
   & 6,928.30 & 66.60\,s \\
-\sam{} (compose@4) & none & TBD & TBD & TBD
-  & TBD
-  & TBD & TBD \\
+\sam{} (compose@4) & none & \acc{152}{48.10\%} & \acc{15}{30.00\%} & \acc{241}{51.72\%}
+  & \acc{408}{49.04\%}
+  & 1,905.10 & 46.40\,s \\
 \sam{} (compose@4) & medium & TBD & TBD & TBD
   & TBD
   & TBD & TBD \\
-\sam{} (compose@8) & none & TBD & TBD & TBD
-  & TBD
-  & TBD & TBD \\
+\sam{} (compose@8) & none & \acc{175}{55.38\%} & \acc{22}{44.00\%} & \acc{265}{56.87\%}
+  & \acc{462}{55.53\%}
+  & 2,929.47 & 69.99\,s \\
 \sam{} (compose@8) & medium & TBD & TBD & TBD
   & TBD
   & TBD & TBD \\

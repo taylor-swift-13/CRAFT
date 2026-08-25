@@ -49,8 +49,10 @@ VARIANTS = {
     },
 }
 
-# Measured at k=1 only; drawn as a dotted reference line per panel.
-UNTRAINED_K1 = {"pass": 3.55, "combine": 26.32}
+UNTRAINED = {
+    "pass": [8.3, 16.5, 24.4, 28.1],
+    "combine": [43.8, 55.2, 61.2, 62.5],
+}
 
 
 def configure() -> None:
@@ -86,12 +88,16 @@ def style_axis(ax: plt.Axes) -> None:
 
 
 def plot_panel(ax: plt.Axes, metric: str) -> None:
-    ax.axhline(
-        UNTRAINED_K1[metric],
-        label="Untrained 8B ($k{=}1$)",
+    ax.plot(
+        K,
+        UNTRAINED[metric],
+        label="Untrained 8B",
         color="#737B77",
+        marker="x",
         linestyle=":",
-        linewidth=1.5,
+        linewidth=1.7,
+        markersize=5.2,
+        markeredgewidth=1.2,
         alpha=0.9,
     )
     for label, values in VARIANTS.items():

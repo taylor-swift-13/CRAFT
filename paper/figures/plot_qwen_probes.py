@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
 """Generate the base-checkpoint exploration and RL-Zero figures.
 
-Budget grid: k in {1, 4, 8, 16, 32}.  Only the k=1 entries below are
-measured; every other entry is a placeholder (None) until the new-grid
-recomputation finishes (compose@k by prefix-subset composition of the
-archived pools, pass@k by the unbiased estimator over the archived
-per-rollout verdicts).  The guard below refuses to render a figure from
-placeholder data.
+Probe grid: k in {1, 4, 8, 16, 32} (32-response pools, new stack); the
+RL-Zero comparison uses k in {1, 4, 16, 32} to match the ablation runs.
 """
 
 from pathlib import Path
@@ -20,66 +16,66 @@ import matplotlib.pyplot as plt
 OUT = Path(__file__).resolve().parent
 
 RQ1_K = [1, 4, 8, 16, 32]
-RL_K = [1, 4, 8, 16, 32]
+RL_K = [1, 4, 16, 32]
 
-# k=1 values are measured; None marks the k in {4, 8, 16, 32} slots that
-# still await the new-grid recomputation.
 OFFICIAL = {
-    "Qwen3-0.6B": {
-        "direct": [0.58, None, None, None, None],
-        "combine": [9.50, None, None, None, None],
+    "Qwen3-1.7B": {
+        "direct": [7.8, 15.0, 18.8, 22.4, 26.0],
+        "combine": [22.7, 33.1, 36.8, 39.3, 41.4],
         "color": "#b47a5f",
         "marker": "P",
         "style": "-",
     },
     "Qwen3-4B": {
-        "direct": [3.49, None, None, None, None],
-        "combine": [23.08, None, None, None, None],
+        "direct": [6.4, 11.6, 14.1, 16.5, 19.1],
+        "combine": [38.3, 46.3, 51.2, 55.0, 57.0],
         "color": "#9d6652",
         "marker": "o",
         "style": "-",
     },
     "Qwen3-8B": {
-        "direct": [3.55, None, None, None, None],
-        "combine": [26.32, None, None, None, None],
+        "direct": [8.3, 16.5, 20.5, 24.4, 28.1],
+        "combine": [43.8, 55.2, 59.0, 61.2, 62.5],
         "color": "#4f8a6b",
         "marker": "s",
         "style": "--",
     },
     "Qwen3-14B": {
-        "direct": [4.99, None, None, None, None],
-        "combine": [30.17, None, None, None, None],
+        "direct": [10.1, 17.5, 21.3, 25.2, 29.1],
+        "combine": [52.5, 62.1, 65.0, 66.2, 67.8],
         "color": "#2d7053",
         "marker": "^",
         "style": "-.",
     },
     "Qwen3-30B-A3B": {
-        "direct": [5.00, None, None, None, None],
-        "combine": [28.73, None, None, None, None],
+        "direct": [9.7, 16.9, 20.1, 23.6, 27.2],
+        "combine": [48.1, 58.8, 61.3, 62.4, 62.6],
         "color": "#5b7185",
         "marker": "D",
         "style": ":",
     },
     "Llama 3.1 8B": {
-        "direct": [0.48, None, None, None, None],
-        "combine": [18.03, None, None, None, None],
+        "direct": [0.8, 3.0, 5.4, 8.9, 13.8],
+        "combine": [29.2, 48.3, 54.6, 56.0, 56.1],
         "color": "#75618f",
         "marker": "v",
         "style": "-",
     },
 }
 
+# Matched runs on the new stack: untrained 8B vs the full-reward RL-Zero
+# checkpoint (combine@k measured at k in {1, 4, 16, 32}).
 RL_COMPARISON = {
     "Qwen3-8B": {
-        "direct": [9.30, None, None, None, None],
-        "combine": [41.23, None, None, None, None],
+        "direct": [8.3, 16.5, 24.4, 28.1],
+        "combine": [43.8, 55.2, 61.2, 62.5],
         "color": "#5b7185",
         "marker": "s",
         "style": "--",
     },
     "8B-RL-Zero": {
-        "direct": [4.88, None, None, None, None],
-        "combine": [43.15, None, None, None, None],
+        "direct": [8.77, 15.25, 20.69, 22.92],
+        "combine": [53.85, 63.82, 70.19, 71.51],
         "color": "#2d7053",
         "marker": "o",
         "style": "-",
@@ -127,7 +123,7 @@ def style_axis(ax: plt.Axes, display_ticks: list[int]) -> None:
     ax.set_xticks(display_ticks)
     ax.set_xticklabels([str(k) for k in display_ticks])
     ax.set_xlabel("Number of responses, $k$")
-    ax.set_ylabel("Verification rate (\%)")
+    ax.set_ylabel("Verification rate (%)")
     ax.grid(True, which="major", alpha=0.8)
     ax.spines[["top", "right"]].set_visible(False)
 
@@ -182,11 +178,11 @@ def official_probe() -> None:
         ax.set_xticks(RQ1_K)
         ax.set_xticklabels([str(k) for k in RQ1_K])
         ax.set_xlabel("Number of responses, $k$")
-        ax.set_ylabel("Verification rate (\%)")
+        ax.set_ylabel("Verification rate (%)")
         ax.grid(True, which="major", alpha=0.8)
         ax.spines[["top", "right"]].set_visible(False)
         ax.set_title(f"{panel_names[panel]} {model}")
-        ax.set_ylim(0, 44)
+        ax.set_ylim(0, 72)
 
     # Shared labels keep the six model-specific panels compact.
     axes[0, 0].set_xlabel("")
@@ -212,10 +208,8 @@ def rlzero_probe() -> None:
     style_axis(axes[1], RL_K)
     axes[0].set_title("(a) Complete responses")
     axes[1].set_title("(b) compose@$k$ (composed responses)")
-    axes[0].set_ylim(0, 36)
-    axes[1].set_ylim(39, 61)
-    # TODO(regrid): re-add the Base@8 vs RL-Zero@8 annotation once the
-    # recomputed k=8 values are filled in above.
+    axes[0].set_ylim(0, 32)
+    axes[1].set_ylim(40, 75)
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="upper center", ncol=2, frameon=False)
     fig.tight_layout(rect=(0, 0, 1, 0.86), w_pad=2.0)

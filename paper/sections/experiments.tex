@@ -66,8 +66,8 @@ sooner.
 \subsection{RQ1: How Do pass@k and compose@k Scale?}
 \label{sec:exp:probe}
 
-We sample 100 target-hidden responses per task from six base checkpoints:
-Qwen3-0.6B, Qwen3-4B, Qwen3-8B, Qwen3-14B, Qwen3-30B-A3B
+We sample 32 target-hidden responses per task from six base checkpoints:
+Qwen3-1.7B, Qwen3-4B, Qwen3-8B, Qwen3-14B, Qwen3-30B-A3B
 ~\citep{yang2025qwen3}, and Llama 3.1 8B.  Complete values and \(k_{95}\) appear in
 Appendix~\ref{tab:probe-complete}, per-stratum breakdowns in
 Table~\ref{tab:probe-stratum}.
@@ -76,29 +76,26 @@ Table~\ref{tab:probe-stratum}.
 \centering
 \includegraphics[width=0.94\textwidth]{figures/base_model_probe.pdf}
 \caption{pass@\(k\) (unbiased estimate) and prefix compose@\(k\).
-Composition saturates by \(k=\)TBD, while pass@\(k\) keeps growing.}
+Composition saturates by \(k{\approx}8\)--\(16\), while pass@\(k\) keeps growing.}
 \label{fig:base-model-probe}
 \end{figure}
 
-At \(k=1\), prefix compose@\(k\) is 8.92--25.18 points above the unbiased pass
-estimate across checkpoints.  Because these are different estimands rather
-than paired first-response outcomes, we treat this gap as descriptive; RQ2
-reports the paired effect of processing the same response.  In the retained
-response pools, every model
-reaches 95\% of compose@32 by \(k=\)TBD, with at most TBD
-additional points through \(k=32\).  In contrast, pass@8 reaches only
-TBD of pass@32 on the five Qwen checkpoints and gains another
-TBD points by \(k=32\).  Llama 3.1 8B is harder in standalone proof
-generation---pass@32
-is TBD---but shows the same compositional pattern: compose rises from
-18.03\% at \(k=1\) to TBD at \(k=16\), then changes by only
-TBD points.
-Composition thus
-finds most of its useful clauses within the first few dozen samples,
-whereas standalone proofs require wider sampling.
-The compose@32 values (TBD) further suggest that these pools
-remain limited by clause quality or diversity: extending the budget to
-32 responses does not remove the gap.
+At \(k=1\), prefix compose@\(k\) is 14.9--42.4 points above the unbiased
+pass estimate across checkpoints.  Because these are different estimands
+rather than paired first-response outcomes, we treat this gap as
+descriptive; RQ2 reports the paired effect of processing the same response.
+In the retained response pools, compose@16 is within 2.1 points of
+compose@32 on every checkpoint (\(k_{95}\in\{8,16,32\}\);
+Appendix~\ref{tab:probe-complete}).  In contrast, pass@8 reaches only
+72--74\% of pass@32 on the five Qwen checkpoints and gains another
+5.0--7.8 points by \(k=32\).  Llama 3.1 8B is harder in standalone proof
+generation---pass@32 is 13.8\%---but shows the same compositional pattern:
+compose rises from 29.2\% at \(k=1\) to 56.0\% at \(k=16\), then
+changes by only 0.1 points.  Composition thus finds most of its useful
+clauses within the first dozen samples, whereas standalone proofs require
+wider sampling.  The compose@32 values (41.4--67.8\%) further suggest that
+these pools remain limited by clause quality or diversity: extending the
+budget to 32 responses does not remove the gap.
 
 \begin{tcolorbox}[
   colback=algobg,
@@ -143,53 +140,53 @@ Stage & \(k{=}1\) & \(k{=}8\) & \(k{=}1\) & \(k{=}8\)
 \midrule
 \multicolumn{9}{l}{\textit{Qwen3-4B}} \\
 \quad bare (pass)
-  & 2.80 & TBD & 0.00 & TBD & 4.34 & TBD & 3.49 & TBD \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad +pipeline (compose)
-  & 23.42 & TBD & 2.00 & TBD & 25.11 & TBD & 23.08 & TBD \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad\enspace +SFT
-  & 26.27 & TBD & 2.00 & TBD & 28.54 & TBD & 26.08 & TBD \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad\enspace +SFT+RL
   & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad SFT, no pipeline (pass)
-  & 6.89 & TBD & 0.10 & TBD & 8.53 & TBD & 7.40 & TBD \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad SFT+RL, no pipeline (pass)
   & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \cmidrule(l{3pt}r{3pt}){1-9}
 \multicolumn{9}{l}{\textit{Qwen3-8B}} \\
 \quad bare (pass)
-  & 2.79 & TBD & 0.00 & TBD & 4.44 & TBD & 3.55 & TBD \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad +pipeline (compose)
-  & 25.63 & TBD & 2.00 & TBD & 29.40 & TBD & 26.32 & TBD \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad\enspace +SFT
-  & 29.11 & TBD & 2.00 & TBD & 25.75 & TBD & 25.60 & TBD \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad\enspace +SFT+RL
   & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad SFT, no pipeline (pass)
-  & 6.53 & TBD & 0.02 & TBD & 8.25 & TBD & 7.10 & TBD \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad SFT+RL, no pipeline (pass)
   & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \cmidrule(l{3pt}r{3pt}){1-9}
 \multicolumn{9}{l}{\textit{Qwen3-14B}} \\
 \quad bare (pass)
-  & 4.36 & TBD & 0.12 & TBD & 5.94 & TBD & 4.99 & TBD \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad +pipeline (compose)
-  & 31.01 & TBD & 0.00 & TBD & 32.83 & TBD & 30.17 & TBD \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad\enspace +SFT
-  & 31.01 & TBD & 2.00 & TBD & 31.12 & TBD & 29.33 & TBD \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad\enspace +SFT+RL
   & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad SFT, no pipeline (pass)
-  & 7.70 & TBD & 0.22 & TBD & 9.51 & TBD & 8.26 & TBD \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad SFT+RL, no pipeline (pass)
   & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \cmidrule(l{3pt}r{3pt}){1-9}
-\multicolumn{9}{l}{\textit{Llama 3.1 8B}} \\
+\multicolumn{9}{l}{\textit{Llama TBD 8B}} \\
 \quad +pipeline (compose)
-  & 16.77 & TBD & 4.00 & TBD & 20.39 & TBD & 18.03 & TBD \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad\enspace +SFT
-  & 26.27 & TBD & 0.00 & TBD & 25.11 & TBD & 24.04 & TBD \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad SFT, no pipeline (pass)
-  & 5.41 & TBD & 0.04 & TBD & 5.48 & TBD & 5.12 & TBD \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \bottomrule
 \end{tabular}
 \caption{Cumulative contribution of each pipeline component, by benchmark
@@ -207,11 +204,8 @@ Stage & \(k{=}1\) & \(k{=}8\) & \(k{=}1\) & \(k{=}8\)
 Because framework-free and pipeline rows reuse the same saved responses,
 their paired difference isolates the net effect of clause extraction,
 normalization, and Houdini without additional model calls: composing lifts
-every model by 19.6--25.2 points at \(k{=}1\) and by TBD points at
-\(k{=}8\) in aggregate.  Per stratum the lift is positive everywhere except
-NLA under Qwen3-14B, where composing trails pass@\(k\) (0.12\(\to\)0.00 at
-\(k{=}1\), TBD at \(k{=}8\))---the large-model NLA anomaly of
-Table~\ref{tab:probe-stratum}.
+every model by TBD points at \(k{=}1\) and by TBD points at
+\(k{=}8\) in aggregate.
 All rows report full-workload means over the same 832 programs.  Per-model
 probe curves appear in Appendix~\ref{tab:probe-complete}.
 
@@ -372,12 +366,9 @@ credit predicts the opposite pattern: pass@\(k\) stays flat, while
 compose@\(k\) shifts up at small budgets without degrading at large ones.
 
 The SFT stage distills the filtered multi-response union into single
-responses (Section~\ref{sec:method:sft}).  On Qwen3-8B it doubles
-pass@1 (3.55\%$\to$7.10\%) and lifts compose@8 from TBD to
-TBD, while compose@1 stays flat (26.32\%$\to$25.60\%): the
-distilled clauses help once several responses pool, not in
-isolation (Table~\ref{tab:rl-before-after}); full SFT curves across
-four backbones appear in Appendix~\ref{app:sft-probe}.
+responses (Section~\ref{sec:method:sft}); matched SFT runs on the curated
+pool are TBD (Table~\ref{tab:rl-before-after}), with full curves across
+four backbones in Appendix~\ref{app:sft-probe}.
 
 \begin{table}[H]
 \centering
@@ -387,9 +378,9 @@ four backbones appear in Appendix~\ref{app:sft-probe}.
 Initialization & Training stage & pass@1 & compose@1 & compose@4
   & compose@32 & \(k_{95}\) \\
 \midrule
-Base 8B & before RL (Zero) & 3.55\% & 26.32\% & TBD & TBD & TBD \\
+Base 8B & before RL (Zero) & 8.3\% & 43.8\% & 55.2\% & 62.5\% & 16 \\
 Base 8B & after RL (RL-Zero) & 8.77\% & 53.85\% & 63.82\% & 71.51\% & 16 \\
-SFT 8B & before RL (SFT) & 7.10\% & 25.60\% & TBD & TBD & TBD \\
+SFT 8B & before RL (SFT) & TBD & TBD & TBD & TBD & TBD \\
 SFT 8B & after RL (SFT+RL) & TBD & TBD & TBD & TBD & TBD \\
 \bottomrule
 \end{tabular}
@@ -452,7 +443,7 @@ control remains \(\{0,1\}\).
   Response-level credit (Binary, Whole-rollout) raises pass@$k$ (b) but
   flattens compose@$k$ (a); clause-decomposed credit reverses the
   trade-off, and the full compositional credit is best at large budgets.
-  Dotted lines: the untrained model at $k{=}1$.  Exact numbers in
+  Dotted: the untrained model.  Exact numbers in
   Table~\ref{tab:reward-ablation} (Appendix~\ref{app:ablation-definitions}).}
 \label{fig:reward-ablation}
 \end{figure}
@@ -461,11 +452,12 @@ Figure~\ref{fig:reward-ablation} reveals two effects.
 \emph{First, response-level credit collapses composition.}  Rewarding whole
 responses sharpens the policy toward a few already-supported answers:
 pass@$k$ rises, but the clause pool loses diversity, so composing more
-responses adds almost nothing---the sampling-limit failure mode anticipated
-in Section~\ref{sec:exp:rl}.
+responses adds almost nothing: both response-level variants stay below the
+untrained model's compose curve at every budget---the sampling-limit
+failure mode anticipated in Section~\ref{sec:exp:rl}.
 \emph{Second, credit must be decomposed to clauses.}  Once each surviving
 clause is rewarded for the negatives it alone rejects, the policy spreads
-mass over complementary clauses: compose@1 more than doubles, and the
+mass over complementary clauses: compose@1 more than doubles over the response-level variants, and the
 compose curve keeps rising through $k{=}32$.  The full compositional credit
 trades a little small-budget composition for the best large-budget
 coverage.

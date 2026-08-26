@@ -18,9 +18,11 @@ cascade, which ends in real Houdini (Frama-C/WP).
 
 A candidate set "rejects" a negative valuation s iff some (Houdini-surviving)
 invariant evaluates to False at s — a cheap pure-Python check on states.
-When no negative traces remain, coverage variants are explicitly
-unscorable and return an all-zero reward group; they never promote a tautology
-to full strength.  The explicit ``binary`` ablation remains available.
+When the sampler retains no negative traces, coverage variants fall back to
+binary inductiveness (1 iff the response is nonempty and every clause survives
+Houdini, no penalties), reported as ``scorable=False`` with
+``reward_mode="binary_fallback_no_negative_traces"``.  The explicit
+``binary`` ablation applies the same rule unconditionally.
 """
 from __future__ import annotations
 
@@ -86,7 +88,8 @@ class BatchReward:
 
     @property
     def scorable(self) -> bool:
-        """Coverage variants need at least one negative trace to say anything."""
+        """True when negative coverage was measurable; False means the group
+        was scored by the binary-inductiveness fallback."""
         return self.reward_variant == "binary" or self.n_negatives > 0
 
     @property
@@ -94,7 +97,7 @@ class BatchReward:
         if self.reward_variant == "binary":
             return "binary_frama_c_validation"
         if not self.scorable:
-            return "unscorable_no_negative_traces"
+            return "binary_fallback_no_negative_traces"
         if self.reward_variant == "whole_coverage":
             return "whole_response_negative_coverage"
         return "negative_coverage"
@@ -363,9 +366,7 @@ class RewardCalculator:
             )
             return bool(candidate_set) and survivor_set == candidate_set
 
-        if not scorable:
-            batch_score = 0.0
-        elif self.reward_variant == "binary":
+        if not scorable or self.reward_variant == "binary":
             batch_score = 1.0 if fully_verified(union, union_surv) else 0.0
         elif self.reward_variant == "whole_coverage":
             batch_score = (
@@ -392,15 +393,9 @@ class RewardCalculator:
                 if cap_responses else 0
             )
             overflow_penalty = self.w_overflow * overflow
-            if not scorable:
-                # No scored negatives means strength is unknown. Return an
-                # all-zero group so clients that have not consumed the public
-                # ``scorable`` flag still cannot reward a tautology.
-                redundancy_penalty = 0.0
-                redundant_clauses = 0
-                overflow_penalty = 0.0
-                reward = 0.0
-            elif self.reward_variant == "binary":
+            if not scorable or self.reward_variant == "binary":
+                # Binary inductiveness: either the explicit ablation or the
+                # fallback when no negative trace exists to measure strength.
                 redundancy_penalty = 0.0
                 redundant_clauses = 0
                 overflow_penalty = 0.0

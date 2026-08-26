@@ -254,10 +254,12 @@ to each. The default reward is
 Only the first 20 invariant lines enter Houdini. Every later line incurs the
 configured overflow penalty. All generated relation and escape traces
 enter `base`, Shapley credit, and `n_negatives`. If the sampler produces no
-negative traces, the service returns zero rewards with `scorable=false` and
-`reward_mode="unscorable_no_negative_traces"`. The trainer must mask the whole
-group. Binary Frama-C/WP inductiveness is available only through the explicit
-`reward_variant="binary"` ablation.
+negative traces, the service falls back to binary Frama-C/WP inductiveness
+(reward 1 iff the response is nonempty and every admitted clause survives
+Houdini, no penalties) and reports `scorable=false` with
+`reward_mode="binary_fallback_no_negative_traces"`; the group is still
+trained on. The curation gate `unscorable` keeps such programs out of the
+released RL pool, so the fallback only matters for ad-hoc pools.
 
 The `POST /sample` endpoint exposes sampled positives and negatives for
 debugging. `GET /health` reports filter mode and cache size.

@@ -1091,7 +1091,7 @@ class RewardPatchRegressionTests(unittest.TestCase):
             - 0.02,
         )
 
-    def test_zero_negative_coverage_is_unscorable_and_cannot_reward_tautology(self):
+    def test_zero_negative_coverage_falls_back_to_binary_inductiveness(self):
         source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
         examples = ExampleSet(
             program=parse_program(source),
@@ -1115,15 +1115,22 @@ class RewardPatchRegressionTests(unittest.TestCase):
             examples=examples,
         )
 
+        # Union {x >= 0, x == 42} is not fully inductive -> batch 0; the
+        # rollouts are scored 1/0 on whole-response inductiveness, no penalties.
         self.assertEqual(result.batch_score, 0.0)
         self.assertEqual(
             [rollout.reward for rollout in result.rollouts],
+            [1.0, 0.0, 0.0],
+        )
+        self.assertEqual(
+            [rollout.redundancy_penalty + rollout.overflow_penalty
+             for rollout in result.rollouts],
             [0.0, 0.0, 0.0],
         )
         self.assertFalse(result.scorable)
         self.assertEqual(
             result.to_dict()["reward_mode"],
-            "unscorable_no_negative_traces",
+            "binary_fallback_no_negative_traces",
         )
         self.assertNotIn("survival_bonus", result.to_dict())
         self.assertNotIn("marginal", result.to_dict())

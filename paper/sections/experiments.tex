@@ -138,9 +138,9 @@ Stage & \(k{=}1\) & \(k{=}8\) & \(k{=}1\) & \(k{=}8\)
 \midrule
 \multicolumn{9}{l}{\textit{Qwen3-4B}} \\
 \quad bare (pass)
-  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
+  & 6.2 & 14.1 & 0.5 & 3.0 & 7.2 & 15.2 & 6.4 & 14.1 \\
 \quad +pipeline (compose)
-  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
+  & 38.6 & 51.9 & 8.0 & 8.0 & 41.4 & 55.4 & 38.3 & 51.2 \\
 \quad\enspace +SFT
   & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad\enspace +SFT+RL
@@ -152,9 +152,9 @@ Stage & \(k{=}1\) & \(k{=}8\) & \(k{=}1\) & \(k{=}8\)
 \cmidrule(l{3pt}r{3pt}){1-9}
 \multicolumn{9}{l}{\textit{Qwen3-8B}} \\
 \quad bare (pass)
-  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
+  & 8.6 & 20.7 & 3.2 & 5.9 & 8.6 & 22.0 & 8.3 & 20.5 \\
 \quad +pipeline (compose)
-  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
+  & 43.7 & 60.4 & 6.0 & 12.0 & 47.9 & 63.1 & 43.8 & 59.0 \\
 \quad\enspace +SFT
   & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad\enspace +SFT+RL
@@ -166,9 +166,9 @@ Stage & \(k{=}1\) & \(k{=}8\) & \(k{=}1\) & \(k{=}8\)
 \cmidrule(l{3pt}r{3pt}){1-9}
 \multicolumn{9}{l}{\textit{Qwen3-14B}} \\
 \quad bare (pass)
-  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
+  & 8.9 & 19.3 & 1.1 & 4.9 & 11.8 & 24.3 & 10.1 & 21.3 \\
 \quad +pipeline (compose)
-  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
+  & 54.1 & 68.0 & 8.0 & 12.0 & 56.2 & 68.7 & 52.5 & 65.0 \\
 \quad\enspace +SFT
   & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad\enspace +SFT+RL
@@ -178,9 +178,9 @@ Stage & \(k{=}1\) & \(k{=}8\) & \(k{=}1\) & \(k{=}8\)
 \quad SFT+RL, no pipeline (pass)
   & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \cmidrule(l{3pt}r{3pt}){1-9}
-\multicolumn{9}{l}{\textit{Llama TBD 8B}} \\
+\multicolumn{9}{l}{\textit{Llama 3.1 8B}} \\
 \quad +pipeline (compose)
-  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
+  & 29.4 & 55.4 & 2.0 & 14.0 & 32.0 & 58.4 & 29.2 & 54.6 \\
 \quad\enspace +SFT
   & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad SFT, no pipeline (pass)
@@ -202,7 +202,7 @@ Stage & \(k{=}1\) & \(k{=}8\) & \(k{=}1\) & \(k{=}8\)
 Because framework-free and pipeline rows reuse the same saved responses,
 their paired difference isolates the net effect of clause extraction,
 normalization, and Houdini without additional model calls: composing lifts
-every model by TBD points at \(k{=}1\) and by TBD points at
+every model by 28.4--42.4 points at \(k{=}1\) and by 37.1--49.2 points at
 \(k{=}8\) in aggregate.
 All rows report full-workload means over the same 832 programs.  Per-model
 probe curves appear in Appendix~\ref{tab:probe-complete}.

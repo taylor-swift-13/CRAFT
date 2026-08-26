@@ -66,10 +66,10 @@ reachability collision.
 
 | Evidence block | Current status |
 |---|---|
-| RQ1 four-checkpoint curves | Values present; raw pool location must be recorded in the final artifact manifest. |
+| RQ1 six-checkpoint curves | Values present, per stratum and whole set (`paper/artifacts/v4/probe_stratum_grid.json`; the same file archives the per-stratum grids of the five Zero-initialized RL runs at step 200); raw pool location must be recorded in the final artifact manifest. |
 | RQ2 GPT-5-nano/mini/default and DeepSeek paired results | Program-level artifacts present. |
 | RQ2 Claude paired accuracy | Aggregate values are in the manuscript, but the 832-task program-level artifact location is missing; only the disclosed 20-task cost sample is present. |
-| RQ2 local Qwen/Llama rows | Missing. |
+| RQ2 local Qwen/Llama rows | Bare (pass) and +pipeline (compose) rows present for all six base checkpoints, per stratum, from `paper/artifacts/v4/probe_stratum_grid.json` (rendered by `paper/scripts/render_probe_stratum.py`, which also fills `tab:probe-stratum`).  SFT, SFT+RL, and no-pipeline trained rows missing. |
 | RQ3 common tool comparison | Program-level CRAFT/tool artifacts present; Clause2Inv token count is estimated and limited to supported tasks. |
 | RQ4 Zero to RL-Zero | The finalized pre-RL aggregate now uses the same Qwen3-8B base curve as RQ1. The canonical program-level pool artifact and training manifest must still be archived before submission. |
 | RQ4 SFT to SFT+RL | Missing. |

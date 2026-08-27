@@ -53,9 +53,11 @@ loop obligations and prove every target at its original program point.  Hiding \
 from copying a target that happens to be valid or using target-specific proof
 failures to steer generation.  It also rules out target success as a training
 reward, making a graded, target-independent measure of invariant strength
-necessary.
+necessary.  The invariants this setting rewards are also the reusable ones:
+an invariant strong enough without knowing \(Q\) serves every property later
+asserted about the loop.
 
-\sam{} organizes inference around \emph{rollout--decompose--filter--compose}.
+\sam{} organizes inference around \emph{rollout--decompose--pool--filter--compose}.
 Given a budget of \(k\) target-hidden responses, the pipeline extracts each
 invariant
 annotation as a clause, unions clauses across responses, removes syntax failures,
@@ -101,13 +103,18 @@ strongest external baseline under each system's fixed budget.
 This paper makes three contributions:
 \begin{itemize}
   \item We formulate target-hidden loop verification around a fixed-budget
-  rollout--decompose--filter--compose objective.  The evaluated object at inference is
+  rollout--decompose--pool--filter--compose objective.  The evaluated object at inference is
   the verified composition measured by compose@\(k\), not an isolated
   response.
-  \item We align learning credit with that object in both directions: the
-  reward preserves useful clauses within imperfect rollouts and allocates
-  complementary coverage across rollouts, without using \(Q\).
-  \item We show that this alignment improves composed verification and rollout
-  efficiency, and audit the execution-derived examples that provide its
+  \item We align learning credit with that object at two levels, without
+  using \(Q\).  Within a rollout, the unit of credit is the
+  verifier-retained clause, so an imperfect response is paid for what
+  survives; across rollouts, a closed-form Shapley allocation pays
+  complementary coverage rather than repetition.
+  \item We show that clause-level credit is what turns RL from sharpening
+  into expanding compose@\(k\), that group credit raises the curve further
+  at every budget beyond one response, and that the trained policy reaches
+  its untrained initialization's 32-response composition with four
+  responses.  We audit the execution-derived examples that provide the
   graded strength signal.
 \end{itemize}

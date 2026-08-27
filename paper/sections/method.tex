@@ -17,7 +17,7 @@ inference composes, training should optimize composability: raising the
 compose@$k$ curve and reaching its large-pool performance with fewer
 rollouts.
 
-\subsection{Rollout--Decompose--Filter--Compose}
+\subsection{Rollout--Decompose--Pool--Filter--Compose}
 \label{sec:method:core}
 
 For a target-masked loop \(\mathcal L\), the model emits ACSL loop-invariant
@@ -26,9 +26,13 @@ annotations~\citep{acsl}.  Parsing extracts each
 response \(i\) into the clause sequence
 \(A_i=\langle a_{i1},\ldots,a_{im_i}\rangle\).  We cap it at \(K\) clauses
 (\(K{=}20\); Appendix~\ref{app:constants}),
-\(\bar A_i=\langle a_{i1},\ldots,a_{i,\min(m_i,K)}\rangle\), with overflow
-\(o(A_i)=\max(0,m_i-K)\).  Extraction makes the annotation, rather than the complete
-response, the unit that can survive filtering and earn credit.  We write
+\(\bar A_i=\langle a_{i1},\ldots,a_{i,\min(m_i,K)}\rangle\), and discard
+the rest.  Extraction makes the annotation, rather than the complete
+response, the unit that can survive filtering and earn credit.  The
+pipeline has five steps: \emph{rollout} samples responses, \emph{decompose}
+extracts their clauses, \emph{pool} unions the clauses across responses,
+\emph{filter} removes syntax failures and non-inductive clauses from the
+pool, and \emph{compose} conjoins the survivors into one invariant.  We write
 \(\operatorname{set}(\bar A_i)\) for the underlying clause set when applying
 set operations.
 
@@ -50,25 +54,25 @@ but cannot invent a missing relation.  Algorithm~\ref{alg:rcf} computes
 SFT synthesis and inference.
 
 \begin{algorithm}[t]
-\caption{Rollout--decompose--filter--compose}
+\caption{Rollout--decompose--pool--filter--compose}
 \label{alg:rcf}
 \begin{algorithmic}
 \alginput{masked loop \(\mathcal L\), parsed clause sequences \(A_{1:G}\), cap \(K\)}
 \algoutput{filtered clause set \(C\)}
 \algline \(C\leftarrow\bigcup_i\operatorname{set}\!\left(
-  \operatorname{Cap}_K(\operatorname{Normalize}(A_i))\right)\)\\
-\algline \(C\leftarrow\operatorname{ConservativeDedup}(C)\)\\
-\algline \kw{repeat}\\
+  \operatorname{Cap}_K(\operatorname{Normalize}(A_i))\right)\)\cmnt{decompose, pool}\\
+\algline \(C\leftarrow\operatorname{ConservativeDedup}(C)\)\cmnt{filter: dedup}\\
+\algline \kw{repeat}\cmnt{filter: syntax}\\
 \algline \algind \(C_{\mathrm{parse}}\leftarrow
   \operatorname{ParserErrors}(\mathcal L,C)\);
   \(C\leftarrow C\setminus C_{\mathrm{parse}}\)\\
 \algline \kw{until} \(C_{\mathrm{parse}}=\varnothing\) or \(C=\varnothing\)\\
-\algline \kw{repeat}\\
+\algline \kw{repeat}\cmnt{filter: Houdini}\\
 \algline \algind \(C_{\mathrm{drop}}\leftarrow\{c\in C:
   \neg\operatorname{WP}_{\mathrm{est,pres}}(\mathcal L,C,c)\}\);
   \(C\leftarrow C\setminus C_{\mathrm{drop}}\)\\
 \algline \kw{until} \(C_{\mathrm{drop}}=\varnothing\) or \(C=\varnothing\)\\
-\algline \kw{return} \(C\)\\
+\algline \kw{return} \(C\)\cmnt{compose: \(I_C=\bigwedge_{c\in C}c\)}\\
 \end{algorithmic}
 \end{algorithm}
 
@@ -162,7 +166,10 @@ continuations of the real body after a witnessed loop exit.  Cleaning is
 deliberately conservative---any candidate that executions cannot rule out is
 dropped: it removes observed reachable states, possible fresh entries,
 duplicates, and candidates involving unsupported state.  Unsupported or
-incomplete executions disable the affected family.  Figure~\ref{fig:negative-sampling}, Algorithm~\ref{alg:negative-sampling},
+incomplete executions disable the affected family.  We call this
+family-based construction the \emph{structured} sampler;
+Section~\ref{sec:exp:ablations} contrasts it with uniform random
+perturbations.  Figure~\ref{fig:negative-sampling}, Algorithm~\ref{alg:negative-sampling},
 and exact budgets appear in Appendix~\ref{app:negative-sampling}.
 
 Let \(\mathcal N\) be the retained negative traces.  For a retained clause set
@@ -173,20 +180,51 @@ recover ordinary state rejection.
 \subsection{Distilling Multi-Response Search}
 \label{sec:method:sft}
 
-For each masked loop \(\mathcal L\) in the training corpus
-\(\mathcal D_{\mathrm{train}}\), let
-\(C_{\mathcal L}^{\mathrm{pool}}\) be a sampled response-group union and
-\(C_{\mathcal L}^{\mathrm{sft}}=\mathsf{Filter}_{\mathcal L}
-(C_{\mathcal L}^{\mathrm{pool}})\).  We
-serialize every nonempty result as one SFT target:
+SFT targets are built by the same rollout--decompose--pool--filter--compose
+loop that inference runs, driven by the untrained policy and accepted by the
+reward.  For each masked loop \(\mathcal L\) in the training corpus
+\(\mathcal D_{\mathrm{train}}\), round \(t\) samples a group of
+\(G_{\mathrm{sft}}{=}16\) target-hidden responses from the base model
+(Qwen3-8B), adds their clauses to the pool, and filters the union to an
+inductive set,
+\[
+  C^{(t)}_{\mathcal L}
+  =\mathsf{Filter}_{\mathcal L}\!\Bigl(C^{(t-1)}_{\mathcal L}\cup
+    \bigcup_{i=1}^{G_{\mathrm{sft}}}\operatorname{set}(\bar A^{(t)}_i)\Bigr),
+  \qquad C^{(0)}_{\mathcal L}=\varnothing.
+\]
+The candidate is graded by the negative traces of
+Section~\ref{sec:method:sampler},
+\(\operatorname{cov}(C)=|\operatorname{rej}(C)|/|\mathcal N|\)---the
+whole-rollout strength of Appendix~\ref{app:ablation-definitions} applied to
+the composed set, whose all-or-nothing gate every \(C^{(t)}_{\mathcal L}\)
+satisfies by construction.  If
+\(\operatorname{cov}(C^{(t)}_{\mathcal L})\ge\tau\), the search stops and
+\(C^{\mathrm{sft}}_{\mathcal L}=C^{(t)}_{\mathcal L}\); otherwise it is
+\emph{strengthened} by another round.  Because conjunction preserves
+validity (Proposition~\ref{prop:conjunctive-closure}), the composed
+invariant can only grow stronger from round to round; the target is what
+the pipeline itself proves within \(T{=}5\) rounds, i.e., at most 80
+responses.  Loops that do not reach \(\tau\) within \(T\) rounds are
+dropped.  Whole-rollout strength is the right acceptance test here even
+though it is the wrong training credit
+(Section~\ref{sec:exp:ablations}): an SFT target is one response that must
+be inductive as a whole, whereas RL credit must reach inside imperfect
+responses.  Before serialization we remove syntactic redundancy
+only---normalized duplicates, tautologies, and clauses implied by other
+retained atomic clauses---and keep every remaining clause; no minimal-core
+pruning is applied, because the pipeline discards non-surviving clauses at
+no cost and composition benefits from coverage
+(Section~\ref{sec:exp:tools}).  Every accepted set is serialized as one
+SFT target:
 \[
   \mathcal D_{\mathrm{SFT}}
   =\{(\mathcal L,\operatorname{serialize}(C_{\mathcal L}^{\mathrm{sft}})):
       \mathcal L\in\mathcal D_{\mathrm{train}},\
-      C_{\mathcal L}^{\mathrm{sft}}\neq\varnothing\}.
+      \operatorname{cov}(C_{\mathcal L}^{\mathrm{sft}})\ge\tau\}.
 \]
-Neither input nor target contains \(Q\): SFT serializes a Houdini-retained
-multi-response search result as one response.
+Neither input nor target contains \(Q\): SFT serializes a reward-accepted,
+Houdini-retained multi-response search result as one response.
 
 \subsection{Clause-Decomposed, Group-Compositional Reward}
 \label{sec:method:reward}
@@ -211,7 +249,8 @@ as
 \]
 This projection implements \emph{intra-rollout decomposition}: malformed or
 non-inductive clauses are removed without erasing useful clauses in the same
-response.  When retained negatives exist, the reward adds no bonus merely for
+response.  Training thus pools and filters each rollout on its own; only
+credit is composed across the group (Appendix~\ref{app:houdini-order}).  When retained negatives exist, the reward adds no bonus merely for
 valid syntax or whole-response validity.  The subset receives the dense,
 target-independent strength score
 \[
@@ -245,22 +284,20 @@ axiom~
 the same response earns less group credit when its verified constraints are
 already supplied by peers.
 
-With the within-response duplicate count
-\(d_{\mathrm{dup}}(A_i)=|\bar A_i|-|\operatorname{dedup}(\bar A_i)|\)
-(clauses identical after normalization), the reward is
+The reward combines the two credits,
 \begin{equation}
 \label{eq:generation-reward}
-  r_i=w_c\,\operatorname{cov}(A_i)+w_g\phi_i
-      -w_d d_{\mathrm{dup}}(A_i)-w_o o(A_i),
+  r_i=w_c\,\operatorname{cov}(A_i)+w_g\phi_i,
 \end{equation}
-where \((w_c,w_g,w_d,w_o)=(1.0,0.3,0.02,0.05)\);
-Section~\ref{sec:exp:ablations} ablates each term.  GRPO normalizes these
+where \((w_c,w_g)=(1.0,0.3)\).  We call the first term the \emph{clause
+credit} and the second the \emph{group (Shapley) credit};
+Section~\ref{sec:exp:ablations} ablates each.  GRPO normalizes these
 group-conditioned rewards within the sampled response group.
 Each training step samples a group of \(G\) responses per masked loop,
 scores them by Equation~\eqref{eq:generation-reward}, and applies one GRPO
 update; this training-time group is distinct from the inference sweep over
 \(k\) (Section~\ref{sec:method:inference}).
 Appendix~\ref{app:grpo-details} gives the standard
-policy objective, duplicate normalization, and fallback behavior.
+policy objective, clause normalization, and fallback behavior.
 
 

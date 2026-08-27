@@ -5,7 +5,7 @@
 | `craft_rl_pool.parquet` | sanitized RL pool (36,742 rows) — the source every derived set starts from | released artifact |
 | `craft_sft_pool.json` | sanitized SFT archive (3,096 rows) — source of archival answers | released artifact |
 | `craft_generated_rl.json` / `craft_generated_sft.json` | the 1,392 spec-generated programs for under-covered evaluation cells, split per training set (RL merged only its half) | `experiments/generate_cell_programs.py` (nondeterministic; these files are the record) |
-| `craft_rl_train.parquet` | **RL training set (5,000 rows)**, difficulty-screened, evaluation-cell matched | see below |
+| `craft_rl_train.parquet` | **RL training set (4,992 rows)**, difficulty-screened, evaluation-cell matched | see below |
 | `craft_sft_train.json` | **SFT training set (14,858 rows)**, pipeline-synthesized targets | see below |
 
 Intermediates (`craft_*_canonical*.parquet/json`, `craft_sft_programs.json`) are deterministic

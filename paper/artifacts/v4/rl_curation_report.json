@@ -22,8 +22,8 @@
   },
   "input_rows": 37423,
   "unique_programs": 35781,
-  "kept_programs": 5000,
-  "output_rows": 5000,
+  "kept_programs": 4992,
+  "output_rows": 4992,
   "dropped_duplicate_rows": 43,
   "gate_failures": {
     "unscorable": 758,
@@ -38,11 +38,12 @@
     "unscorable": 758,
     "too_easy": 248,
     "too_few_traces": 15206,
-    "kept": 5000,
+    "kept": 4992,
     "eval_quota": 12094,
     "no_relation_signal": 104,
     "too_hard": 1082,
-    "unrelated_to_eval": 1289
+    "unrelated_to_eval": 1289,
+    "post_hoc_trim": 8
   },
   "copy_levels_observed": {
     "alpha_const_loop": 18118
@@ -105,11 +106,11 @@
   "relatedness_of_kept": {
     "skeleton_ops": 3778,
     "skeleton": 508,
-    "coarse": 714
+    "coarse": 706
   },
   "stratum_guess_of_kept": {
     "Loopy": 1134,
-    "linear": 2620,
+    "linear": 2612,
     "NLA": 1246
   },
   "eval_cell_distribution": {
@@ -262,12 +263,12 @@
     "uncovered_eval_programs": 130
   },
   "soft_tags_of_kept": {
-    "capped": 1356,
+    "capped": 1348,
     "hard_structure": 103
   },
   "overlap_with_prefer_unseen": {
     "kept_also_in_sft": 180,
-    "kept_unseen_by_sft": 4820
+    "kept_unseen_by_sft": 4812
   },
   "weights": {
     "min": 0.25,
@@ -276,5 +277,21 @@
     "p75": 1.1268,
     "max": 4.0
   },
-  "policy": "drop near-copies of evaluation programs; drop programs whose negative set cannot carry a gradient (unscorable, < min_traces traces, < min_relation relation traces, relation share < min_relation_share); drop programs structurally unrelated to the evaluation corpus; cap programs per loop shape; weight survivors toward the evaluation cell distribution"
+  "policy": "drop near-copies of evaluation programs; drop programs whose negative set cannot carry a gradient (unscorable, < min_traces traces, < min_relation relation traces, relation share < min_relation_share); drop programs structurally unrelated to the evaluation corpus; cap programs per loop shape; weight survivors toward the evaluation cell distribution",
+  "post_hoc_trim": {
+    "dropped_rows": 8,
+    "final_rows": 4992,
+    "reason": "align the RL set to a multiple of the 64-prompt training batch (78 steps per epoch)",
+    "selection": "lowest weight (0.25), lowest relatedness (coarse, 0.8684), capped tag, not shared with SFT, shape retains >=1 other row (distinct shapes stay 1131), from the largest linear cell (222 rows)",
+    "dropped_file_ids": [
+      "03676_loop0",
+      "03680",
+      "03683",
+      "06638",
+      "06661",
+      "06670",
+      "06711",
+      "06719"
+    ]
+  }
 }

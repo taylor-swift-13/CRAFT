@@ -59,15 +59,13 @@ class RewardRequest(BaseModel):
     rollouts: List[Any] = Field(..., description="each: {'invariants':[...]} or {'code': '...'}")
     w_base: float = Field(1.0, ge=0.0)
     w_shapley: float = Field(0.3, ge=0.0)
-    w_redundancy: float = Field(0.02, ge=0.0)
-    w_overflow: float = Field(0.05, ge=0.0)
     max_invariants: int = Field(
         MAX_INVARIANTS_PER_RESPONSE,
         ge=1,
         le=MAX_INVARIANTS_PER_RESPONSE,
     )
     reward_variant: Literal[
-        "binary", "whole_coverage", "base", "base_shapley", "full"
+        "binary", "whole_coverage", "base", "full"
     ] = "full"
     sampler: SamplerCfg = Field(default_factory=SamplerCfg)
 
@@ -123,8 +121,6 @@ def build_app():
             rc = RewardCalculator(
                 invariant_filter=_get_filter(),
                 w_base=req.w_base, w_shapley=req.w_shapley,
-                w_redundancy=req.w_redundancy,
-                w_overflow=req.w_overflow,
                 max_invariants=req.max_invariants,
                 reward_variant=req.reward_variant,
                 logger=log,

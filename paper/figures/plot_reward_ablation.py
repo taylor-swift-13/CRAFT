@@ -33,7 +33,7 @@ VARIANTS = {
         "marker": "s",
         "style": "-",
     },
-    "Clause-decomp.": {
+    "Clause-decomposed": {
         "pass": [4.60, 10.16, 13.31, 16.27, 19.03],
         "combine": [58.29, 65.99, 67.79, 69.35, 70.19],
         "color": "#708C7C",   # desaturated sage
@@ -41,8 +41,8 @@ VARIANTS = {
         "style": "-",
     },
     "Full (ours)": {
-        "pass": [8.77, 15.25, 18.12, 20.69, 22.92],
-        "combine": [53.85, 63.82, 67.67, 70.19, 71.51],
+        "pass": [6.80, 13.42, 16.80, 20.17, 23.44],
+        "combine": [57.93, 67.19, 71.27, 73.44, 74.28],
         "color": "#2D7053",   # paper deep green
         "marker": "D",
         "style": "-",
@@ -91,7 +91,7 @@ def plot_panel(ax: plt.Axes, metric: str) -> None:
     ax.plot(
         K,
         UNTRAINED[metric],
-        label="Untrained 8B",
+        label="Zero (untrained)",
         color="#737B77",
         marker="x",
         linestyle=":",

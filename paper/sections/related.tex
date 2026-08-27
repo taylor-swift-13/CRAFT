@@ -51,5 +51,17 @@ verifier-guided RL to individual Dafny proofs
 Unlike whole-output verifier rewards, \sam{} trains toward a filtered clause
 pool by salvaging the inductive part of an imperfect response and rewarding
 its strength and complementary group coverage.
-This distinction matters because verifiable-reward RL can improve small-budget
-accuracy without expanding broad-sampling coverage~\citep{yue2025rlcapacity}.
+
+\paragraph{Set-level credit in verifiable-reward RL.}
+GRPO with a per-response verifiable reward tends to sharpen the base
+distribution: pass@1 improves while large-\(k\) coverage does not exceed
+the untrained model~\citep{yue2025rlcapacity,he2025unlikeliness}.  Remedies
+transform the group's rewards so that the objective becomes a set
+statistic---pass@\(k\) itself~\citep{walder2025pkpo,chen2025passktraining}
+or an up-weighting of rare correct responses~\citep{he2025unlikeliness}.
+These methods keep the response as the unit of credit: a set is valued by
+how many of its members are individually correct.  \sam{} moves the unit
+below the response.  Credit attaches to verifier-retained clauses, and the
+group objective is the union of the negatives those clauses reject, so a
+rollout is paid for a clause that completes a peer's proof even when neither
+response is correct on its own.

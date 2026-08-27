@@ -49,7 +49,7 @@ PANELS = {
 }
 
 # Large-budget ceiling of the initialization; keep in sync with
-# tab:rl-before-after (SFT 8B, before RL, compose@32).  None until the
+# tab:rl-before-after (SFT, before RL, compose@32).  None until the
 # new-grid recomputation fills that cell.
 SFT_COMBINE32 = None
 

@@ -11,7 +11,7 @@ what drives the training gain (RQ5).
 \label{sec:exp:setup}
 
 \paragraph{Data and judge.}
-Training data comprise 5,000 RL records and 14,858 SFT records of
+Training data comprise 4,992 RL records and 14,858 SFT records of
 target-masked scalar-integer single-loop programs; SFT targets are
 synthesized with \texttt{gpt-5.6-luna} and verified by Frama-C/WP
 (Appendix~\ref{app:data-curation}).  Evaluation uses the standard
@@ -119,7 +119,8 @@ budgets \(k{=}1\) and \(k{=}8\) and decomposes the pipeline into cumulative
 stages.  Framework-free
 rows judge each response as one indivisible conjunction (pass@\(k\));
 pipeline rows decompose the same responses into clauses, filter them, and
-compose the survivors (compose@\(k\)).  The three Qwen3 models add the
+compose the survivors (compose@\(k\)).  Zero denotes the untrained
+checkpoint.  The three Qwen3 models add the
 training stages (+SFT, +SFT+RL) and two ablation rows that repeat the
 trained checkpoints without the pipeline; Llama 3.1 8B reports the
 SFT rows without RL.
@@ -137,9 +138,9 @@ Stage & \(k{=}1\) & \(k{=}8\) & \(k{=}1\) & \(k{=}8\)
   & \(k{=}1\) & \(k{=}8\) & \(k{=}1\) & \(k{=}8\) \\
 \midrule
 \multicolumn{9}{l}{\textit{Qwen3-4B}} \\
-\quad bare (pass)
+\quad Zero, no pipeline (pass)
   & 6.2 & 14.1 & 0.5 & 3.0 & 7.2 & 15.2 & 6.4 & 14.1 \\
-\quad +pipeline (compose)
+\quad Zero + pipeline (compose)
   & 38.6 & 51.9 & 8.0 & 8.0 & 41.4 & 55.4 & 38.3 & 51.2 \\
 \quad\enspace +SFT
   & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
@@ -151,9 +152,9 @@ Stage & \(k{=}1\) & \(k{=}8\) & \(k{=}1\) & \(k{=}8\)
   & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \cmidrule(l{3pt}r{3pt}){1-9}
 \multicolumn{9}{l}{\textit{Qwen3-8B}} \\
-\quad bare (pass)
+\quad Zero, no pipeline (pass)
   & 8.6 & 20.7 & 3.2 & 5.9 & 8.6 & 22.0 & 8.3 & 20.5 \\
-\quad +pipeline (compose)
+\quad Zero + pipeline (compose)
   & 43.7 & 60.4 & 6.0 & 12.0 & 47.9 & 63.1 & 43.8 & 59.0 \\
 \quad\enspace +SFT
   & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
@@ -165,9 +166,9 @@ Stage & \(k{=}1\) & \(k{=}8\) & \(k{=}1\) & \(k{=}8\)
   & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \cmidrule(l{3pt}r{3pt}){1-9}
 \multicolumn{9}{l}{\textit{Qwen3-14B}} \\
-\quad bare (pass)
+\quad Zero, no pipeline (pass)
   & 8.9 & 19.3 & 1.1 & 4.9 & 11.8 & 24.3 & 10.1 & 21.3 \\
-\quad +pipeline (compose)
+\quad Zero + pipeline (compose)
   & 54.1 & 68.0 & 8.0 & 12.0 & 56.2 & 68.7 & 52.5 & 65.0 \\
 \quad\enspace +SFT
   & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
@@ -179,7 +180,7 @@ Stage & \(k{=}1\) & \(k{=}8\) & \(k{=}1\) & \(k{=}8\)
   & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \cmidrule(l{3pt}r{3pt}){1-9}
 \multicolumn{9}{l}{\textit{Llama 3.1 8B}} \\
-\quad +pipeline (compose)
+\quad Zero + pipeline (compose)
   & 29.4 & 55.4 & 2.0 & 14.0 & 32.0 & 58.4 & 29.2 & 54.6 \\
 \quad\enspace +SFT
   & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
@@ -340,7 +341,7 @@ implementation detail.  Goal-directed feedback---Clause2Inv's
 postcondition-induced counterexamples, Loopy's assertion-specific
 diagnostics---vanishes once the target is hidden, and the two systems fall
 to 7.93\% and 18.75\%; four target-hidden responses composed by \sam{}
-verify TBD.  Under target hiding, complementary composition survives
+verify 49.0\%.  Under target hiding, complementary composition survives
 where iterative goal-directed repair does not.
 \end{tcolorbox}
 
@@ -348,16 +349,19 @@ where iterative goal-directed repair does not.
 \subsection{RQ4: How Much Does Reinforcement Learning Improve Inference?}
 \label{sec:exp:rl}
 
-We evaluate matched Qwen3-8B before--after RL paths from base and SFT
-initializations.  Inference is fixed within each pair; RQ1 is not used to
+We evaluate matched Qwen3-8B before--after RL paths from the Zero and SFT
+initializations: Zero is the untrained checkpoint and RL-Zero its RL
+result; SFT and SFT+RL are the corresponding SFT-path checkpoints.
+Inference is fixed within each pair; RQ1 is not used to
 estimate the RL effect.
 
 \paragraph{What to expect.}
 If RL with whole-response credit merely sharpens the
 distribution~\citep{yue2025rlcapacity}, it should raise pass@1 while leaving
-or degrading large-\(k\) coverage.  Clause-decomposed, group-compositional
-credit predicts the opposite pattern: pass@\(k\) stays flat, while
-compose@\(k\) shifts up at small budgets without degrading at large ones.
+or degrading large-\(k\) coverage.  Clause-level credit with group
+allocation predicts the opposite pattern: pass@\(k\) stays near the
+initialization, while compose@\(k\) shifts up at small budgets without
+degrading at large ones.
 
 The SFT stage distills the filtered multi-response union into single
 responses (Section~\ref{sec:method:sft}); matched SFT runs on the curated
@@ -369,13 +373,13 @@ four backbones in Appendix~\ref{app:sft-probe}.
 \setlength{\tabcolsep}{4pt}
 \begin{tabular}{llrrrrr}
 \toprule
-Initialization & Training stage & pass@1 & compose@1 & compose@8
+Checkpoint & Stage & pass@1 & compose@1 & compose@8
   & compose@32 & \(k_{95}\) \\
 \midrule
-Base 8B & before RL (Zero) & 8.3\% & 43.8\% & 59.0\% & 62.5\% & 16 \\
-Base 8B & after RL (RL-Zero) & 8.77\% & 53.85\% & 67.67\% & 71.51\% & 16 \\
-SFT 8B & before RL (SFT) & TBD & TBD & TBD & TBD & TBD \\
-SFT 8B & after RL (SFT+RL) & TBD & TBD & TBD & TBD & TBD \\
+Zero & before RL & 8.3\% & 43.8\% & 59.0\% & 62.5\% & 16 \\
+RL-Zero & after RL & 6.80\% & 57.93\% & 71.27\% & 74.28\% & 8 \\
+SFT & before RL & TBD & TBD & TBD & TBD & TBD \\
+SFT+RL & after RL & TBD & TBD & TBD & TBD & TBD \\
 \bottomrule
 \end{tabular}
 \caption{Matched Qwen3-8B evaluation before and after RL.}
@@ -417,54 +421,73 @@ line) at $k^{*}$ samples, and compose@32 itself does not degrade.}
 \subsection{RQ5: What Drives the Training Gain?}
 \label{sec:exp:ablations}
 
-Both ablations train Qwen3-8B from the Zero initialization on the curated
-pool with all other training and inference settings fixed; runs within an
-ablation differ only in the reward or the negative sampler.
+We run two ablations, one over the reward function and one over the
+negative sampler.  Both train Qwen3-8B from the Zero initialization on the
+curated pool with all other training and inference settings fixed; runs
+within an ablation differ only in the reward or the sampler.
 Appendix~\ref{app:ablation-definitions} gives the exact reward definitions
 and complete numbers.
 
 \paragraph{Reward-function ablation.}
-Variants progress from binary inductiveness to whole-response coverage,
-then credit surviving clauses individually; the full reward additionally
-adds Shapley credit and penalizes duplicate clauses.  All use a
-20-clause cap; coverage variants share the overflow cost, while the binary
-control remains \(\{0,1\}\).
+Four variants form a ladder.  Binary pays \(\{0,1\}\) for a fully
+inductive response; Whole-rollout pays the strength score
+\(\operatorname{cov}(A_i)\) only when every clause survives;
+Clause-decomposed pays it for the surviving subset
+\(C_i^{\mathrm{train}}\) alone; Full adds the group (Shapley) credit
+\(w_g\phi_i\) of Equation~\eqref{eq:generation-reward}.  The first two
+are response-level credit, the last two clause-level; all share the clause
+cap \(K{=}20\).
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.98\linewidth]{figures/reward_ablation.pdf}
 \caption{Reward-function ablation on Qwen3-8B (Zero initialization).
-  Response-level credit (Binary, Whole-rollout) raises pass@$k$ (b) but
-  flattens compose@$k$ (a); clause-decomposed credit reverses the
-  trade-off, and the full compositional credit is best at large budgets.
-  Dotted: the untrained model.  Exact numbers in
+  Whole-rollout credit raises pass@$k$ (b) but leaves compose@$k$ (a)
+  below the untrained model; binary credit collapses both.
+  Clause-decomposed credit reverses the trade-off, and Full is best at
+  every budget from $k{=}4$.
+  Dotted: Zero, the untrained checkpoint.  Exact numbers in
   Table~\ref{tab:reward-ablation} (Appendix~\ref{app:ablation-definitions}).}
 \label{fig:reward-ablation}
 \end{figure}
 
-Figure~\ref{fig:reward-ablation} reveals two effects.
-\emph{First, response-level credit collapses composition.}  Rewarding whole
-responses sharpens the policy toward a few already-supported answers:
-pass@$k$ rises, but the clause pool loses diversity, so composing more
-responses adds almost nothing: both response-level variants stay below the
-untrained model's compose curve at every budget---the sampling-limit
-failure mode anticipated in Section~\ref{sec:exp:rl}.
+Figure~\ref{fig:reward-ablation} reveals three effects.
+\emph{First, response-level credit collapses composition.}  Whole-rollout
+credit sharpens the policy toward a few already-supported answers: pass@1
+rises by 17 points, but the clause pool loses diversity, and composing more
+responses adds little (compose@32 33.2\%).  Binary credit collapses both
+metrics.  Both response-level variants stay 16--40 points below the
+untrained model's compose curve at every budget---the sharpening
+anticipated in Section~\ref{sec:exp:rl}.
 \emph{Second, credit must be decomposed to clauses.}  Once each surviving
 clause is rewarded for the negatives it alone rejects, the policy spreads
-mass over complementary clauses: compose@1 more than doubles over the response-level variants, and the
-compose curve keeps rising through $k{=}32$.  The full compositional credit
-trades a little small-budget composition for the best large-budget
-coverage.
+mass over complementary clauses: compose@$k$ is 2.1--2.3 times the
+whole-rollout variant at every budget and 2.5--6.6 times the binary
+variant, and the compose curve keeps rising through $k{=}32$.
+\emph{Third, group credit raises the ceiling.}  Adding
+Shapley credit on top of clause-decomposed strength improves composition
+at every budget beyond one response (+1.2 at $k{=}4$, +3.5 at $k{=}8$,
++4.1 at $k{=}16$ and $32$, reaching 74.3\%) and adds 2.2--4.4 points of
+pass@$k$ at every budget, while trailing by 0.4 points at compose@1: Full
+is the best variant from $k{=}4$ on.  Its pass@$k$ nevertheless remains
+1.5--4.7 points below the untrained model; the training gain is
+compositional.
 
-\paragraph{Breaking the response-level sampling limit.}
-Why does credit structure decide the outcome?  Whole-response rewards
-grade each rollout by its own clauses alone, so they can only push
-probability mass toward responses the policy already
-favors~\citep{yue2025rlcapacity}.  Group-compositional credit grades each
-rollout against its peers, making the objective the group's union rather
-than any single response---so RL learns to cover, not to repeat.  What RL
-does to the sampling distribution is decided by what the reward values, not
-by RL itself.
+\paragraph{Why credit structure decides the outcome.}
+Whole-rollout credit grades each response as an indivisible unit: one
+failed clause erases the credit of every other, so the safest policy is to
+repeat the few responses that already pass in full---the sharpening that
+raises pass@1 while shrinking the clause pool~\citep{yue2025rlcapacity}.
+Clause-level credit removes this gate.  A partially correct response is
+still paid for what survives, so the policy keeps proposing clauses whose
+union proves more than any single response; this is the larger effect
+(+7.7 to +14.5 compose points over the untrained model).  Group credit then
+grades each rollout against its peers: a clause every rollout repeats earns
+less than a complementary one, so the objective becomes the group's union
+rather than any single response.  This adds a further 1.2--4.1 points from
+\(k{=}4\) and, consistent with paying for coherent rather than merely
+numerous clauses, restores 2.2--4.4 points of pass@\(k\).  What RL does to
+the sampling distribution is decided by what the reward values.
 
 \begin{tcolorbox}[
   colback=algobg,
@@ -473,13 +496,20 @@ by RL itself.
   arc=2pt,
   left=5pt,right=5pt,top=4pt,bottom=4pt
 ]
-\textbf{Finding (RLVR limits).}  Response-level RLVR sharpens rather than
-expands the sampled support: pass@1 rises while composition stays nearly
-flat.  Decomposing credit to clauses reverses the trade-off, more than
-doubling compositional coverage at every budget.
+\textbf{Finding (credit structure).}  Response-level credit sharpens rather than
+expands the sampled support: whole-rollout credit raises pass@1 by 17
+points, yet both response-level variants stay 16--40 points below the
+untrained model on compose@$k$ at every budget, and binary credit also
+falls below it on pass@$k$ from $k{=}4$.  Decomposing credit to clauses
+reverses this: compose@$k$ exceeds the untrained model at every budget and
+at least doubles either response-level variant.  Group (Shapley) credit
+then lifts the curve further from $k{=}4$ on (compose@32
+74.3\% vs.\ 70.2\%) and adds 2.2--4.4 points of pass@$k$.
 \end{tcolorbox}
 
-\paragraph{Negative-sampling ablation.}
-Structured sampling matches or exceeds random perturbations at every
-budget and both metrics, with the largest gains in composition
-(Appendix~\ref{app:ablation-definitions}).
+\paragraph{Negative-sampler ablation.}
+Under the full reward, the structured sampler (relation and post-exit
+families, Section~\ref{sec:method:sampler}) exceeds uniform random
+perturbations by 5.5--6.7 compose@$k$ points at every budget, whereas
+pass@$k$ differs by $-1.8$ to $+1.6$ points
+(Table~\ref{tab:sampler-ablation}, Appendix~\ref{app:ablation-definitions}).

@@ -53,8 +53,7 @@ Reward variants map directly to the released service:
 | Binary Inductiveness | binary | all-or-nothing inductiveness |
 | Whole-Rollout Strength | whole_coverage | dense coverage only if the whole response survives |
 | Clause-Decomposed Strength | base | coverage of the independently retained clause subset |
-| Compositional Credit | base_shapley | add cross-rollout Shapley allocation |
-| Regularized Compositional Credit | full | add duplicate and overflow costs |
+| Full Compositional Credit | full | add cross-rollout Shapley allocation |
 
 The sampler contrast is random versus structured, with identical execution,
 cleaning, seed, family-independent trace cap, and reward. Primary

@@ -165,7 +165,7 @@ exactly one unit of credit among its \(f(n)\) rejectors.
 \label{app:constants}
 
 Table~\ref{tab:constants} lists the implemented defaults.  SFT synthesis,
-RL, and inference share one rollout--decompose--filter--compose
+RL, and inference share one rollout--decompose--pool--filter--compose
 implementation; RL applies Houdini once per response for credit assignment,
 whereas SFT and inference apply it after union
 (Appendix~\ref{app:houdini-order}).
@@ -189,17 +189,20 @@ negative-example budgets & 48 / 12 & relational / post-exit traces (sampler sche
 iteration cap & $2 \times 10^6$ & divergence safety net (capped runs flagged) \\
 \midrule
 $(w_c, w_g)$ & $(1.0, 0.3)$ & negative rejection / Shapley group-credit weights \\
-$w_d$ & 0.02 & cost per conservative duplicate; unique zero-coverage clauses are not penalized \\
-$K$ & 20 clauses & response cap applied independently to every generated response \\
-$w_o$ & 0.05 & overflow cost per clause after \(K\) \\
+$K$ & 20 clauses & response cap applied independently to every generated response; later clauses are discarded \\
+\midrule
+$G_{\mathrm{sft}}$ & 16 responses & group sampled per SFT strengthening round ($\S$\ref{sec:method:sft}) \\
+$T$ & 5 rounds & maximum strengthening rounds per loop (at most 80 responses) \\
+$\tau$ & TBD & SFT acceptance threshold on the composed set's negative coverage (whole-rollout strength) \\
 \midrule
 Houdini iterations & $\le 500$ & greatest-inductive-subset pruning \\
 WP configuration & Alt-Ergo, 30\,s, Typed model & current implementation default and per-goal budget \\
 \bottomrule
 \end{tabular}
 \caption{Defaults for execution sampling
-($\S$\ref{sec:method:sampler}), reward computation
-($\S$\ref{sec:method:reward}), inference, and verification.}
+($\S$\ref{sec:method:sampler}), SFT synthesis ($\S$\ref{sec:method:sft}),
+reward computation ($\S$\ref{sec:method:reward}), inference, and
+verification.}
 \label{tab:constants}
 \end{table}
 The exact near-input tier order is
@@ -294,15 +297,16 @@ and use the clipped GRPO objective~\citep{shao2024deepseekmath}
 \end{equation}
 Here \(T_i\) is the token length of response \(i\), \(\rho_{i,t}\) is the
 token-level ratio to the rollout policy, and \(\pi_{\mathrm{ref}}\) is
-frozen.  Duplicate detection normalizes comparison direction, equality sides,
-parentheses, immediate commutative operands, harmless identities, and Boolean
-association, but avoids transformations that require additional arithmetic
-assumptions.  Unique zero-coverage clauses are not penalized because they may
-support another clause or the hidden target.  Both coverage and Shapley
-credit lie in \([0,1]\), so the unpenalized full reward lies in \([0,1.3]\);
-duplicate and overflow costs can lower it.  When the sampler retains no
-negatives, scoring falls back to binary inductiveness for a nonempty
-response.
+frozen.  Clause de-duplication, which forms the clause set scored above,
+normalizes comparison direction, equality sides, parentheses, immediate
+commutative operands, harmless identities, and Boolean association, but
+avoids transformations that require additional arithmetic assumptions.
+Repeated clauses therefore collapse without affecting the score, and a
+unique zero-coverage clause costs nothing because it may support another
+clause or the hidden target.  Both coverage and Shapley credit lie in
+\([0,1]\), so the full reward lies in \([0,1.3]\).  When the sampler
+retains no negatives, scoring falls back to binary inductiveness for a
+nonempty response.
 
 \section{Generation Prompt}
 \label{app:prompt}
@@ -425,12 +429,11 @@ The training service is packaged as a self-contained, CPU-only container with
 gcc, the verifier, Why3, and its prover backend.  It exposes
 \texttt{POST /reward}, accepting program source, an array of model responses,
 \texttt{reward\_variant} in \{\texttt{binary}, \texttt{whole\_coverage},
-\texttt{base}, \texttt{base\_shapley}, \texttt{full}\}, and
+\texttt{base}, \texttt{full}\}, and
 \texttt{sampler.negative\_sampler} in \{\texttt{random},
 \texttt{structured}\}; the two switches are independent and default to
 \texttt{full} and \texttt{structured}.  The response reports each rollout's
-reward together with its coverage, Shapley-credit, redundancy, and overflow
-components.  Responses may be raw LLM text, invariant lists, or annotated
+reward together with its coverage and Shapley-credit components.  Responses may be raw LLM text, invariant lists, or annotated
 code; an offline scorer provides the same generation reward over
 JSONL/Parquet rollout dumps.
 
@@ -438,7 +441,7 @@ JSONL/Parquet rollout dumps.
 \section{Training--Evaluation Overlap Audit}
 \label{app:data-leakage}
 
-We compare the released RL (5,000 records) and SFT (14,858 records) training
+We compare the released RL (4,992 records) and SFT (14,858 records) training
 sets against all 832 evaluation programs after target removal, under three
 increasingly aggressive normalizations: exact text, alpha-renamed
 identifiers, and alpha-renaming with integer constants abstracted.  No
@@ -456,7 +459,7 @@ nondeterminism, variable band) is 0.42 for RL and 0.63 for SFT, and 702 of
 \setlength{\tabcolsep}{5pt}
 \begin{tabular}{lrr}
 \toprule
- & RL (5,000) & SFT (14,858) \\
+ & RL (4,992) & SFT (14,858) \\
 \midrule
 Exact-text matches & 0 & 0 \\
 Alpha-renamed matches & 0 & 0 \\
@@ -487,7 +490,7 @@ Table~\ref{tab:training-sets} summarizes the released sets.
 \setlength{\tabcolsep}{5pt}
 \begin{tabular}{lp{7.2cm}}
 \toprule
-RL set & 5,000 records over 1,131 distinct loop shapes \\
+RL set & 4,992 records over 1,131 distinct loop shapes \\
 SFT set & 14,858 records (3,058 archival + 11,800 synthesized) \\
 Synthesized answers & mean 5.07 clauses (median 4); 98.8\% contain a
   relational transition law \\
@@ -753,13 +756,13 @@ configuration.}
 \label{tab:rl-complete}
 \begin{tabular}{llrrrrrrr}
 \toprule
-Path & Model & pass@1 & compose@1 & compose@8 &
+Checkpoint & Stage & pass@1 & compose@1 & compose@8 &
 compose@16 & compose@32 & \(k_{95}\) \\
 \midrule
-Zero & Base 8B      & 8.3\% & 43.8\% & 59.0\% & 61.2\% & 62.5\% & 16 \\
-Zero & Base 8B + RL & 8.77\% & 53.85\% & 67.67\% & 70.19\% & 71.51\% & 16 \\
-SFT  & SFT 8B       & TBD & TBD & TBD & TBD & TBD & TBD \\
-SFT  & SFT 8B + RL  & TBD & TBD & TBD & TBD & TBD & TBD \\
+Zero    & before RL & 8.3\% & 43.8\% & 59.0\% & 61.2\% & 62.5\% & 16 \\
+RL-Zero & after RL  & 6.80\% & 57.93\% & 71.27\% & 73.44\% & 74.28\% & 8 \\
+SFT     & before RL & TBD & TBD & TBD & TBD & TBD & TBD \\
+SFT+RL  & after RL  & TBD & TBD & TBD & TBD & TBD & TBD \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -770,19 +773,20 @@ SFT  & SFT 8B + RL  & TBD & TBD & TBD & TBD & TBD & TBD \\
 The reward variants correspond directly to the two levels of
 Equation~\ref{eq:generation-reward}.  \emph{Binary Inductiveness} assigns one
 iff the capped, normalized response is nonempty and every clause survives
-Houdini.  \emph{Whole-Rollout Strength}
-uses negative coverage only when every capped clause survives,
+Houdini.  \emph{Whole-Rollout Strength} pays the strength score
+\(\operatorname{cov}(A_i)\) only when every capped clause survives,
 \[
   r_i^{\mathrm{whole}}
   =\mathbf 1[C_i^{\mathrm{train}}=
     \operatorname{set}(\operatorname{dedup}(\bar A_i))]
-   \frac{|R_i|}{|\mathcal N|}-w_o o(A_i).
+   \frac{|R_i|}{|\mathcal N|}.
 \]
 \emph{Clause-Decomposed Strength} removes this all-or-nothing indicator and
 scores the surviving \(C_i^{\mathrm{train}}\); the \emph{Full Compositional
-Credit} additionally adds \(w_g\phi_i\) and subtracts
-\(w_d d_{\mathrm{dup}}(A_i)\).  These are \texttt{binary},
-\texttt{whole\_coverage}, \texttt{base}, and \texttt{full}, respectively.
+Credit} additionally adds the group credit \(w_g\phi_i\).  These are \texttt{binary},
+\texttt{whole\_coverage}, \texttt{base}, and \texttt{full}, respectively,
+abbreviated Binary, Whole-rollout, Clause-decomposed, and Full in figures
+and prose.
 All variants train from the Zero initialization on the curated pool with
 identical optimization and inference settings.
 
@@ -800,7 +804,7 @@ identical optimization and inference settings.
 \cmidrule(lr){2-6}\cmidrule(lr){7-11}
 Variant & 1 & 4 & 8 & 16 & 32 & 1 & 4 & 8 & 16 & 32 \\
 \midrule
-Untrained 8B (reference)
+Zero (untrained reference)
   & 8.3 & 16.5 & 20.5 & 24.4 & 28.1
   & 43.8 & 55.2 & 59.0 & 61.2 & 62.5 \\
 \midrule
@@ -813,43 +817,49 @@ Whole-Rollout Strength
   & 27.76 & 29.21 & 29.93 & 31.13 & 33.17 \\
 Clause-Decomposed Strength
   & 4.60 & 10.16 & 13.31 & 16.27 & 19.03
-  & \textbf{58.29} & \textbf{65.99} & \textbf{67.79} & 69.35 & 70.19 \\
+  & \textbf{58.29} & 65.99 & 67.79 & 69.35 & 70.19 \\
 Full Compositional Credit (ours)
-  & 8.77 & 15.25 & 18.12 & 20.69 & 22.92
-  & 53.85 & 63.82 & 67.67 & \textbf{70.19} & \textbf{71.51} \\
+  & 6.80 & 13.42 & 16.80 & 20.17 & 23.44
+  & 57.93 & \textbf{67.19} & \textbf{71.27} & \textbf{73.44} & \textbf{74.28} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 
-The negative-trace sampler comparison uses matched Qwen3-8B runs from the
-Zero initialization that differ only in the sampler.  Random uses uniform
-local perturbations, whereas Structured uses the relation and post-exit
-families with matched budgets.
+The negative-sampler ablation uses matched Qwen3-8B runs from the Zero
+initialization under the full compositional reward that differ only in the
+sampler; the Structured row is the Full Compositional Credit run of
+Table~\ref{tab:reward-ablation}.  Structured is the sampler of
+Section~\ref{sec:method:sampler} (relation and post-exit families); Random
+draws uniform local perturbations under the same trace budget.
 
 \begin{table}[H]
 \centering
-\setlength{\tabcolsep}{5pt}
+\footnotesize
+\setlength{\tabcolsep}{2.4pt}
+\caption{Negative-sampler ablation on Qwen3-8B, trained from the Zero
+  initialization under the full reward (\%).  Bold marks the better
+  sampler per column.}
+\label{tab:sampler-ablation}
 \begin{tabular}{lrrrrrrrrrr}
 \toprule
 & \multicolumn{5}{c}{pass@$k$} & \multicolumn{5}{c}{compose@$k$} \\
 \cmidrule(lr){2-6}\cmidrule(lr){7-11}
 Negative sampler & 1 & 4 & 8 & 16 & 32 & 1 & 4 & 8 & 16 & 32 \\
 \midrule
-Random & 8.63 & 14.40 & 17.00 & 19.43 & 21.82
+Random & \textbf{8.63} & \textbf{14.40} & \textbf{17.00} & 19.43 & 21.82
   & 52.04 & 60.46 & 64.54 & 67.31 & 68.75 \\
-Structured (ours) & \textbf{8.77} & \textbf{15.25} & \textbf{18.12}
-  & \textbf{20.69} & \textbf{22.92} & \textbf{53.85} & \textbf{63.82}
-  & \textbf{67.67} & \textbf{70.19} & \textbf{71.51} \\
+Structured (ours) & 6.80 & 13.42 & 16.80
+  & \textbf{20.17} & \textbf{23.44} & \textbf{57.93} & \textbf{67.19}
+  & \textbf{71.27} & \textbf{73.44} & \textbf{74.28} \\
 \bottomrule
 \end{tabular}
-\caption{Negative-sampler ablation (\%).  Bold marks the better sampler for
-each metric.}
-\label{tab:sampler-ablation}
 \end{table}
 
-Structured sampling improves compose@1 and compose@32 by 1.8 and 2.8
-points and is at least as good at every budget under both metrics.
+% TODO: confirm the Random run used the same base_shapley reward as the
+% Structured row; re-run it otherwise.
+Structured sampling improves compose@$k$ by 5.5--6.7 points at every
+budget, whereas pass@$k$ stays within $-1.8$ to $+1.6$ points of Random.
 
 \subsection{Cross-Model Main Results}
 \label{app:reasoning-leakage}
@@ -1233,17 +1243,27 @@ conjunction after union.  Because the training reward filters each response
 first, it misses the positive credit associated with this cross-rollout
 support.
 
-\paragraph{Why the practical effect is small.}
-This is missed positive credit, not a dedicated penalty for
-non-inductiveness.  The reward assigns coverage and Shapley credit to
-surviving clauses and penalizes duplicates and overflow.  A unique clause that
-fails standalone Houdini incurs no additional penalty, although the absence of
-coverage can still give its rollout a lower group-relative advantage.  At
-inference time, raw candidates from all responses are unioned before Houdini,
-so a complementary pair remains available and can be retained jointly.  The
-mismatch therefore leaves inference-time cross-response support intact but may
-under-train clauses that depend on it; pilot audits suggest such rescues
-are rare.
+\paragraph{The order has little practical effect.}
+Three facts bound the mismatch.  First, it is one-sided: a clause that is
+inductive on its own remains inductive in any pool that contains it
+(Proposition~\ref{prop:conjunctive-closure}), so
+\(\bigcup_i\mathsf{Filter}_{\mathcal L}(C_i^{\mathrm{pf}})\subseteq
+\mathsf{Filter}_{\mathcal L}(\bigcup_i C_i^{\mathrm{pf}})\) up to prover
+noise.  Filtering before pooling can only \emph{omit} clauses that need a
+companion from another rollout to pass preservation; it never admits a
+clause the pooled filter would reject.  Second, the omission costs nothing
+directly: the reward pays coverage and Shapley credit to surviving clauses
+only, so a clause that fails standalone Houdini is neither rewarded nor
+penalized, and its rollout loses at most the coverage that clause would
+have added.  Third, inference always pools before filtering
+(Equation~\eqref{eq:infer-houdini-order}), so every mutually supported pair
+is still retained at test time; the mismatch can under-train such pairs but
+cannot remove them from the composed invariant.  Mutual support is also the
+exception rather than the rule for scalar-integer loops: most clauses are
+bounds or single relations whose preservation obligation closes on its own,
+and pilot audits of pooled versus per-rollout filtering found rescued
+clauses to be rare.  The order therefore changes which rollout is credited
+for a rare mutually supported clause, not what the pipeline proves.
 
 \paragraph{Why retain this approximation.}
 Independent filtering gives a stable, parallelizable reward for every

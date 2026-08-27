@@ -138,16 +138,12 @@ units — one fake continuation is ONE negative, not twenty-four):
 - `shapley_credit[A]` allocates the union of the group's standalone negative
   coverage: a trace rejected by `f` rollouts contributes `1/f` to each.
   Credits therefore sum exactly to standalone union coverage;
-- `redundant_clauses[A]` counts conservative semantic duplicates inside the
-  admitted prefix. The solver-free key handles comparison direction,
-  commutative equality/addition/multiplication, harmless identities, and
-  order-preserving Boolean association; unsupported forms fall back to exact
-  normalized text. Duplicates are removed by the same clause-set construction
-  used at inference, so they cannot affect Houdini or any final target. The
-  default penalty is
-  `0.02·redundant_clauses[A]`;
-- `reward[A]`   = `1.0·base[A] + 0.3·shapley_credit[A]
-  − redundancy_penalty[A] − overflow_penalty[A]` by default.
+- `reward[A]`   = `1.0·base[A] + 0.3·shapley_credit[A]` by default.
+  Repeated clauses collapse in the same clause-set construction used at
+  inference (the solver-free key handles comparison direction, commutative
+  equality/addition/multiplication, harmless identities, and order-preserving
+  Boolean association), so they cannot affect Houdini, coverage, or any
+  final target, and they are not penalized.
   Soundness is not a scoring patch: when Frama-C is
   available it comes from `PreFramaFilter → Frama-C/WP fixpoint`. The cheap
   stage removes malformed and duplicate clauses before checking sampled
@@ -156,27 +152,26 @@ units — one fake continuation is ONE negative, not twenty-four):
   no sampled negative coverage is not charged: it may support another
   survivor or an unseen proof target;
 - each model response admits at most 20 `loop invariant` lines. Later lines do
-  not enter filtering or scoring, and each overflow line subtracts 0.05. The
-  response exposes `generated`, `accepted`, `overflow`, and
-  `overflow_penalty`;
+  not enter filtering or scoring; the response exposes `generated`,
+  `accepted`, and `overflow` as diagnostics;
 - `batch_score` = candidate traces rejected by `Houdini(∪)`. If no
-  negatives are available, coverage rewards are zero and the response reports
-  `scorable=false`; trainers must mask that group. This prevents a tautology
-  from receiving full strength merely because sampling produced no evidence.
-  Binary inductiveness remains an explicit `reward_variant="binary"` ablation.
+  negatives are available, the group falls back to binary inductiveness
+  (1 iff the response is nonempty and every admitted clause survives
+  Houdini) and reports `scorable=false`,
+  `reward_mode="binary_fallback_no_negative_traces"`. Binary inductiveness
+  is also available unconditionally as the `reward_variant="binary"` ablation.
 
 ```python
 from rl_pipeline.reward import RewardCalculator
 br = RewardCalculator(reward_variant="full").compute(source, rollouts)
-br.to_dict()   # rewards, Shapley credit, duplicate/overflow costs, batch_score
+br.to_dict()   # rewards, coverage, Shapley credit, batch_score
 ```
 
 Reward ablations use `reward_variant`: `binary`, `whole_coverage`, `base`,
-`base_shapley`, and `full`. They respectively enable binary standalone
-validation; all-or-nothing whole-response negative coverage; clause-subset
-negative coverage; coverage plus Shapley credit; and the complete reward with
-the duplicate cost. The response records both `reward_variant` and
-`negative_sampler`, so experiment rows remain auditable.
+and `full`. They respectively enable binary standalone validation;
+all-or-nothing whole-response negative coverage; clause-subset negative
+coverage; and coverage plus Shapley credit. The response records both
+`reward_variant` and `negative_sampler`, so experiment rows remain auditable.
 
 **HTTP service** (the training interface — see
 [docs/training_integration.md](docs/training_integration.md) for the full

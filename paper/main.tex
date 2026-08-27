@@ -208,10 +208,10 @@ Yet standard training scores each response as an indivisible answer.  We
 study this mismatch under \emph{target-hidden loop verification}, where target
 assertions and postconditions \(Q\) are withheld during generation and
 training.  CRAFT aligns both stages through
-rollout--decompose--filter--compose.
-At inference, it decomposes responses into clauses, filters them with syntax
-checking and
-Houdini, and composes an inductive subset before restoring \(Q\).  SFT distills a
+rollout--decompose--pool--filter--compose.
+At inference, it decomposes responses into clauses, pools them across
+responses, filters the pool with syntax checking and Houdini, and composes
+the survivors into one invariant before restoring \(Q\).  SFT distills a
 filtered multi-response union into one response.  RL assigns credit within a
 rollout to its verifier-retained subset and across rollouts to complementary
 coverage beyond peers.  Its target-independent strength signal comes from

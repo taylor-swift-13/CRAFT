@@ -8,7 +8,6 @@ each rollout and the batch, using synthetic negative candidates from the sampler
   base[A]     = fraction of negative traces rejected by Houdini(A alone)
   shapley[A]  = Shapley allocation of the group's rejection coverage
   reward[A]   = w_base * base[A] + w_shapley * shapley[A]
-                - redundancy_penalty[A] - overflow_penalty[A]
   batch_score = fraction of candidates rejected by Houdini(union)    (batch performance)
 
 Scoring uses one canonical target-hidden execution sample.  The full source is
@@ -54,7 +53,6 @@ REWARD_VARIANTS = (
     "binary",
     "whole_coverage",
     "base",
-    "base_shapley",
     "full",
 )
 
@@ -68,9 +66,6 @@ class RolloutScore:
     overflow: int                 # clauses beyond max_invariants
     base: float
     shapley_credit: float         # allocation of group negative coverage
-    redundant_clauses: int        # conservative semantic duplicate emissions
-    redundancy_penalty: float
-    overflow_penalty: float
     reward: float
     rejected: int                 # negatives rejected standalone
 
@@ -116,22 +111,12 @@ class BatchReward:
             "rollout_rewards": [r.reward for r in self.rollouts],
             "base": [r.base for r in self.rollouts],
             "shapley_credit": [r.shapley_credit for r in self.rollouts],
-            "redundant_clauses": [
-                r.redundant_clauses for r in self.rollouts
-            ],
-            "redundancy_penalty": [
-                r.redundancy_penalty for r in self.rollouts
-            ],
-            "overflow_penalty": [r.overflow_penalty for r in self.rollouts],
             "generated": [r.generated for r in self.rollouts],
             "accepted": [r.accepted for r in self.rollouts],
             "overflow": [r.overflow for r in self.rollouts],
             "rollouts": [
                 {"index": r.index, "reward": r.reward, "base": r.base,
                  "shapley_credit": r.shapley_credit,
-                 "redundant_clauses": r.redundant_clauses,
-                 "redundancy_penalty": r.redundancy_penalty,
-                 "overflow_penalty": r.overflow_penalty,
                  "generated": r.generated, "accepted": r.accepted,
                  "overflow": r.overflow,
                  "rejected": r.rejected,
@@ -188,8 +173,6 @@ class RewardCalculator:
         invariant_filter=None,
         w_base: float = 1.0,
         w_shapley: float = 0.3,
-        w_redundancy: float = 0.02,
-        w_overflow: float = 0.05,
         max_invariants: int = MAX_INVARIANTS_PER_RESPONSE,
         n_jobs: Optional[int] = None,     # parallel frama-c filter calls per group
         logger: Optional[logging.Logger] = None,
@@ -205,18 +188,11 @@ class RewardCalculator:
         self.filter = invariant_filter or filters.auto_filter(log)
         self.w_base = w_base
         self.w_shapley = w_shapley
-        self.w_redundancy = w_redundancy
-        self.w_overflow = w_overflow
         self.max_invariants = max_invariants
         self.n_jobs = n_jobs or min(16, (os.cpu_count() or 8))
         self.sampler_kwargs = sampler_kwargs or {}
         self.reward_variant = reward_variant
-        if min(
-            self.w_base,
-            self.w_shapley,
-            self.w_redundancy,
-            self.w_overflow,
-        ) < 0:
+        if min(self.w_base, self.w_shapley) < 0:
             raise ValueError("reward weights must be non-negative")
         if not 1 <= self.max_invariants <= MAX_INVARIANTS_PER_RESPONSE:
             raise ValueError(
@@ -266,21 +242,6 @@ class RewardCalculator:
         """Candidate-trace indices rejected when any witness state is rejected."""
         return {g for g, idxs in enumerate(groups) if any(i in state_rej for i in idxs)}
 
-    @staticmethod
-    def _duplicate_clause_count(clauses: List[str]) -> int:
-        """Count conservative semantic duplicates, independent of output order.
-
-        A repeated clause disappears under the canonical set semantics used by
-        both training and inference, so removing the repeated occurrence cannot
-        affect Houdini, negative coverage, or a held-out proof target.  Unique
-        zero-coverage clauses are deliberately *not* treated as redundant: they
-        may support another clause's inductiveness or a target direction that
-        the sampled negatives do not exercise.
-        """
-        normalized = [normalized for clause in clauses
-                      if (normalized := normalize_invariant(clause))]
-        return len(normalized) - len(dedup_normalized(normalized))
-
     def _compute_one(self, source: str, rollouts: List, examples: ExampleSet,
                      loop_idx: int = 0,
                      cap_responses: bool = True) -> BatchReward:
@@ -300,8 +261,9 @@ class RewardCalculator:
         n_neg = len(groups)
         scorable = self.reward_variant == "binary" or n_neg > 0
 
-        # Preserve the model's actual clause count for overflow and duplicate
-        # accounting. Filtering/scoring uses a canonical de-duplicated set.
+        # Keep the model's actual clause count for the generated/accepted/
+        # overflow diagnostics. Filtering/scoring uses a canonical
+        # de-duplicated set of the first ``max_invariants`` clauses.
         roll_invs_raw = [_rollout_invariants_raw(r) for r in rollouts]
         roll_invs_capped = [
             invs[:self.max_invariants] if cap_responses else invs
@@ -392,49 +354,23 @@ class RewardCalculator:
                 max(0, n_generated - self.max_invariants)
                 if cap_responses else 0
             )
-            overflow_penalty = self.w_overflow * overflow
             if not scorable or self.reward_variant == "binary":
                 # Binary inductiveness: either the explicit ablation or the
                 # fallback when no negative trace exists to measure strength.
-                redundancy_penalty = 0.0
-                redundant_clauses = 0
-                overflow_penalty = 0.0
                 reward = 1.0 if fully_verified(invs, surv) else 0.0
             elif self.reward_variant == "whole_coverage":
                 # All-or-nothing response control: use the same dense
                 # negative-coverage signal as ``base``, but do not salvage a
-                # sound subset from an imperfect response. Keep the overflow
-                # cost shared by all coverage variants so the comparison with
-                # ``base`` isolates clause-subset credit.
-                redundancy_penalty = 0.0
-                redundant_clauses = 0
-                reward = (
-                    (base if fully_verified(invs, surv) else 0.0)
-                    - overflow_penalty
-                )
+                # sound subset from an imperfect response.
+                reward = base if fully_verified(invs, surv) else 0.0
             else:
-                redundant_clauses = self._duplicate_clause_count(
-                    roll_invs_capped[idx]
-                )
-                raw_reward = self.w_base * base
-                if self.reward_variant in ("base_shapley", "full"):
-                    raw_reward += self.w_shapley * shapley_credit
-                redundancy_penalty = (
-                    self.w_redundancy * redundant_clauses
-                    if self.reward_variant == "full" else 0.0
-                )
-                reward = (
-                    raw_reward
-                    - redundancy_penalty
-                    - overflow_penalty
-                )
+                reward = self.w_base * base
+                if self.reward_variant == "full":
+                    reward += self.w_shapley * shapley_credit
             scores.append(RolloutScore(
                 index=idx, invariants=invs, survivors=surv,
                 generated=n_generated, accepted=n_accepted, overflow=overflow,
                 base=base, shapley_credit=shapley_credit,
-                redundant_clauses=redundant_clauses,
-                redundancy_penalty=redundancy_penalty,
-                overflow_penalty=overflow_penalty,
                 reward=reward, rejected=len(base_rej),
             ))
 

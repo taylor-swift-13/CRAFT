@@ -27,8 +27,6 @@ def score_file(input_path: str, output_path: str, cfg: io.IOConfig,
                include_program: bool = False,
                logger: Optional[logging.Logger] = None,
                w_shapley: float = 0.3,
-               w_redundancy: float = 0.02,
-               w_overflow: float = 0.05,
                reward_variant: str = "full") -> Dict[str, int]:
     sampler_kwargs = dict(sampler_kwargs or {})
     logger = logger or logging.getLogger("rl_pipeline.reward.score_file")
@@ -38,8 +36,6 @@ def score_file(input_path: str, output_path: str, cfg: io.IOConfig,
     shared_filter = filters.auto_filter(logger)
     rc = RewardCalculator(invariant_filter=shared_filter, w_base=w_base,
                           w_shapley=w_shapley,
-                          w_redundancy=w_redundancy,
-                          w_overflow=w_overflow,
                           reward_variant=reward_variant,
                           logger=logger)
 
@@ -89,8 +85,6 @@ def main() -> int:
     ap.add_argument("--group-field", default="group_id")
     ap.add_argument("--w-base", type=float, default=1.0)
     ap.add_argument("--w-shapley", type=float, default=0.3)
-    ap.add_argument("--w-redundancy", type=float, default=0.02)
-    ap.add_argument("--w-overflow", type=float, default=0.05)
     ap.add_argument(
         "--reward-variant", choices=REWARD_VARIANTS, default="full"
     )
@@ -121,8 +115,6 @@ def main() -> int:
         args.input, args.output, cfg, sampler_kwargs,
         args.w_base, args.include_program, logger,
         w_shapley=args.w_shapley,
-        w_redundancy=args.w_redundancy,
-        w_overflow=args.w_overflow,
         reward_variant=args.reward_variant,
     )
     return 1 if stats["failed"] else 0

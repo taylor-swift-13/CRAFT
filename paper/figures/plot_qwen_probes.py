@@ -63,19 +63,19 @@ OFFICIAL = {
     },
 }
 
-# Matched runs on the new stack: untrained 8B vs the full-reward RL-Zero
-# checkpoint (combine@k measured at k in {1, 4, 16, 32}).
+# Matched runs on the new stack: Zero (untrained Qwen3-8B) vs the
+# full-reward RL-Zero checkpoint (compose@k on the same k grid).
 RL_COMPARISON = {
-    "Qwen3-8B": {
+    "Zero": {
         "direct": [8.3, 16.5, 20.5, 24.4, 28.1],
         "combine": [43.8, 55.2, 59.0, 61.2, 62.5],
         "color": "#5b7185",
         "marker": "s",
         "style": "--",
     },
-    "8B-RL-Zero": {
-        "direct": [8.77, 15.25, 18.12, 20.69, 22.92],
-        "combine": [53.85, 63.82, 67.67, 70.19, 71.51],
+    "RL-Zero": {
+        "direct": [6.80, 13.42, 16.80, 20.17, 23.44],
+        "combine": [57.93, 67.19, 71.27, 73.44, 74.28],
         "color": "#2d7053",
         "marker": "o",
         "style": "-",

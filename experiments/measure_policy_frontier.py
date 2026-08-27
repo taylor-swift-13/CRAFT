@@ -120,7 +120,7 @@ _CALC: Optional[RewardCalculator] = None
 # The reward the frontier is measured under (RewardCalculator defaults); the
 # trainer must POST the same configuration or the verdicts do not transfer.
 REWARD_CONFIG = {
-    "w_base": 1.0, "w_shapley": 0.3, "w_redundancy": 0.02, "w_overflow": 0.05,
+    "w_base": 1.0, "w_shapley": 0.3,
     "reward_variant": "full",
 }
 

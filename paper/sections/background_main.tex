@@ -1,0 +1,49 @@
+%% Compact main-paper background; extended discussion remains in the appendix
+%% and cited sources.
+\section{Background and Related Work}
+\label{sec:preliminaries}
+\label{sec:related}
+
+\paragraph{Target-hidden loop verification.}
+A task contains a loop \(\mathcal L=(P,B,S)\) and targets
+\(Q=\{(\ell,q_\ell)\}\), where \(P\) is the loop-entry predicate, \(B\) the
+guard, and \(S\) the body.  In this paper, a \emph{valid} invariant means an
+inductive predicate satisfying
+\[
+  P\Rightarrow I,\qquad \{I\wedge B\}\,S\,\{I\}.
+\]
+For a finite clause set \(C\), write \(I_C=\bigwedge_{c\in C}c\), and call
+\(I\) \emph{\(Q\)-sufficient} when it also proves every restored target:
+\(\{I\wedge B\}S_{<\ell}\{q_\ell\}\) for an in-body assertion and
+\(I\wedge\neg B\Rightarrow q_\ell\) after the loop.  We denote the combined
+establishment, preservation, and location-specific obligations by
+\(\operatorname{Verify}(\mathcal L,I,Q)\).  During generation and training,
+CRAFT removes \(Q\), contract comments, assertion calls, and error-label
+names; it restores the untouched source only after fixing \(I\).  Appendix
+\ref{app:scope-example} gives the supported scalar-integer, single-loop scope
+and a nonlinear example.
+
+\paragraph{Invariant generation and behavioral strength.}
+Classical methods combine abstract interpretation, templates, interpolation,
+recurrences, syntax-guided search, counterexamples, or dynamic traces
+\citep{cousot1977abstract,karr1976affine,mcmillan2003interpolation,
+kincaid2017compositional,alur2013sygus,garg2014ice,daikon}.  Modern neural
+systems generate, rank, filter, repair, or compose candidates with solvers
+\citep{si2020code2inv,kamath2023finding,chakraborty2023ranking,
+cao2025clause2inv,wen2024enchanting,yang2026sespec}.  COINS and SpecRL show
+that execution-derived negatives can distinguish weak valid specifications
+from stronger ones \citep{yang2026coins,huang2026specrl}.  CRAFT combines
+these ideas but makes the verifier-retained \emph{cross-response clause
+union}, rather than one complete response, the learned object.
+
+\paragraph{Set-level RLVR.}
+With a whole-response verifiable reward, group-relative policy optimization
+can increase pass@1 by concentrating probability on already-supported
+answers without expanding large-\(k\) coverage
+\citep{yue2025rlcapacity,he2025unlikeliness}.  Pass@\(k\) objectives and
+rarity weighting instead reward a property of the sampled set
+\citep{walder2025pkpo,chen2025passktraining,he2025unlikeliness}, but still
+treat each response as indivisible.  CRAFT changes the credit unit: useful
+clauses survive even when sibling clauses fail, and a group bonus allocates
+the fixed union-coverage value toward rejections supplied by fewer peers.
+

@@ -126,7 +126,7 @@
 %% Listings style for prompts
 \lstdefinestyle{promptstyle}{
   language=,
-  basicstyle=\ttfamily\scriptsize,
+  basicstyle=\ttfamily\fontsize{6.8}{7.7}\selectfont,
   keywordstyle=\color{codeblue}\bfseries,
   commentstyle=\color{codegray}\itshape,
   numbers=none,
@@ -142,7 +142,6 @@
 %% Prompt box environment
 \newtcolorbox{promptbox}[1][]{
   enhanced,
-  breakable,
   colback=promptbg,
   colframe=promptframe,
   boxrule=0.5pt,
@@ -185,6 +184,7 @@
 \newcommand{\sam}{CRAFT}
 \newcommand{\denote}[1]{\left[\!\left[#1\right]\!\right]}
 \newcommand{\acc}[2]{#2}
+\newcommand{\mock}[1]{{\color{red}#1}}
 
 %% Meta
 \title{\sam{}: Compositional Reward Alignment\\
@@ -210,21 +210,26 @@ training.  CRAFT aligns both stages through
 rollout--decompose--pool--filter--compose.
 At inference, it decomposes responses into clauses, pools them across
 responses, filters the pool with syntax checking and Houdini, and composes
-the survivors into one invariant before restoring \(Q\).  SFT distills a
-filtered multi-response union into one response.  RL assigns credit within a
-rollout to its verifier-retained subset and across rollouts to complementary
-coverage beyond peers.  Its target-independent strength signal comes from
+the survivors into one invariant before restoring \(Q\).  Supervised
+fine-tuning (SFT) distills a
+filtered multi-response union into one response.  Reinforcement learning (RL)
+filters the same pooled
+union once, assigns survivors back to their proposing rollouts, and combines
+their coverage reward with a bonus for rejections supplied by fewer peers.
+Its target-independent strength signal comes from
 reachable executions and conservatively filtered synthetic negatives.  On
-832 C programs, four \texttt{gpt-5-nano} rollouts verify 49.0\% of
+832 C programs, four GPT-5 Nano rollouts verify 49.0\% of
 tasks, compared with 42.2\% for the strongest external baseline in an
 end-to-end target-hidden evaluation with system-native fixed budgets.
+On the matched Qwen3-8B SFT path, RL leaves pass@1 nearly unchanged
+(\mock{41.9\% to 40.8\%}) while increasing compose@4 from
+\mock{75.1\% to 79.4\%} and compose@32 from \mock{79.0\% to 82.7\%}.
 \end{abstract}
 
 %% ============================================================
 \input{sections/introduction}
-\input{sections/preliminaries}
-\input{sections/related}
-\input{sections/method}
+\input{sections/background_main}
+\input{sections/method_main}
 \input{sections/experiments}
 \input{sections/conclusion}
 \input{sections/statements}

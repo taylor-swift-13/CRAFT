@@ -1,0 +1,143 @@
+%% Compact ICLR main-paper method.  Proofs, algorithms, normalizers, and
+%% engineering details are provided in the appendix.
+\section{Method}\label{sec:method}
+
+CRAFT uses the same rollout--decompose--pool--filter--compose abstraction for
+inference, SFT target construction, and RL credit.  The target \(Q\) is absent
+from all three stages and is restored only for final evaluation.
+
+\subsection{Pool, Filter, and Compose}\label{sec:method:core}
+
+For a masked loop \(\mathcal L\), rollout \(i\) produces a response \(Y_i\).
+Parsing and finite canonical normalization yield at most \(K=20\) clauses
+\(A_i\).  Given \(n\) responses, CRAFT forms
+\[
+ C_n^{\mathrm{pool}}=\bigcup_{i=1}^{n}\operatorname{set}(A_i),\qquad
+ C_n=\mathsf{Filter}_{\mathcal L}(C_n^{\mathrm{pool}}),\qquad
+ I_n=\bigwedge_{c\in C_n}c.
+\]
+The filter removes parser failures and normalized duplicates, then applies
+Houdini until every survivor is jointly established and preserved
+\citep{flanagan2001houdini}.  Frama-C/WP generates obligations; Alt-Ergo and
+Z3 must prove them within the resource limit, and unknown or timeout causes
+conservative deletion.  Thus the implementation is sound relative to its
+accepted obligations but may remove a logically valid clause.  Algorithm
+\ref{alg:rcf} records the shared computation.
+
+\begin{algorithm}[H]
+\caption{Rollout--decompose--pool--filter--compose}\label{alg:rcf}
+\begin{algorithmic}
+\alginput{masked loop \(\mathcal L\), clause sets \(A_{1:n}\)}
+\algoutput{filtered clause set \(C\)}
+\algline \(C\leftarrow\operatorname{ConservativeDedup}(\bigcup_i A_i)\)\\
+\algline remove parser-rejected clauses from \(C\)\\
+\algline \kw{repeat} remove every \(c\in C\) whose establishment or
+preservation is not proved under \(\bigwedge C\)\\
+\algline \kw{until} no clause is removed; \kw{return} \(C\)\\
+\end{algorithmic}
+\end{algorithm}
+
+The following standard facts justify composition; Appendix
+\ref{app:composition-proofs} gives proofs.
+\begin{proposition}[Conjunctive closure]\label{prop:conjunctive-closure}
+If \(I_1,\ldots,I_m\) are valid invariants, then \(\bigwedge_j I_j\) is valid
+and at least as strong as every conjunct.
+\end{proposition}
+\begin{proposition}[Mutual support]\label{prop:mutual-support}
+A candidate set \(C\) is jointly inductive when
+\(P\Rightarrow I_C\) and every \(\{I_C\wedge B\}S\{c\}\), \(c\in C\), holds;
+no clause need be preserved from itself alone.
+\end{proposition}
+\begin{theorem}[Candidate-relative Houdini optimality]
+\label{thm:houdini-greatest}
+With exact logical decisions, Houdini returns the greatest jointly inductive
+subset of a finite candidate pool.  Resource-bounded filtering retains no
+such completeness guarantee.
+\end{theorem}
+
+\subsection{Inference and Target-Independent Strength}
+\label{sec:method:inference}
+\label{sec:method:sampler}
+
+At inference, CRAFT samples \(k\) masked responses, computes \(I_k\), restores
+\(Q\), and evaluates \(\operatorname{Verify}(\mathcal L,I_k,Q)\).  The
+population objective is
+\[
+ \max_\pi\ \mathbb E_{Y_{1:k}\sim\pi(\cdot\mid\mathcal L)}
+ \mathbf 1[\operatorname{Verify}(\mathcal L,I_k,Q)],
+\]
+estimated by compose@\(k\).  Unlike pass@\(k\), it can succeed when no sampled
+response is sufficient alone.
+
+Training cannot use \(Q\), so CRAFT executes precondition-checked inputs to
+collect reachable loop-head states \(\mathcal E\) and constructs a fixed
+budget of negative traces \(\mathcal N\): relation-breaking perturbations,
+post-exit continuations, and random local fill.  Cleaning removes witnessed
+reachable states, possible entries, duplicates, and unsupported state.  A
+clause set rejects trace \(\nu=\langle s_0,\ldots,s_T\rangle\) if some clause
+is false at some state,
+\[
+ \operatorname{rej}(C)=\{\nu\in\mathcal N:\exists c\in C,\exists t,
+ s_t\not\models c\},\qquad
+ \operatorname{cov}(C)=\frac{|\operatorname{rej}(C)|}{|\mathcal N|}.
+\]
+Coverage is therefore a trace-level empirical surrogate, not a semantic
+completeness measure.  Appendix~\ref{app:negative-sampling} fixes construction
+and grouping.
+
+\subsection{SFT Distillation}\label{sec:method:sft}
+
+For each masked training loop, the base model generates groups of 16
+responses.  CRAFT accumulates and filters their clause union until coverage
+reaches \(\tau=0.5\), for at most five rounds.  Empty-negative programs are
+unscorable and excluded; unsuccessful searches are dropped.  After removing
+duplicates, tautologies, and atomically implied clauses, the surviving union
+is serialized as one SFT target.  Hence SFT distills multi-response search
+without exposing \(Q\); exact acceptance and serialization appear in
+Appendix~\ref{app:constants}.
+
+\subsection{Clause-Level Compositional RLVR}\label{sec:method:reward}
+
+For one RLVR group \(\mathcal G=\{1,\ldots,G\}\), CRAFT pools all raw clause
+sets, removes clauses contradicted by \(\mathcal E\), and runs the same filter
+once.  Using finite canonical keys, each survivor is assigned back to every
+rollout that proposed it.  Let \(C_i^{\mathrm{attr}}(\mathcal G)\) be this
+attributed subset and
+\(R_i(\mathcal G)=\operatorname{rej}(C_i^{\mathrm{attr}}(\mathcal G))\).
+The primary clause credit is
+\[
+ \operatorname{cov}_i(\mathcal G)=|R_i(\mathcal G)|/|\mathcal N|.
+\]
+This changes the rewarded event relative to ordinary RLVR: one failed sibling
+no longer erases credit for a useful retained clause.  Group normalization
+alone cannot make that change; it only rescales the response-level rewards it
+is given.
+
+To add a smaller complementarity incentive, fix the survivor sets obtained
+from the full group and define the coverage game
+\(v_{\mathcal G}(\mathcal S)=|\bigcup_{i\in\mathcal S}R_i(\mathcal G)|/
+|\mathcal N|\).  If
+\(f_{\mathcal G}(\nu)=\sum_j\mathbf1[\nu\in R_j(\mathcal G)]\), its Shapley
+allocation has the closed form
+\begin{equation}\label{eq:shapley-credit}
+ \phi_i(\mathcal G)=\frac{1}{|\mathcal N|}
+ \sum_{\nu\in R_i(\mathcal G)}\frac{1}{f_{\mathcal G}(\nu)},\qquad
+ \sum_i\phi_i(\mathcal G)=v_{\mathcal G}(\mathcal G).
+\end{equation}
+Thus each union-covered trace contributes exactly one unit of group credit,
+shared inversely with redundancy.  This is exact for the fixed coverage game;
+it does not re-filter coalitions and is not a Shapley value of the complete
+proof pipeline.
+
+The generation reward is
+\begin{equation}\label{eq:generation-reward}
+ r_i(\mathcal G)=1.0\,\operatorname{cov}_i(\mathcal G)
+ +0.3\,\phi_i(\mathcal G).
+\end{equation}
+GRPO normalizes \(r_i\) within groups of eight and applies the token-level
+policy update specified in Appendix~\ref{app:grpo-details}.  Ordinary
+coverage remains primary; the Shapley term is a complementarity bonus.
+Support-only clauses that reject no negative receive no direct reward even if
+they enable another clause's inductiveness, which bounds the surrogate's
+scope rather than its verifier-checked final correctness.
+

@@ -5,12 +5,12 @@
 \paragraph{Loop verification.}
 A task consists of a loop \(\mathcal L=(P,B,S)\) and a target set
 \(Q=\{(\ell,q_\ell)\}\), where predicate \(q_\ell\) occurs at assertion or
-postcondition location \(\ell\).  Here \(P\) describes the loop-entry states induced by the function
+postcondition location \(\ell\).  Here \(P\) is the loop-entry predicate induced by the function
 preconditions and executable prefix, \(B\) is the guard, and \(S\) is the
 body.  Let
 \(\operatorname{Reach}(\mathcal L)\) be the reachable loop-head states,
-including the final guard test.  An invariant \(I\) is \emph{valid} (or
-inductive) when
+including the final guard test.  Throughout this paper, we use \emph{valid}
+as a term of art for \emph{inductive under the following proof obligations}:
 \[
   P\Rightarrow I,
   \qquad
@@ -19,7 +19,10 @@ inductive) when
 which ensures \(\operatorname{Reach}(\mathcal L)\subseteq\denote I\)
 ~\citep{floyd1967assigning,hoare1969axiomatic}.  The semantic ideal---an
 invariant whose meaning is exactly \(\operatorname{Reach}(\mathcal L)\)---need
-not be finitely expressible in the annotation language.
+not be finitely expressible in the annotation language.  This convention is
+narrower than merely requiring a predicate to hold on every reachable state:
+such a semantically true predicate need not be provable from these particular
+induction obligations or by the resource-bounded verifier used below.
 
 For predicates \(I\) and \(J\), write
 \[
@@ -50,9 +53,23 @@ deduplication, and resource-bounded WP/Houdini pipeline.
 
 A valid invariant is
 \emph{\(Q\)-sufficient} when annotating the loop with \(I\) lets the verifier
-prove every \(q_\ell\) at \(\ell\).  For one post-loop target this reduces to
-\(I\wedge\neg B\Rightarrow q\).  Thus validity is target-independent, whereas
-sufficiency is tested only after restoring \(Q\).
+prove every \(q_\ell\) at \(\ell\).  More explicitly, let \(S_{<\ell}\) be
+the loop-body prefix on a control-flow path leading to an assertion at
+location \(\ell\).  The restored target obligations include
+\[
+  \begin{aligned}
+  &\{I\wedge B\}\,S_{<\ell}\,\{q_\ell\}
+    &&\text{for every feasible path to an in-body assertion},\\
+  &I\wedge\neg B\Rightarrow q_\ell
+    &&\text{for a post-loop target}.
+  \end{aligned}
+\]
+Function postconditions and assertions outside the loop analogously use the
+standard path condition propagated from the loop exit to \(\ell\).  We write
+\(\operatorname{Verify}(\mathcal L,I,Q)\) for the conjunction of
+establishment, preservation, and all of these location-specific obligations.
+Thus validity is target-independent, whereas sufficiency is tested only after
+restoring \(Q\).
 
 \paragraph{Target-hidden verification.}
 The generator and all intermediate scores use \(\mathcal L=(P,B,S)\), not

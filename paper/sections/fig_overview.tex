@@ -5,7 +5,7 @@
 \centering
 \resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[
-  font=\sffamily\small,
+  font=\sffamily\scriptsize,
   >=Stealth,
   flow/.style={-{Stealth[length=2.0mm]}, draw=paperink!64,
     line width=0.9pt},
@@ -21,7 +21,7 @@
   card/.style={draw=promptframe, fill=white, rounded corners=2.5pt,
     line width=0.75pt, align=center, inner xsep=5pt, inner ysep=4pt},
   tag/.style={rounded corners=2pt, inner xsep=5pt, inner ysep=2.3pt,
-    font=\scriptsize\bfseries, text=white},
+    font=\small\bfseries, text=white},
   heading/.style={font=\scriptsize\bfseries, text=codegray, align=center},
   clausebox/.style={rectangle, rounded corners=0.5pt, minimum width=0.26cm,
     minimum height=0.26cm, inner sep=0pt, draw=paperink!20, line width=0.3pt},
@@ -39,7 +39,7 @@
 %% THE HUB: decompose (within a rollout) and compose (across rollouts)
 %% -----------------------------------------------------------------
 \draw[panel] (0.10,3.72) rectangle (15.90,7.05);
-\node[tag, fill=codeblue, font=\scriptsize\bfseries, anchor=west]
+\node[tag, fill=codeblue, anchor=west]
   at (0.40,6.72) {DECOMPOSE \(\rightleftarrows\) COMPOSE};
 
 %% legend: clause color encodes validity and, for valid clauses, strength
@@ -57,9 +57,9 @@
 %% masked program card
 \node[card, draw=paperink!30, text width=1.95cm]
   (masked) at (1.32,5.20)
-  {{\tiny\bfseries Masked loop}\\[-1pt]
+  {{\bfseries Masked loop}\\[-1pt]
    \(\mathcal L=(P,B,S)\)\\[-2pt]
-   {\scriptsize\textcolor{codered}{target \(Q\) hidden}}};
+   {\textcolor{codered}{target \(Q\) hidden}}};
 \draw[flow] (2.32,5.20) -- (2.72,5.20);
 
 %% ---------------- DECOMPOSE block ----------------
@@ -79,7 +79,7 @@
   }
   \node[font=\tiny\bfseries, text=\labcol] at (5.24,\y) {\mk};
 }
-\node[font=\scriptsize, text=codegray!70] at (4.35,4.40) {\(\vdots\)};
+\node[text=codegray!70] at (4.35,4.40) {\(\vdots\)};
 
 \draw[flow] (5.52,5.18) -- (6.12,5.18);
 \node[heading] at (7.12,5.92) {2\; DECOMPOSE};
@@ -91,8 +91,8 @@
     \node[clausebox, fill=\c, draw=paperink!45] at (6.42+\i*0.36,\y) {};
   }
 }
-\node[font=\tiny, text=codegray] at (7.14,4.32)
-  {a rejected clause costs only itself};
+\node[font=\tiny, text=codegray, align=center] at (7.14,4.27)
+  {a rejected clause\\costs only itself};
 
 %% the hinge between the two operations
 \draw[-{Stealth[length=2.6mm]}, draw=paperink!72, line width=1.6pt]
@@ -134,7 +134,7 @@
 \draw[flow] (13.62,5.18) -- (13.98,5.18);
 \node[card, draw=codegreen!64, fill=codegreen!10,
   text width=1.30cm] (survivors) at (14.70,5.18)
-  {{\tiny\bfseries Output}\\[-1pt] \(C_k\)};
+  {{\bfseries Output}\\[-1pt] \(C_k\)};
 
 %% -----------------------------------------------------------------
 %% Distribution bus: the composed output feeds three consumers
@@ -152,22 +152,22 @@
   {composed set \(C_k\)};
 
 %% =================================================================
-%% RFT: reward-accepted distillation into SFT targets
+%% SFT: reward-accepted distillation into SFT targets
 %% =================================================================
 \draw[rounded corners=5pt, fill=white, draw=codepurple!34,
   line width=0.8pt] (0.10,-1.40) rectangle (4.90,3.05);
-\node[tag, fill=codepurple!84, anchor=west] at (0.40,2.75) {RFT};
+\node[tag, fill=codepurple!84, anchor=west] at (0.40,2.75) {SFT};
 
 \node[card, draw=codepurple!58, fill=white, text width=3.0cm]
   (composed) at (2.50,2.15)
-  {{\tiny\bfseries Composed set \(C^{(t)}\)}\\[-1pt]
+  {{\bfseries Composed set \(C^{(t)}\)}\\[-1pt]
    {\tiny 16 rollouts \(\cup\) pool \(\to\) filter}};
 \foreach \i/\c in {0/codegreen!85,1/codegreen!45,2/codegreen!70,
                      3/codegreen!55,4/codegreen!30,5/codegreen!80}{
   \node[clausebox, fill=\c] at (1.90+\i*0.24,1.62) {};
 }
-\node[card, draw=codepurple!58, fill=codepurple!4, text width=2.5cm,
-  inner ysep=2.5pt, font=\tiny] (accept) at (2.50,1.12)
+\node[card, draw=codepurple!58, fill=codepurple!4, text width=2.9cm,
+  inner ysep=2.5pt] (accept) at (2.50,1.12)
   {{\bfseries Accept?}\; coverage \(\ge\tau\)};
 \draw[dataflow] (2.50,1.48) -- (accept.north);
 \draw[dataflow, rounded corners=2pt]
@@ -177,8 +177,8 @@
 \draw[dataflow] (accept.south) -- (2.50,0.50);
 \node[font=\tiny, text=codepurple!80, anchor=west] at (2.64,0.74)
   {yes};
-\node[card, draw=codepurple!45, fill=white, text width=3.2cm,
-  inner ysep=2.5pt, font=\tiny] (sfttarget) at (2.50,0.20)
+\node[card, draw=codepurple!45, fill=white, text width=3.5cm,
+  inner ysep=2.5pt] (sfttarget) at (2.50,0.20)
   {{\bfseries SFT target}: the accepted set};
 \draw[rounded corners=2pt, draw=none, fill=codepurple!18]
   (1.56,-0.46) rectangle (3.72,-0.18);
@@ -187,8 +187,8 @@
 \node[tag, fill=codepurple!84] (sftcorpus) at (2.50,-0.58)
   {SFT CORPUS \(\mathcal D_{\mathrm{SFT}}\)};
 \node[card, draw=codepurple!58, fill=white, text width=3.3cm,
-  inner ysep=2.5pt, font=\tiny] (sftmodel) at (2.50,-1.10)
-  {{\bfseries fine-tune}\\[-1pt] many rollouts \(\to\) one response};
+  inner ysep=2.5pt] (sftmodel) at (2.50,-1.10)
+  {{\bfseries fine-tune}\\[-1pt] {\tiny many rollouts \(\to\) one response}};
 \draw[dataflow] (sfttarget.south) -- (2.50,-0.20);
 \draw[dataflow] (sftcorpus.south) -- (sftmodel.north);
 %% the acceptance test is a reward call
@@ -204,9 +204,9 @@
   line width=0.8pt] (5.10,-1.40) rectangle (11.275,3.05);
 \node[tag, fill=codeblue, anchor=west] at (5.40,2.75) {RL};
 
-\node[tag, fill=codeblue!72, font=\tiny\bfseries, anchor=west]
+\node[tag, fill=codeblue!72, anchor=west]
   at (5.35,2.32) {1\hspace{2pt}DECOMPOSE};
-\node[tag, fill=codeblue!72, font=\tiny\bfseries, anchor=west]
+\node[tag, fill=codeblue!72, anchor=west]
   at (7.38,2.32) {2\hspace{2pt}FILTER};
 
 \foreach \y/\lab/\cols/\ret/\covv in {
@@ -230,15 +230,15 @@
 
 \node[font=\tiny\itshape, text=codegray, anchor=west] at (5.35,1.10)
   {reverse of inference: filter, then compose (Appendix~\ref{app:houdini-order})};
-\node[tag, fill=codeblue!86, font=\tiny\bfseries, anchor=west]
+\node[tag, fill=codeblue!86, anchor=west]
   at (5.35,0.78) {3\hspace{2pt}COMPOSE};
-\node[card, draw=codeblue!62, fill=algobg!85, text width=4.9cm,
-  inner ysep=3pt, font=\tiny] (rwd) at (8.19,0.20)
+\node[card, draw=codeblue!62, fill=algobg!85, text width=5.1cm,
+  inner ysep=3pt] (rwd) at (8.19,0.20)
   {{\bfseries credit} = own strength + Shapley share\\[-1pt]
    {\color{codegray}\(A_2\): .80 + .18\qquad \(A_3\): .60 + .12}};
 \node[card, draw=codeblue!62, fill=white, text width=4.8cm,
-  inner ysep=2.5pt, font=\tiny] (grpo) at (8.19,-0.78)
-  {{\bfseries GRPO}: group-normalized advantage \(\to\) policy update};
+  inner ysep=2.5pt] (grpo) at (8.19,-0.78)
+  {{\bfseries GRPO}: group-normalized advantage\\[-1pt] \(\to\) policy update};
 \draw[trainflow] (rwd) -- (grpo);
 %% each retained subset is a reward call
 \draw[scoreflow, rounded corners=2pt]
@@ -247,13 +247,13 @@
   {score};
 
 %% =================================================================
-%% REWARD: one target-independent scorer shared by RFT and RL
+%% REWARD: one target-independent scorer shared by SFT and RL
 %% =================================================================
 \draw[rounded corners=5pt, fill=white, draw=paperink!42,
   line width=0.8pt] (0.10,-3.95) rectangle (11.275,-1.70);
 \node[tag, fill=paperink!82, anchor=west] at (0.40,-1.94) {REWARD};
 \node[font=\tiny, text=codegray, anchor=east] at (11.15,-1.94)
-  {shared by RFT and RL; never sees \(Q\)};
+  {shared by SFT and RL; never sees \(Q\)};
 
 %% block 1: negatives
 \node[heading] at (1.40,-2.32) {NEGATIVES};
@@ -313,7 +313,7 @@
   (7.46,-3.78) rectangle (11.22,-3.50);
 \node[font=\tiny, anchor=west] at (7.50,-2.66)
   {{\bfseries Binary}: all-or-nothing};
-\node[font=\tiny\bfseries, text=codepurple!85, anchor=east] at (11.20,-2.98) {RFT};
+\node[font=\tiny\bfseries, text=codepurple!85, anchor=east] at (11.20,-2.98) {SFT};
 \node[font=\tiny\bfseries, text=codeblue!90, anchor=east] at (11.20,-3.64) {RL};
 \node[font=\tiny, anchor=west] at (7.50,-2.98)
   {{\bfseries Whole-rollout}: strength if all pass};
@@ -331,7 +331,7 @@
 \node[font=\tiny\itshape, text=codegray, anchor=east] at (15.62,2.40)
   {no execution states, no reward};
 \node[card, draw=codeolive!55, fill=white, text width=2.3cm]
-  (inferin) at (13.69,1.80) {{\tiny\bfseries Restore target \(Q\)}};
+  (inferin) at (13.69,1.80) {{\bfseries Restore target \(Q\)}};
 \foreach \c [count=\i from 0] in {codegreen!85,codegreen!45,
                                     codegreen!70,codegreen!55,
                                     codegreen!30,codegreen!80}{
@@ -339,11 +339,11 @@
 }
 \node[card, draw=codeolive!64, fill=codeolive!6, text width=2.55cm]
   (wp) at (13.69,-0.40)
-  {{\tiny\bfseries Final Proof}\\[-1pt]
+  {{\bfseries Final Proof}\\[-1pt]
    {\tiny Frama-C/WP proves \(Q\)}};
 \node[card, draw=codegreen!64, fill=codegreen!10, text width=2.55cm]
   (pass) at (13.69,-2.30)
-  {{\tiny\bfseries\textcolor{codegreen!82}{\cmark\ VERIFIED}}};
+  {{\bfseries\textcolor{codegreen!82}{\cmark\ VERIFIED}}};
 \node[font=\tiny, text=codegray] at (13.69,-2.82)
   {measured as compose@\(k\)};
 \draw[inferflow] (inferin.south) -- (13.69,0.98);
@@ -357,7 +357,7 @@ Each target-hidden rollout is \emph{decomposed} into clauses that stand
 alone, and their union is \emph{composed} into one filtered invariant; the
 composed set feeds three consumers.  One target-independent \emph{reward}
 scores clause sets against execution-derived negatives and is shared by
-two of them: RFT accepts a composed set once its whole-rollout coverage
+two of them: SFT accepts a composed set once its whole-rollout coverage
 reaches \(\tau\), strengthening it with further rollout groups otherwise,
 and distills it into one SFT response; RL \emph{decomposes} each rollout onto
 its verifier-retained subset and credits it with clause-level coverage plus a

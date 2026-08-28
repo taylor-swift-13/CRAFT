@@ -11,7 +11,8 @@ what drives the training gain (RQ5).
 \label{sec:exp:setup}
 
 \paragraph{Data and judge.}
-Training data comprise 4,992 RL records and 14,858 SFT records of
+Training data comprise 4,992 RL records and 33,346 SFT records (31,865
+distinct program sources) of
 target-masked scalar-integer single-loop programs; SFT targets are
 synthesized with \texttt{gpt-5.6-luna} and verified by Frama-C/WP
 (Appendix~\ref{app:data-curation}).  Evaluation uses the standard
@@ -21,8 +22,10 @@ programs, comprising 316 linear programs (133 Code2Inv
 \citep{svcomp}) and 50 nonlinear-arithmetic (NLA) programs (30 LIPuS
 \citep{yu2023lipus}, 20 SV-COMP 2024) as released with
 Clause2Inv~\citep{cao2025clause2inv}, plus 466 integer programs from
-Loopy~\citep{kamath2023finding}.  The training--evaluation overlap audit is
-in Appendix~\ref{app:data-leakage}.  We remove non-contract comments and
+Loopy~\citep{kamath2023finding}.  After target removal, no training program
+matches an evaluation program under exact-text, alpha-renamed, or
+constant-abstracted matching.  Appendix~\ref{app:data-leakage} reports the
+complete instance-overlap and structural-distribution audit.  We remove non-contract comments and
 mask all target predicates before generation, then restore the untouched
 source only after invariants are fixed.
 Success requires Frama-C/WP~\citep{framac}, under a 5-second per-obligation
@@ -50,9 +53,11 @@ proves \(Q\).  Whenever a saved pool contains \(c\) successful responses among i
 \(\widehat{\operatorname{pass@}k}=1-\binom{n-c}{k}/\binom{n}{k}\) for that
 program and average it over programs.  compose@\(k\) is the
 fraction of programs proved by unioning the first \(k\) responses and applying
-Houdini.  pass@\(k\) requires one response to contain the whole proof, whereas
-compose@\(k\) can compose clauses from different responses; it composes the
-fixed saved prefix rather than all \(\binom{n}{k}\) subsets.  For the measured budget grid
+Houdini.  The two metrics capture different outcomes: pass@\(k\) measures
+standalone completion within \(k\) responses, whereas compose@\(k\) measures
+the deployed pipeline's filtered composition of those responses.  Our prefix
+compose@\(k\) uses the first \(k\) saved responses rather than averaging over
+all \(\binom{n}{k}\) subsets.  For the measured budget grid
 \(\mathcal K=\{1,4,8,16,32\}\), we report
 \(k_{95}=\min\{k\in\mathcal K:
 \operatorname{Comp}_\pi(k)\geq0.95\,\operatorname{Comp}_\pi(32)\}\), where
@@ -66,9 +71,8 @@ sooner.
 
 We sample 32 target-hidden responses per task from six base checkpoints:
 Qwen3-1.7B, Qwen3-4B, Qwen3-8B, Qwen3-14B, Qwen3-30B-A3B
-~\citep{yang2025qwen3}, and Llama 3.1 8B.  Complete values and \(k_{95}\) appear in
-Appendix~\ref{tab:probe-complete}, per-stratum breakdowns in
-Table~\ref{tab:probe-stratum}.
+~\citep{yang2025qwen3}, and Llama 3.1 8B.  Complete curves, \(k_{95}\), and
+per-stratum breakdowns appear in Appendix~\ref{tab:probe-complete}.
 
 \begin{figure}[H]
 \centering
@@ -78,10 +82,11 @@ Composition saturates by \(k{\approx}8\)--\(16\), while pass@\(k\) keeps growing
 \label{fig:base-model-probe}
 \end{figure}
 
-At \(k=1\), prefix compose@\(k\) is 14.9--42.4 points above the unbiased
-pass estimate across checkpoints.  Because these are different estimands
-rather than paired first-response outcomes, we treat this gap as
-descriptive; RQ2 reports the paired effect of processing the same response.
+At \(k{=}1\), compose@1 exceeds the unbiased pass@1 estimate by
+14.9--42.4 points across checkpoints.  This is an unpaired descriptive
+comparison: pass@1 is estimated from the full response pool, whereas
+compose@1 evaluates the saved first response.  RQ2 measures the pipeline
+effect on matched responses.
 In the retained response pools, compose@16 is within 2.1 points of
 compose@32 on every checkpoint (\(k_{95}\in\{8,16,32\}\);
 Appendix~\ref{tab:probe-complete}).  In contrast, pass@8 reaches only
@@ -102,12 +107,11 @@ budget to 32 responses does not remove the gap.
   arc=2pt,
   left=5pt,right=5pt,top=4pt,bottom=4pt
 ]
-\textbf{Insight.} pass@1 is not an appropriate primary metric for
-compositional invariant generation.  By treating a response as indivisible,
-it assigns zero both to useless outputs and to incomplete outputs containing
-valid, reusable clauses.  It remains a standalone diagnostic, whereas
-compose@\(k\) directly measures whether clauses found within the inference
-budget form a sufficient invariant after filtering.
+\textbf{Insight.} Standalone completion and filtered composition scale
+differently with additional sampling.  Across the six checkpoints,
+compose@16 is within 2.1 points of compose@32, while pass@\(k\) continues to
+improve through \(k{=}32\).  Reporting both metrics separates the quality of
+individual responses from the utility of their composed clause pool.
 \end{tcolorbox}
 
 % ---------------------------------------------------------------------------
@@ -193,8 +197,8 @@ Stage & \(k{=}1\) & \(k{=}8\) & \(k{=}1\) & \(k{=}8\)
   Framework-free rows report pass@\(k\); pipeline rows report compose@\(k\)
   on the same saved responses, so adjacent rows isolate one component.
   RL is trained on the three Qwen3 models; Llama 3.1 8B reports SFT
-  rows only.  Complete probe curves for all six models appear in
-  Appendix~\ref{tab:probe-complete} and~\ref{tab:probe-stratum}.
+  rows only.  Complete probe curves and per-stratum results for all six
+  models appear in Appendix~\ref{tab:probe-complete}.
   API models under the same protocol appear in Table~\ref{tab:cross-model-main}
   (Appendix~\ref{app:reasoning-leakage}).}
 \label{tab:rcf-paired}
@@ -212,24 +216,20 @@ probe curves appear in Appendix~\ref{tab:probe-complete}.
 \subsection{RQ3: How Does \sam{} Compare with Specialized Tools?}
 \label{sec:exp:tools}
 
-We compare against the target-hidden pipelines of
-AutoSpec, SESpec, and Clause2Inv, and against
-Daikon 5.8.24
-~\citep{wen2024enchanting,yang2026sespec,cao2025clause2inv,daikon}.
-All tool rows use \texttt{gpt-5-nano} where they call an LLM.  The Naive row
-measures the model's unaided behavior: one call with no invariant-specific
-instructions, under which the model emits only the few clauses it considers
-safe.  \sam{}'s prompt instead adapts the model to the pipeline, asking for
-up to twenty clauses that cover conservation laws, progress bounds, and
-exit facts.  This trades single-response reliability for clause coverage:
-pass@1 judges all clauses in a response as an indivisible conjunction, so
-one invalid or non-inductive clause fails the whole response, and \sam{}'s
-richer raw outputs score below Naive before filtering (3.61\% vs.\
-16.47\%).  The discarded clauses carry no cost: the pipeline keeps only
-what survives filtering, which is what compose@1 measures.
-Clause2Inv's unsupported inputs remain failures in the common
-832-program denominator.  Budgets are fixed before comparison but not matched:
-each system retains its predeclared native orchestration.
+We compare \sam{} with the target-hidden pipelines of AutoSpec, SESpec,
+Clause2Inv, Loopy, and Daikon~\citep{wen2024enchanting,yang2026sespec,
+cao2025clause2inv,kamath2023finding,daikon}.  All LLM-based systems use
+\texttt{gpt-5-nano}, and all outputs are judged on the same untouched
+programs by Frama-C/WP.  Each system retains its native, predeclared
+orchestration, so model-call and token budgets differ;
+Table~\ref{tab:tool-comparison} reports both token and runtime costs.
+Unsupported inputs count as failures in the common 832-program denominator.
+
+The Naive baseline uses one call without invariant-specific instructions.
+In contrast, \sam{} prompts for a diverse clause pool and filters the result
+before composition.  Consequently, its raw responses have lower standalone
+validity than Naive (pass@1: 3.61\% vs.\ 16.47\%), while its filtered
+composition reaches 33.89\% at the same one-response budget.
 
 \begin{table}[H]
 \centering
@@ -292,42 +292,16 @@ budget \(k\) to the single-request latency.}
 
 
 The archived reasoning-enabled comparison appears in
-Appendix~\ref{tab:tools-complete}.  On four further API models the same
-pairing lifts compose@1 over pass@1 by 3.8--23.4 points (mean 16.6;
-Appendix~\ref{tab:cross-model-main}), on top of the backbone's 30.3: the
-gain is a property of the pipeline, and it compresses as single-shot
-accuracy rises (GPT-5.6-luna already passes 81.3\% of tasks in one shot).
+Appendix~\ref{tab:tools-complete}.  On three further API models the same
+pairing lifts compose@1 over pass@1 by 18.7--23.4 points (mean 20.9;
+Appendix~\ref{tab:cross-model-main}), compared with the backbone's 30.3:
+the gain appears across models and compresses as single-shot accuracy rises.
 Under this setting, increasing \sam{} from four to eight candidates raises
 verification from 49.0\% to 55.5\%.
 
-\paragraph{Failure modes under target hiding.}
-The specialized systems degrade for different structural reasons.  In the
-evaluated one-round configuration, AutoSpec requests eight
-completions in parallel, pools their clauses, and verifier-filters the union;
-it is therefore already an eight-proposal composition method rather than a
-single-proposal baseline.  Nevertheless, it verifies 351 programs, 23 fewer
-than \sam{} compose@1.
-Its extra samples mainly add redundant or weak clauses rather than the
-complementary facts recovered by \sam{}'s clause processing.  SESpec
-instead makes 5.09 sequential calls per completed task on average.  This
-refinement-heavy schedule does not provide the
-independent parallel exploration needed when the target is absent; moreover,
-errors from the target-hidden verifier diagnose syntax and inductiveness, not
-which missing relation would establish the hidden goal.  Clause2Inv's
-ICE loop normally uses false-state (\texttt{F:}) counterexamples induced by the
-postcondition.  Target-hidden execution suppresses the postcondition check and
-retains only pre-state and transition counterexamples, removing its principal
-goal-directed feedback signal; its required transition VCs are also
-unavailable for all 466 Loopy programs.
-
-Loopy exhibits a separate interface failure: its extractor accepts only
-the first valid Markdown-fenced code block, so although 98.8\% of initial
-responses contain textual \texttt{loop invariant} clauses, only 1.75\%
-reach Houdini.  Target hiding further removes the assertion-specific
-diagnostic expected by its repair prompt: repair adds just 15 successes to
-the 141 initially solved tasks (156/832 overall).  This row therefore
-measures interface brittleness as much as invariant quality.  The archived
-medium-reasoning run is reported separately in the appendix.
+Appendix~\ref{app:tool-specific-behavior} documents system-specific interface
+constraints under target hiding.  The complete per-tool results and the
+archived medium-reasoning comparison also appear there.
 
 \begin{tcolorbox}[
   colback=algobg,
@@ -336,13 +310,11 @@ medium-reasoning run is reported separately in the appendix.
   arc=2pt,
   left=5pt,right=5pt,top=4pt,bottom=4pt
 ]
-\textbf{Finding.} Target visibility is a problem boundary, not an
-implementation detail.  Goal-directed feedback---Clause2Inv's
-postcondition-induced counterexamples, Loopy's assertion-specific
-diagnostics---vanishes once the target is hidden, and the two systems fall
-to 7.93\% and 18.75\%; four target-hidden responses composed by \sam{}
-verify 49.0\%.  Under target hiding, complementary composition survives
-where iterative goal-directed repair does not.
+\textbf{Finding.} Under a common target-hidden evaluation and each system's
+native fixed orchestration, \sam{} verifies 49.0\% of the 832 programs with
+four composed responses, compared with 42.2\% for the strongest external
+baseline.  This is an end-to-end system comparison; the systems differ in
+orchestration and computational budget.
 \end{tcolorbox}
 
 % ---------------------------------------------------------------------------
@@ -431,7 +403,7 @@ and complete numbers.
 \paragraph{Reward-function ablation.}
 Four variants form a ladder.  Binary pays \(\{0,1\}\) for a fully
 inductive response; Whole-rollout pays the strength score
-\(\operatorname{cov}(A_i)\) only when every clause survives;
+\(\operatorname{cov}(C_i^{\mathrm{train}})\) only when every clause survives;
 Clause-decomposed pays it for the surviving subset
 \(C_i^{\mathrm{train}}\) alone; Full adds the group (Shapley) credit
 \(w_g\phi_i\) of Equation~\eqref{eq:generation-reward}.  The first two
@@ -513,3 +485,18 @@ families, Section~\ref{sec:method:sampler}) exceeds uniform random
 perturbations by 5.5--6.7 compose@$k$ points at every budget, whereas
 pass@$k$ differs by $-1.8$ to $+1.6$ points
 (Table~\ref{tab:sampler-ablation}, Appendix~\ref{app:ablation-definitions}).
+
+\paragraph{Does negative coverage predict hidden-target utility?}
+We score 6,190 saved target-hidden candidate sets from eight generation
+pipelines on the structured negatives, then use the restored-target
+Frama-C/WP verdict only as an evaluation label.  Among the 5,606 candidates
+with a continuous coverage score, coverage predicts target success with
+AUROC \(0.738\) (program-clustered 95\% CI \(0.711\)--\(0.763\)) and AUPRC
+\(0.730\), against a \(0.508\) positive-rate baseline.  More stringently,
+ranking candidates only against other candidates for the same program gives
+macro AUROC \(0.794\) (\(0.773\)--\(0.814\)); a within-program permutation
+test gives \(p<2\times10^{-4}\).  The association is strong on Linear and
+Loopy but weak on NLA, exposing a limitation of the current negative
+construction rather than establishing coverage as a universal proxy.
+Appendix~\ref{app:coverage-predictiveness} gives the protocol, strata, and
+diagnostic curves.

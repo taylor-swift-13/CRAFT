@@ -18,39 +18,34 @@ LaM4Inv, ACInv, AutoSpec, SpecGen,
 SESpec, LEMUR, and Baldur similarly organize
 generation with static analysis, symbolic execution, verification, or repair
 ~\citep{wu2024lam4inv,liu2024acinv,wen2024enchanting,ma2024specgen,
-yang2026sespec,wu2024lemur,first2023baldur}.  These are inference workflows;
-\sam{} fixes all target-hidden rollouts before joint filtering, receives no
-verifier feedback between calls, and trains responses for fixed-group
-composition.
+yang2026sespec,wu2024lemur,first2023baldur}.  Together, these systems
+establish candidate generation, verification, filtering, and repair as
+effective inference-time patterns.
 
 \paragraph{Specialized neural invariant learning.}
 Code2Inv learns a construction policy from solver feedback;
 CLN2INV and G-CLN learn continuous representations of linear and
 nonlinear relations; and LIPuS composes RL-based pruning with SMT
 solving~\citep{si2018learning,si2020code2inv,ryan2020cln2inv,
-yao2020gcln,yu2023lipus}.  These task-specific models optimize one candidate
-or construction trajectory.  We instead post-train a general language model
-so independently sampled responses contribute jointly under a fixed budget.
+yao2020gcln,yu2023lipus}.  These task-specific models optimize an individual
+candidate or construction trajectory using solver-guided learning.
 
 \paragraph{Behavioral-example objectives for specification strength.}
 COINS assesses specifications using trusted positive and
 mutation-derived negative input--output cases~\citep{yang2026coins};
 SpecRL rewards complete method-level specifications that reject
-impossible input--output pairs~\citep{huang2026specrl}; it neither targets
-loop invariants nor derives negatives from loop dynamics.  Both show that
-behavioral examples distinguish weak but valid specifications from stronger
-ones.  \sam{} supplies that loop-specific construction, filters each imperfect
-response to an inductive clause subset, and conditions its credit on negative
-states already rejected by peer rollouts.
+impossible input--output pairs~\citep{huang2026specrl}.  Both show that
+behavioral examples can distinguish weak but valid specifications from
+stronger ones.  Our setting derives such examples from loop dynamics and
+evaluates verifier-retained subsets of imperfect responses.
 
 \paragraph{Language-model training from formal feedback.}
 InvBench and Wonda use verified data for invariant fine-tuning;
 CodeRL uses execution signals; and Re:Form applies
 verifier-guided RL to individual Dafny proofs
-~\citep{wei2025invbench,pinto2026notall,le2022coderl,yan2025reform}.
-Unlike whole-output verifier rewards, \sam{} trains toward a filtered clause
-pool by salvaging the inductive part of an imperfect response and rewarding
-its strength and complementary group coverage.
+~\citep{wei2025invbench,pinto2026notall,le2022coderl,yan2025reform}.  These
+methods establish verified execution or proof feedback as a training signal
+for code and formal-reasoning models.
 
 \paragraph{Set-level credit in verifiable-reward RL.}
 GRPO with a per-response verifiable reward tends to sharpen the base
@@ -60,8 +55,10 @@ transform the group's rewards so that the objective becomes a set
 statistic---pass@\(k\) itself~\citep{walder2025pkpo,chen2025passktraining}
 or an up-weighting of rare correct responses~\citep{he2025unlikeliness}.
 These methods keep the response as the unit of credit: a set is valued by
-how many of its members are individually correct.  \sam{} moves the unit
-below the response.  Credit attaches to verifier-retained clauses, and the
-group objective is the union of the negatives those clauses reject, so a
-rollout is paid for a clause that completes a peer's proof even when neither
-response is correct on its own.
+how many of its members are individually correct.  \sam{} combines these
+lines of work: it post-trains a general language model for the filtered
+clause pool used at inference, salvages verifier-retained clauses from
+imperfect responses, and allocates group credit according to their
+contribution to pooled negative-state coverage.  The resulting set objective
+values what the responses prove jointly rather than how many responses are
+individually complete.

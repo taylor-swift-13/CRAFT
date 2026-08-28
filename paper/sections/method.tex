@@ -193,30 +193,25 @@ inductive set,
     \bigcup_{i=1}^{G_{\mathrm{sft}}}\operatorname{set}(\bar A^{(t)}_i)\Bigr),
   \qquad C^{(0)}_{\mathcal L}=\varnothing.
 \]
-The candidate is graded by the negative traces of
+The filtered candidate is scored on the negative traces of
 Section~\ref{sec:method:sampler},
-\(\operatorname{cov}(C)=|\operatorname{rej}(C)|/|\mathcal N|\)---the
-whole-rollout strength of Appendix~\ref{app:ablation-definitions} applied to
-the composed set, whose all-or-nothing gate every \(C^{(t)}_{\mathcal L}\)
-satisfies by construction.  If
-\(\operatorname{cov}(C^{(t)}_{\mathcal L})\ge\tau\), the search stops and
-\(C^{\mathrm{sft}}_{\mathcal L}=C^{(t)}_{\mathcal L}\); otherwise it is
-\emph{strengthened} by another round.  Because conjunction preserves
-validity (Proposition~\ref{prop:conjunctive-closure}), the composed
-invariant can only grow stronger from round to round; the target is what
-the pipeline itself proves within \(T{=}5\) rounds, i.e., at most 80
-responses.  Loops that do not reach \(\tau\) within \(T\) rounds are
-dropped.  Whole-rollout strength is the right acceptance test here even
-though it is the wrong training credit
-(Section~\ref{sec:exp:ablations}): an SFT target is one response that must
-be inductive as a whole, whereas RL credit must reach inside imperfect
-responses.  Before serialization we remove syntactic redundancy
-only---normalized duplicates, tautologies, and clauses implied by other
-retained atomic clauses---and keep every remaining clause; no minimal-core
-pruning is applied, because the pipeline discards non-surviving clauses at
-no cost and composition benefits from coverage
-(Section~\ref{sec:exp:tools}).  Every accepted set is serialized as one
-SFT target:
+\[
+  \operatorname{cov}(C)
+  =\frac{|\operatorname{rej}(C)|}{|\mathcal N|}.
+\]
+The search stops when
+\(\operatorname{cov}(C^{(t)}_{\mathcal L})\ge\tau\), with
+\(C^{\mathrm{sft}}_{\mathcal L}=C^{(t)}_{\mathcal L}\); otherwise another
+group is sampled and added to the accumulated pool, for at most \(T_{\mathrm{sft}}{=}5\)
+rounds (80 responses).  Loops that do not reach \(\tau\) within this budget
+are dropped.  Here coverage is an acceptance criterion for an already
+filtered, composed SFT target; Section~\ref{sec:method:reward} instead assigns
+clause-level credit within imperfect RL responses.
+
+Before serialization, we remove normalized duplicates, tautologies, and
+clauses implied by other retained atomic clauses, while retaining all
+remaining clauses to preserve coverage.  Every accepted set is serialized
+as one SFT target:
 \[
   \mathcal D_{\mathrm{SFT}}
   =\{(\mathcal L,\operatorname{serialize}(C_{\mathcal L}^{\mathrm{sft}})):
@@ -254,7 +249,7 @@ credit is composed across the group (Appendix~\ref{app:houdini-order}).  When re
 valid syntax or whole-response validity.  The subset receives the dense,
 target-independent strength score
 \[
-  \operatorname{cov}(A_i)=\frac{|R_i|}{|\mathcal N|}.
+  \operatorname{cov}(C_i^{\mathrm{train}})=\frac{|R_i|}{|\mathcal N|}.
 \]
 This and the following allocation apply when \(\mathcal N\neq\varnothing\);
 when the sampler retains none, we use the binary fallback in
@@ -264,19 +259,19 @@ Independent coverage, however, rewards a complementary discovery exactly like
 one repeated by every peer.  We therefore allocate credit for the union
 \(\bigcup_i R_i\) across the rollout group \(\mathcal G=\{1,\ldots,G\}\) as
 a coverage game.  Let
-\(f(n)=\sum_{j=1}^{G}\mathbf 1[n\in R_j]\) count how many peers reject
-trace \(n\).  The Shapley value of rollout
+\(f(\nu)=\sum_{j=1}^{G}\mathbf 1[\nu\in R_j]\) count how many peers reject
+trace \(\nu\).  The Shapley value of rollout
 \(i\) has the closed form~
 \citep{shapley1953value} (proof in Appendix~\ref{app:composition-proofs})
 \begin{equation}
 \label{eq:shapley-credit}
   \phi_i=\frac{1}{|\mathcal N|}
-  \sum_{n\in R_i}\frac{1}{f(n)},
+  \sum_{\nu\in R_i}\frac{1}{f(\nu)},
   \qquad
   \sum_{i=1}^{G}\phi_i
   =\frac{|\bigcup_iR_i|}{|\mathcal N|}.
 \end{equation}
-Thus a unique rejection receives full credit, whereas \(f(n)\) redundant
+Thus a unique rejection receives full credit, whereas \(f(\nu)\) redundant
 rejections split it.  The Shapley allocation is the unique credit rule
 satisfying efficiency, symmetry, linearity, and the null-player
 axiom~
@@ -287,17 +282,16 @@ already supplied by peers.
 The reward combines the two credits,
 \begin{equation}
 \label{eq:generation-reward}
-  r_i=w_c\,\operatorname{cov}(A_i)+w_g\phi_i,
+  r_i=w_c\,\operatorname{cov}(C_i^{\mathrm{train}})+w_g\phi_i,
 \end{equation}
 where \((w_c,w_g)=(1.0,0.3)\).  We call the first term the \emph{clause
 credit} and the second the \emph{group (Shapley) credit};
 Section~\ref{sec:exp:ablations} ablates each.  GRPO normalizes these
 group-conditioned rewards within the sampled response group.
-Each training step samples a group of \(G\) responses per masked loop,
+Each training step samples a group of \(G{=}8\) responses per masked loop,
 scores them by Equation~\eqref{eq:generation-reward}, and applies one GRPO
 update; this training-time group is distinct from the inference sweep over
 \(k\) (Section~\ref{sec:method:inference}).
 Appendix~\ref{app:grpo-details} gives the standard
 policy objective, clause normalization, and fallback behavior.
-
 

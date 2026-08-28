@@ -20,8 +20,45 @@ void f(int k, int z) {
   /*@ assert 1+x*z-x-z*y == 0; */
 }
 \end{lstlisting}
-When visible, the assertion can be copied verbatim as an invariant; when
-hidden, its nonlinear relation must be recovered from the coupled updates.
+
+\paragraph{Case study: target visibility turns discovery into copying.}
+If the assertion is visible to the generator, the task is nearly trivial:
+the assertion itself can be copied verbatim as a loop invariant.  It holds
+initially because \(x=y=1\).  Writing
+\(I(x,y)=1+xz-x-zy\), one loop iteration gives
+
+\[
+  I(xz+1,yz)
+  =1+(xz+1)z-(xz+1)-z(yz)
+  =zI(x,y),
+\]
+
+so \(I=0\) is inductive and directly discharges the exit assertion.  Under
+the target-hidden protocol, however, the model sees the initialization and
+the two coupled recurrences but not the assertion, and must independently
+recover this relation.  The archived non-reasoning rollout pools do so in
+three algebraically equivalent forms:
+
+\begin{center}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lcl}
+\toprule
+Model & First verified prefix & Rediscovered invariant clause \\
+\midrule
+GPT-5 & compose@1 & \(x-1=z(x-y)\) \\
+DeepSeek V4-Flash & compose@4 & \(x(z-1)=zy-1\) \\
+Claude Sonnet-4.6 & compose@8 & \(x(z-1)=yz-1\) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+All three clauses rearrange to the hidden assertion.  None of the ten raw
+responses in any of these three pools passes as a whole on this program;
+the inference filter removes incompatible siblings and retains the useful
+relation.  Thus target hiding prevents a copy-the-goal shortcut, while the
+successful compositions demonstrate recovery from loop dynamics rather
+than access to the postcondition.
 
 \section{Proofs of Compositionality}
 \label{app:composition-proofs}
@@ -92,7 +129,7 @@ invariant.
 
 \subsection{Greatest Jointly Inductive Candidate Subset}
 
-Let \(C_0=C\), and let \(C_{t+1}\subseteq C_t\) be the set remaining after one
+Let \(C_0=C\), and let \(C_{j+1}\subseteq C_j\) be the set remaining after one
 ideal Houdini deletion round in Algorithm~\ref{alg:rcf}.  Because \(C\) is
 finite, this descending sequence reaches the fixed point
 \(\mathsf H_{\mathcal L}(C)\).
@@ -105,8 +142,8 @@ Proposition~\ref{prop:mutual-support} shows that this conjunction is valid.
 
 It remains to prove greatestness.  Let \(C'\subseteq C\) be any jointly
 inductive subset.  We show by induction over deletion rounds that
-\(C'\subseteq C_t\).  The base case \(C'\subseteq C_0=C\) is immediate.  Assume
-\(C'\subseteq C_t\), and take any \(c\in C'\).  Joint establishment of \(C'\)
+\(C'\subseteq C_j\).  The base case \(C'\subseteq C_0=C\) is immediate.  Assume
+\(C'\subseteq C_j\), and take any \(c\in C'\).  Joint establishment of \(C'\)
 gives \(P\Rightarrow c\), so \(c\) cannot be deleted for establishment.  Joint
 preservation gives
 
@@ -114,16 +151,16 @@ preservation gives
   \{I_{C'}\wedge B\}\,S\,\{c\}.
 \]
 
-Since \(C'\subseteq C_t\), the antecedent \(I_{C_t}\wedge B\) implies
+Since \(C'\subseteq C_j\), the antecedent \(I_{C_j}\wedge B\) implies
 \(I_{C'}\wedge B\).  Strengthening a valid Hoare precondition preserves
 validity, so
 
 \[
-  \{I_{C_t}\wedge B\}\,S\,\{c\}
+  \{I_{C_j}\wedge B\}\,S\,\{c\}
 \]
 
-also holds.  Therefore no member of \(C'\) is deleted in round \(t\), proving
-\(C'\subseteq C_{t+1}\).  At termination,
+also holds.  Therefore no member of \(C'\) is deleted in round \(j\), proving
+\(C'\subseteq C_{j+1}\).  At termination,
 \(C'\subseteq\mathsf H_{\mathcal L}(C)\).  Conjunction reverses set inclusion,
 hence \(I_{\mathsf H_{\mathcal L}(C)}\preceq I_{C'}\).
 \end{proof}
@@ -146,19 +183,19 @@ for coalitions \(\mathcal S\subseteq\mathcal G\) of the rollout group.
 \label{prop:shapley-closed-form}
 For the coverage game \(v(\mathcal S)=|\bigcup_{i\in\mathcal S}R_i|/|\mathcal N|\),
 the Shapley value is
-\(\phi_i=\frac{1}{|\mathcal N|}\sum_{n\in R_i}\frac{1}{f(n)}\), and
+\(\phi_i=\frac{1}{|\mathcal N|}\sum_{\nu\in R_i}\frac{1}{f(\nu)}\), and
 \(\sum_i\phi_i=v(\mathcal G)\).
 \end{proposition}
 
 \begin{proof}
-Fix a trace \(n\) rejected by \(f(n)\) rollouts.  In a uniformly random
-ordering of the group, \(n\) contributes to the marginal gain of exactly one
-player---the first of those \(f(n)\) rollouts to appear---and by symmetry
-each of them is first with probability \(1/f(n)\).  Player \(i\) therefore
-receives expected credit \(1/f(n)\) for each \(n\in R_i\) and zero otherwise.
-Summing over \(n\in\mathcal N\) and normalizing by \(|\mathcal N|\) gives the
+Fix a trace \(\nu\) rejected by \(f(\nu)\) rollouts.  In a uniformly random
+ordering of the group, \(\nu\) contributes to the marginal gain of exactly one
+player---the first of those \(f(\nu)\) rollouts to appear---and by symmetry
+each of them is first with probability \(1/f(\nu)\).  Player \(i\) therefore
+receives expected credit \(1/f(\nu)\) for each \(\nu\in R_i\) and zero otherwise.
+Summing over \(\nu\in\mathcal N\) and normalizing by \(|\mathcal N|\) gives the
 closed form; efficiency follows because each covered trace distributes
-exactly one unit of credit among its \(f(n)\) rejectors.
+exactly one unit of credit among its \(f(\nu)\) rejectors.
 \end{proof}
 
 \section{Implementation Details}
@@ -192,7 +229,7 @@ $(w_c, w_g)$ & $(1.0, 0.3)$ & negative rejection / Shapley group-credit weights 
 $K$ & 20 clauses & response cap applied independently to every generated response; later clauses are discarded \\
 \midrule
 $G_{\mathrm{sft}}$ & 16 responses & group sampled per SFT strengthening round ($\S$\ref{sec:method:sft}) \\
-$T$ & 5 rounds & maximum strengthening rounds per loop (at most 80 responses) \\
+$T_{\mathrm{sft}}$ & 5 rounds & maximum strengthening rounds per loop (at most 80 responses) \\
 $\tau$ & TBD & SFT acceptance threshold on the composed set's negative coverage (whole-rollout strength) \\
 \midrule
 Houdini iterations & $\le 500$ & greatest-inductive-subset pruning \\
@@ -249,7 +286,7 @@ families against uniform random perturbations.
   \operatorname{StratifiedSample}(\mathcal P)\)\\
 \algline \(C_{\mathrm{rel}}\leftarrow
   \operatorname{Perturb}_{\Theta}(\operatorname{Dense}(\mathcal P_{\mathrm{sample}}),M)\)\\
-\algline \kw{if} \(\neg c\) \kw{then}
+\algline \kw{if} \(\neg\mathit{capped}\) \kw{then}
   \(C_{\mathrm{rel}}\leftarrow C_{\mathrm{rel}}\cup
   \operatorname{Perturb}_{\Theta}(\operatorname{Terminals}(\mathcal T_{\mathrm{exec}}),M)\)\\
 \algline \(C_{\mathrm{rel}}\leftarrow
@@ -289,14 +326,14 @@ and use the clipped GRPO objective~\citep{shao2024deepseekmath}
 \begin{equation}
 \label{eq:grpo}
   \mathcal J(\theta)=\mathbb E\!\left[
-    \frac1G\sum_i\frac1{T_i}\sum_t
-    \min\!\left(\rho_{i,t}\widehat{\operatorname{Adv}}_i,
-    \operatorname{clip}(\rho_{i,t},1-\varepsilon,1+\varepsilon)
+    \frac1G\sum_i\frac1{T_i}\sum_u
+    \min\!\left(\rho_{i,u}\widehat{\operatorname{Adv}}_i,
+    \operatorname{clip}(\rho_{i,u},1-\varepsilon,1+\varepsilon)
     \widehat{\operatorname{Adv}}_i\right)
     -\beta D_{\mathrm{KL}}(\pi_\theta\Vert\pi_{\mathrm{ref}})\right].
 \end{equation}
-Here \(T_i\) is the token length of response \(i\), \(\rho_{i,t}\) is the
-token-level ratio to the rollout policy, and \(\pi_{\mathrm{ref}}\) is
+Here \(T_i\) is the token length of response \(i\), \(\rho_{i,u}\) is the
+token-level ratio at token position \(u\) to the rollout policy, and \(\pi_{\mathrm{ref}}\) is
 frozen.  Clause de-duplication, which forms the clause set scored above,
 normalizes comparison direction, equality sides, parentheses, immediate
 commutative operands, harmless identities, and Boolean association, but
@@ -441,36 +478,80 @@ JSONL/Parquet rollout dumps.
 \section{Training--Evaluation Overlap Audit}
 \label{app:data-leakage}
 
-We compare the released RL (4,992 records) and SFT (14,858 records) training
-sets against all 832 evaluation programs after target removal, under three
-increasingly aggressive normalizations: exact text, alpha-renamed
-identifiers, and alpha-renaming with integer constants abstracted.  No
-training record matches any evaluation program at any level; this is
-enforced during curation and re-checked on the released files
-(Table~\ref{tab:train-test-leakage}).  Structural similarity is expected for
-a scalar single-loop language and is quantified: the
-total-variation distance between the training and evaluation distributions
-over structural cells (control-flow profile, guard kind, nonlinearity,
-nondeterminism, variable band) is 0.42 for RL and 0.63 for SFT, and 702 of
-832 evaluation programs share a cell with at least one training program.
+We compare the final RL (4,992 records and 4,992 distinct program sources)
+and SFT (33,346 records and 31,865 distinct program sources) training sets
+against all 832 evaluation programs after target removal.  Under three
+increasingly aggressive normalizations---exact text, alpha-renamed
+identifiers, and alpha-renaming with integer constants abstracted---no
+training program matches an evaluation program (Table~\ref{tab:train-test-leakage}).
+
+We separately measure coarse structural overlap.  A structural cell combines
+the control-flow profile, guard kind, nonlinearity, nondeterminism, and a
+variable-count band.  The evaluation set occupies 122 such cells.  RL and SFT
+share 88 and 41 of them, respectively; their union shares 92 cells.  Equivalently,
+702 (84.4\%), 529 (63.6\%), and 754 (90.6\%) of the 832 evaluation programs
+fall in a cell represented by RL, SFT, and their union.  These are support
+statistics, not instance matches.  The record-weighted total-variation
+distances over cells are 0.422 for RL, 0.651 for SFT, and 0.596 for their
+union, so the training and evaluation distributions are related but not
+identical.  Table~\ref{tab:train-test-marginals} gives interpretable feature
+marginals behind this joint-cell comparison.
 
 \begin{table}[H]
 \centering
 \setlength{\tabcolsep}{5pt}
-\begin{tabular}{lrr}
+\begin{tabular}{lrrr}
 \toprule
- & RL (4,992) & SFT (14,858) \\
+ & RL & SFT & RL $\cup$ SFT \\
 \midrule
-Exact-text matches & 0 & 0 \\
-Alpha-renamed matches & 0 & 0 \\
-Alpha-renamed, constant-abstracted matches & 0 & 0 \\
-TV distance over structural cells & 0.42 & 0.63 \\
+Records & 4,992 & 33,346 & 38,338 \\
+Distinct program sources & 4,992 & 31,865 & 35,170 \\
+Exact-text matches & 0 & 0 & 0 \\
+Alpha-renamed matches & 0 & 0 & 0 \\
+Alpha-renamed, constant-abstracted matches & 0 & 0 & 0 \\
+Shared evaluation cells & 88 / 122 & 41 / 122 & 92 / 122 \\
+Evaluation programs in shared cells & 702 (84.4\%) & 529 (63.6\%) & 754 (90.6\%) \\
+Training records in evaluation-supported cells & 4,992 (100\%) & 27,275 (81.8\%) & 32,267 (84.2\%) \\
+TV distance over structural cells & 0.422 & 0.651 & 0.596 \\
 \bottomrule
 \end{tabular}
-\caption{Overlap audit of the released training sets against the 832
-target-removed evaluation programs.}
+\caption{Instance and structural-distribution audit of the final training
+sets against the 832 target-removed evaluation programs.  Distribution
+statistics count training records, matching their sampling frequency.}
 \label{tab:train-test-leakage}
 \end{table}
+
+\begin{table}[H]
+\centering
+\setlength{\tabcolsep}{8pt}
+\begin{tabular}{lrrr}
+\toprule
+Feature (\% of records/programs) & Evaluation & RL & SFT \\
+\midrule
+Constant guard & 24.6 & 7.5 & 4.6 \\
+Single-variable guard & 31.4 & 31.6 & 44.0 \\
+Variable-vs.-variable guard & 37.3 & 57.3 & 50.6 \\
+Compound guard & 6.7 & 3.7 & 0.8 \\
+Nonlinear & 2.5 & 2.5 & 10.8 \\
+Nondeterministic & 28.6 & 30.3 & 14.9 \\
+$\leq 2$ variables & 35.1 & 21.2 & 46.2 \\
+3--4 variables & 33.9 & 31.7 & 12.0 \\
+$\geq 5$ variables & 31.0 & 47.1 & 41.8 \\
+\bottomrule
+\end{tabular}
+\caption{Marginal structural distributions of evaluation programs and final
+training records.  The structural-cell TV distances in
+Table~\ref{tab:train-test-leakage} use the joint features rather than these
+marginals independently.}
+\label{tab:train-test-marginals}
+\end{table}
+
+\paragraph{Scope of the audit.}
+The audit detects direct source reuse under the three reported
+normalizations; it does not establish semantic inequivalence between
+arbitrarily rewritten programs or address possible benchmark exposure during
+foundation-model pretraining.  Structural-cell overlap and total-variation
+distance characterize domain similarity rather than instance-level reuse.
 
 \section{Training-Pool Curation}
 \label{app:data-curation}
@@ -491,10 +572,8 @@ Table~\ref{tab:training-sets} summarizes the released sets.
 \begin{tabular}{lp{7.2cm}}
 \toprule
 RL set & 4,992 records over 1,131 distinct loop shapes \\
-SFT set & 14,858 records (3,058 archival + 11,800 synthesized) \\
-Synthesized answers & mean 5.07 clauses (median 4); 98.8\% contain a
-  relational transition law \\
-RL--SFT overlap & 180 programs \\
+SFT set & 33,346 records over 31,865 distinct program sources \\
+RL--SFT exact-source overlap & 1,687 distinct programs \\
 \bottomrule
 \end{tabular}
 \caption{Released training sets.}
@@ -533,33 +612,52 @@ provider-internal reasoning tokens, and 2,048 emitted tokens for local vLLM
 models.  Each RQ1 curve reuses the same saved response pool per task.
 
 \paragraph{Training configuration.}
-Table~\ref{tab:training-config} separates settings recoverable from the
-released pipeline from fields that still require the original trainer
-manifest.  The final submission must replace every TBD; reward and
-sampler constants are already reported in Table~\ref{tab:constants}.
+Tables~\ref{tab:sft-training-config} and~\ref{tab:rl-training-config}
+record the supplied SFT and RL run configurations.  Reward and sampler
+constants are reported separately in Table~\ref{tab:constants}.
 
 \begin{table}[H]
 \centering
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{lp{3.0cm}p{6.0cm}}
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{p{4.3cm}p{7.2cm}}
 \toprule
-Field & Value & Scope or required provenance \\
+Field & Value \\
 \midrule
-Backbone ID and revision & TBD & exact Qwen3-8B repository and immutable revision \\
-SFT optimizer / schedule & TBD & optimizer, learning rate, warmup, decay, and precision \\
-SFT batch / duration & TBD & global batch, accumulation, epochs or updates, and sequence length \\
-RL algorithm & GRPO & group-normalized objective in Equation~\ref{eq:grpo} \\
-RL optimizer / schedule & TBD & optimizer, learning rate, warmup, decay, and precision \\
-Rollout group size \(G\) & TBD & responses sharing one group-relative update \\
-RL batch / duration & TBD & prompt batch, accumulation, effective batch, and update count \\
-Clipping / KL & TBD & \(\varepsilon\), \(\beta\), and reference-policy update convention \\
-Training seeds & TBD & seed for each reported checkpoint and ablation run \\
-Hardware / software & TBD & GPU type and count, trainer, vLLM, CUDA, and framework versions \\
-Local rollout decoding & non-thinking; \(T=1\), top-\(p=1\); 2,048 tokens & data synthesis, RL, and local evaluation \\
+Learning rate & \(1\times10^{-5}\) \\
+Epochs & 3 \\
+Batch (per device \(\times\) accumulation \(\times\) GPUs)
+  & global batch 32; \(2\times2\times8\) or \(1\times4\times8\) \\
+Sequence cutoff & 2,048 \\
+DeepSpeed & ZeRO-3 \\
+Scheduler & cosine \\
 \bottomrule
 \end{tabular}
-\caption{Training configuration and required run-manifest fields.}
-\label{tab:training-config}
+\caption{SFT training configurations.}
+\label{tab:sft-training-config}
+\end{table}
+
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{p{4.3cm}p{7.2cm}}
+\toprule
+Field & Value \\
+\midrule
+Batch size & 64 \\
+Learning rate & \(1\times10^{-6}\) \\
+KL penalty & \texttt{low\_var\_kl}, coefficient \(0.001\) \\
+Rollouts per prompt & 8 \\
+Tensor parallelism & 1--2 \\
+GPU memory utilization & 0.3--0.5 \\
+Epochs & 5 \\
+Total steps & 200 \\
+Checkpoint interval & 100 \\
+\bottomrule
+\end{tabular}
+\caption{RL training configurations.}
+\label{tab:rl-training-config}
 \end{table}
 
 \section{Complete Experimental Data}
@@ -570,125 +668,89 @@ the main aggregates.
 
 \subsection{Probe Curves}
 
-\begin{table}[H]
+\begin{table}[p]
 \centering
-\setlength{\tabcolsep}{3pt}
-\caption{Complete probe results.  \(k_{95}\) is the smallest measured
-\(k\in\{1,4,8,16,32\}\) at which compose@\(k\) reaches \(95\%\) of its
-value at \(k=32\).}
+\scriptsize
+\renewcommand{\arraystretch}{0.86}
+\caption{Complete base-checkpoint probe results by benchmark stratum and
+sampling budget.  Each cell reports a percentage; All / 832 is the
+whole-workload result.  \(k_{95}\) is the smallest measured budget at which
+compose@\(k\) reaches \(95\%\) of compose@32.  Bold marks the best value in
+each column at a fixed budget.}
 \label{tab:probe-complete}
-\textit{Whole-response pass rates}\\[2pt]
-\begin{tabular}{lrrrrr}
-\toprule
-Model & pass@1 & pass@4 & pass@8 & pass@16 & pass@32 \\
-\midrule
-Qwen3-1.7B & 7.8\% & 15.0\% & 18.8\% & 22.4\% & 26.0\% \\
-Qwen3-4B & 6.4\% & 11.6\% & 14.1\% & 16.5\% & 19.1\% \\
-Qwen3-8B & 8.3\% & 16.5\% & 20.5\% & 24.4\% & 28.1\% \\
-Qwen3-14B & 10.1\% & 17.5\% & 21.3\% & 25.2\% & 29.1\% \\
-Qwen3-30B-A3B & 9.7\% & 16.9\% & 20.1\% & 23.6\% & 27.2\% \\
-Llama 3.1 8B & 0.8\% & 3.0\% & 5.4\% & 8.9\% & 13.8\% \\
-\bottomrule
-\end{tabular}
-\vspace{5pt}
-
-\textit{Clause-composition rates}\\[2pt]
-\begin{tabular}{lrrrrrr}
-\toprule
-Model & compose@1 & compose@4 & compose@8 & compose@16 & compose@32 & \(k_{95}\) \\
-\midrule
-Qwen3-1.7B & 22.7\% & 33.1\% & 36.8\% & 39.3\% & 41.4\% & 32 \\
-Qwen3-4B & 38.3\% & 46.3\% & 51.2\% & 55.0\% & 57.0\% & 16 \\
-Qwen3-8B & 43.8\% & 55.2\% & 59.0\% & 61.2\% & 62.5\% & 16 \\
-Qwen3-14B & 52.5\% & 62.1\% & 65.0\% & 66.2\% & 67.8\% & 8 \\
-Qwen3-30B-A3B & 48.1\% & 58.8\% & 61.3\% & 62.4\% & 62.6\% & 8 \\
-Llama 3.1 8B & 29.2\% & 48.3\% & 54.6\% & 56.0\% & 56.1\% & 8 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{table}[H]
-\centering
-\footnotesize
-\setlength{\tabcolsep}{3.0pt}
-\caption{Probe results by benchmark stratum (316 linear, 50 NLA, 466 Loopy,
-832 overall programs) at \(k{=}1\) and \(k{=}8\), laid out as in
-Table~\ref{tab:cross-model-main}: pass@\(k\) (pass) and compose@\(k\) (comp)
-percentages side by side.  Best value per column within each budget block
-in bold.}
 \label{tab:probe-stratum}
-\begin{tabular}{lcccccccc}
+\setlength{\tabcolsep}{2.4pt}
+\begin{tabular}{lcccccccccc}
 \toprule
-& \multicolumn{2}{c}{Linear} & \multicolumn{2}{c}{NLA}
-  & \multicolumn{2}{c}{Loopy} & \multicolumn{2}{c}{All} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
-\(k\) & pass & comp & pass & comp & pass & comp & pass & comp \\
+& & \multicolumn{2}{c}{Linear / 316} & \multicolumn{2}{c}{NLA / 50}
+  & \multicolumn{2}{c}{Loopy / 466} & \multicolumn{2}{c}{All / 832} & \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(lr){9-10}
+Model & \(k\) & pass & comp & pass & comp & pass & comp & pass & comp
+  & \(k_{95}\) \\
 \midrule
-\multicolumn{9}{l}{\textit{Qwen3-1.7B}} \\
-1
-  & 7.6 & 22.2 & 2.4 & 2.0 & 8.4 & 25.3 & 7.8 & 22.7 \\
-8
-  & 19.4 & 37.7 & \textbf{6.1} & 8.0 & 19.7 & 39.3 & 18.8 & 36.8 \\
-\cmidrule(l{3pt}r{3pt}){1-9}
-\multicolumn{9}{l}{\textit{Qwen3-4B}} \\
-1
-  & 6.2 & 38.6 & 0.5 & \textbf{8.0} & 7.2 & 41.4 & 6.4 & 38.3 \\
-8
-  & 14.1 & 51.9 & 3.0 & 8.0 & 15.2 & 55.4 & 14.1 & 51.2 \\
-\cmidrule(l{3pt}r{3pt}){1-9}
-\multicolumn{9}{l}{\textit{Qwen3-8B}} \\
-1
-  & 8.6 & 43.7 & 3.2 & 6.0 & 8.6 & 47.9 & 8.3 & 43.8 \\
-8
-  & \textbf{20.7} & 60.4 & 5.9 & 12.0 & 22.0 & 63.1 & 20.5 & 59.0 \\
-\cmidrule(l{3pt}r{3pt}){1-9}
-\multicolumn{9}{l}{\textit{Qwen3-14B}} \\
-1
-  & 8.9 & \textbf{54.1} & 1.1 & \textbf{8.0} & \textbf{11.8} & \textbf{56.2} & \textbf{10.1} & \textbf{52.5} \\
-8
-  & 19.3 & \textbf{68.0} & 4.9 & 12.0 & \textbf{24.3} & \textbf{68.7} & \textbf{21.3} & \textbf{65.0} \\
-\cmidrule(l{3pt}r{3pt}){1-9}
-\multicolumn{9}{l}{\textit{Qwen3-30B-A3B}} \\
-1
-  & \textbf{10.6} & 48.1 & \textbf{3.6} & \textbf{8.0} & 9.8 & 52.4 & 9.7 & 48.1 \\
-8
-  & 19.7 & 61.1 & 6.0 & 8.0 & 21.9 & 67.2 & 20.1 & 61.3 \\
-\cmidrule(l{3pt}r{3pt}){1-9}
-\multicolumn{9}{l}{\textit{Llama 3.1 8B}} \\
-1
-  & 0.8 & 29.4 & 0.0 & 2.0 & 0.9 & 32.0 & 0.8 & 29.2 \\
-8
-  & 5.5 & 55.4 & 0.0 & \textbf{14.0} & 5.9 & 58.4 & 5.4 & 54.6 \\
+\multirow{5}{*}{Qwen3-1.7B} & 1 & 7.6 & 22.2 & 2.4 & 2.0 & 8.4 & 25.3 & 7.8 & 22.7 & \multirow{5}{*}{32} \\
+ & 4 & 15.3 & 33.9 & 5.0 & 8.0 & 15.9 & 35.2 & 15.0 & 33.1 &  \\
+ & 8 & 19.4 & 37.7 & \textbf{6.1} & 8.0 & 19.7 & 39.3 & 18.8 & 36.8 &  \\
+ & 16 & 23.2 & 39.2 & \textbf{7.3} & 10.0 & 23.5 & 42.5 & 22.4 & 39.3 &  \\
+ & 32 & 26.6 & 41.5 & \textbf{8.0} & 10.0 & 27.5 & 44.6 & 26.0 & 41.4 &  \\
+\cmidrule(l{3pt}r{3pt}){1-11}
+\multirow{5}{*}{Qwen3-4B} & 1 & 6.2 & 38.6 & 0.5 & \textbf{8.0} & 7.2 & 41.4 & 6.4 & 38.3 & \multirow{5}{*}{16} \\
+ & 4 & 11.7 & 45.9 & 1.7 & 8.0 & 12.7 & 50.6 & 11.6 & 46.3 &  \\
+ & 8 & 14.1 & 51.9 & 3.0 & 8.0 & 15.2 & 55.4 & 14.1 & 51.2 &  \\
+ & 16 & 16.6 & 55.1 & 4.5 & 10.0 & 17.7 & 59.9 & 16.5 & 55.0 &  \\
+ & 32 & 19.3 & 57.0 & 6.0 & \textbf{14.0} & 20.4 & 61.6 & 19.1 & 57.0 &  \\
+\cmidrule(l{3pt}r{3pt}){1-11}
+\multirow{5}{*}{Qwen3-8B} & 1 & 8.6 & 43.7 & 3.2 & 6.0 & 8.6 & 47.9 & 8.3 & 43.8 & \multirow{5}{*}{16} \\
+ & 4 & 16.8 & 56.6 & 5.3 & 6.0 & 17.4 & 59.4 & 16.5 & 55.2 &  \\
+ & 8 & \textbf{20.7} & 60.4 & 5.9 & 12.0 & 22.0 & 63.1 & 20.5 & 59.0 &  \\
+ & 16 & \textbf{24.5} & 61.7 & 6.0 & 12.0 & 26.2 & 66.1 & 24.4 & 61.2 &  \\
+ & 32 & 27.8 & 63.6 & 6.0 & 12.0 & 30.7 & 67.2 & 28.1 & 62.5 &  \\
+\cmidrule(l{3pt}r{3pt}){1-11}
+\multirow{5}{*}{Qwen3-14B} & 1 & 8.9 & \textbf{54.1} & 1.1 & \textbf{8.0} & \textbf{11.8} & \textbf{56.2} & \textbf{10.1} & \textbf{52.5} & \multirow{5}{*}{8} \\
+ & 4 & 15.7 & \textbf{64.6} & 3.4 & \textbf{10.0} & \textbf{20.2} & \textbf{66.1} & \textbf{17.5} & \textbf{62.1} &  \\
+ & 8 & 19.3 & \textbf{68.0} & 4.9 & 12.0 & \textbf{24.3} & \textbf{68.7} & \textbf{21.3} & \textbf{65.0} &  \\
+ & 16 & 23.6 & \textbf{69.3} & 5.9 & 12.0 & \textbf{28.3} & \textbf{70.0} & \textbf{25.2} & \textbf{66.2} &  \\
+ & 32 & \textbf{28.2} & \textbf{71.5} & 6.0 & 12.0 & \textbf{32.2} & \textbf{71.2} & \textbf{29.1} & \textbf{67.8} &  \\
+\cmidrule(l{3pt}r{3pt}){1-11}
+\multirow{5}{*}{Qwen3-30B-A3B} & 1 & \textbf{10.6} & 48.1 & \textbf{3.6} & \textbf{8.0} & 9.8 & 52.4 & 9.7 & 48.1 & \multirow{5}{*}{8} \\
+ & 4 & \textbf{17.0} & 57.6 & \textbf{5.7} & 8.0 & 17.9 & 65.0 & 16.9 & 58.8 &  \\
+ & 8 & 19.7 & 61.1 & 6.0 & 8.0 & 21.9 & 67.2 & 20.1 & 61.3 &  \\
+ & 16 & 22.5 & 62.0 & 6.0 & 10.0 & 26.2 & 68.2 & 23.6 & 62.4 &  \\
+ & 32 & 25.6 & 62.3 & 6.0 & 10.0 & 30.5 & 68.5 & 27.2 & 62.6 &  \\
+\cmidrule(l{3pt}r{3pt}){1-11}
+\multirow{5}{*}{Llama 3.1 8B} & 1 & 0.8 & 29.4 & 0.0 & 2.0 & 0.9 & 32.0 & 0.8 & 29.2 & \multirow{5}{*}{8} \\
+ & 4 & 3.0 & 49.7 & 0.0 & 8.0 & 3.3 & 51.7 & 3.0 & 48.3 &  \\
+ & 8 & 5.5 & 55.4 & 0.0 & \textbf{14.0} & 5.9 & 58.4 & 5.4 & 54.6 &  \\
+ & 16 & 9.3 & 57.0 & 0.0 & \textbf{14.0} & 9.6 & 59.9 & 8.9 & 56.0 &  \\
+ & 32 & 14.6 & 57.0 & 0.0 & \textbf{14.0} & 14.8 & 60.1 & 13.8 & 56.1 &  \\
 \bottomrule
 \end{tabular}
 \end{table}
 
+\clearpage
 \begin{table}[H]
 \centering
 \setlength{\tabcolsep}{5pt}
-\caption{Per-GPU decoding throughput of the base probe checkpoints, measured
-with vLLM on A800-80G GPUs (\(n{=}32\) responses per task, temperature 1.0,
-\texttt{max\_tokens=2048}).}
+\caption{Per-GPU decoding throughput of the four backbones used in training
+experiments, measured with vLLM on A800-80G GPUs (\(n{=}32\) responses per
+task, temperature 1.0, \texttt{max\_tokens=2048}).}
 \label{tab:probe-serving}
 \begin{tabular}{lr}
 \toprule
 Model & tok/s/GPU \\
 \midrule
-Qwen3-1.7B & TBD \\
 Qwen3-4B & 7,445 \\
 Qwen3-8B & 5,833 \\
 Qwen3-14B & 3,168 \\
-Qwen3-30B-A3B & 5,031 \\
 Llama 3.1 8B & 5,135 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-
 \subsection{SFT Probe Curves}
 \label{app:sft-probe}
 
-The SFT checkpoints (one epoch on the final SFT corpus) are evaluated
+The SFT checkpoints (three epochs on the final SFT corpus) are evaluated
 under the same 832-task protocol as the base probe: 32 saved
 target-hidden responses per task at temperature 1.0, 5-second per-obligation
 prover budget, and the current prompt.
@@ -774,7 +836,7 @@ The reward variants correspond directly to the two levels of
 Equation~\ref{eq:generation-reward}.  \emph{Binary Inductiveness} assigns one
 iff the capped, normalized response is nonempty and every clause survives
 Houdini.  \emph{Whole-Rollout Strength} pays the strength score
-\(\operatorname{cov}(A_i)\) only when every capped clause survives,
+\(\operatorname{cov}(C_i^{\mathrm{train}})\) only when every capped clause survives,
 \[
   r_i^{\mathrm{whole}}
   =\mathbf 1[C_i^{\mathrm{train}}=
@@ -861,165 +923,187 @@ Structured (ours) & 6.80 & 13.42 & 16.80
 Structured sampling improves compose@$k$ by 5.5--6.7 points at every
 budget, whereas pass@$k$ stays within $-1.8$ to $+1.6$ points of Random.
 
+\subsection{Predictive Validity of Negative Coverage}
+\label{app:coverage-predictiveness}
+
+This audit tests the target-independent strength signal directly rather than
+inferring its validity only from downstream RL.  We collect 6,190 saved
+candidate invariant sets produced by eight target-hidden generation
+pipelines on the 832-program test set.  For each candidate, the prediction
+score is its structured relation/post-exit negative coverage, computed
+without \(Q\); the binary label is the final Frama-C/WP verdict after the
+untouched target is restored.  No target label is used to fit a predictor or
+choose a threshold.
+
+The continuous analysis contains 5,606 candidates from 752 programs.  The
+remaining 584 candidate rows belong to 80 programs for which the sampler
+retains no negative group; those rows use the binary reward fallback and
+have no continuous coverage value, so they are excluded rather than assigned
+an artificial zero.  Because multiple candidate generators are evaluated on
+the same program, confidence intervals use 5,000 stratified
+program-cluster bootstrap replicates: all candidates for a resampled program
+move together.  A second analysis computes AUROC separately within each of
+the 547 programs having both successful and unsuccessful candidates, then
+macro-averages over programs.  This removes between-program difficulty as an
+explanation for the ranking.
+
+\begin{center}
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lrrrr}
+\toprule
+Population & Candidates & Positive rate & AUROC & AUPRC \\
+\midrule
+All & 5,606 & 0.508 & 0.738 & 0.730 \\
+Linear & 2,336 & 0.533 & 0.743 & 0.768 \\
+NLA & 400 & 0.090 & 0.542 & 0.132 \\
+Loopy & 2,870 & 0.547 & 0.764 & 0.778 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The pooled AUROC has a program-clustered 95\% interval of
+\([0.711,0.763]\), and the AUPRC interval is \([0.699,0.758]\), compared with
+the pooled positive-rate baseline of \(0.508\).  Within programs, macro
+AUROC is \(0.794\), with a clustered interval of \([0.773,0.814]\); randomly
+permuting target verdicts among candidates for the same program gives a
+one-sided \(p<2\times10^{-4}\) over 5,000 permutations.  Method-stratified
+AUROCs range from \(0.572\) to \(0.731\), so the pooled association is not
+created by a single candidate generator.  Candidates with coverage at least
+0.90 verify \(78.9\%\) of the time, compared with \(29.2\%\) below 0.50.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.96\linewidth]{figures/negative_coverage_predictiveness.pdf}
+\caption{Predictive validity of target-independent negative coverage on saved
+test-set candidates.  (a)~ROC curves for restored-target verification;
+numbers in parentheses are AUROCs.  (b)~Target verification rate by coverage
+band, with Wilson 95\% intervals.  NLA remains close to chance, showing that
+the current structured negatives discriminate hidden-target utility much
+better for Linear and Loopy programs than for nonlinear arithmetic.}
+\label{fig:coverage-predictiveness}
+\end{figure}
+
+These results establish association, not causality: coverage is useful for
+ranking candidate strength but is not itself a proof of relevance to every
+possible hidden target.  In particular, the NLA stratum identifies where
+richer nonlinear perturbations are needed.  The complete deterministic
+analysis is produced by
+\texttt{scripts/analyze\_negative\_coverage\_auc.py}; machine-readable
+results are archived in
+\texttt{artifacts/v4/negative\_coverage\_predictiveness.json}.
+
 \subsection{Cross-Model Main Results}
 \label{app:reasoning-leakage}
 
 \begin{table}[H]
 \centering
-\footnotesize
-\setlength{\tabcolsep}{3.0pt}
-\caption{Cross-model results by benchmark stratum (316 linear, 50 NLA, 466
-Loopy, 832 overall programs).  Each stratum reports pass@\(k\) (pass) and
-compose@\(k\) (comp) percentages side by side at the rollout budget \(k\)
-in the first column.  reasoning\_effort=none throughout.  For every model,
-all rows come from one archived rollout pool per task (ten rollouts; eight
-for GPT-5.6-luna): compose@\(k\) unions the first \(k\) rollouts through
-the inference filter chain, and pass@\(k\) uses the unbiased estimator over
-per-rollout verdicts.  GPT-5-mini has no reasoning-off setting and is
-therefore not comparable here.}
+\scriptsize
+\renewcommand{\arraystretch}{0.90}
+\setlength{\tabcolsep}{2.4pt}
+\caption{Complete reasoning-off cross-model results by benchmark stratum and
+sampling budget.  Each cell reports a percentage; All / 832 is the
+whole-workload result.  Rows for each model come from one archived rollout
+pool of ten responses per task.  compose@\(k\) uses prefix composition and
+pass@\(k\) uses the unbiased estimator.  Bold marks the best value in each
+column at a fixed budget.  GPT-5-mini is excluded because it has no
+reasoning-off setting.}
 \label{tab:cross-model-main}
-\begin{tabular}{lcccccccc}
+\begin{tabular}{lccccccccc}
 \toprule
-& \multicolumn{8}{c}{Verified (\%)} \\
-\cmidrule(lr){2-9}
-& \multicolumn{2}{c}{Linear} & \multicolumn{2}{c}{NLA}
-  & \multicolumn{2}{c}{Loopy} & \multicolumn{2}{c}{All} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
-\(k\) & pass & comp & pass & comp & pass & comp & pass & comp \\
+& & \multicolumn{2}{c}{Linear / 316} & \multicolumn{2}{c}{NLA / 50}
+  & \multicolumn{2}{c}{Loopy / 466} & \multicolumn{2}{c}{All / 832} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(lr){9-10}
+Model & \(k\) & pass & comp & pass & comp & pass & comp & pass & comp \\
 \midrule
-\multicolumn{9}{l}{\textit{GPT-5-nano}} \\
-1
+\multirow{3}{*}{GPT-5-nano} & 1
   & \acc{11.9/316}{3.77} & \acc{110/316}{34.81}
   & \acc{0.2/50}{0.40} & \acc{11/50}{22.00}
   & \acc{17.7/466}{3.80} & \acc{161/466}{34.55}
   & \acc{29.8/832}{3.58} & \acc{282/832}{33.89} \\
-4
+ & 4
   & \acc{34.1/316}{10.79} & \acc{152/316}{48.10}
   & \acc{0.8/50}{1.60} & \acc{15/50}{30.00}
   & \acc{53.5/466}{11.48} & \acc{241/466}{51.72}
   & \acc{88.4/832}{10.62} & \acc{408/832}{49.04} \\
-8
+ & 8
   & \acc{50.0/316}{15.84} & \acc{175/316}{55.38}
   & \acc{1.6/50}{3.20} & \acc{22/50}{44.00}
   & \acc{81.9/466}{17.58} & \acc{265/466}{56.87}
   & \acc{133.6/832}{16.05} & \acc{462/832}{55.53} \\
-\cmidrule(l{3pt}r{3pt}){1-9}
-\multicolumn{9}{l}{\textit{GPT-5}} \\
-1
-  & \acc{110.8/316}{35.06} & \acc{165/316}{52.22}
+\cmidrule(l{3pt}r{3pt}){1-10}
+\multirow{3}{*}{GPT-5} & 1
+  & \textbf{\acc{110.8/316}{35.06}} & \acc{165/316}{52.22}
   & \acc{2.9/50}{5.80} & \acc{18/50}{36.00}
   & \acc{157.4/466}{33.78} & \acc{244/466}{52.36}
   & \acc{271.1/832}{32.58} & \acc{427/832}{51.32} \\
-4
-  & \acc{150.8/316}{47.73} & \acc{205/316}{64.87}
+ & 4
+  & \textbf{\acc{150.8/316}{47.73}} & \acc{205/316}{64.87}
   & \acc{4.4/50}{8.74} & \acc{26/50}{52.00}
-  & \acc{236.1/466}{50.67} & \acc{314/466}{67.38}
-  & \acc{391.3/832}{47.03} & \acc{545/832}{65.50} \\
-8
-  & \acc{164.1/316}{51.93} & \acc{222/316}{70.25}
-  & \acc{4.8/50}{9.60} & \acc{33/50}{66.00}
-  & \acc{261.6/466}{56.13} & \acc{344/466}{73.82}
-  & \acc{430.5/832}{51.74} & \acc{599/832}{72.00} \\
-\cmidrule(l{3pt}r{3pt}){1-9}
-\multicolumn{9}{l}{\textit{GPT-5.6-luna}} \\
-1
-  & \acc{256.1/316}{81.05} & \acc{266/316}{84.18}
-  & \acc{36.5/50}{73.00} & \acc{41/50}{82.00}
-  & \acc{384.0/466}{82.40} & \acc{401/466}{86.05}
-  & \acc{676.6/832}{81.32} & \acc{708/832}{85.10} \\
-4
-  & \acc{281.5/316}{89.09} & \acc{283/316}{89.56}
-  & \acc{43.0/50}{85.94} & \acc{45/50}{90.00}
-  & \acc{420.0/466}{90.12} & \acc{428/466}{91.85}
-  & \acc{744.5/832}{89.48} & \acc{756/832}{90.87} \\
-8
-  & \acc{284.0/316}{89.87} & \acc{285/316}{90.19}
-  & \acc{45.0/50}{90.00} & \acc{45/50}{90.00}
-  & \acc{427.0/466}{91.63} & \acc{434/466}{93.13}
-  & \acc{756.0/832}{90.87} & \acc{764/832}{91.83} \\
-\cmidrule(l{3pt}r{3pt}){1-9}
-\multicolumn{9}{l}{\textit{Claude Sonnet-4.6}} \\
-1
-  & \acc{109.0/316}{34.49} & \acc{175/316}{55.38}
-  & \acc{3.9/50}{7.80} & \acc{22/50}{44.00}
-  & \acc{189.5/466}{40.67} & \acc{277/466}{59.44}
-  & \acc{302.4/832}{36.35} & \acc{474/832}{56.97} \\
-4
+  & \textbf{\acc{236.1/466}{50.67}} & \acc{314/466}{67.38}
+  & \textbf{\acc{391.3/832}{47.03}} & \acc{545/832}{65.50} \\
+ & 8
+  & \textbf{\acc{164.1/316}{51.93}} & \acc{222/316}{70.25}
+  & \textbf{\acc{4.8/50}{9.60}} & \acc{33/50}{66.00}
+  & \textbf{\acc{261.6/466}{56.13}} & \acc{344/466}{73.82}
+  & \textbf{\acc{430.5/832}{51.74}} & \acc{599/832}{72.00} \\
+\cmidrule(l{3pt}r{3pt}){1-10}
+\multirow{3}{*}{Claude Sonnet-4.6} & 1
+  & \acc{109.0/316}{34.49} & \textbf{\acc{175/316}{55.38}}
+  & \textbf{\acc{3.9/50}{7.80}} & \textbf{\acc{22/50}{44.00}}
+  & \textbf{\acc{189.5/466}{40.67}} & \textbf{\acc{277/466}{59.44}}
+  & \textbf{\acc{302.4/832}{36.35}} & \textbf{\acc{474/832}{56.97}} \\
+ & 4
   & \acc{127.4/316}{40.32} & \acc{199/316}{62.97}
-  & \acc{4.4/50}{8.80} & \acc{26/50}{52.00}
+  & \textbf{\acc{4.4/50}{8.80}} & \acc{26/50}{52.00}
   & \acc{220.3/466}{47.27} & \acc{309/466}{66.31}
   & \acc{352.1/832}{42.32} & \acc{534/832}{64.18} \\
-8
+ & 8
   & \acc{135.5/316}{42.87} & \acc{210/316}{66.46}
-  & \acc{4.8/50}{9.60} & \acc{32/50}{64.00}
+  & \textbf{\acc{4.8/50}{9.60}} & \acc{32/50}{64.00}
   & \acc{233.6/466}{50.12} & \acc{315/466}{67.60}
   & \acc{373.8/832}{44.93} & \acc{557/832}{66.95} \\
-\cmidrule(l{3pt}r{3pt}){1-9}
-\multicolumn{9}{l}{\textit{DeepSeek V4-Flash}} \\
-1
+\cmidrule(l{3pt}r{3pt}){1-10}
+\multirow{3}{*}{DeepSeek V4-Flash} & 1
   & \acc{90.6/316}{28.67} & \acc{165/316}{52.22}
-  & \acc{2.5/50}{5.00} & \acc{22/50}{44.00}
+  & \acc{2.5/50}{5.00} & \textbf{\acc{22/50}{44.00}}
   & \acc{140.5/466}{30.15} & \acc{241/466}{51.72}
   & \acc{233.6/832}{28.08} & \acc{428/832}{51.44} \\
-4
-  & \acc{133.8/316}{42.35} & \acc{210/316}{66.46}
-  & \acc{3.8/50}{7.52} & \acc{30/50}{60.00}
-  & \acc{222.4/466}{47.73} & \acc{326/466}{69.96}
-  & \acc{360.0/832}{43.27} & \acc{566/832}{68.03} \\
-8
-  & \acc{147.4/316}{46.64} & \acc{226/316}{71.52}
-  & \acc{4.0/50}{8.00} & \acc{36/50}{72.00}
-  & \acc{249.7/466}{53.59} & \acc{357/466}{76.61}
-  & \acc{401.1/832}{48.21} & \acc{619/832}{74.40} \\
+ & 4
+  & \acc{133.8/316}{42.35} & \textbf{\acc{210/316}{66.46}}
+  & \acc{3.8/50}{7.52} & \textbf{\acc{30/50}{60.00}}
+  & \acc{222.4/466}{47.73} & \textbf{\acc{326/466}{69.96}}
+  & \acc{360.0/832}{43.27} & \textbf{\acc{566/832}{68.03}} \\
+ & 8
+  & \acc{147.4/316}{46.64} & \textbf{\acc{226/316}{71.52}}
+  & \acc{4.0/50}{8.00} & \textbf{\acc{36/50}{72.00}}
+  & \acc{249.7/466}{53.59} & \textbf{\acc{357/466}{76.61}}
+  & \acc{401.1/832}{48.21} & \textbf{\acc{619/832}{74.40}} \\
 \bottomrule
 \end{tabular}
 \end{table}
-
-\begin{table}[H]
-\centering
-\footnotesize
-\setlength{\tabcolsep}{2.2pt}
-\caption{Reasoning-on reference rows complementing
-Table~\ref{tab:cross-model-main}: \emph{default} leaves reasoning\_effort
-unset (the provider's own default); \emph{medium} sets it explicitly.}
-\label{tab:main-complete}
-\begin{tabular}{llccccc}
-\toprule
-Model & Reasoning & \(k\) & Linear & NLA & Loopy & All \\
-\midrule
-\midrule
-DeepSeek-V4-Flash & default & 1 & 57.91/62.03 & 4.00/8.00 & 52.15/54.51
-  & 51.44/54.57 \\
-GPT-5-mini        & default & 1 & 55.70/77.85 & 4.00/10.00 & 60.94/75.75
-  & 55.53/72.60 \\
-GPT-5             & medium & 1 & 77.85/80.38 & 14.00/14.00 & 80.47/80.47
-  & 75.48/76.44 \\
-\bottomrule
-\end{tabular}
-\end{table}
-All rows are full-workload means over 832 programs.  Each
-pass@\(k\)/compose@\(k\) pair at a given \(k\) is certified from the same
-saved \(k\) responses.
+Each pass@\(k\)/compose@\(k\) pair at a given \(k\) is certified from the
+same saved \(k\) responses.
 
 \subsection{Comparison with Specialized Tools}
 
 \begin{table}[H]
 \centering
-\footnotesize
-\setlength{\tabcolsep}{3pt}
+\scriptsize
+\setlength{\tabcolsep}{2.2pt}
 \caption{Archived target-hidden tool comparison: the
 \texttt{reasoning\_effort=none} rows from the main text alongside the
 archived \texttt{reasoning\_effort=medium} rerun; Daikon makes no model call
-and is listed once.  Each cell reports the verification rate under the
-common file-level denominator.  The compose@1 rows are the dedicated
-single-call runs paired with pass@1; the compose@4 and compose@8 rows are
-prefix compositions of the archived ten-rollout pool, as in
-Table~\ref{tab:tool-comparison}.}
+and is listed once.  Each cell reports the verification rate for Linear,
+NLA, Loopy, or all 832 programs.  The compose@1 rows are the dedicated
+single-call runs paired with pass@1.  Medium-effort results are available
+only for these single-response measurements; the compose@4 and compose@8
+rows use \texttt{reasoning\_effort=none} and are prefix compositions of the
+archived ten-rollout pool, as in Table~\ref{tab:tool-comparison}.}
 \label{tab:tools-complete}
 \begin{tabular}{llrrrrrr}
 \toprule
-Method & Reasoning & Linear / 316 & NLA / 50 & Loopy / 466 & Overall / 832
-  & Tokens / task & Time / task \\
+Method & Reason. & Linear & NLA & Loopy & All & Tokens/task & Time/task \\
 \midrule
 AutoSpec & none & \acc{151}{47.78\%} & \acc{3}{6.00\%} & \acc{197}{42.27\%}
   & \acc{351}{42.19\%}
@@ -1070,15 +1154,9 @@ Naive & medium & \acc{154}{48.73\%} & \acc{4}{8.00\%} & \acc{221}{47.42\%}
 \sam{} (compose@4) & none & \acc{152}{48.10\%} & \acc{15}{30.00\%} & \acc{241}{51.72\%}
   & \acc{408}{49.04\%}
   & 1,905.10 & 46.40\,s \\
-\sam{} (compose@4) & medium & TBD & TBD & TBD
-  & TBD
-  & TBD & TBD \\
 \sam{} (compose@8) & none & \acc{175}{55.38\%} & \acc{22}{44.00\%} & \acc{265}{56.87\%}
   & \acc{462}{55.53\%}
   & 2,929.47 & 69.99\,s \\
-\sam{} (compose@8) & medium & TBD & TBD & TBD
-  & TBD
-  & TBD & TBD \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1110,6 +1188,31 @@ Loopy & 15 initial + up to 7 repairs & 0.7 / 1.0 & 8,192 & none \\
 
 Token totals are means over tasks with at least one model call; accuracy
 always keeps the 832-task denominator.
+
+\subsection{Tool-Specific Behavior under Target Hiding}
+\label{app:tool-specific-behavior}
+
+The evaluated systems interact differently with the target-hidden protocol.
+The following observations clarify their effective inference procedures
+rather than attributing performance differences to any single mechanism.
+
+\paragraph{AutoSpec.}
+AutoSpec pools eight parallel proposals in its native orchestration.  Its
+reported result therefore reflects a multi-proposal pipeline rather than a
+single-response baseline.
+
+\paragraph{Clause2Inv.}
+Clause2Inv normally constructs false-state counterexamples from the
+postcondition.  Because the postcondition is hidden in our protocol, that
+source of counterexamples is unavailable.  Its required transition
+verification conditions are also unavailable for the 466 Loopy programs;
+these unsupported instances remain failures in the common denominator.
+
+\paragraph{Loopy.}
+Although 98.8\% of Loopy's initial responses contain textual
+\texttt{loop invariant} annotations, its native extractor passes only 1.75\%
+of initial responses to Houdini.  This indicates an interface bottleneck
+between generated text and the clauses accepted by its downstream pipeline.
 
 \clearpage
 \section{Detailed Limitations}

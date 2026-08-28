@@ -215,6 +215,7 @@ program prompt.
   "w_shapley": 0.3,
   "max_invariants": 20,
   "reward_variant": "full",
+  "credit_filter_order": "pooled",
   "sampler": {
     "n_runs": 12,
     "seed": 0,
@@ -231,6 +232,7 @@ The response is order-aligned with the submitted rollouts:
   "base": [0.35, 0.14],
   "shapley_credit": [0.20, 0.10],
   "reward_variant": "full",
+  "credit_filter_order": "pooled",
   "negative_sampler": "structured",
   "reward_mode": "negative_coverage",
   "scorable": true,
@@ -240,10 +242,13 @@ The response is order-aligned with the submitted rollouts:
 }
 ```
 
-`base` is the fraction of sampled negative-candidate traces rejected by
-the rollout's Houdini survivors. `shapley_credit` allocates the group's
-standalone union coverage: a trace covered by `f` rollouts contributes `1/f`
-to each. The default reward is `base + 0.3 * shapley_credit`.
+The service pools the group, runs Houdini once, and assigns each surviving
+clause back to every rollout that proposed an equivalent clause. `base` is the
+fraction of sampled negative-candidate traces rejected by those attributed
+survivors. `shapley_credit` allocates their union coverage: a trace covered by
+`f` rollouts contributes `1/f` to each. The default reward is
+`base + 0.3 * shapley_credit`. Set `credit_filter_order` to `independent` only
+to reproduce the historical per-rollout filtering baseline.
 
 Only the first 20 invariant lines enter Houdini; later lines are discarded
 and counted in `overflow`. All generated relation and escape traces

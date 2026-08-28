@@ -40,10 +40,10 @@
 %% -----------------------------------------------------------------
 \draw[panel] (0.10,3.72) rectangle (15.90,7.05);
 \node[tag, fill=codeblue, anchor=west]
-  at (0.40,6.72) {DECOMPOSE \(\rightleftarrows\) COMPOSE};
+  at (0.40,7.05) {DECOMPOSE \(\rightleftarrows\) COMPOSE};
 
 %% legend: clause color encodes validity and, for valid clauses, strength
-\begin{scope}[shift={(11.85,6.64)}]
+\begin{scope}[shift={(11.85,6.82)}]
   \fill[codegreen!88] (0,0) rectangle (0.16,0.16);
   \fill[codegreen!52] (0.21,0) rectangle (0.37,0.16);
   \fill[codegreen!28] (0.42,0) rectangle (0.58,0.16);
@@ -65,7 +65,7 @@
 %% ---------------- DECOMPOSE block ----------------
 \draw[rounded corners=4pt, draw=codeblue!48, fill=codeblue!4,
   line width=0.9pt] (2.75,4.00) rectangle (8.20,6.45);
-\node[tag, fill=codeblue!80, anchor=west] at (3.00,6.20) {WITHIN A ROLLOUT};
+\node[tag, fill=codeblue!80, anchor=west] at (3.00,6.45) {WITHIN A ROLLOUT};
 
 \node[heading] at (4.25,5.92) {1\; ROLLOUT};
 \foreach \y/\lab/\cols/\mk/\rowstyle/\labcol in {
@@ -101,7 +101,7 @@
 %% ---------------- COMPOSE block ----------------
 \draw[rounded corners=4pt, draw=codegreen!58, fill=codegreen!4,
   line width=0.9pt] (8.65,4.00) rectangle (15.60,6.45);
-\node[tag, fill=codegreen!72, anchor=west] at (8.90,6.20) {ACROSS ROLLOUTS};
+\node[tag, fill=codegreen!72, anchor=west] at (8.90,6.45) {ACROSS ROLLOUTS};
 
 \node[heading] at (9.75,5.92) {3\; POOL};
 \node[poolbound, minimum width=1.55cm, minimum height=1.25cm] at (9.75,5.18) {};
@@ -156,7 +156,7 @@
 %% =================================================================
 \draw[rounded corners=5pt, fill=white, draw=codepurple!34,
   line width=0.8pt] (0.10,-1.40) rectangle (4.90,3.05);
-\node[tag, fill=codepurple!84, anchor=west] at (0.40,2.75) {SFT};
+\node[tag, fill=codepurple!84, anchor=west] at (0.40,3.05) {SFT};
 
 \node[card, draw=codepurple!58, fill=white, text width=3.0cm]
   (composed) at (2.50,2.15)
@@ -193,8 +193,8 @@
 \draw[dataflow] (sftcorpus.south) -- (sftmodel.north);
 %% the acceptance test is a reward call
 \draw[scoreflow, rounded corners=2pt]
-  (accept.west) -- (0.48,1.12) -- (0.48,-1.70);
-\node[font=\tiny, text=paperink!70, rotate=90] at (0.30,-0.30)
+  (accept.west) -- (0.25,1.12) -- (0.25,-1.70);
+\node[font=\tiny, text=paperink!70, rotate=90] at (0.41,-0.30)
   {score};
 
 %% =================================================================
@@ -202,12 +202,10 @@
 %% =================================================================
 \draw[rounded corners=5pt, fill=white, draw=codeblue!34,
   line width=0.8pt] (5.10,-1.40) rectangle (11.275,3.05);
-\node[tag, fill=codeblue, anchor=west] at (5.40,2.75) {RL};
+\node[tag, fill=codeblue, anchor=west] at (5.40,3.05) {RL};
 
 \node[tag, fill=codeblue!72, anchor=west]
-  at (5.35,2.32) {1\hspace{2pt}DECOMPOSE};
-\node[tag, fill=codeblue!72, anchor=west]
-  at (7.38,2.32) {2\hspace{2pt}FILTER};
+  at (5.35,2.32) {DECOMPOSE};
 
 \foreach \y/\lab/\cols/\ret/\covv in {
   1.86/A_2/{codegreen!70,wrongred,codegreen!45,codegreen!80,codegreen!30}/{codegreen!70,codegreen!45,codegreen!80,codegreen!30}/{strength .80},
@@ -229,9 +227,9 @@
 }
 
 \node[font=\tiny\itshape, text=codegray, anchor=west] at (5.35,1.10)
-  {reverse of inference: filter, then compose (Appendix~\ref{app:houdini-order})};
+  {pool once, filter once, assign survivors by provenance};
 \node[tag, fill=codeblue!86, anchor=west]
-  at (5.35,0.78) {3\hspace{2pt}COMPOSE};
+  at (5.35,0.78) {COMPOSE};
 \node[card, draw=codeblue!62, fill=algobg!85, text width=5.1cm,
   inner ysep=3pt] (rwd) at (8.19,0.20)
   {{\bfseries credit} = own strength + Shapley share\\[-1pt]
@@ -240,7 +238,7 @@
   inner ysep=2.5pt] (grpo) at (8.19,-0.78)
   {{\bfseries GRPO}: group-normalized advantage\\[-1pt] \(\to\) policy update};
 \draw[trainflow] (rwd) -- (grpo);
-%% each retained subset is a reward call
+%% the pooled survivor set is one reward call
 \draw[scoreflow, rounded corners=2pt]
   (rwd.east) -- (10.98,0.20) -- (10.98,-1.70);
 \node[font=\tiny, text=paperink!70, rotate=90] at (10.80,-0.62)
@@ -251,7 +249,7 @@
 %% =================================================================
 \draw[rounded corners=5pt, fill=white, draw=paperink!42,
   line width=0.8pt] (0.10,-3.95) rectangle (11.275,-1.70);
-\node[tag, fill=paperink!82, anchor=west] at (0.40,-1.94) {REWARD};
+\node[tag, fill=paperink!82, anchor=west] at (0.40,-1.70) {REWARD};
 \node[font=\tiny, text=codegray, anchor=east] at (11.15,-1.94)
   {shared by SFT and RL; never sees \(Q\)};
 
@@ -327,7 +325,7 @@
 %% =================================================================
 \draw[rounded corners=5pt, fill=white, draw=codeolive!38,
   line width=0.8pt] (11.475,-3.95) rectangle (15.90,3.05);
-\node[tag, fill=codeolive!80, anchor=west] at (11.55,2.75) {INFERENCE};
+\node[tag, fill=codeolive!80, anchor=west] at (11.55,3.05) {INFERENCE};
 \node[font=\tiny\itshape, text=codegray, anchor=east] at (15.62,2.40)
   {no execution states, no reward};
 \node[card, draw=codeolive!55, fill=white, text width=2.3cm]
@@ -360,7 +358,7 @@ scores clause sets against execution-derived negatives and is shared by
 two of them: SFT accepts a composed set once its whole-rollout coverage
 reaches \(\tau\), strengthening it with further rollout groups otherwise,
 and distills it into one SFT response; RL \emph{decomposes} each rollout onto
-its verifier-retained subset and credits it with clause-level coverage plus a
+the pooled survivor set back onto each rollout and credits it with clause-level coverage plus a
 closed-form Shapley share of the group's rejections, so a rejection already
 supplied by peers earns less.  The four credit rules ablated in
 Section~\ref{sec:exp:ablations} are listed in the reward panel.  Inference

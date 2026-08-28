@@ -5,10 +5,17 @@ Given a program and a GROUP of rollouts (each a candidate invariant set), score
 each rollout and the batch, using synthetic negative candidates from the sampler:
 
   whole[A]    = base[A] iff every clause in A survives, else zero
-  base[A]     = fraction of negative traces rejected by Houdini(A alone)
+  base[A]     = fraction of negative traces rejected by A's clauses that
+                survive pooled Houdini filtering
   shapley[A]  = Shapley allocation of the group's rejection coverage
   reward[A]   = w_base * base[A] + w_shapley * shapley[A]
   batch_score = fraction of candidates rejected by Houdini(union)    (batch performance)
+
+The default credit path first pools all rollout clauses, runs Houdini once, and
+then assigns surviving clauses back to every rollout that proposed a
+semantically equivalent clause before computing coverage-game Shapley credit.
+The historical per-rollout filtering path remains available as ``independent``
+for controlled comparisons.
 
 Scoring uses one canonical target-hidden execution sample.  The full source is
 used only after Houdini to mine concrete assertion-failing escape traces; it is
@@ -44,6 +51,7 @@ from ..common.state import (
     dedup_normalized,
     eval_predicate,
     extract_invariants,
+    invariant_dedup_key,
     normalize_invariant,
 )
 from ..sampler import ExampleSampler, ExampleSet
@@ -56,18 +64,23 @@ REWARD_VARIANTS = (
     "full",
 )
 
+CREDIT_FILTER_ORDERS = (
+    "pooled",
+    "independent",
+)
+
 @dataclass
 class RolloutScore:
     index: int
     invariants: List[str]
-    survivors: List[str]          # Houdini-surviving invariants (standalone)
+    survivors: List[str]          # surviving clauses attributed to this rollout
     generated: int                # clauses emitted before the response cap
     accepted: int                 # clauses admitted before canonical de-duplication
     overflow: int                 # clauses beyond max_invariants
     base: float
     shapley_credit: float         # allocation of group negative coverage
     reward: float
-    rejected: int                 # negatives rejected standalone
+    rejected: int                 # negatives rejected by attributed survivors
 
 @dataclass
 class BatchReward:
@@ -80,6 +93,7 @@ class BatchReward:
     # Kept after the historical fields for positional-constructor compatibility.
     reward_variant: str = "full"
     negative_sampler: str = "structured"
+    credit_filter_order: str = "pooled"
 
     @property
     def scorable(self) -> bool:
@@ -106,6 +120,7 @@ class BatchReward:
             "filter_mode": self.filter_mode,
             "reward_variant": self.reward_variant,
             "negative_sampler": self.negative_sampler,
+            "credit_filter_order": self.credit_filter_order,
             "reward_mode": self.reward_mode,
             "scorable": self.scorable,
             "rollout_rewards": [r.reward for r in self.rollouts],
@@ -178,11 +193,17 @@ class RewardCalculator:
         logger: Optional[logging.Logger] = None,
         sampler_kwargs: Optional[dict] = None,
         reward_variant: str = "full",
+        credit_filter_order: str = "pooled",
     ):
         if reward_variant not in REWARD_VARIANTS:
             raise ValueError(
                 "reward_variant must be one of: "
                 + ", ".join(REWARD_VARIANTS)
+            )
+        if credit_filter_order not in CREDIT_FILTER_ORDERS:
+            raise ValueError(
+                "credit_filter_order must be one of: "
+                + ", ".join(CREDIT_FILTER_ORDERS)
             )
         log = logger or logging.getLogger("rl_pipeline.reward")
         self.filter = invariant_filter or filters.auto_filter(log)
@@ -192,6 +213,7 @@ class RewardCalculator:
         self.n_jobs = n_jobs or min(16, (os.cpu_count() or 8))
         self.sampler_kwargs = sampler_kwargs or {}
         self.reward_variant = reward_variant
+        self.credit_filter_order = credit_filter_order
         if min(self.w_base, self.w_shapley) < 0:
             raise ValueError("reward weights must be non-negative")
         if not 1 <= self.max_invariants <= MAX_INVARIANTS_PER_RESPONSE:
@@ -271,7 +293,9 @@ class RewardCalculator:
         ]
         roll_invs = [dedup_normalized(invs) for invs in roll_invs_capped]
 
-        # Memoize filter results across per-rollout and union calls.
+        # Memoize filter results across the clause sets required by the chosen
+        # credit path.  The default pooled path needs exactly one nonempty
+        # Houdini call for the group.
         survive_cache: dict = {}
 
         def survive(invs: List[str]) -> List[str]:
@@ -284,10 +308,14 @@ class RewardCalculator:
                 survive_cache[key] = cached
             return cached
 
-        # PRE-WARM the survive cache in parallel: every distinct clause set the
-        # scoring below needs is filtered concurrently.
+        # PRE-WARM the survive cache in parallel for the historical independent
+        # path.  Pooled attribution intentionally filters only the union.
         union = dedup_normalized(c for invs in roll_invs for c in invs)
-        needed = [union] + roll_invs
+        needed = (
+            [union]
+            if self.credit_filter_order == "pooled"
+            else [union] + roll_invs
+        )
         uniq = {frozenset(normalize_invariant(i) for i in invs): invs
                 for invs in needed if invs}
         if len(uniq) > 1 and self.n_jobs > 1:
@@ -296,7 +324,22 @@ class RewardCalculator:
                     kv[0], self.filter.filter(prog, loop_idx, sorted(kv[0]), positives)),
                     uniq.items()))
         union_surv = survive(union)
-        rollout_survivors = [survive(invs) for invs in roll_invs]
+        if self.credit_filter_order == "pooled":
+            # Preserve provenance after union de-duplication.  Semantic keys
+            # ensure aliases such as ``x >= 0`` and ``0 <= x`` share the same
+            # pooled survivor while retaining each rollout as an owner.
+            surviving_keys = {
+                invariant_dedup_key(inv) for inv in union_surv
+            }
+            rollout_survivors = [
+                [
+                    inv for inv in invs
+                    if invariant_dedup_key(inv) in surviving_keys
+                ]
+                for invs in roll_invs
+            ]
+        else:
+            rollout_survivors = [survive(invs) for invs in roll_invs]
         rollout_base_rejections = [
             self._to_groups(
                 self._rejected_set(negatives, survivors, constants), groups
@@ -309,7 +352,7 @@ class RewardCalculator:
         ]
         # Closed-form Shapley allocation for the negative-set coverage game.
         # A trace rejected by f rollouts contributes 1/f to each of them, so
-        # the per-rollout credits sum exactly to standalone union coverage.
+        # the per-rollout credits sum exactly to attributed union coverage.
         group_shapley_weight = [
             1.0 / count if count else 0.0
             for count in group_reject_count
@@ -340,7 +383,7 @@ class RewardCalculator:
 
         scores: List[RolloutScore] = []
         for idx, invs in enumerate(roll_invs):
-            # base: standalone Houdini survivors, counted in trace units
+            # base: attributed Houdini survivors, counted in trace units
             surv = rollout_survivors[idx]
             base_rej = rollout_base_rejections[idx]
             base = (len(base_rej) / n_neg) if n_neg else 0.0
@@ -384,5 +427,6 @@ class RewardCalculator:
             negative_sampler=getattr(
                 examples, "negative_sampler", "structured"
             ),
+            credit_filter_order=self.credit_filter_order,
             rollouts=scores,
         )

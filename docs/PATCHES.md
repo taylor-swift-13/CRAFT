@@ -279,3 +279,17 @@ reward[i] = 1.0 * base[i]
 
 The calculation reuses the rejection frequencies and adds no Houdini or
 verifier calls. The public response exposes `shapley_credit` directly.
+
+## 2026-08-28: Reward v5 — pool, filter once, then assign provenance
+
+Reward filtering now matches inference order. The group first unions all
+normalized rollout clauses and runs the filter cascade once. Each survivor is
+then assigned back to every rollout that proposed the same semantic clause
+key; negative rejection sets and the closed-form coverage-game Shapley value
+are computed from these attributed subsets. The historical standalone path is
+available as `credit_filter_order="independent"` for ablations.
+
+On 30 stratified archived tasks (8 rollouts each, Frama-C/WP timeout 5 seconds
+per obligation), pooled filtering reduced median scoring time from 16.82 to
+6.48 seconds and total time from 824.39 to 655.60 seconds. Target-verdict AUROC
+was unchanged to three decimals (0.726 pooled, 0.725 independent).

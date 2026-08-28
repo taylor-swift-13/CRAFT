@@ -849,6 +849,7 @@ class RewardPatchRegressionTests(unittest.TestCase):
         self.assertNotIn("reroll_threshold", request_fields)
         self.assertIn("w_shapley", request_fields)
         self.assertIn("reward_variant", request_fields)
+        self.assertIn("credit_filter_order", request_fields)
         if hasattr(service.SamplerCfg, "model_fields"):
             sampler_fields = service.SamplerCfg.model_fields
         else:
@@ -858,6 +859,82 @@ class RewardPatchRegressionTests(unittest.TestCase):
         self.assertFalse(hasattr(RewardCalculator(), "reroll_threshold"))
         configured = RewardCalculator(w_shapley=0.7)
         self.assertEqual(configured.w_shapley, 0.7)
+        self.assertEqual(configured.credit_filter_order, "pooled")
+
+    def test_pooled_filtering_assigns_survivors_before_shapley(self):
+        source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
+        examples = ExampleSet(
+            program=parse_program(source),
+            positives={0: [State(vars={"x": 0})]},
+            negatives={0: [State(vars={"x": -1})]},
+            neg_groups={0: [[0]]},
+        )
+
+        class DependencyFilter:
+            name = "dependency"
+
+            def __init__(self):
+                self.calls = []
+
+            def filter(self, _program, _loop_idx, invariants, _positives=None):
+                self.calls.append(frozenset(invariants))
+                invs = set(invariants)
+                if {"x >= 0", "x == x"} <= invs:
+                    return list(invariants)
+                return [inv for inv in invariants if inv == "x == x"]
+
+        pooled_filter = DependencyFilter()
+        pooled = RewardCalculator(
+            invariant_filter=pooled_filter,
+            credit_filter_order="pooled",
+            n_jobs=1,
+        ).compute(
+            source, [["x >= 0"], ["x == x"]], examples=examples
+        )
+        independent_filter = DependencyFilter()
+        independent = RewardCalculator(
+            invariant_filter=independent_filter,
+            credit_filter_order="independent",
+            n_jobs=1,
+        ).compute(
+            source, [["x >= 0"], ["x == x"]], examples=examples
+        )
+
+        self.assertEqual(len(pooled_filter.calls), 1)
+        self.assertEqual(len(independent_filter.calls), 3)
+        self.assertEqual(pooled.rollouts[0].survivors, ["x >= 0"])
+        self.assertEqual(pooled.rollouts[0].base, 1.0)
+        self.assertEqual(pooled.rollouts[0].shapley_credit, 1.0)
+        self.assertEqual(independent.rollouts[0].survivors, [])
+        self.assertEqual(independent.rollouts[0].reward, 0.0)
+        self.assertEqual(
+            pooled.to_dict()["credit_filter_order"], "pooled"
+        )
+
+    def test_pooled_provenance_credits_semantically_equivalent_owners(self):
+        source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
+        examples = ExampleSet(
+            program=parse_program(source),
+            positives={0: [State(vars={"x": 0})]},
+            negatives={0: [State(vars={"x": -1})]},
+            neg_groups={0: [[0]]},
+        )
+
+        result = RewardCalculator(
+            invariant_filter=self._IdentityFilter(), n_jobs=1
+        ).compute(
+            source, [["x >= 0"], ["0 <= x"]], examples=examples
+        )
+
+        self.assertEqual(result.rollouts[0].survivors, ["x >= 0"])
+        self.assertEqual(result.rollouts[1].survivors, ["0 <= x"])
+        self.assertEqual(
+            [rollout.shapley_credit for rollout in result.rollouts],
+            [0.5, 0.5],
+        )
+
+        with self.assertRaisesRegex(ValueError, "credit_filter_order"):
+            RewardCalculator(credit_filter_order="not-an-order")
 
     def test_reward_ablation_variants_select_expected_terms(self):
         source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
@@ -1011,6 +1088,7 @@ class RewardPatchRegressionTests(unittest.TestCase):
                     "program": source,
                     "rollouts": [["x >= 0"]],
                     "reward_variant": "base",
+                    "credit_filter_order": "independent",
                     "sampler": {
                         "n_runs": 1,
                         "seed": 3,
@@ -1023,6 +1101,7 @@ class RewardPatchRegressionTests(unittest.TestCase):
         payload = response.json()
         self.assertEqual(payload["rollout_rewards"], [1.0])
         self.assertEqual(payload["reward_variant"], "base")
+        self.assertEqual(payload["credit_filter_order"], "independent")
         self.assertEqual(payload["negative_sampler"], "structured")
 
     def test_semantic_dedup_fixed_seed_metamorphic_pairs(self):

@@ -84,7 +84,7 @@ Since
 \[
   I_j\Rightarrow I
   \quad\Longleftrightarrow\quad
-  I_j\Rightarrow\bigwedge_{\ell\ne j}I_\ell,
+  I_j\Rightarrow\bigwedge_{i\ne j}I_i,
 \]
 
 the stated condition follows.  In particular, two valid invariants form a
@@ -203,8 +203,8 @@ exactly one unit of credit among its \(f(\nu)\) rejectors.
 
 Table~\ref{tab:constants} lists the implemented defaults.  SFT synthesis,
 RL, and inference share one rollout--decompose--pool--filter--compose
-implementation; RL applies Houdini once per response for credit assignment,
-whereas SFT and inference apply it after union
+implementation.  RL also filters the union once, then uses clause provenance
+to assign survivors back to their proposing rollouts before computing credit
 (Appendix~\ref{app:houdini-order}).
 
 \begin{table}[t]
@@ -216,29 +216,29 @@ whereas SFT and inference apply it after union
 \midrule
 runs requested & 12 & input executions; deterministic no-input programs collapse to one, and oracle-body sampling doubles the request \\
 sampler seed & 0 & one canonical example set per reward request unless overridden \\
-input tiers & 20 fixed values & deterministic near-input schedule listed below; unconstrained tier candidates are clamped to $[-64,64]$ \\
-far probes & 3, plus 2 ordered multi-parameter probes & seed-hashed input-envelope coverage, magnitude $\le 512$ \\
-relation deltas & dense: $\pm\{1,2\}$; terminal: $\pm\{1,2,3,5,8\}$ & single-axis and pairwise perturbations; terminal bases require a witnessed final transition rather than a forward dense window \\
+input tiers & 20 fixed values & deterministic near-input schedule listed below; unconstrained tier candidates are clamped to \([-64,64]\) \\
+far probes & 3, plus 2 ordered multi-parameter probes & seed-hashed input-envelope coverage, magnitude \(\le 512\) \\
+relation deltas & dense: \(\pm\{1,2\}\); terminal: \(\pm\{1,2,3,5,8\}\) & single-axis and pairwise perturbations; terminal bases require a witnessed final transition rather than a forward dense window \\
 dense window & 3 & sampled successors required for a relation base \\
 relation base cap & 96 & bases stratified across positives \\
 post-exit steps & 24 & continuation length after a genuine exit (one negative trace per run) \\
 negative-example budgets & 48 / 12 & relational / post-exit traces (sampler schema v7); stable round-robin across structural buckets, nearest perturbations first \\
-iteration cap & $2 \times 10^6$ & divergence safety net (capped runs flagged) \\
+iteration cap & \(2 \times 10^6\) & divergence safety net (capped runs flagged) \\
 \midrule
-$(w_c, w_g)$ & $(1.0, 0.3)$ & negative rejection / Shapley group-credit weights \\
-$K$ & 20 clauses & response cap applied independently to every generated response; later clauses are discarded \\
+\((w_c, w_g)\) & \((1.0, 0.3)\) & negative rejection / Shapley group-credit weights \\
+\(K\) & 20 clauses & response cap applied independently to every generated response; later clauses are discarded \\
 \midrule
-$G_{\mathrm{sft}}$ & 16 responses & group sampled per SFT strengthening round ($\S$\ref{sec:method:sft}) \\
-$T_{\mathrm{sft}}$ & 5 rounds & maximum strengthening rounds per loop (at most 80 responses) \\
-$\tau$ & TBD & SFT acceptance threshold on the composed set's negative coverage (whole-rollout strength) \\
+\(G_{\mathrm{sft}}\) & 16 responses & group sampled per SFT strengthening round (\S\ref{sec:method:sft}) \\
+\(T_{\mathrm{sft}}\) & 5 rounds & maximum strengthening rounds per loop (at most 80 responses) \\
+\(\tau\) & TBD & SFT acceptance threshold on the composed set's negative coverage (whole-rollout strength) \\
 \midrule
-Houdini iterations & $\le 500$ & greatest-inductive-subset pruning \\
-WP configuration & Alt-Ergo, 30\,s, Typed model & current implementation default and per-goal budget \\
+Houdini iterations & \(\le 500\) & greatest-inductive-subset pruning \\
+WP configuration & Alt-Ergo + Z3, 5\,s, Typed model & per-obligation prover budget \\
 \bottomrule
 \end{tabular}
 \caption{Defaults for execution sampling
-($\S$\ref{sec:method:sampler}), SFT synthesis ($\S$\ref{sec:method:sft}),
-reward computation ($\S$\ref{sec:method:reward}), inference, and
+(\S\ref{sec:method:sampler}), SFT synthesis (\S\ref{sec:method:sft}),
+reward computation (\S\ref{sec:method:reward}), inference, and
 verification.}
 \label{tab:constants}
 \end{table}
@@ -274,18 +274,18 @@ families against uniform random perturbations.
 \label{alg:negative-sampling}
 \begin{algorithmic}
 \alginput{masked loop \(\mathcal L=(P,B,S)\), input schedule \(U\), configuration \(\Theta\)}
-\algoutput{reachable states \(\mathcal P\), negative traces \(\mathcal N\)}
-\algline \(\mathcal T_{\mathrm{exec}},\mathcal T_{\mathrm{post}},c
+\algoutput{reachable states \(\mathcal E\), negative traces \(\mathcal N\)}
+\algline \(\mathcal T_{\mathrm{exec}},\mathcal T_{\mathrm{post}},\mathit{capped}
   \leftarrow\operatorname{Trace}(\mathcal L,U,\Theta)\)
-  \cmnt{\(c\): some run was capped}\\
-\algline \(\mathcal P\leftarrow\operatorname{UniqueHeads}(\mathcal T_{\mathrm{exec}})\);
+  \cmnt{\(\mathit{capped}\): some run was capped}\\
+\algline \(\mathcal E\leftarrow\operatorname{UniqueHeads}(\mathcal T_{\mathrm{exec}})\);
   \quad \(M\leftarrow\operatorname{SafeModifiedVars}(S)\)\\
 \algline \kw{if} \(M=\varnothing\) or \(S\) has unsupported state
-  \kw{then return} \((\mathcal P,\varnothing)\)\\
-\algline \(\mathcal P_{\mathrm{sample}}\leftarrow
-  \operatorname{StratifiedSample}(\mathcal P)\)\\
+  \kw{then return} \((\mathcal E,\varnothing)\)\\
+\algline \(\mathcal E_{\mathrm{sample}}\leftarrow
+  \operatorname{StratifiedSample}(\mathcal E)\)\\
 \algline \(C_{\mathrm{rel}}\leftarrow
-  \operatorname{Perturb}_{\Theta}(\operatorname{Dense}(\mathcal P_{\mathrm{sample}}),M)\)\\
+  \operatorname{Perturb}_{\Theta}(\operatorname{Dense}(\mathcal E_{\mathrm{sample}}),M)\)\\
 \algline \kw{if} \(\neg\mathit{capped}\) \kw{then}
   \(C_{\mathrm{rel}}\leftarrow C_{\mathrm{rel}}\cup
   \operatorname{Perturb}_{\Theta}(\operatorname{Terminals}(\mathcal T_{\mathrm{exec}}),M)\)\\
@@ -293,18 +293,18 @@ families against uniform random perturbations.
   \operatorname{TangentAndEnvelopeFilter}(C_{\mathrm{rel}},
   \mathcal T_{\mathrm{exec}})\)\\
 \algline \((C_{\mathrm{rel}},\mathcal T_{\mathrm{post}})
-  \leftarrow\operatorname{Clean}_{\mathcal P}
+  \leftarrow\operatorname{Clean}_{\mathcal E}
   (C_{\mathrm{rel}},\mathcal T_{\mathrm{post}})\)\\
 \algline \(\widehat C_{\mathrm{rel}},\mathcal N_{\mathrm{post}}
   \leftarrow\operatorname{BudgetAndRoundRobin}
   (C_{\mathrm{rel}},\mathcal T_{\mathrm{post}},\Theta)\)\\
 \algline \(\mathcal N\leftarrow
   \{\langle s\rangle:s\in \widehat C_{\mathrm{rel}}\}\cup\mathcal N_{\mathrm{post}}\)\\
-\algline \kw{return} \((\mathcal P,\mathcal N)\)\\
+\algline \kw{return} \((\mathcal E,\mathcal N)\)\\
 \end{algorithmic}
 \end{algorithm}
 
-\(\operatorname{Clean}_{\mathcal P}\) removes observed reachable states,
+\(\operatorname{Clean}_{\mathcal E}\) removes observed reachable states,
 possible fresh loop entries, duplicates, and unsupported candidates; a
 cleaned post-exit continuation remains one trace, and relation candidates
 become singleton traces.  Within each structural bucket the round-robin
@@ -502,7 +502,7 @@ marginals behind this joint-cell comparison.
 \setlength{\tabcolsep}{5pt}
 \begin{tabular}{lrrr}
 \toprule
- & RL & SFT & RL $\cup$ SFT \\
+ & RL & SFT & RL \(\cup\) SFT \\
 \midrule
 Records & 4,992 & 33,346 & 38,338 \\
 Distinct program sources & 4,992 & 31,865 & 35,170 \\
@@ -534,9 +534,9 @@ Variable-vs.-variable guard & 37.3 & 57.3 & 50.6 \\
 Compound guard & 6.7 & 3.7 & 0.8 \\
 Nonlinear & 2.5 & 2.5 & 10.8 \\
 Nondeterministic & 28.6 & 30.3 & 14.9 \\
-$\leq 2$ variables & 35.1 & 21.2 & 46.2 \\
+\(\leq 2\) variables & 35.1 & 21.2 & 46.2 \\
 3--4 variables & 33.9 & 31.7 & 12.0 \\
-$\geq 5$ variables & 31.0 & 47.1 & 41.8 \\
+\(\geq 5\) variables & 31.0 & 47.1 & 41.8 \\
 \bottomrule
 \end{tabular}
 \caption{Marginal structural distributions of evaluation programs and final
@@ -678,7 +678,6 @@ whole-workload result.  \(k_{95}\) is the smallest measured budget at which
 compose@\(k\) reaches \(95\%\) of compose@32.  Bold marks the best value in
 each column at a fixed budget.}
 \label{tab:probe-complete}
-\label{tab:probe-stratum}
 \setlength{\tabcolsep}{2.4pt}
 \begin{tabular}{lcccccccccc}
 \toprule
@@ -862,7 +861,7 @@ identical optimization and inference settings.
 \label{tab:reward-ablation}
 \begin{tabular}{lrrrrrrrrrr}
 \toprule
-& \multicolumn{5}{c}{pass@$k$} & \multicolumn{5}{c}{compose@$k$} \\
+& \multicolumn{5}{c}{pass@\(k\)} & \multicolumn{5}{c}{compose@\(k\)} \\
 \cmidrule(lr){2-6}\cmidrule(lr){7-11}
 Variant & 1 & 4 & 8 & 16 & 32 & 1 & 4 & 8 & 16 & 32 \\
 \midrule
@@ -905,7 +904,7 @@ draws uniform local perturbations under the same trace budget.
 \label{tab:sampler-ablation}
 \begin{tabular}{lrrrrrrrrrr}
 \toprule
-& \multicolumn{5}{c}{pass@$k$} & \multicolumn{5}{c}{compose@$k$} \\
+& \multicolumn{5}{c}{pass@\(k\)} & \multicolumn{5}{c}{compose@\(k\)} \\
 \cmidrule(lr){2-6}\cmidrule(lr){7-11}
 Negative sampler & 1 & 4 & 8 & 16 & 32 & 1 & 4 & 8 & 16 & 32 \\
 \midrule
@@ -920,8 +919,8 @@ Structured (ours) & 6.80 & 13.42 & 16.80
 
 % TODO: confirm the Random run used the same base_shapley reward as the
 % Structured row; re-run it otherwise.
-Structured sampling improves compose@$k$ by 5.5--6.7 points at every
-budget, whereas pass@$k$ stays within $-1.8$ to $+1.6$ points of Random.
+Structured sampling improves compose@\(k\) by 5.5--6.7 points at every
+budget, whereas pass@\(k\) stays within \(-1.8\) to \(+1.6\) points of Random.
 
 \subsection{Predictive Validity of Negative Coverage}
 \label{app:coverage-predictiveness}
@@ -1297,82 +1296,53 @@ supervision is therefore not aligned with the clause-wise
 filter-and-compose target.
 
 \clearpage
-\section{Training--Inference Mismatch in Houdini Ordering}
+\section{Pooled Filtering and Provenance Credit}
 \label{app:houdini-order}
 
 Let \(\bar A_i\) be the normalized, capped clause sequence proposed by rollout
 \(i\), and let
 \(C_i^{\mathrm{pf}}=
-\mathsf{PF}_{\mathcal P}(\operatorname{set}(\bar A_i))\).  Recall that
+\mathsf{PF}_{\mathcal E}(\operatorname{set}(\bar A_i))\).  Recall that
 \(\mathsf{Filter}_{\mathcal L}(C)\) denotes the implemented filtering pipeline
-on candidate set \(C\).  SFT construction and inference first merge the
-candidates and then filter them:
+on candidate set \(C\).  RL, SFT construction, and inference all merge the
+candidates and filter them once:
 \begin{equation}
-  C^{\mathrm{infer}}
+  C_{\mathcal G}^{\mathrm{surv}}
   =
   \mathsf{Filter}_{\mathcal L}\!\left(
-    \bigcup_{i=1}^{G}\operatorname{set}(\bar A_i)\right).
+    \bigcup_{i=1}^{G}C_i^{\mathrm{pf}}\right).
   \label{eq:infer-houdini-order}
 \end{equation}
 This order allows a clause from one response to be preserved with the help of
-a companion clause proposed by another response.
+a companion clause proposed by another response and removes the former
+training--inference mismatch in Houdini ordering.
 
-RL requires a scalar reward for each rollout.  The current implementation
-therefore runs Houdini independently and computes coverage, Shapley credit, and
-redundancy from
+RL still requires one scalar per rollout.  The implementation retains an
+owner map from each normalized semantic clause key to every rollout that
+proposed that key.  After Equation~\eqref{eq:infer-houdini-order}, it assigns a
+survivor to all of its owners:
 \begin{equation}
-  C_i^{\mathrm{train}} =
-  \mathsf{Filter}_{\mathcal L}(C_i^{\mathrm{pf}}).
+  C_i^{\mathrm{train}}
+  =\{c\in C_i^{\mathrm{pf}}:
+  \operatorname{key}(c)\in
+  \operatorname{key}(C_{\mathcal G}^{\mathrm{surv}})\}.
   \label{eq:train-houdini-order}
 \end{equation}
-It also evaluates
-\(\mathsf{Filter}_{\mathcal L}
-(\bigcup_i C_i^{\mathrm{pf}})\) as a group-level diagnostic, but this shared
-result does not determine each rollout's token-level advantage.
+Equivalent spellings therefore share the pooled verdict but retain their own
+surface forms in rollout diagnostics.  Duplicate ownership is intentional: if
+the same survivor rejects a negative for \(f\) rollouts, Equation~\eqref{eq:shapley-credit}
+splits that rejection among the \(f\) owners.  A supporting clause that rejects
+no sampled negative receives no direct coverage credit, but it can enable a
+companion survivor that does; this is the same limitation as any
+negative-coverage surrogate.
 
-\paragraph{Why the two orders are not equivalent.}
-Houdini is not distributive over union:
-\begin{equation}
-  \mathsf{Filter}_{\mathcal L}\!\left(\bigcup_i C_i^{\mathrm{pf}}\right)
-  \ne
-  \bigcup_i \mathsf{Filter}_{\mathcal L}(C_i^{\mathrm{pf}})
-  \quad\text{in general}.
-  \label{eq:houdini-nondistributive}
-\end{equation}
-For example, a clause from one rollout may fail preservation in isolation but
-become inductive when conjoined with a supporting clause from another rollout.
-Thus, two clauses rejected by separate Houdini runs can belong to an inductive
-conjunction after union.  Because the training reward filters each response
-first, it misses the positive credit associated with this cross-rollout
-support.
-
-\paragraph{The order has little practical effect.}
-Three facts bound the mismatch.  First, it is one-sided: a clause that is
-inductive on its own remains inductive in any pool that contains it
-(Proposition~\ref{prop:conjunctive-closure}), so
-\(\bigcup_i\mathsf{Filter}_{\mathcal L}(C_i^{\mathrm{pf}})\subseteq
-\mathsf{Filter}_{\mathcal L}(\bigcup_i C_i^{\mathrm{pf}})\) up to prover
-noise.  Filtering before pooling can only \emph{omit} clauses that need a
-companion from another rollout to pass preservation; it never admits a
-clause the pooled filter would reject.  Second, the omission costs nothing
-directly: the reward pays coverage and Shapley credit to surviving clauses
-only, so a clause that fails standalone Houdini is neither rewarded nor
-penalized, and its rollout loses at most the coverage that clause would
-have added.  Third, inference always pools before filtering
-(Equation~\eqref{eq:infer-houdini-order}), so every mutually supported pair
-is still retained at test time; the mismatch can under-train such pairs but
-cannot remove them from the composed invariant.  Mutual support is also the
-exception rather than the rule for scalar-integer loops: most clauses are
-bounds or single relations whose preservation obligation closes on its own,
-and pilot audits of pooled versus per-rollout filtering found rescued
-clauses to be rare.  The order therefore changes which rollout is credited
-for a rare mutually supported clause, not what the pipeline proves.
-
-\paragraph{Why retain this approximation.}
-Independent filtering gives a stable, parallelizable reward for every
-response.  Assigning the same union-level score to all \(G\) responses is
-uninformative under group-relative normalization because the shared component
-cancels.  Exact leave-one-out credit under a set-level value \(V\),
+\paragraph{Relation to exact coalition credit.}
+Once the full-group survivor set is fixed, the sets
+\(R_i=\operatorname{rej}(C_i^{\mathrm{train}})\) define an ordinary coverage
+game, whose exact Shapley value is the closed form in
+Equation~\eqref{eq:shapley-credit}.  This is not the Shapley value of a more
+expensive game that re-runs Houdini for every coalition.  Even leave-one-out
+credit under such a set-level value \(V\),
 \[
   \Delta_i =
   V\!\left(\mathsf{Filter}_{\mathcal L}\!\left(
@@ -1383,5 +1353,20 @@ cancels.  Exact leave-one-out credit under a set-level value \(V\),
 \]
 requires at least \(G+1\) union-level Houdini evaluations per prompt and
 can still miss higher-order interactions; Shapley-style credit over unions
-captures them but requires many subset evaluations.  We retain the cheaper
-approximation and leave union-level credit to future work.
+requires exponentially many subset evaluations.  We instead condition the
+fixed coverage game on the sampled full group, preserving informative
+per-rollout variation with one pooled filter call.
+
+\paragraph{Runtime and signal check.}
+We compared this implementation with the historical independent-filtering
+path on a fixed, stratified sample of 30 archived tasks (10 Linear, 10 NLA,
+and 10 Loopy), eight rollouts per task, using the same frozen negatives and a
+5-second Frama-C/WP budget per obligation.  Pooled filtering reduced the mean
+filter calls from 8.6 to 1.0 per task, total scoring time from 824.39 to
+655.60 seconds (\(1.26\times\)), and median task time from 16.82 to 6.48
+seconds (\(2.60\times\)).  Against restored-target per-rollout verdicts, its
+AUROC was 0.726 versus 0.725 for independent filtering, and average precision
+was 0.454 for both.  Thus the order change improved wall time without an
+observed loss of target-success discrimination in this diagnostic sample;
+these 240 rollouts are a validation check, not a substitute for the training
+ablations.

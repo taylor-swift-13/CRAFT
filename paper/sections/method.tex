@@ -14,7 +14,7 @@ filtering and earns reward (Section~\ref{sec:method:core});
 coverage across a response group, because inference unions that group
 (Section~\ref{sec:method:reward}).  The guiding thesis is that because
 inference composes, training should optimize composability: raising the
-compose@$k$ curve and reaching its large-pool performance with fewer
+compose@\(k\) curve and reaching its large-pool performance with fewer
 rollouts.
 
 \subsection{Rollout--Decompose--Pool--Filter--Compose}
@@ -84,7 +84,7 @@ are deferred to Appendix~\ref{app:composition-proofs}.
 Let \(I_1,\ldots,I_m\) be valid invariants of the same loop, for finite
 \(m\ge 1\).  Then \(I=\bigwedge_{j=1}^{m}I_j\) is valid and implies every
 \(I_j\), i.e., \(I\preceq I_j\).  Moreover, \(I\prec I_j\) exactly when
-\(I_j\not\Rightarrow\bigwedge_{\ell\ne j}I_\ell\).
+\(I_j\not\Rightarrow\bigwedge_{i\ne j}I_i\).
 \end{proposition}
 
 \begin{proposition}[Mutually supported composition]
@@ -124,10 +124,10 @@ practice the per-obligation prover budget (Section~\ref{sec:exp:setup})
 makes this oracle approximate.
 
 RL scoring additionally removes clauses contradicted by observed reachable
-states \(\mathcal P\) before Houdini:
+states \(\mathcal E\) before Houdini:
 \[
-  \mathsf{PF}_{\mathcal P}(C)
-  =\{c\in C:\forall p\in\mathcal P,\ p\models c\}.
+  \mathsf{PF}_{\mathcal E}(C)
+  =\{c\in C:\forall p\in\mathcal E,\ p\models c\}.
 \]
 This positive filter is a cheap refutation step used only for RL scoring.
 Appendix~\ref{app:constants} gives normalization and filtering details.
@@ -142,13 +142,13 @@ At inference, the pipeline samples \(k\) masked responses and produces
   C_k=\mathsf{Filter}_{\mathcal L}(C_k^{\mathrm{pool}}),\qquad
   I_k=I_{C_k}.
 \]
-Only then is \(Q\) restored.  The target utility and inference objective are
+Only then is \(Q\) restored.  The inference objective is the expected
+target-utility indicator,
 \[
-  U_Q(A_{1:k})=\mathbf 1[\operatorname{Verify}(\mathcal L,I_k,Q)],
-  \qquad
-  \max_\pi\ \mathbb E_{A_{1:k}\sim\pi(\cdot\mid\mathcal L)}[U_Q(A_{1:k})].
+  \max_\pi\ \mathbb E_{A_{1:k}\sim\pi(\cdot\mid\mathcal L)}\,
+  \mathbf 1[\operatorname{Verify}(\mathcal L,I_k,Q)],
 \]
-Here \(\operatorname{Verify}\) requires establishment, preservation, and every
+where \(\operatorname{Verify}\) requires establishment, preservation, and every
 restored target at its original location; for one post-loop target, its last
 obligation is \(I_k\wedge\neg B\Rightarrow q\).
 Its empirical counterpart is compose@\(k\), which can succeed even when no
@@ -160,7 +160,7 @@ optimize a target-hidden surrogate for this curve.
 
 To grade inductive sets without \(Q\), we execute a deterministic,
 precondition-checked input sweep and record reachable loop-head states
-\(\mathcal P\).  From these executions we construct two negative-example
+\(\mathcal E\).  From these executions we construct two negative-example
 families: local one- or two-variable perturbations that break relations, and
 continuations of the real body after a witnessed loop exit.  Cleaning is
 deliberately conservative---any candidate that executions cannot rule out is
@@ -234,18 +234,27 @@ rollout's marginal contribution to pooled coverage, paying the policy for
 expanding the joint clause pool rather than for reproducing its most common
 clauses.
 
-For rollout \(i\), define its verifier-retained subset and rejected negatives
-as
+For rollout \(i\), first apply the clause-local positive filter, pool the group,
+and run the verifier filter once:
 \[
   C_i^{\mathrm{pf}}=
-  \mathsf{PF}_{\mathcal P}(\operatorname{set}(\bar A_i)),\qquad
-  C_i^{\mathrm{train}}=\mathsf{Filter}_{\mathcal L}(C_i^{\mathrm{pf}}),
+  \mathsf{PF}_{\mathcal E}(\operatorname{set}(\bar A_i)),\qquad
+  C_{\mathcal G}^{\mathrm{surv}}=
+  \mathsf{Filter}_{\mathcal L}\!\left(\bigcup_{j=1}^{G}C_j^{\mathrm{pf}}\right).
+\]
+We then use normalized semantic keys to assign each pooled survivor back to
+every rollout that proposed it,
+\[
+  C_i^{\mathrm{train}}
+  =\{c\in C_i^{\mathrm{pf}}:\operatorname{key}(c)
+      \in\operatorname{key}(C_{\mathcal G}^{\mathrm{surv}})\},
   \qquad R_i=\operatorname{rej}(C_i^{\mathrm{train}}).
 \]
 This projection implements \emph{intra-rollout decomposition}: malformed or
 non-inductive clauses are removed without erasing useful clauses in the same
-response.  Training thus pools and filters each rollout on its own; only
-credit is composed across the group (Appendix~\ref{app:houdini-order}).  When retained negatives exist, the reward adds no bonus merely for
+response, while mutually supporting clauses from different responses are
+filtered under the same pooled context used at inference
+(Appendix~\ref{app:houdini-order}).  When retained negatives exist, the reward adds no bonus merely for
 valid syntax or whole-response validity.  The subset receives the dense,
 target-independent strength score
 \[
@@ -294,4 +303,3 @@ update; this training-time group is distinct from the inference sweep over
 \(k\) (Section~\ref{sec:method:inference}).
 Appendix~\ref{app:grpo-details} gives the standard
 policy objective, clause normalization, and fallback behavior.
-

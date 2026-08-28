@@ -134,10 +134,13 @@ as soft diagnostics.
 Scores a **group** of rollouts. For each rollout `A` (in candidate-trace
 units — one fake continuation is ONE negative, not twenty-four):
 
-- `base[A]`     = candidates rejected by **Houdini(A alone)** — its own kill rate;
-- `shapley_credit[A]` allocates the union of the group's standalone negative
+- all clauses are pooled and filtered once, then each surviving clause is
+  assigned back to every rollout that proposed it (including a semantically
+  equivalent spelling);
+- `base[A]`     = candidates rejected by the pooled survivors assigned to `A`;
+- `shapley_credit[A]` allocates the union of the group's attributed negative
   coverage: a trace rejected by `f` rollouts contributes `1/f` to each.
-  Credits therefore sum exactly to standalone union coverage;
+  Credits therefore sum exactly to attributed union coverage;
 - `reward[A]`   = `1.0·base[A] + 0.3·shapley_credit[A]` by default.
   Repeated clauses collapse in the same clause-set construction used at
   inference (the solver-free key handles comparison direction, commutative
@@ -166,6 +169,11 @@ from rl_pipeline.reward import RewardCalculator
 br = RewardCalculator(reward_variant="full").compute(source, rollouts)
 br.to_dict()   # rewards, coverage, Shapley credit, batch_score
 ```
+
+The default `credit_filter_order="pooled"` matches inference and requires one
+nonempty Houdini call per group. `"independent"` preserves the historical
+per-rollout path for controlled comparisons. Both the HTTP and file-scoring
+outputs record the selected order.
 
 Reward ablations use `reward_variant`: `binary`, `whole_coverage`, `base`,
 and `full`. They respectively enable binary standalone validation;

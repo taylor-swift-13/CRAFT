@@ -76,7 +76,7 @@ subset; one rejected clause does not erase credit earned by the others.  We
 score the strength of that subset using the execution-derived negative
 examples it rejects, without adding a reward merely for well-formed syntax or
 whole-response validity.  \emph{Across} rollouts, we apply a closed-form
-Shapley allocation to the union of their independently retained
+Shapley allocation to the union of their pooled-filtered, provenance-assigned
 negative-example coverage: repeated rejections share credit, whereas a
 rejection supplied by fewer peers receives more.  Thus the reward of one rollout depends on what the other rollouts in
 its Group Relative Policy Optimization (GRPO) group discover

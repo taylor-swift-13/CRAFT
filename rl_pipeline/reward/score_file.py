@@ -18,7 +18,11 @@ from typing import Dict, Optional
 from ..sampler import ExampleSampler, ExampleSet, NEGATIVE_SAMPLER_MODES
 from ..sampler.example_sampler import DEFAULT_N_RUNS, DEFAULT_SEED
 from . import filters, io
-from .reward_calculator import REWARD_VARIANTS, RewardCalculator
+from .reward_calculator import (
+    CREDIT_FILTER_ORDERS,
+    REWARD_VARIANTS,
+    RewardCalculator,
+)
 
 
 def score_file(input_path: str, output_path: str, cfg: io.IOConfig,
@@ -27,7 +31,8 @@ def score_file(input_path: str, output_path: str, cfg: io.IOConfig,
                include_program: bool = False,
                logger: Optional[logging.Logger] = None,
                w_shapley: float = 0.3,
-               reward_variant: str = "full") -> Dict[str, int]:
+               reward_variant: str = "full",
+               credit_filter_order: str = "pooled") -> Dict[str, int]:
     sampler_kwargs = dict(sampler_kwargs or {})
     logger = logger or logging.getLogger("rl_pipeline.reward.score_file")
     batches = io.read_batches(input_path, cfg)
@@ -37,6 +42,7 @@ def score_file(input_path: str, output_path: str, cfg: io.IOConfig,
     rc = RewardCalculator(invariant_filter=shared_filter, w_base=w_base,
                           w_shapley=w_shapley,
                           reward_variant=reward_variant,
+                          credit_filter_order=credit_filter_order,
                           logger=logger)
 
     example_cache: Dict[str, ExampleSet] = {}
@@ -88,6 +94,12 @@ def main() -> int:
     ap.add_argument(
         "--reward-variant", choices=REWARD_VARIANTS, default="full"
     )
+    ap.add_argument(
+        "--credit-filter-order",
+        choices=CREDIT_FILTER_ORDERS,
+        default="pooled",
+        help="filter the pooled union once (default) or each rollout separately",
+    )
     ap.add_argument("--include-program", action="store_true", help="keep program column in output")
     # sampler knobs
     ap.add_argument("--runs", type=int, default=DEFAULT_N_RUNS)
@@ -116,6 +128,7 @@ def main() -> int:
         args.w_base, args.include_program, logger,
         w_shapley=args.w_shapley,
         reward_variant=args.reward_variant,
+        credit_filter_order=args.credit_filter_order,
     )
     return 1 if stats["failed"] else 0
 

@@ -67,6 +67,9 @@ class RewardRequest(BaseModel):
     reward_variant: Literal[
         "binary", "whole_coverage", "base", "full"
     ] = "full"
+    credit_filter_order: Literal[
+        "pooled", "independent"
+    ] = "pooled"
     sampler: SamplerCfg = Field(default_factory=SamplerCfg)
 
 
@@ -123,6 +126,7 @@ def build_app():
                 w_base=req.w_base, w_shapley=req.w_shapley,
                 max_invariants=req.max_invariants,
                 reward_variant=req.reward_variant,
+                credit_filter_order=req.credit_filter_order,
                 logger=log,
             )
             br = rc.compute(req.program, req.rollouts, examples=examples)

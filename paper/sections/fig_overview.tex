@@ -10,18 +10,21 @@
   flow/.style={-{Stealth[length=2.0mm]}, draw=paperink!64,
     line width=0.9pt},
   bus/.style={draw=codeblue!64, line width=1.0pt},
-  dataflow/.style={-{Stealth[length=2.0mm]}, draw=codepurple!86,
-    line width=0.95pt},
-  trainflow/.style={-{Stealth[length=2.0mm]}, draw=codeblue!88,
-    line width=0.95pt},
+  dataflow/.style={-{Stealth[length=1.45mm,width=1.0mm]}, draw=codepurple!86,
+    line width=0.65pt},
+  trainflow/.style={-{Stealth[length=1.45mm,width=1.0mm]}, draw=codeblue!88,
+    line width=0.65pt},
   inferflow/.style={-{Stealth[length=2.0mm]}, draw=codeolive!80,
     line width=0.95pt},
+  rewardflow/.style={-{Stealth[length=1.15mm,width=0.9mm]},
+    draw=codeolive!82, line width=0.6pt},
   panel/.style={draw=promptframe, fill=white, rounded corners=5pt,
     line width=0.85pt},
   card/.style={draw=promptframe, fill=white, rounded corners=2.5pt,
-    line width=0.75pt, align=center, inner xsep=5pt, inner ysep=4pt},
+    line width=0.75pt, align=center, inner xsep=5pt, inner ysep=4pt,
+    outer sep=1pt},
   tag/.style={rounded corners=2pt, inner xsep=5pt, inner ysep=2.3pt,
-    font=\small\bfseries, text=white},
+    font=\small\bfseries, text=white, outer sep=0.8pt},
   heading/.style={font=\scriptsize\bfseries, text=codegray, align=center},
   clausebox/.style={rectangle, rounded corners=0.5pt, minimum width=0.26cm,
     minimum height=0.26cm, inner sep=0pt, draw=paperink!20, line width=0.3pt},
@@ -55,7 +58,7 @@
   {{\bfseries Masked loop}\\[-1pt]
    \(\mathcal L=(P,B,S)\)\\[-2pt]
    {\textcolor{codered}{target \(Q\) hidden}}};
-\draw[flow] (2.32,5.20) -- (2.72,5.20);
+\draw[flow] (masked.east) -- (2.67,5.20);
 
 %% ---------------- DECOMPOSE block ----------------
 \draw[rounded corners=4pt, draw=codeblue!48, fill=codeblue!4,
@@ -76,7 +79,7 @@
 }
 \node[text=codegray!70] at (4.35,4.40) {\(\vdots\)};
 
-\draw[flow] (5.52,5.18) -- (6.12,5.18);
+\draw[flow] (5.52,5.18) -- (5.88,5.18);
 \node[heading] at (7.12,5.92) {2\; DECOMPOSE};
 \foreach \y/\lab/\cols in {
   5.60/{\bar A_1}/{codegreen!85,codegreen!50,codegreen!85,codegreen!35,codegreen!65},
@@ -92,7 +95,7 @@
 
 %% the hinge between the two operations
 \draw[-{Stealth[length=2.6mm]}, draw=paperink!72, line width=1.6pt]
-  (8.22,5.18) -- (8.62,5.18);
+  (8.27,5.18) -- (8.57,5.18);
 
 %% ---------------- COMPOSE block ----------------
 \draw[rounded corners=4pt, draw=codegreen!58, fill=codegreen!4,
@@ -108,7 +111,7 @@
   \node[clausebox, fill=\c] at (9.75+\dx,5.18+\dy) {};
 }
 
-\draw[flow] (10.62,5.18) -- (11.02,5.18);
+\draw[flow] (10.68,5.18) -- (11.08,5.18);
 \node[heading] at (11.40,5.92) {4\; FILTER};
 \draw[draw=codeblue!74, fill=codeblue!22, line width=0.9pt]
   (10.93,5.46) -- (11.32,5.06) -- (11.32,4.88) -- (11.48,4.88) --
@@ -118,7 +121,7 @@
 \node[font=\tiny, text=codegray, align=center] at (11.40,4.32)
   {syntax, dedup,\\Houdini};
 
-\draw[flow] (11.80,5.18) -- (12.20,5.18);
+\draw[flow] (11.82,5.18) -- (12.45,5.18);
 \node[heading] at (13.60,5.92) {5\; COMPOSE};
 \foreach \dx/\dy/\c in {
   -0.36/0.19/codegreen!85, 0.00/0.19/codegreen!45, 0.36/0.19/codegreen!70,
@@ -127,18 +130,18 @@
 }
 \node[font=\tiny, text=codegray] at (13.10,4.32) {conjoin survivors};
 
-\draw[flow] (13.62,5.18) -- (13.98,5.18);
 \node[card, draw=codegreen!64, fill=codegreen!10,
   text width=1.30cm] (survivors) at (14.70,5.18)
   {{\bfseries Output}\\[-1pt] \(C^{\mathrm{surv}}\)};
+\draw[flow] (13.65,5.18) -- (survivors.west);
 
 %% -----------------------------------------------------------------
 %% Distribution bus: the composed output feeds the training consumers
 %% -----------------------------------------------------------------
 \draw[bus] (14.70,4.82) -- (14.70,3.42) -- (2.35,3.42);
 \foreach \x in {2.35,13.70}{\fill[codeblue!72] (\x,3.42) circle (1.8pt);}
-\draw[dataflow]  (2.35,3.42) -- (2.35,3.05);
-\draw[trainflow] (13.70,3.42) -- (13.70,3.05);
+\draw[dataflow]  (2.35,3.42) -- (2.35,3.12);
+\draw[trainflow] (13.70,3.42) -- (13.70,3.12);
 \node[font=\tiny, text=codegray, anchor=west] at (2.49,3.22)
   {composed set};
 \node[font=\tiny, text=codegray, anchor=west] at (13.84,3.22)
@@ -174,53 +177,62 @@
 \node[font=\tiny, text=codepurple!80, anchor=west] at (2.47,0.62)
   {yes};
 \draw[rounded corners=2pt, draw=none, fill=codepurple!18]
-  (1.50,-0.46) rectangle (3.48,-0.18);
+  (1.50,-0.63) rectangle (3.48,-0.35);
 \draw[rounded corners=2pt, draw=none, fill=codepurple!32]
-  (1.44,-0.52) rectangle (3.42,-0.24);
-\node[tag, fill=codepurple!84] (sftcorpus) at (2.35,-0.58)
+  (1.44,-0.69) rectangle (3.42,-0.41);
+\node[tag, fill=codepurple!84] (sftcorpus) at (2.35,-0.75)
   {SFT CORPUS \(\mathcal D_{\mathrm{SFT}}\)};
-\draw[dataflow] (sfttarget.south) -- (2.35,-0.14);
+\draw[dataflow] (sfttarget.south) -- (2.35,-0.31);
 \node[card, draw=codepurple!58, fill=white, text width=3.3cm,
-  inner ysep=2.5pt] (sftmodel) at (2.35,-1.40)
+  inner ysep=2.5pt] (sftmodel) at (2.35,-1.57)
   {{\bfseries fine-tune}\\[-1pt] {\tiny many rollouts \(\to\) one response}};
 \draw[dataflow] (sftcorpus.south) -- (sftmodel.north);
 %% shared reward link: the composed set is scored, the verdict returns
 \draw[scoreflow, rounded corners=2pt]
-  (accept.east) -- (4.42,1.10) -- (4.42,1.57) -- (4.90,1.57);
+  (accept.east) -- (4.46,1.10) -- (4.46,0.59) -- (4.82,0.59);
 
 %% =================================================================
-%% CENTER --- one reward scorer shared by SFT and RL
+%% CENTER --- one target-independent scorer shared by SFT and RL
 %% =================================================================
 \draw[rounded corners=5pt, fill=white, draw=codeolive!45,
   line width=0.8pt] (4.90,-2.75) rectangle (11.00,3.05);
-\node[tag, fill=codeolive!85, anchor=west] at (5.20,3.05) {SHARED REWARD};
-\node[font=\tiny, text=paperink!70, anchor=west] at (5.08,1.80) {cov \(\ge\tau\)?};
+\node[tag, fill=codeolive!85, anchor=west] at (5.20,3.05) {REWARD};
 \node[font=\tiny\itshape, text=codegray, anchor=east] at (10.80,2.70)
-  {one scorer, two consumers; never sees \(Q\)};
+  {one target-free signal, two consumers};
+
+%% binary baseline
+\node[heading] at (7.95,2.38) {BINARY};
+\node[font=\tiny, text=codegray] at (7.95,2.12)
+  {valid set \(\mapsto \{0,1\}\)};
+\draw[rewardflow] (7.95,1.98) -- (7.95,1.84);
 
 %% negatives input
-\node[heading, anchor=west] at (5.15,2.42) {NEGATIVES};
-\node[font=\tiny, text=codegray, anchor=west] at (5.15,2.06)
-  {from executions};
+\node[heading] at (7.95,1.66) {NEGATIVES};
 \foreach \i in {0,1,2,3,4}{
   \node[circle, draw=codegray!55, fill=codegray!20, minimum size=0.22cm,
-    inner sep=0pt] at (6.55+\i*0.30,2.24) {};
+    inner sep=0pt] at (7.35+\i*0.30,1.38) {};
 }
+\node[font=\tiny, text=codegray] at (7.95,1.10)
+  {execution-derived};
+\draw[rewardflow] (7.95,0.96) -- (7.95,0.80);
 
 %% coverage score
-\node[heading, anchor=west] at (5.15,1.45) {COVERAGE};
+\node[heading, anchor=west] at (5.15,0.68) {COVERAGE};
 \draw[draw=paperink!45, fill=white, line width=0.5pt]
-  (6.75,1.20) rectangle (8.85,1.50);
-\draw[draw=none, fill=codegreen!55] (6.75,1.20) rectangle (8.10,1.50);
-\node[font=\tiny, text=codegray, anchor=west] at (9.00,1.35)
-  {negatives rejected};
+  (6.75,0.44) rectangle (8.85,0.74);
+\draw[draw=none, fill=codegreen!55] (6.75,0.44) rectangle (8.10,0.74);
+\node[font=\tiny, text=codegray, anchor=west] at (9.00,0.59)
+  {\(\operatorname{cov}=.64\)};
+\node[font=\tiny, text=codegray, anchor=west] at (9.00,0.34)
+  {rejected negatives};
+\draw[rewardflow] (7.95,0.30) -- (7.95,0.10);
 
 %% Shapley split of shared rejections
-\node[heading, anchor=west] at (5.15,0.55) {SHAPLEY SPLIT};
+\node[heading, anchor=west] at (5.15,-0.04) {SHAPLEY ALLOCATION};
 \foreach \y/\lab/\marks/\phiv in {
-  0.20/Y_1/{2,1,1,0,0}/{share .20},
-  -0.12/Y_2/{2,2,1,0,1}/{share .50},
-  -0.44/Y_3/{0,0,1,2,1}/{share .30}}{
+  -0.38/Y_1/{2,1,1,0,0}/{\(\phi_1=.20\)},
+  -0.68/Y_2/{2,2,1,0,1}/{\(\phi_2=.50\)},
+  -0.98/Y_3/{0,0,1,2,1}/{\(\phi_3=.30\)}}{
   \node[font=\tiny, text=codegreen!70, anchor=east] at (6.40,\y) {\(\lab\)};
   \foreach \s [count=\i from 0] in \marks {
     \pgfmathsetmacro{\bx}{6.52+\i*0.26}
@@ -240,7 +252,7 @@
   }
   \node[font=\tiny, text=codegray, anchor=west] at (7.75,\y) {\phiv};
 }
-\begin{scope}[yshift=-0.80cm]
+\begin{scope}[yshift=-1.34cm]
 \node[circle, draw=codegreen!90, fill=codegreen!80, minimum size=0.20cm,
   inner sep=0pt] at (6.52,-0.02) {};
 \node[font=\tiny, text=codegray, anchor=west] at (6.66,-0.02) {unique};
@@ -250,11 +262,12 @@
   (7.45,-0.09) -- (7.59,0.05) (7.45,0.05) -- (7.59,-0.09);
 \node[font=\tiny, text=codegray, anchor=west] at (7.66,-0.02) {shared};
 \end{scope}
+\draw[rewardflow] (7.95,-1.48) -- (7.95,-1.68);
 
 %% the per-rollout reward
 \node[card, draw=codeolive!55, fill=algobg!60, text width=4.9cm,
-  inner ysep=3pt] at (7.95,-1.75)
-  {{\bfseries one reward per rollout}\\[-1pt]
+  inner ysep=3pt] (rewardformula) at (7.95,-2.04)
+  {{\bfseries RL reward per rollout}\\[-1pt]
    \(r_i=\operatorname{cov}_i+0.3\,\phi_i\)};
 
 %% =================================================================
@@ -290,25 +303,29 @@
    {\color{codegray}\(Y_3\): .60 + .12}};
 \draw[trainflow] (assign.south) -- (rwd.north);
 \node[card, draw=codeblue!62, fill=white, text width=3.6cm,
-  inner ysep=2.5pt] (grpo) at (13.70,-2.22)
-  {{\bfseries GRPO}: group-normalized advantage\\[-1pt]
+  inner ysep=1.2pt] (grpo) at (13.70,-2.22)
+  {{\bfseries GRPO}: group-normalized advantage\\[-2pt]
    \(\to\) policy update \(\to\) next group};
 \draw[trainflow] (rwd.south) -- (grpo.north);
 %% shared reward link: survivors are scored, per-rollout rewards return
-\draw[scoreflow] (rwd.west) -- (11.00,-1.00);
-\node[font=\tiny, text=paperink!70] at (11.25,-0.76) {\(r_i\)};
+\draw[scoreflow, rounded corners=2pt]
+  (rwd.west) -- (11.25,-1.00) -- (11.25,-2.04) -- (rewardformula.east);
+\node[font=\tiny, text=paperink!70, fill=white, inner sep=1pt]
+  at (11.25,-1.52) {\(r_i\)};
 
 \end{tikzpicture}
 }%
 \caption{\textbf{Decompose--compose is the organizing principle.}
 Each target-hidden rollout is \emph{decomposed} into clauses, and their union
 is \emph{composed} into one filtered invariant (top).  One target-independent
-reward (center) scores clause sets against execution-derived negatives and is
-shared by both training stages.  \emph{Left:} SFT accepts a composed set once
+scorer (center) evaluates clause sets against execution-derived negatives;
+its coverage signal governs SFT acceptance, while its per-rollout allocation
+defines the RL reward.  \emph{Left:} SFT accepts a composed set once
 its whole-rollout coverage of the negatives reaches \(\tau\), strengthening it
 with further rollout groups otherwise, and distills each accepted set into one
-response.  \emph{Center:} the reward combines coverage of the negatives with a
-closed-form Shapley bonus for shared rejections, paying
+response.  \emph{Center:} the reward ladder starts from binary validity, adds
+target-independent negative coverage, and allocates shared rejections with a
+closed-form Shapley value, paying
 \(r_i=\operatorname{cov}_i+0.3\,\phi_i\) per rollout; the alternative credit
 rules are evaluated in Section~\ref{sec:exp:ablations}.
 \emph{Right:} RL pools and filters each rollout group once, assigns survivors

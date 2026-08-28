@@ -14,7 +14,7 @@ states the question answered by each appendix.
 \toprule
 & Topic & Purpose \\
 \midrule
-A & Scope and example & Defines the supported program class and shows why hiding the target prevents copying. \\
+A & Scope and task class & Defines the supported program class, motivates target hiding, and formalizes verifiable-compositional tasks. \\
 B & Formal proofs & Proves conjunction, mutual support, Houdini greatestness, and the closed-form coverage-game Shapley value. \\
 C & Implementation & Records sampler, verifier, reward, and GRPO details needed to reproduce the method. \\
 D & Generation prompt & Gives the exact target-hidden model instruction and output grammar. \\
@@ -89,6 +89,143 @@ the inference filter removes incompatible siblings and retains the useful
 relation.  Thus target hiding prevents a copy-the-goal shortcut, while the
 successful compositions demonstrate recovery from loop dynamics rather
 than access to the postcondition.
+
+\subsection{A General Verifiable-Compositional Task Class}
+\label{app:general-compositional-class}
+
+The loop setting is one instance of a broader task structure.  The following
+definition states sufficient conditions for reusing CRAFT's pool--filter--
+compose inference and clause-level group credit.  It separates the general
+framework from loop-specific choices such as ACSL, Houdini, and negative
+traces.
+
+\begin{definition}[Target-hidden verifiable-compositional task]
+\label{def:verifiable-compositional-task}
+A task instance is a tuple
+\[
+  \mathcal T=(x,Q,\mathcal U_x,\sqcup,\bot,
+  \mathsf F_x,\mathsf V_{x,Q},\mathcal N_x,\rho_x),
+\]
+with the following properties.
+\begin{enumerate}[label=(C\arabic*)]
+  \item \textbf{Finite decomposition and composition.}
+  A response decomposes into a finite set \(S\subseteq\mathcal U_x\) of
+  units.  Their composition \(a(S)=\bigsqcup_{u\in S}u\) is associative,
+  commutative, and idempotent, with empty element \(\bot\).  The induced
+  information order is
+  \(a\sqsubseteq b\) iff \(a\sqcup b=b\).
+
+  \item \textbf{Mechanical sound filtering.}
+  The ideal filter returns \(\mathsf F_x(S)\subseteq S\) such that
+  \(a(\mathsf F_x(S))\) is mechanically valid.  It is candidate-relative
+  greatest: every valid \(T\subseteq S\) satisfies
+  \(T\subseteq\mathsf F_x(S)\).  An implementation may conservatively
+  approximate this filter by deleting additional units.
+
+  \item \textbf{Monotone target utility.}
+  The final checker \(\mathsf V_{x,Q}(a)\in\{0,1\}\) is mechanical, and for
+  valid artifacts \(a\sqsubseteq b\),
+  \(\mathsf V_{x,Q}(a)=1\Rightarrow\mathsf V_{x,Q}(b)=1\).
+
+  \item \textbf{Target separation.}
+  Generation, filtering, and training observe \(x\), but not \(Q\).
+  The target is restored only for final evaluation.
+
+  \item \textbf{Target-independent behavioral strength.}
+  A mechanically constructed set \(\mathcal N_x\) and predicate
+  \(\rho_x(u,\nu)\in\{0,1\}\) record whether unit \(u\) rejects or covers
+  behavioral probe \(\nu\).  For a fixed filtered artifact,
+  \[
+    R(S)=\{\nu\in\mathcal N_x:\exists u\in S,\ \rho_x(u,\nu)=1\}
+  \]
+  is computable without \(Q\).
+
+  \item \textbf{Provenance.}
+  Every retained normalization key can be mapped back to all responses that
+  proposed it, allowing filtered units and their behavioral coverage to be
+  attributed to rollouts.
+\end{enumerate}
+\end{definition}
+
+Conditions C1--C3 formalize \emph{verifiable composability}: independently
+generated units can be pooled, invalid units can be removed mechanically,
+and adding valid retained units cannot destroy ideal target success.
+Conditions C4--C6 make the same object trainable without exposing the target.
+
+\begin{proposition}[Applicability of pool--filter--compose]
+\label{prop:general-applicability}
+Let a task satisfy Definition~\ref{def:verifiable-compositional-task}, and let
+responses propose unit sets \(S_1,\ldots,S_G\).  Put
+\(S_{\mathcal G}=\bigcup_i S_i\).  Under the ideal filter:
+\begin{enumerate}[label=(\roman*)]
+  \item \(a(\mathsf F_x(S_{\mathcal G}))\) is valid;
+  \item \(\mathsf F_x(S_i)\subseteq\mathsf F_x(S_{\mathcal G})\) for every
+  \(i\), so composition preserves every unit retained from an individual
+  response;
+  \item if an individually filtered response satisfies the hidden target,
+  then the pooled composition also satisfies it;
+  \item after full-group filtering and provenance assignment, the group game
+  \[
+    v(\mathcal A)=\frac{\left|\bigcup_{i\in\mathcal A}R_i\right|}
+                         {|\mathcal N_x|}
+  \]
+  is a normalized monotone submodular coverage function.  Its Shapley value
+  assigns rollout \(i\) the closed form
+  \(\frac{1}{|\mathcal N_x|}\sum_{\nu\in R_i}1/f(\nu)\), where \(f(\nu)\)
+  is the number of attributed rollouts covering \(\nu\).
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+Part (i) is C2.  For (ii), \(\mathsf F_x(S_i)\) is a valid subset of
+\(S_{\mathcal G}\); candidate-relative greatestness therefore includes it in
+\(\mathsf F_x(S_{\mathcal G})\).  Hence
+\(a(\mathsf F_x(S_i))\sqsubseteq a(\mathsf F_x(S_{\mathcal G}))\), and C3
+gives (iii).  For (iv), set union makes coverage normalized and monotone;
+the marginal value of adding one \(R_i\) can only decrease as the preceding
+coalition grows, proving submodularity.  For each probe, exactly the first of
+its \(f(\nu)\) covering rollouts in a random permutation contributes it, and
+symmetry gives probability \(1/f(\nu)\).  Summing over probes gives the stated
+Shapley value.
+\end{proof}
+
+The proposition is an applicability theorem, not a claim that the current
+loop implementation can be used unchanged in every domain.  A new domain
+must supply its unit parser, sound filter, final checker, and target-independent
+behavioral probes.  Resource-bounded filtering may violate the ideal
+inclusion in part (ii) by deleting extra units, so the implementation always
+rechecks the final composition.
+
+\paragraph{Specification generation.}
+Fix the program interface and precondition, and take postconditions, frame
+conditions, exceptional behaviors, and relational guarantees as units.
+Composition is conjunction; a type checker and deductive verifier implement
+the filter and final checker.  Impossible input--output pairs, mutants, or
+execution-derived counterexamples provide target-independent strength probes,
+while held-out client assertions form \(Q\).  Fixing the precondition is
+important: conjoining stronger preconditions restricts the input domain and
+does not obey the same information order.  With variance handled explicitly,
+method-level specification generation such as COINS or SpecRL fits
+Definition~\ref{def:verifiable-compositional-task}.
+
+\paragraph{Test-case generation.}
+A unit is one executable test together with a mechanically checkable oracle;
+composition is set union.  Compilation, determinism checks, and oracle
+validation filter malformed or flaky tests.  Coverage obligations or training
+mutants form \(\mathcal N_x\), and held-out faults, mutants, or branches form
+\(Q\).  Union cannot remove a fault detected by an individual valid test, so
+C3 holds directly.  Clause-level credit becomes per-test behavioral coverage,
+and the group term rewards tests that kill mutants or cover behaviors reached
+by fewer peers.
+
+\paragraph{Other instances.}
+For auxiliary-lemma generation, units are checker-accepted lemmas,
+composition adds them to the proof context, behavioral probes are failed
+subgoals or countermodels, and \(Q\) is the hidden theorem.  For data-constraint
+discovery, units are atomic constraints, composition is conjunction, the
+filter checks syntax and consistency, corrupted records provide negatives,
+and held-out validation queries form \(Q\).  These examples use different
+mechanical filters but share the same verifiable-compositional structure.
 
 \section{Proofs of Compositionality}
 \label{app:composition-proofs}
@@ -944,6 +1081,8 @@ Run & pass@1 & compose@1 & compose@4 & compose@8 & compose@16 & compose@32 \\
 
 \subsection{Reward and Negative-Sampler Ablations}
 \label{app:ablation-definitions}
+
+\rewardvariantsfigure
 
 The reward variants correspond directly to the two levels of
 Equation~\eqref{eq:generation-reward}.  Define

@@ -436,7 +436,119 @@ Clause-decomposed pays it for the surviving subset
 \(C_i^{\mathrm{attr}}(\mathcal G)\); Full adds the group (Shapley) credit
 \(w_g\phi_i(\mathcal G)\) of Equation~\eqref{eq:generation-reward}.  The first two
 are response-level credit, the last two clause-level; all share the clause
-cap \(K{=}20\).
+cap \(K{=}20\).  Figure~\ref{fig:reward-variants} draws the four rules on one
+shared example group.
+
+\newcommand{\rewardvariantsfigure}{%
+\begin{figure}[p]
+\centering
+\begin{tikzpicture}[
+  font=\sffamily\scriptsize,
+  >=Stealth,
+  flow/.style={-{Stealth[length=2.0mm]}, draw=paperink!64, line width=0.9pt},
+  clausebox/.style={rectangle, rounded corners=0.5pt, minimum width=0.30cm,
+    minimum height=0.30cm, inner sep=0pt, draw=paperink!20, line width=0.3pt},
+  tag/.style={rounded corners=2pt, inner xsep=5pt, inner ysep=2.3pt,
+    font=\scriptsize\bfseries, text=white},
+  colab/.style={font=\tiny, text=codegray}
+]
+\node[colab, anchor=west] at (0.60,0.52) {response clauses};
+\node[colab, anchor=west] at (2.30,0.52) {payment};
+\node[colab, anchor=west] at (3.60,0.52) {reward};
+
+%% Binary: the response is one indivisible unit, paid 1 iff fully valid
+\foreach \x/\c in {0.75/codegreen!70,1.10/wrongred,1.45/codegreen!45}{
+  \node[clausebox, fill=\c] at (\x,0) {};
+}
+\draw[rounded corners=2.5pt, draw=paperink!60, line width=0.8pt]
+  (0.55,-0.26) rectangle (1.65,0.26);
+\draw[codered!80, line width=0.8pt]
+  (0.52,-0.29) -- (1.68,0.29) (0.52,0.29) -- (1.68,-0.29);
+\draw[flow] (1.85,0) -- (2.15,0);
+\node[circle, draw=paperink!45, fill=white, minimum size=0.34cm,
+  inner sep=0pt] at (2.55,0) {1};
+\draw[codered!80, line width=0.7pt]
+  (2.38,-0.17) -- (2.72,0.17) (2.38,0.17) -- (2.72,-0.17);
+\node[text=codered!80, anchor=west] at (3.35,0) {\(=0/1\)};
+\node[anchor=west] at (4.45,0)
+  {{\bfseries Binary}\quad {\color{codegray}all assigned, or nothing}};
+
+%% Whole-rollout: coverage computed but voided unless every clause survives
+\foreach \x/\c in {0.75/codegreen!70,1.10/wrongred,1.45/codegreen!45}{
+  \node[clausebox, fill=\c] at (\x,-0.85) {};
+}
+\draw[codered!80, line width=0.8pt]
+  (0.55,-1.10) -- (1.65,-0.60) (0.55,-0.60) -- (1.65,-1.10);
+\draw[flow] (1.85,-0.85) -- (2.15,-0.85);
+\draw[draw=paperink!45, fill=white, line width=0.5pt]
+  (2.25,-0.96) rectangle (3.15,-0.74);
+\draw[draw=none, fill=codegreen!55] (2.25,-0.96) rectangle (2.85,-0.74);
+\draw[codered!80, line width=0.7pt]
+  (2.21,-1.01) -- (3.19,-0.69) (2.21,-0.69) -- (3.19,-1.01);
+\node[text=codered!80, anchor=west] at (3.45,-0.85) {\(=0\)};
+\node[anchor=west] at (4.45,-0.85)
+  {{\bfseries Whole-rollout}\quad {\color{codegray}coverage if all assigned}};
+\node[tag, fill=codepurple!85, anchor=east] at (12.30,-0.85) {SFT};
+
+%% Clause-decomposed: every surviving clause is paid on its own
+\foreach \x/\c in {0.75/codegreen!70,1.10/wrongred,1.45/codegreen!45}{
+  \node[clausebox, fill=\c] at (\x,-1.70) {};
+}
+\draw[codered!80, line width=0.7pt]
+  (0.99,-1.81) -- (1.21,-1.59) (0.99,-1.59) -- (1.21,-1.81);
+\foreach \x in {0.75,1.45}{
+  \draw[draw=codegreen!75, fill=codegreen!55, line width=0.4pt]
+    (\x-0.11,-2.04) rectangle (\x+0.11,-1.94);
+}
+\draw[flow] (1.85,-1.70) -- (2.15,-1.70);
+\draw[draw=paperink!45, fill=white, line width=0.5pt]
+  (2.25,-1.81) rectangle (3.15,-1.59);
+\draw[draw=none, fill=codegreen!55] (2.25,-1.81) rectangle (2.85,-1.59);
+\node[text=codegreen!75, anchor=west] at (3.45,-1.70)
+  {\(=\operatorname{cov}\)};
+\node[anchor=west] at (4.45,-1.70)
+  {{\bfseries Clause-decomposed}\quad
+   {\color{codegray}every survivor is paid}};
+
+%% Full (ours): per-clause payment plus the Shapley bonus
+\draw[rounded corners=2pt, draw=none, fill=algobg!85]
+  (0.45,-2.95) rectangle (12.40,-2.15);
+\foreach \x/\c in {0.75/codegreen!70,1.10/wrongred,1.45/codegreen!45}{
+  \node[clausebox, fill=\c] at (\x,-2.55) {};
+}
+\draw[codered!80, line width=0.7pt]
+  (0.99,-2.66) -- (1.21,-2.44) (0.99,-2.44) -- (1.21,-2.66);
+\foreach \x in {0.75,1.45}{
+  \draw[draw=codegreen!75, fill=codegreen!55, line width=0.4pt]
+    (\x-0.11,-2.89) rectangle (\x+0.11,-2.79);
+}
+\draw[flow] (1.85,-2.55) -- (2.15,-2.55);
+\draw[draw=paperink!45, fill=white, line width=0.5pt]
+  (2.25,-2.66) rectangle (3.15,-2.44);
+\draw[draw=none, fill=codegreen!55] (2.25,-2.66) rectangle (2.85,-2.44);
+\node[text=codegreen!75, anchor=west] at (3.45,-2.55)
+  {\(=\operatorname{cov}\)};
+\node[circle, draw=codegreen!90, fill=codegreen!80, minimum size=0.22cm,
+  inner sep=0pt] at (4.05,-2.55) {};
+\node[circle, draw=codegreen!60, fill=codegreen!32, minimum size=0.22cm,
+  inner sep=0pt] at (4.27,-2.55) {};
+\draw[codegreen!90, line width=0.5pt]
+  (4.20,-2.62) -- (4.34,-2.48) (4.20,-2.48) -- (4.34,-2.62);
+\node[anchor=west] at (4.75,-2.55)
+  {{\bfseries Full (ours)}\quad {\color{codegray}+ Shapley bonus}};
+\node[tag, fill=codeblue!90, anchor=east] at (12.30,-2.55) {RL};
+\end{tikzpicture}
+\caption{The four credit rules ablated in
+Section~\ref{sec:exp:ablations}, applied to one shared rollout group with two
+valid clauses (green) and one malformed clause (red).  Response-level gates
+(top two rows) void the whole payment: Binary pays a single \(\{0,1\}\) token
+and Whole-rollout computes coverage but pays nothing unless every clause
+survives.  Clause-level gates (bottom two rows) pay each surviving clause;
+Full adds the closed-form Shapley bonus for shared rejections (filled: unique,
+crossed: shared).}
+\label{fig:reward-variants}
+\end{figure}
+}
 
 \paragraph{Insight.}
 The reward unit determines whether RLVR sharpens responses or expands the

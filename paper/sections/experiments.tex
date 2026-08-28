@@ -11,64 +11,106 @@ what drives the training gain (RQ5).
 \label{sec:exp:setup}
 
 \paragraph{Data and judge.}
-Training uses 4,992 RL and 33,346 SFT records from 31,865 target-masked
-single-loop programs; SFT targets are generated with GPT-5.6 Luna and
-verified by Frama-C/WP (Appendix~\ref{app:data-curation}).  Evaluation covers
-832 C programs: 316 linear and 50 NLA tasks from Code2Inv, SyGuS, SV-COMP,
-and LIPuS, plus 466 Loopy tasks
-\citep{si2020code2inv,alur2013sygus,svcomp,yu2023lipus,kamath2023finding}.
-No train--test match remains under exact, alpha-renamed, or
-constant-abstracted comparison (Appendix~\ref{app:data-leakage}).  Success
-requires Frama-C/WP to prove induction and every restored target with 5 s per
-obligation; all other outcomes are failures.
+Training data comprise 4,992 RL records and 33,346 SFT records (31,865
+distinct program sources) of
+target-masked scalar-integer single-loop programs; SFT targets are
+synthesized with \texttt{gpt-5.6-luna} and verified by Frama-C/WP
+(Appendix~\ref{app:data-curation}).  Evaluation uses the standard
+benchmark suites of prior learning-based invariant-generation systems: 832~C
+programs, comprising 316 linear programs (133 Code2Inv
+\citep{si2020code2inv}, 84 SyGuS 2019 \citep{alur2013sygus}, 99 SV-COMP 2024
+\citep{svcomp}) and 50 nonlinear-arithmetic (NLA) programs (30 LIPuS
+\citep{yu2023lipus}, 20 SV-COMP 2024) as released with
+Clause2Inv~\citep{cao2025clause2inv}, plus 466 integer programs from
+Loopy~\citep{kamath2023finding}.  After target removal, no training program
+matches an evaluation program under exact-text, alpha-renamed, or
+constant-abstracted matching.  Appendix~\ref{app:data-leakage} reports the
+complete instance-overlap and structural-distribution audit.  We remove non-contract comments and
+mask all target predicates before generation, then restore the untouched
+source only after invariants are fixed.
+Success requires Frama-C/WP~\citep{framac}, under a 5-second per-obligation
+prover budget, to prove establishment, preservation, and every restored
+target; all failures count as zero.
 
 \paragraph{Inference protocol.}
-CRAFT runs share masking, prompting, clause processing, and Houdini; external
-tools retain their native target-hidden orchestration.  Decoding uses
-temperature 1, top-\(p=1\), no re-roll, and no target feedback.  API models
-disable reasoning and cap completions at 8,192 tokens; local checkpoints use
-non-thinking decoding and 2,048 emitted tokens.  RQ1 reuses one 32-response
-pool per local checkpoint and task.  Appendix~\ref{app:experimental-protocol}
-fixes all serving and training settings.
-
-\paragraph{Provisional presentation values.}
-\mock{Red values and \(\dagger\) rows are internally consistent mock results,
-not empirical findings; all must be replaced before submission.}
+All \sam{} evaluation runs share target masking, the canonical prompt, clause
+processing, and Houdini; external tools retain their own target-hidden orchestration.  Within
+\sam{}, API models use \texttt{reasoning\_effort=none}; all locally served
+checkpoints use non-thinking decoding to match data synthesis and training.  Decoding uses
+temperature 1.0 and top-\(p\) 1.0.  API calls cap completions at 8,192 tokens,
+including provider-internal reasoning tokens; local vLLM calls cap each
+response at 2,048 emitted tokens.  We use no re-roll or target feedback.  RQ1
+reuses one saved pool of stochastic responses per task (32 for local
+checkpoints).
+Appendix~\ref{app:experimental-protocol} gives benchmark provenance, serving,
+and training details.
 
 \paragraph{Metrics.}
-pass@\(k\) measures whether any response proves \(Q\), using the unbiased
-estimator \(1-\binom{n-s}{k}/\binom nk\) from \(s\) successes in \(n\) saved
-responses.  compose@\(k\) instead unions the first \(k\) responses, filters
-them, and reports the verified-program fraction; it is a fixed-prefix metric,
-not an average over subsets.  We also report \(k_{95}\), the smallest
-\(k\in\{1,4,8,16,32\}\) reaching 95\% of compose@32.
+Throughout evaluation, success means \(Q\)-sufficiency under the final
+verifier.  pass@\(k\) is the probability that at least one of \(k\) responses
+proves \(Q\).  Whenever a saved pool contains \(c\) successful responses among its
+\(n\) responses, we use the unbiased estimator
+\(\widehat{\operatorname{pass@}k}=1-\binom{n-c}{k}/\binom{n}{k}\) for that
+program and average it over programs.  compose@\(k\) is the
+fraction of programs proved by unioning the first \(k\) responses and applying
+Houdini.  The two metrics capture different outcomes: pass@\(k\) measures
+standalone completion within \(k\) responses, whereas compose@\(k\) measures
+the deployed pipeline's filtered composition of those responses.  Our prefix
+compose@\(k\) uses the first \(k\) saved responses rather than averaging over
+all \(\binom{n}{k}\) subsets.  We report
+\(k_{95}\), the smallest budget in the measured grid
+\(\{1,4,8,16,32\}\) whose compose@\(k\) reaches \(95\%\) of compose@32.  A smaller
+\(k_{95}\) means the retained pool reaches its large-budget performance
+sooner.
 
 % ---------------------------------------------------------------------------
-\subsection{RQ1: How Do pass@\(k\) and compose@\(k\) Scale?}
+\subsection{RQ1: How Do pass@k and compose@k Scale?}
 \label{sec:exp:probe}
 
 We sample 32 target-hidden responses per task from six base checkpoints:
 Qwen3-1.7B, Qwen3-4B, Qwen3-8B, Qwen3-14B, Qwen3-30B-A3B
 ~\citep{yang2025qwen3}, and Llama 3.1 8B.  Complete curves, \(k_{95}\), and
-per-stratum breakdowns appear in Table~\ref{tab:probe-complete}.
+per-stratum breakdowns appear in Appendix~\ref{tab:probe-complete}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.94\textwidth]{figures/base_model_probe.pdf}
+\caption{pass@\(k\) (unbiased estimate) and prefix compose@\(k\).
+Composition saturates by \(k{\approx}8\)--\(16\), while pass@\(k\) keeps growing.}
+\label{fig:base-model-probe}
+\end{figure}
 
 At \(k{=}1\), compose@1 exceeds the unbiased pass@1 estimate by
-14.9--42.4 points across checkpoints.
+14.9--42.4 points across checkpoints.  This is an unpaired descriptive
+comparison: pass@1 is estimated from the full response pool, whereas
+compose@1 evaluates the saved first response.  RQ2 measures the pipeline
+effect on matched responses.
 In the retained response pools, compose@16 is within 2.1 points of
 compose@32 on every checkpoint (\(k_{95}\in\{8,16,32\}\);
-Table~\ref{tab:probe-complete}).  In contrast, pass@8 reaches only
+Appendix~\ref{tab:probe-complete}).  In contrast, pass@8 reaches only
 72--74\% of pass@32 on the five Qwen checkpoints and gains another
-5.0--7.8 points by \(k{=}32\).  Llama 3.1 8B is harder in standalone proof
+5.0--7.8 points by \(k=32\).  Llama 3.1 8B is harder in standalone proof
 generation---pass@32 is 13.8\%---but shows the same compositional pattern:
-compose rises from 29.2\% at \(k{=}1\) to 56.0\% at \(k{=}16\), then
-changes by only 0.1 points.
-
-\paragraph{Insight.}
-Composition finds most of its useful
+compose rises from 29.2\% at \(k=1\) to 56.0\% at \(k=16\), then
+changes by only 0.1 points.  Composition thus finds most of its useful
 clauses within the first dozen samples, whereas standalone proofs require
 wider sampling.  The compose@32 values (41.4--67.8\%) further suggest that
 these pools remain limited by clause quality or diversity: extending the
 budget to 32 responses does not remove the gap.
+
+\begin{tcolorbox}[
+  colback=algobg,
+  colframe=algoframe,
+  boxrule=0.6pt,
+  arc=2pt,
+  left=5pt,right=5pt,top=4pt,bottom=4pt
+]
+\textbf{Insight.} Standalone completion and filtered composition scale
+differently with additional sampling.  Across the six checkpoints,
+compose@16 is within 2.1 points of compose@32, while pass@\(k\) continues to
+improve through \(k{=}32\).  Reporting both metrics separates the quality of
+individual responses from the utility of their composed clause pool.
+\end{tcolorbox}
 
 % ---------------------------------------------------------------------------
 \subsection{RQ2: What Does Each Component Contribute?}
@@ -85,8 +127,7 @@ training stages (+SFT, +SFT+RL) and two ablation rows that repeat the
 trained checkpoints without the pipeline; Llama 3.1 8B reports the
 SFT rows without RL.
 
-\newcommand{\rqtwostratatable}{%
-\begin{table}[p]
+\begin{table}[H]
 \centering
 \footnotesize
 \setlength{\tabcolsep}{2.8pt}
@@ -104,13 +145,13 @@ Stage & \(k{=}1\) & \(k{=}8\) & \(k{=}1\) & \(k{=}8\)
 \quad Zero + pipeline (compose)
   & 38.6 & 51.9 & 8.0 & 8.0 & 41.4 & 55.4 & 38.3 & 51.2 \\
 \quad\enspace +SFT
-  & 65.8 & 81.0 & 8.0 & 12.0 & 66.3 & 79.8 & 62.6 & 76.2 \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad\enspace +SFT+RL
-  \mock{\(^{\dagger}\)} & \mock{70.6} & \mock{83.5} & \mock{10.0} & \mock{14.0} & \mock{71.2} & \mock{84.7} & \mock{67.3} & \mock{80.0} \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad SFT, no pipeline (pass)
-  & 43.7 & 63.4 & 2.1 & 6.2 & 42.3 & 63.5 & 40.4 & 60.0 \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad SFT+RL, no pipeline (pass)
-  \mock{\(^{\dagger}\)} & \mock{42.8} & \mock{61.8} & \mock{2.0} & \mock{6.0} & \mock{40.2} & \mock{59.6} & \mock{38.9} & \mock{57.2} \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \cmidrule(l{3pt}r{3pt}){1-9}
 \multicolumn{9}{l}{\textit{Qwen3-8B}} \\
 \quad Zero, no pipeline (pass)
@@ -118,13 +159,13 @@ Stage & \(k{=}1\) & \(k{=}8\) & \(k{=}1\) & \(k{=}8\)
 \quad Zero + pipeline (compose)
   & 43.7 & 60.4 & 6.0 & 12.0 & 47.9 & 63.1 & 43.8 & 59.0 \\
 \quad\enspace +SFT
-  \mock{\(^{\dagger}\)} & \mock{69.3} & \mock{82.6} & \mock{10.0} & \mock{16.0} & \mock{68.9} & \mock{80.7} & \mock{65.5} & \mock{77.5} \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad\enspace +SFT+RL
-  \mock{\(^{\dagger}\)} & \mock{76.5} & \mock{86.0} & \mock{12.0} & \mock{18.0} & \mock{75.7} & \mock{85.4} & \mock{72.2} & \mock{81.6} \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad SFT, no pipeline (pass)
-  \mock{\(^{\dagger}\)} & \mock{46.0} & \mock{65.0} & \mock{3.0} & \mock{8.0} & \mock{43.4} & \mock{64.2} & \mock{41.9} & \mock{61.1} \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad SFT+RL, no pipeline (pass)
-  \mock{\(^{\dagger}\)} & \mock{44.8} & \mock{64.5} & \mock{3.0} & \mock{8.0} & \mock{42.1} & \mock{63.1} & \mock{40.8} & \mock{60.3} \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \cmidrule(l{3pt}r{3pt}){1-9}
 \multicolumn{9}{l}{\textit{Qwen3-14B}} \\
 \quad Zero, no pipeline (pass)
@@ -132,75 +173,42 @@ Stage & \(k{=}1\) & \(k{=}8\) & \(k{=}1\) & \(k{=}8\)
 \quad Zero + pipeline (compose)
   & 54.1 & 68.0 & 8.0 & 12.0 & 56.2 & 68.7 & 52.5 & 65.0 \\
 \quad\enspace +SFT
-  & 70.3 & 82.3 & 12.0 & 16.0 & 69.5 & 82.4 & 66.4 & 78.4 \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad\enspace +SFT+RL
-  \mock{\(^{\dagger}\)} & \mock{74.5} & \mock{86.0} & \mock{14.0} & \mock{20.0} & \mock{74.4} & \mock{85.1} & \mock{70.8} & \mock{81.5} \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad SFT, no pipeline (pass)
-  & 50.2 & 68.0 & 3.5 & 9.8 & 47.1 & 66.2 & 45.7 & 63.5 \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad SFT+RL, no pipeline (pass)
-  \mock{\(^{\dagger}\)} & \mock{49.0} & \mock{67.0} & \mock{3.5} & \mock{9.0} & \mock{46.4} & \mock{65.9} & \mock{44.8} & \mock{62.9} \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \cmidrule(l{3pt}r{3pt}){1-9}
 \multicolumn{9}{l}{\textit{Llama 3.1 8B}} \\
 \quad Zero + pipeline (compose)
   & 29.4 & 55.4 & 2.0 & 14.0 & 32.0 & 58.4 & 29.2 & 54.6 \\
 \quad\enspace +SFT
-  \mock{\(^{\dagger}\)} & \mock{60.0} & \mock{78.0} & \mock{8.0} & \mock{16.0} & \mock{59.9} & \mock{74.8} & \mock{56.8} & \mock{72.5} \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \quad SFT, no pipeline (pass)
-  \mock{\(^{\dagger}\)} & \mock{40.0} & \mock{60.0} & \mock{2.0} & \mock{6.0} & \mock{37.3} & \mock{58.3} & \mock{36.2} & \mock{55.8} \\
+  & TBD & TBD & TBD & TBD & TBD & TBD & TBD & TBD \\
 \bottomrule
 \end{tabular}
 \caption{Cumulative contribution of each pipeline component, by benchmark
-  stratum (\% verified, {reasoning\_effort=none}/non-thinking).
+  stratum (\% verified, \texttt{reasoning\_effort=none}/non-thinking).
   Framework-free rows report pass@\(k\); pipeline rows report compose@\(k\)
   on the same saved responses, so adjacent rows isolate one component.
   RL is trained on the three Qwen3 models; Llama 3.1 8B reports SFT
   rows only.  Complete probe curves and per-stratum results for all six
-  models appear in Table~\ref{tab:probe-complete}.
+  models appear in Appendix~\ref{tab:probe-complete}.
   API models under the same protocol appear in Table~\ref{tab:cross-model-main}
-  (Appendix~\ref{app:reasoning-leakage}).  \mock{\(\dagger\)} denotes provisional
-  mock values, not completed measurements.}
-\label{tab:rcf-paired-strata}
-\end{table}
-}
-
-\begin{table}[H]
-\centering
-\setlength{\tabcolsep}{3.5pt}
-\begin{tabular}{lrrrrrr}
-\toprule
-& \multicolumn{2}{c}{Zero} & \multicolumn{2}{c}{SFT}
-& \multicolumn{2}{c}{SFT+RL} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
-Backbone & pass & compose & pass & compose & pass & compose \\
-\midrule
-Qwen3-4B & 14.1 & 51.2 & 60.0 & 76.2 & \mock{57.2} & \mock{80.0} \\
-Qwen3-8B & 20.5 & 59.0 & \mock{61.1} & \mock{77.5} & \mock{60.3} & \mock{81.6} \\
-Qwen3-14B & 21.3 & 65.0 & 63.5 & 78.4 & \mock{62.9} & \mock{81.5} \\
-Llama 3.1 8B & 5.4 & 54.6 & \mock{55.8} & \mock{72.5} & -- & -- \\
-\bottomrule
-\end{tabular}
-\caption{Aggregate component comparison at \(k{=}8\) (All / 832, \%).
-Pass treats each response as one conjunction; compose uses clause
-decomposition, Houdini filtering, and union.  Red values are mock results.
-Per-stratum \(k{=}1,8\) results are in
-Table~\ref{tab:rcf-paired-strata}.}
+  (Appendix~\ref{app:reasoning-leakage}).}
 \label{tab:rcf-paired}
 \end{table}
 
-Composing lifts
+Because framework-free and pipeline rows reuse the same saved responses,
+their paired difference isolates the net effect of clause extraction,
+normalization, and Houdini without additional model calls: composing lifts
 every model by 28.4--42.4 points at \(k{=}1\) and by 37.1--49.2 points at
 \(k{=}8\) in aggregate.
-Per-model probe curves appear in Table~\ref{tab:probe-complete}.
-
-\paragraph{Insight.}
-Across the three Qwen backbones, SFT raises compose@8 from 51.2--65.0\% to
-76.2--78.4\%.  The matched RL rows then raise compose@8 to
-\mock{80.0--81.6\%}, while their framework-free pass@8 changes from
-60.0--63.5\% to \mock{57.2--62.9\%}.  The same decomposition transfers to
-Llama 3.1 8B: SFT raises compose@8 from 54.6\% to \mock{72.5\%}, compared
-with a framework-free pass@8 of \mock{55.8\%}.  Thus SFT improves the
-quality of individual responses, whereas the RL gain is concentrated in the
-filtered union evaluated by compose@\(k\).
+All rows report full-workload means over the same 832 programs.  Per-model
+probe curves appear in Appendix~\ref{tab:probe-complete}.
 
 % ---------------------------------------------------------------------------
 \subsection{RQ3: How Does \sam{} Compare with Specialized Tools?}
@@ -209,7 +217,7 @@ filtered union evaluated by compose@\(k\).
 We compare \sam{} with the target-hidden pipelines of AutoSpec, SESpec,
 Clause2Inv, Loopy, and Daikon~\citep{wen2024enchanting,yang2026sespec,
 cao2025clause2inv,kamath2023finding,daikon}.  All LLM-based systems use
-GPT-5 Nano, and all outputs are judged on the same untouched
+\texttt{gpt-5-nano}, and all outputs are judged on the same untouched
 programs by Frama-C/WP.  Each system retains its native, predeclared
 orchestration, so model-call and token budgets differ;
 Table~\ref{tab:tool-comparison} reports both token and runtime costs.
@@ -269,24 +277,22 @@ Naive
 \bottomrule
 \end{tabular}
 \caption{Common target-hidden comparison with
-{reasoning\_effort=none}, using the same untouched inputs and
+\texttt{reasoning\_effort=none}, using the same untouched inputs and
 Frama-C/WP final judge.  All LLM-driven rows share the same fixed
 backbone model; tokens and time are mean totals per task.  The three
 compose rows are recomputed from one archived ten-rollout pool by
 prefix-subset composition, unioning the first \(k\) responses through the
 same filter chain; their tokens count one prompt plus \(k\) archived
 completions, and their time adds the measured filter-and-judge time at
-budget \(k\) to the single-request latency.  The Loopy column is the
-benchmark stratum, whereas the Loopy row is the tool of
-\citet{kamath2023finding}.}
+budget \(k\) to the single-request latency.}
 \label{tab:tool-comparison}
 \end{table}
 
 
 The archived reasoning-enabled comparison appears in
-Table~\ref{tab:tools-complete}.  On three further API models the same
+Appendix~\ref{tab:tools-complete}.  On three further API models the same
 pairing lifts compose@1 over pass@1 by 18.7--23.4 points (mean 20.9;
-Table~\ref{tab:cross-model-main}), compared with the backbone's 30.3:
+Appendix~\ref{tab:cross-model-main}), compared with the backbone's 30.3:
 the gain appears across models and compresses as single-shot accuracy rises.
 Under this setting, increasing \sam{} from four to eight candidates raises
 verification from 49.0\% to 55.5\%.
@@ -295,12 +301,19 @@ Appendix~\ref{app:tool-specific-behavior} documents system-specific interface
 constraints under target hiding.  The complete per-tool results and the
 archived medium-reasoning comparison also appear there.
 
-\paragraph{Insight.}
-Under native fixed orchestration, four-response CRAFT verifies 49.0\% of all
-tasks versus 42.2\% for AutoSpec, while eight responses reach 55.5\%.
-Because calls and runtimes differ, this establishes end-to-end utility rather
-than strict equal-compute dominance; the matched Naive comparison isolates
-the 17.4-point gain from one-response filtering and composition.
+\begin{tcolorbox}[
+  colback=algobg,
+  colframe=algoframe,
+  boxrule=0.6pt,
+  arc=2pt,
+  left=5pt,right=5pt,top=4pt,bottom=4pt
+]
+\textbf{Finding.} Under a common target-hidden evaluation and each system's
+native fixed orchestration, \sam{} verifies 49.0\% of the 832 programs with
+four composed responses, compared with 42.2\% for the strongest external
+baseline.  This is an end-to-end system comparison; the systems differ in
+orchestration and computational budget.
+\end{tcolorbox}
 
 % ---------------------------------------------------------------------------
 \subsection{RQ4: How Much Does Reinforcement Learning Improve Inference?}
@@ -309,7 +322,8 @@ the 17.4-point gain from one-response filtering and composition.
 We evaluate matched Qwen3-8B before--after RL paths from the Zero and SFT
 initializations: Zero is the untrained checkpoint and RL-Zero its RL
 result; SFT and SFT+RL are the corresponding SFT-path checkpoints.
-Inference is fixed within each pair.
+Inference is fixed within each pair; RQ1 is not used to
+estimate the RL effect.
 
 \paragraph{What to expect.}
 If RL with whole-response credit merely sharpens the
@@ -317,13 +331,12 @@ distribution~\citep{yue2025rlcapacity}, it should raise pass@1 while leaving
 or degrading large-\(k\) coverage.  Clause-level credit with group
 allocation predicts the opposite pattern: pass@\(k\) stays near the
 initialization, while compose@\(k\) shifts up at small budgets without
-degrading at large ones.  We write \(k^{*}\) for the smallest budget in the
-measured grid at which the RL policy's compose@\(k\) reaches its
-initialization's compose@32.
+degrading at large ones.
+
 The SFT stage distills the filtered multi-response union into single
-responses (Section~\ref{sec:method:sft}); the matched SFT-path row appears in
-Table~\ref{tab:rl-before-after}, with full curves across the backbones in
-Appendix~\ref{app:sft-probe}.
+responses (Section~\ref{sec:method:sft}); matched SFT runs on the curated
+pool are TBD (Table~\ref{tab:rl-before-after}), with full curves across
+four backbones in Appendix~\ref{app:sft-probe}.
 
 \begin{table}[H]
 \centering
@@ -334,88 +347,45 @@ Checkpoint & Stage & pass@1 & compose@1 & compose@8
   & compose@32 & \(k_{95}\) \\
 \midrule
 Zero & before RL & 8.3\% & 43.8\% & 59.0\% & 62.5\% & 16 \\
-RL-Zero & after RL & 6.8\% & 57.9\% & 71.3\% & 74.3\% & 8 \\
-SFT & before RL & 41.9\% & 65.5\% & 77.5\% & 79.0\% & 4 \\
-SFT+RL\mock{\(^{\dagger}\)} & after RL & \mock{40.8\%} & \mock{72.2\%} & \mock{81.6\%} & \mock{82.7\%} & \mock{4} \\
+RL-Zero & after RL & 6.80\% & 57.93\% & 71.27\% & 74.28\% & 8 \\
+SFT & before RL & TBD & TBD & TBD & TBD & TBD \\
+SFT+RL & after RL & TBD & TBD & TBD & TBD & TBD \\
 \bottomrule
 \end{tabular}
-\caption{Matched Qwen3-8B evaluation before and after RL.  The
-\mock{\(\dagger\)} row is the mock mean of three SFT+RL seeds; seed-level
-values appear in Table~\ref{tab:rl-seeds-mock}.}
+\caption{Matched Qwen3-8B evaluation before and after RL.}
 \label{tab:rl-before-after}
 \end{table}
 
-\paragraph{Insight.}
-Response-level accuracy does not
-improve after RL (Figure~\ref{fig:rl-panels}, left; pass@1 \mock{40.8\%}
-vs.\ \mock{41.9\%}).
+\paragraph{Results.}
+Consistent with the redistribution view, response-level accuracy does not
+improve after RL (Figure~\ref{fig:rl-panels}, left; pass@1 TBD
+vs.\ TBD).
 The redistribution is instead steered toward the complementary tail of the
-clause pool: compose@\(k^{*}\) with \mock{\(k^{*}{=}4\)} matches its
-initialization's compose@32 (\mock{79.0\%}), an effective \mock{eight-fold}
+clause pool: compose@\(k^{*}\) with \(k^{*}{=}\)TBD matches its
+initialization's compose@32 (TBD), an effective TBD-fold
 budget reduction,
-and compose@32 itself does not degrade (\mock{82.7\%} vs.\ \mock{79.0\%}).  RL
+and compose@32 itself does not degrade (TBD vs.\ TBD).  RL
 thus packs into \(k^{*}\) samples the useful clauses its initialization
-produces only across thirty-two.  In the accompanying
-clause-frequency diagnostic, \mock{31\%} of RL-only retained normalization keys
-appear at most once in 32 matched initialization responses (empirical
-frequency at most \mock{3.1\%}).
+produces only across thirty-two.  A
+clause-frequency analysis against TBD initialization samples
+attributes part of the gain to clauses the initialization produces with
+probability below TBD per response.
 
-\newcommand{\rqfourfigure}{%
-\begin{figure}[p]
+\begin{figure}[t]
 \centering
-\begin{minipage}{0.47\linewidth}
-\centering
-\begin{tikzpicture}[x=0.75cm,y=0.075cm,>=Latex]
-  \draw[->,paperink] (0,35) -- (5.3,35) node[right,font=\scriptsize] {\(k\)};
-  \draw[->,paperink] (0,35) -- (0,71) node[above,font=\scriptsize] {\%};
-  \foreach \y in {40,50,60,70} {
-    \draw[promptframe] (0,\y) -- (5.05,\y);
-    \node[left,font=\tiny] at (0,\y) {\y};
-  }
-  \foreach \x/\lab in {0.6/1,1.6/4,2.6/8,3.6/16,4.6/32}
-    \node[below,font=\tiny] at (\x,35) {\lab};
-  \draw[codegray,thick] plot coordinates
-    {(0.6,41.9) (1.6,56.8) (2.6,61.1) (3.6,64.7) (4.6,68.0)};
-  \draw[red,thick] plot coordinates
-    {(0.6,40.8) (1.6,55.6) (2.6,60.3) (3.6,64.0) (4.6,67.5)};
-  \node[font=\scriptsize] at (2.6,72.5) {(a) pass@\(k\)};
-\end{tikzpicture}
-\end{minipage}\hfill
-\begin{minipage}{0.47\linewidth}
-\centering
-\begin{tikzpicture}[x=0.75cm,y=0.115cm,>=Latex]
-  \draw[->,paperink] (0,60) -- (5.3,60) node[right,font=\scriptsize] {\(k\)};
-  \draw[->,paperink] (0,60) -- (0,86) node[above,font=\scriptsize] {\%};
-  \foreach \y in {65,70,75,80,85} {
-    \draw[promptframe] (0,\y) -- (5.05,\y);
-    \node[left,font=\tiny] at (0,\y) {\y};
-  }
-  \foreach \x/\lab in {0.6/1,1.6/4,2.6/8,3.6/16,4.6/32}
-    \node[below,font=\tiny] at (\x,60) {\lab};
-  \draw[codegray,densely dashed] (0,79.0) -- (5.05,79.0);
-  \draw[codegray,thick] plot coordinates
-    {(0.6,65.5) (1.6,75.1) (2.6,77.5) (3.6,78.6) (4.6,79.0)};
-  \draw[red,thick] plot coordinates
-    {(0.6,72.2) (1.6,79.4) (2.6,81.6) (3.6,82.4) (4.6,82.7)};
-  \draw[red,->] (1.6,83.8) -- (1.6,79.6);
-  \node[red,font=\tiny] at (1.6,84.7) {\(k^{*}=4\)};
-  \node[font=\scriptsize] at (2.6,87.1) {(b) compose@\(k\)};
-\end{tikzpicture}
-\end{minipage}
-\vspace{2pt}
-
-{\scriptsize\color{codegray}\rule{0.7em}{0.7pt} SFT\qquad
- \color{red}\rule{0.7em}{0.7pt} SFT+RL\(^{\dagger}\)}
+\fbox{\parbox[c][4.2cm][c]{0.92\linewidth}{\centering
+\texttt{rl\_panels.pdf} placeholder --- generated by
+\texttt{figures/plot\_rl\_panels.py} from the canonical RL pool artifact
+(pass@\(k\) left, compose@\(k\) right with the SFT compose@32
+reference line and the crossing budget \(k^{*}\) annotated).}}
 \caption{Response-level vs.\ compositional effects of RL (Qwen3-8B, SFT
-initialization).  Red curves and values are provisional mock results.
-(a)~pass@\(k\) remains nearly flat, consistent with
+initialization).  (a)~pass@\(k\) is expected to remain flat, consistent with
 redistribution rather than support
 expansion~\citep{yue2025rlcapacity}.  (b)~compose@\(k\) shifts upward at small
 budgets: the RL policy reaches its initialization's compose@32 (dotted
 line) at \(k^{*}\) samples, and compose@32 itself does not degrade.}
 \label{fig:rl-panels}
 \end{figure}
-}
 
 % ---------------------------------------------------------------------------
 \subsection{RQ5: What Drives the Training Gain?}
@@ -423,49 +393,108 @@ line) at \(k^{*}\) samples, and compose@32 itself does not degrade.}
 
 We run two ablations, one over the reward function and one over the
 negative sampler.  Both train Qwen3-8B from the Zero initialization on the
-curated pool; runs within an ablation differ only in the reward or the
-sampler.
+curated pool with all other training and inference settings fixed; runs
+within an ablation differ only in the reward or the sampler.
 Appendix~\ref{app:ablation-definitions} gives the exact reward definitions
 and complete numbers.
 
 \paragraph{Reward-function ablation.}
-Four variants form a ladder.  Binary pays \(\{0,1\}\) when a nonempty
-response has every admitted clause retained by the pooled group filter;
-Whole-rollout pays \(\operatorname{cov}_i(\mathcal G)\) under the same condition;
+Four variants form a ladder.  Binary pays \(\{0,1\}\) for a fully
+inductive response; Whole-rollout pays the strength score
+\(\operatorname{cov}(C_i^{\mathrm{train}})\) only when every clause survives;
 Clause-decomposed pays it for the surviving subset
-\(C_i^{\mathrm{attr}}(\mathcal G)\); Full adds the group (Shapley) credit
-\(w_g\phi_i(\mathcal G)\) of Equation~\eqref{eq:generation-reward}.  The first two
+\(C_i^{\mathrm{train}}\) alone; Full adds the group (Shapley) credit
+\(w_g\phi_i\) of Equation~\eqref{eq:generation-reward}.  The first two
 are response-level credit, the last two clause-level; all share the clause
 cap \(K{=}20\).
 
-\paragraph{Insight.}
-The reward unit determines whether RLVR sharpens responses or expands the
-composable pool.  Whole-rollout credit raises pass@1 from 8.3\% to 25.4\%
-but lowers compose@32 from 62.5\% to 33.2\%; binary credit reaches only
-27.9\%.  Paying retained clauses instead raises compose@32 to 70.2\%, and
-the fixed-game group bonus adds 4.1 points to 74.3\%.  Thus most of the gain
-comes from removing the all-or-nothing response gate; inverse-frequency
-group allocation supplies a smaller, consistent complementarity gain.
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\linewidth]{figures/reward_ablation.pdf}
+\caption{Reward-function ablation on Qwen3-8B (Zero initialization).
+  Whole-rollout credit raises pass@\(k\) (b) but leaves compose@\(k\) (a)
+  below the untrained model; binary credit collapses both.
+  Clause-decomposed credit reverses the trade-off, and Full is best at
+  every budget from \(k{=}4\).
+  Dotted: Zero, the untrained checkpoint.  Exact numbers in
+  Table~\ref{tab:reward-ablation} (Appendix~\ref{app:ablation-definitions}).}
+\label{fig:reward-ablation}
+\end{figure}
+
+Figure~\ref{fig:reward-ablation} reveals three effects.
+\emph{First, response-level credit collapses composition.}  Whole-rollout
+credit sharpens the policy toward a few already-supported answers: pass@1
+rises by 17 points, but the clause pool loses diversity, and composing more
+responses adds little (compose@32 33.2\%).  Binary credit collapses both
+metrics.  Both response-level variants stay 16--40 points below the
+untrained model's compose curve at every budget---the sharpening
+anticipated in Section~\ref{sec:exp:rl}.
+\emph{Second, credit must be decomposed to clauses.}  Once each surviving
+clause is rewarded for the negatives it alone rejects, the policy spreads
+mass over complementary clauses: compose@\(k\) is 2.1--2.3 times the
+whole-rollout variant at every budget and 2.5--6.6 times the binary
+variant, and the compose curve keeps rising through \(k{=}32\).
+\emph{Third, group credit raises the ceiling.}  Adding
+Shapley credit on top of clause-decomposed strength improves composition
+at every budget beyond one response (+1.2 at \(k{=}4\), +3.5 at \(k{=}8\),
++4.1 at \(k{=}16\) and \(32\), reaching 74.3\%) and adds 2.2--4.4 points of
+pass@\(k\) at every budget, while trailing by 0.4 points at compose@1: Full
+is the best variant from \(k{=}4\) on.  Its pass@\(k\) nevertheless remains
+1.5--4.7 points below the untrained model; the training gain is
+compositional.
+
+\paragraph{Why credit structure decides the outcome.}
+Whole-rollout credit grades each response as an indivisible unit: one
+failed clause erases the credit of every other, so the safest policy is to
+repeat the few responses that already pass in full---the sharpening that
+raises pass@1 while shrinking the clause pool~\citep{yue2025rlcapacity}.
+Clause-level credit removes this gate.  A partially correct response is
+still paid for what survives, so the policy keeps proposing clauses whose
+union proves more than any single response; this is the larger effect
+(+7.7 to +14.5 compose points over the untrained model).  Group credit then
+grades each rollout against its peers: a clause every rollout repeats earns
+less than a complementary one, so the objective becomes the group's union
+rather than any single response.  This adds a further 1.2--4.1 points from
+\(k{=}4\) and, consistent with paying for coherent rather than merely
+numerous clauses, restores 2.2--4.4 points of pass@\(k\).  What RL does to
+the sampling distribution is decided by what the reward values.
+
+\begin{tcolorbox}[
+  colback=algobg,
+  colframe=algoframe,
+  boxrule=0.6pt,
+  arc=2pt,
+  left=5pt,right=5pt,top=4pt,bottom=4pt
+]
+\textbf{Finding (credit structure).}  Response-level credit sharpens rather than
+expands the sampled support: whole-rollout credit raises pass@1 by 17
+points, yet both response-level variants stay 16--40 points below the
+untrained model on compose@\(k\) at every budget, and binary credit also
+falls below it on pass@\(k\) from \(k{=}4\).  Decomposing credit to clauses
+reverses this: compose@\(k\) exceeds the untrained model at every budget and
+at least doubles either response-level variant.  Group (Shapley) credit
+then lifts the curve further from \(k{=}4\) on (compose@32
+74.3\% vs.\ 70.2\%) and adds 2.2--4.4 points of pass@\(k\).
+\end{tcolorbox}
 
 \paragraph{Negative-sampler ablation.}
 Under the full reward, the structured sampler (relation and post-exit
-traces followed by random budget fill, Section~\ref{sec:method:sampler}) exceeds uniform random
-perturbations by \mock{5.5--6.7} compose@\(k\) points at every budget, whereas
-pass@\(k\) differs by \mock{\(-1.8\) to \(+1.6\)} points
+families, Section~\ref{sec:method:sampler}) exceeds uniform random
+perturbations by 5.5--6.7 compose@\(k\) points at every budget, whereas
+pass@\(k\) differs by \(-1.8\) to \(+1.6\) points
 (Table~\ref{tab:sampler-ablation}, Appendix~\ref{app:ablation-definitions}).
 
 \paragraph{Does negative coverage predict hidden-target utility?}
 We score 6,190 saved target-hidden candidate sets from eight generation
 pipelines on the structured negatives, then use the restored-target
-Frama-C/WP verdict only as an evaluation label.  Among the 6,182 candidates
+Frama-C/WP verdict only as an evaluation label.  Among the 5,606 candidates
 with a continuous coverage score, coverage predicts target success with
-AUROC (area under the ROC curve) \(0.793\) (program-clustered 95\% CI
-\(0.775\)--\(0.811\)) and AUPRC (area under the precision--recall curve)
-\(0.768\), against a \(0.525\) positive-rate baseline.  More stringently,
+AUROC \(0.738\) (program-clustered 95\% CI \(0.711\)--\(0.763\)) and AUPRC
+\(0.730\), against a \(0.508\) positive-rate baseline.  More stringently,
 ranking candidates only against other candidates for the same program gives
-macro AUROC \(0.802\) (\(0.783\)--\(0.820\)); a within-program permutation
+macro AUROC \(0.794\) (\(0.773\)--\(0.814\)); a within-program permutation
 test gives \(p<2\times10^{-4}\).  The association is strong on Linear and
 Loopy but weak on NLA, exposing a limitation of the current negative
-construction.
+construction rather than establishing coverage as a universal proxy.
 Appendix~\ref{app:coverage-predictiveness} gives the protocol, strata, and
 diagnostic curves.

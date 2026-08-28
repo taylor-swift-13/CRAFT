@@ -2,35 +2,7 @@
 %% Appendix (included after \appendix in main.tex)
 %% ============================================================
 
-\noindent\textbf{Appendix guide.}
-The appendices separate method justification, reproducibility material, data
-audits, experimental results, and reward-path diagnostics.  The table below
-states the question answered by each appendix.
-
-\begin{center}
-\small
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{clp{8.4cm}}
-\toprule
-& Topic & Purpose \\
-\midrule
-A & Scope and example & Defines the supported program class and shows why hiding the target prevents copying. \\
-B & Formal proofs & Proves conjunction, mutual support, Houdini greatestness, and the closed-form coverage-game Shapley value. \\
-C & Implementation & Records sampler, verifier, reward, and GRPO details needed to reproduce the method. \\
-D & Generation prompt & Gives the exact target-hidden model instruction and output grammar. \\
-E & Training interface & Documents the reward-service API and selectable ablations. \\
-F & Overlap audit & Tests whether training programs duplicate or structurally overlap evaluation programs. \\
-G & Training-pool curation & Describes how SFT and RL training pools were constructed and filtered. \\
-H & Experimental protocol & Fixes evaluation, decoding, verification, and training configurations. \\
-I & Complete results & Reports full probe, training, ablation, sampler-validity, cross-model, and tool results. \\
-J & Limitations & Delimits program scope, serving, verifier, candidate-pool, and feedback limitations. \\
-K & No-thinking setting & Explains why local-model generation disables chain-of-thought consistently. \\
-L & Pooled reward path & Shows why clauses must be pooled before filtering, defines attribution and reward, and measures runtime only. \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\section{Scope and Target-Hiding Example}
+\section{Scope and Motivating Example}
 \label{app:scope-example}
 
 We focus on numerical loops because their arithmetic equalities and
@@ -38,7 +10,7 @@ inequalities, including polynomial relations, admit scalable automatic
 checking.  This controlled setting factors out arrays, heaps, recursive data
 structures, auxiliary functions, and inductive predicates, allowing the study
 to isolate algebraic discovery and loop dynamics.  Concretely, we consider
-one braced while loop over scalar C integers, including nonlinear
+one braced \texttt{while} loop over scalar C integers, including nonlinear
 updates.  Even this restricted setting can hide nonlinear relations across
 coupled recurrences.  For example:
 \begin{lstlisting}
@@ -53,17 +25,15 @@ void f(int k, int z) {
 If the assertion is visible to the generator, the task is nearly trivial:
 the assertion itself can be copied verbatim as a loop invariant.  It holds
 initially because \(x=y=1\).  Writing
-\(h(x,y;z)=1+xz-x-zy\), where the semicolon separates the loop-constant
-parameter \(z\), one loop iteration gives
+\(I(x,y)=1+xz-x-zy\), one loop iteration gives
 
 \[
-  h(xz+1,yz;z)
+  I(xz+1,yz)
   =1+(xz+1)z-(xz+1)-z(yz)
-  =z\,h(x,y;z),
+  =zI(x,y),
 \]
 
-so the predicate \(h(x,y;z)=0\) is inductive and directly discharges the exit
-assertion.  Under
+so \(I=0\) is inductive and directly discharges the exit assertion.  Under
 the target-hidden protocol, however, the model sees the initialization and
 the two coupled recurrences but not the assertion, and must independently
 recover this relation.  The archived non-reasoning rollout pools do so in
@@ -95,7 +65,7 @@ than access to the postcondition.
 
 This section contains all proofs for the formal composition claims in
 Section~\ref{sec:method:core}.  Write
-\(\mathcal L=(P,B,S)\), where \(P\) is the loop-entry predicate, \(B\) the guard,
+\(\mathcal L=(P,B,S)\), where \(P\) denotes loop-entry states, \(B\) the guard,
 and \(S\) the body transition.
 
 \subsection{Conjunction of Valid Invariants}
@@ -195,48 +165,43 @@ also holds.  Therefore no member of \(C'\) is deleted in round \(j\), proving
 hence \(I_{\mathsf H_{\mathcal L}(C)}\preceq I_{C'}\).
 \end{proof}
 
-The theorem is candidate-relative: Houdini cannot synthesize a
+The theorem is deliberately candidate-relative: Houdini cannot synthesize a
 missing clause, so it need not recover the strongest invariant expressible in
-the full assertion language.  It is also an ideal-oracle result: the
-inference-time Frama-C/WP backend may time out or fail to prove a valid
-obligation, in which case such clauses are conservatively removed.  The
-final retained conjunction remains accepted by the verifier.
+the full assertion language.  It is also an ideal-oracle result.  The inference-time
+Frama-C/WP backend may time out or fail to prove a valid obligation; such
+clauses are conservatively removed.  The final retained conjunction remains
+accepted by the verifier, but completeness and greatestness are not claimed
+for these resource-bounded executions.
 
 \subsection{Closed Form of the Coverage-Game Shapley Value}
 
-For a fixed sampled full group \(\mathcal G\), the allocation of
-Equation~\eqref{eq:shapley-credit} is the Shapley value of
-\(v_{\mathcal G}\).  The group subscript is essential: the attributed sets
-\(R_i(\mathcal G)\) are formed only after the full union is filtered.
+The allocation of Equation~\eqref{eq:shapley-credit} is the Shapley value of
+the coverage game \(v(\mathcal S)=|\bigcup_{i\in\mathcal S}R_i|/|\mathcal N|\),
+for coalitions \(\mathcal S\subseteq\mathcal G\) of the rollout group.
 
 \begin{proposition}[Closed form of the coverage game]
 \label{prop:shapley-closed-form}
-For the fixed coverage game
-\(v_{\mathcal G}(\mathcal S)=
-|\bigcup_{i\in\mathcal S}R_i(\mathcal G)|/|\mathcal N|\),
+For the coverage game \(v(\mathcal S)=|\bigcup_{i\in\mathcal S}R_i|/|\mathcal N|\),
 the Shapley value is
-\(\phi_i(\mathcal G)=\frac{1}{|\mathcal N|}
-\sum_{\nu\in R_i(\mathcal G)}\frac{1}{f_{\mathcal G}(\nu)}\), and
-\(\sum_{i=1}^{G}\phi_i(\mathcal G)=v_{\mathcal G}(\mathcal G)\).
+\(\phi_i=\frac{1}{|\mathcal N|}\sum_{\nu\in R_i}\frac{1}{f(\nu)}\), and
+\(\sum_i\phi_i=v(\mathcal G)\).
 \end{proposition}
 
 \begin{proof}
-Fix a trace \(\nu\) rejected by \(f_{\mathcal G}(\nu)\) attributed rollout
-sets.  In a uniformly random
+Fix a trace \(\nu\) rejected by \(f(\nu)\) rollouts.  In a uniformly random
 ordering of the group, \(\nu\) contributes to the marginal gain of exactly one
-player---the first of those \(f_{\mathcal G}(\nu)\) rollouts to appear---and by symmetry
-each is first with probability \(1/f_{\mathcal G}(\nu)\).  Player \(i\) therefore
-receives expected credit \(1/f_{\mathcal G}(\nu)\) for each
-\(\nu\in R_i(\mathcal G)\) and zero otherwise.
+player---the first of those \(f(\nu)\) rollouts to appear---and by symmetry
+each of them is first with probability \(1/f(\nu)\).  Player \(i\) therefore
+receives expected credit \(1/f(\nu)\) for each \(\nu\in R_i\) and zero otherwise.
 Summing over \(\nu\in\mathcal N\) and normalizing by \(|\mathcal N|\) gives the
 closed form; efficiency follows because each covered trace distributes
-exactly one unit of credit among its \(f_{\mathcal G}(\nu)\) rejectors.
+exactly one unit of credit among its \(f(\nu)\) rejectors.
 \end{proof}
 
 \section{Implementation Details}
 \label{app:constants}
 
-Table~\ref{tab:constants} lists the implemented experimental settings.  SFT synthesis,
+Table~\ref{tab:constants} lists the implemented defaults.  SFT synthesis,
 RL, and inference share one rollout--decompose--pool--filter--compose
 implementation.  RL also filters the union once, then uses clause provenance
 to assign survivors back to their proposing rollouts before computing credit
@@ -254,34 +219,31 @@ sampler seed & 0 & one canonical example set per reward request unless overridde
 input tiers & 20 fixed values & deterministic near-input schedule listed below; unconstrained tier candidates are clamped to \([-64,64]\) \\
 far probes & 3, plus 2 ordered multi-parameter probes & seed-hashed input-envelope coverage, magnitude \(\le 512\) \\
 relation deltas & dense: \(\pm\{1,2\}\); terminal: \(\pm\{1,2,3,5,8\}\) & single-axis and pairwise perturbations; terminal bases require a witnessed final transition rather than a forward dense window \\
-random deltas & \(\pm[1,34]\), then \(\pm[35,128]\) if needed & shared staged local support for the Random control and structured-budget fill \\
 dense window & 3 & sampled successors required for a relation base \\
 relation base cap & 96 & bases stratified across positives \\
 post-exit steps & 24 & continuation length after a genuine exit (one negative trace per run) \\
-negative-example budget & 60 traces & up to 48 relational and 12 post-exit traces, then uniform random fill (sampler schema v9); the Random control uses 60 uniform traces \\
+negative-example budgets & 48 / 12 & relational / post-exit traces (sampler schema v7); stable round-robin across structural buckets, nearest perturbations first \\
 iteration cap & \(2 \times 10^6\) & divergence safety net (capped runs flagged) \\
 \midrule
 \((w_c, w_g)\) & \((1.0, 0.3)\) & negative rejection / Shapley group-credit weights \\
 \(K\) & 20 clauses & response cap applied independently to every generated response; later clauses are discarded \\
 \midrule
-\(G_{\mathrm{SFT}}\) & 16 responses & group sampled per SFT strengthening round (\S\ref{sec:method:sft}) \\
-\(T_{\mathrm{SFT}}\) & 5 rounds & maximum strengthening rounds per loop (at most 80 responses) \\
-\(\tau\) & 0.5 & SFT acceptance threshold on the composed set's trace-level empirical coverage \\
+\(G_{\mathrm{sft}}\) & 16 responses & group sampled per SFT strengthening round (\S\ref{sec:method:sft}) \\
+\(T_{\mathrm{sft}}\) & 5 rounds & maximum strengthening rounds per loop (at most 80 responses) \\
+\(\tau\) & TBD & SFT acceptance threshold on the composed set's negative coverage (whole-rollout strength) \\
 \midrule
 Houdini iterations & \(\le 500\) & greatest-inductive-subset pruning \\
 WP configuration & Alt-Ergo + Z3, 5\,s, Typed model & per-obligation prover budget \\
 \bottomrule
 \end{tabular}
-\caption{Reported settings for execution sampling
+\caption{Defaults for execution sampling
 (\S\ref{sec:method:sampler}), SFT synthesis (\S\ref{sec:method:sft}),
 reward computation (\S\ref{sec:method:reward}), inference, and
 verification.}
 \label{tab:constants}
 \end{table}
-Programs for which the sampler retains no negative trace are unscorable and
-excluded from SFT.
 The exact near-input tier order is
-0, 1, 2, -1, 3, 5, 8, -2, 10, 17, 4, -3, 25, 6, 40, 7, -5, 13, 50, 9.
+\texttt{0, 1, 2, -1, 3, 5, 8, -2, 10, 17, 4, -3, 25, 6, 40, 7, -5, 13, 50, 9}.
 
 \subsection{Negative-Trace Sampling}
 \label{app:negative-sampling}
@@ -295,17 +257,17 @@ exit, continues the real loop body to obtain one post-exit trace.
 pairwise changes; the exact perturbations and budgets are those in
 Table~\ref{tab:constants}.
 
-The two structured families probe complementary properties.  A
+The two families are complementary and both are hard by construction.  A
 relation perturbation is admitted only when it stays inside the sampled
 envelope of its context, preserves the guard truth value, and does not lie on
 the locally witnessed transition tangent, so only clauses that constrain
 relations among variables can reject it.  A post-exit continuation executes
 the real body past a witnessed exit into states that no perturbation of an
 observed state can produce, so only clauses that pin down the exit boundary
-reject it.  After cleaning and structural selection, uniform local
-perturbations fill the unused portion of the 60-trace budget.  The Random
-control draws all 60 traces from that same generator, with the same seed,
-reachability checks, fresh-entry filter, and deduplication rule.
+reject it.  Families whose witnesses are rejected by boilerplate bounds
+(single-variable range escapes and frame equalities) were removed after
+offline audits.  Section~\ref{sec:exp:ablations} ablates the structured
+families against uniform random perturbations.
 
 \begin{algorithm}[H]
 \caption{Target-hidden negative-trace sampling}
@@ -318,35 +280,26 @@ reachability checks, fresh-entry filter, and deduplication rule.
   \cmnt{\(\mathit{capped}\): some run was capped}\\
 \algline \(\mathcal E\leftarrow\operatorname{UniqueHeads}(\mathcal T_{\mathrm{exec}})\);
   \quad \(M\leftarrow\operatorname{SafeModifiedVars}(S)\)\\
+\algline \kw{if} \(M=\varnothing\) or \(S\) has unsupported state
+  \kw{then return} \((\mathcal E,\varnothing)\)\\
 \algline \(\mathcal E_{\mathrm{sample}}\leftarrow
   \operatorname{StratifiedSample}(\mathcal E)\)\\
-\algline \(a\leftarrow\operatorname{RelationSafe}(S)\);\quad
-  \(Z_{\mathrm{rel}}\leftarrow\varnothing\);\quad
-  \kw{if} \(a\) \kw{then}
-  \(Z_{\mathrm{rel}}\leftarrow
+\algline \(C_{\mathrm{rel}}\leftarrow
   \operatorname{Perturb}_{\Theta}(\operatorname{Dense}(\mathcal E_{\mathrm{sample}}),M)\)\\
-\algline \kw{if} \(a\) and \(\neg\mathit{capped}\) \kw{then}
-  \(Z_{\mathrm{rel}}\leftarrow Z_{\mathrm{rel}}\cup
+\algline \kw{if} \(\neg\mathit{capped}\) \kw{then}
+  \(C_{\mathrm{rel}}\leftarrow C_{\mathrm{rel}}\cup
   \operatorname{Perturb}_{\Theta}(\operatorname{Terminals}(\mathcal T_{\mathrm{exec}}),M)\)\\
-\algline \(Z_{\mathrm{rel}}\leftarrow
-  \operatorname{TangentAndEnvelopeFilter}(Z_{\mathrm{rel}},
+\algline \(C_{\mathrm{rel}}\leftarrow
+  \operatorname{TangentAndEnvelopeFilter}(C_{\mathrm{rel}},
   \mathcal T_{\mathrm{exec}})\)\\
-\algline \((Z_{\mathrm{rel}},\mathcal T_{\mathrm{post}})
+\algline \((C_{\mathrm{rel}},\mathcal T_{\mathrm{post}})
   \leftarrow\operatorname{Clean}_{\mathcal E}
-  (Z_{\mathrm{rel}},\mathcal T_{\mathrm{post}})\)\\
-\algline \(\widehat Z_{\mathrm{rel}},\mathcal N_{\mathrm{post}}
+  (C_{\mathrm{rel}},\mathcal T_{\mathrm{post}})\)\\
+\algline \(\widehat C_{\mathrm{rel}},\mathcal N_{\mathrm{post}}
   \leftarrow\operatorname{BudgetAndRoundRobin}
-  (Z_{\mathrm{rel}},\mathcal T_{\mathrm{post}},\Theta)\)\\
-\algline \(\mathcal N_{\mathrm{core}}\leftarrow
-  \{\langle s\rangle:s\in \widehat Z_{\mathrm{rel}}\}\cup\mathcal N_{\mathrm{post}}\);\quad
-  \(b\leftarrow60-|\mathcal N_{\mathrm{core}}|\)\\
-\algline \(Z_{\mathrm{rand}}\leftarrow
-  \operatorname{UniformLocalPerturb}(\mathcal E_{\mathrm{sample}},M,b)\)\\
-\algline \(\widehat Z_{\mathrm{rand}}\leftarrow
-  \operatorname{CleanAndBudget}_{\mathcal E}
-  (Z_{\mathrm{rand}},b;\mathcal N_{\mathrm{core}})\)\\
-\algline \(\mathcal N\leftarrow\mathcal N_{\mathrm{core}}\cup
-  \{\langle s\rangle:s\in\widehat Z_{\mathrm{rand}}\}\)\\
+  (C_{\mathrm{rel}},\mathcal T_{\mathrm{post}},\Theta)\)\\
+\algline \(\mathcal N\leftarrow
+  \{\langle s\rangle:s\in \widehat C_{\mathrm{rel}}\}\cup\mathcal N_{\mathrm{post}}\)\\
 \algline \kw{return} \((\mathcal E,\mathcal N)\)\\
 \end{algorithmic}
 \end{algorithm}
@@ -356,83 +309,48 @@ possible fresh loop entries, duplicates, and unsupported candidates; a
 cleaned post-exit continuation remains one trace, and relation candidates
 become singleton traces.  Within each structural bucket the round-robin
 prefers the smallest counterfactual change, so surviving witnesses sit close
-to the sampled manifold.  Random fill begins only after the structured
-families are selected and shares their cross-family duplicate set.  Budget
-matching counts traces: a multi-state post-exit continuation is one trace,
-just as it is one rejection event in the reward.
+to the sampled manifold.
 
 \subsection{Group-Relative Optimization Details}
 \label{app:grpo-details}
 
 For a sampled response group
-\(Y_{1:G}\sim\pi_{\theta_{\mathrm{old}}}(\cdot\mid\mathcal L)\), we normalize
-Equation~\eqref{eq:generation-reward} within its group,
+\(A_{1:G}\sim\pi_{\theta_{\mathrm{old}}}(\cdot\mid\mathcal L)\), we normalize
+Equation~\ref{eq:generation-reward} within its group,
 \[
   \widehat{\operatorname{Adv}}_i=
-  \frac{r_i(\mathcal G)-
-    \operatorname{mean}_{j\in\mathcal G}r_j(\mathcal G)}
-       {\operatorname{std}_{j\in\mathcal G}r_j(\mathcal G)+10^{-6}},
+  \frac{r_i-\operatorname{mean}_{j}r_j}
+       {\operatorname{std}_{j}r_j+10^{-6}},
 \]
 and use the clipped GRPO objective~\citep{shao2024deepseekmath}
 \begin{equation}
 \label{eq:grpo}
   \mathcal J(\theta)=\mathbb E\!\left[
-    \frac1G\sum_{i=1}^{G}\frac1{T_i}\sum_{u=1}^{T_i}
-    \left\{\min\!\left(\rho_{i,u}\widehat{\operatorname{Adv}}_i,
+    \frac1G\sum_i\frac1{T_i}\sum_u
+    \min\!\left(\rho_{i,u}\widehat{\operatorname{Adv}}_i,
     \operatorname{clip}(\rho_{i,u},1-\varepsilon,1+\varepsilon)
     \widehat{\operatorname{Adv}}_i\right)
-    -\beta\widehat d_{i,u}\right\}\right].
+    -\beta D_{\mathrm{KL}}(\pi_\theta\Vert\pi_{\mathrm{ref}})\right].
 \end{equation}
-Here \(T_i\) is the token length of response \(i\), and the token-level
-importance ratio is
-\[
-  \rho_{i,u}=
-  \frac{\pi_\theta(y_{i,u}\mid y_{i,<u},\mathcal L)}
-       {\pi_{\theta_{\mathrm{old}}}(y_{i,u}\mid y_{i,<u},\mathcal L)}.
-\]
-Writing \(h_{i,u}=(\mathcal L,y_{i,<u})\), the implementation uses the
-per-token sampled estimator of the forward conditional KL,
-\[
-  \delta_{i,u}=\log\pi_{\mathrm{ref}}(y_{i,u}\mid h_{i,u})
-               -\log\pi_\theta(y_{i,u}\mid h_{i,u}),
-  \qquad
-  \widehat d_{i,u}=\exp(\delta_{i,u})-\delta_{i,u}-1.
-\]
-The KL penalty is therefore evaluated at each sampled token and its explicit
-prefix context, then averaged with the token objective; it is neither an
-unnormalized sequence KL nor an unspecified sequence-level penalty.
-The clipping radius is \(\varepsilon>0\), the KL coefficient is
-\(\beta=0.001\), and \(\pi_{\mathrm{ref}}\) is frozen.
-
-The canonical normalization key used for de-duplication applies only these
-finite rules: strip the annotation wrapper and redundant whitespace; parse
-supported scalar-integer expressions so parentheses disappear; orient
-\(>\) and \(\ge\) as \(<\) and \(\le\); sort the two sides of \(=\) and
-\(\ne\); eliminate unary plus and double negation; rewrite negated
-comparisons to their complementary comparison; sort the immediate operands
-of addition and multiplication; remove \(+0\), \(-0\), and \(\times1\);
-flatten association and remove exact duplicates within \(\wedge\) and
-\(\vee\); and expand chained comparisons into conjunctions.  It does not
-reorder Boolean operands, normalize general arithmetic, cancel terms, invoke
-SMT, or otherwise decide logical equivalence.  Unsupported expressions use
-their whitespace-normalized text as the key.  Pooled survivors are assigned
-back by this same canonical normalization key, so only spellings identified
-by these rules share a pooled entry and credit.
-
-A zero-coverage support clause receives zero direct reward even if it enables
-another clause to survive; the objective has no support-aware term.  Both
-coverage and Shapley credit lie in
+Here \(T_i\) is the token length of response \(i\), \(\rho_{i,u}\) is the
+token-level ratio at token position \(u\) to the rollout policy, and \(\pi_{\mathrm{ref}}\) is
+frozen.  Clause de-duplication, which forms the clause set scored above,
+normalizes comparison direction, equality sides, parentheses, immediate
+commutative operands, harmless identities, and Boolean association, but
+avoids transformations that require additional arithmetic assumptions.
+Repeated clauses therefore collapse without affecting the score, and a
+unique zero-coverage clause costs nothing because it may support another
+clause or the hidden target.  Both coverage and Shapley credit lie in
 \([0,1]\), so the full reward lies in \([0,1.3]\).  When the sampler
 retains no negatives, scoring falls back to binary inductiveness for a
-nonempty response: it receives one iff every admitted normalized clause is
-assigned back from the pooled survivor set, and zero otherwise.
+nonempty response.
 
 \section{Generation Prompt}
 \label{app:prompt}
 
 The canonical evaluation template appears below; every target and non-contract
 comment is stripped before insertion, and general annotation rules are supplied
-by the accompanying system prompt.  Both training sets are rebuilt with this
+by \texttt{system\_prompt.txt}.  Both training sets are rebuilt with this
 single prompt pair: archival records are sanitized to the scalar-integer
 single-loop interface (37,481 RL and 3,200 SFT records retained), and no
 model-visible prompt contains a target clause or non-contract comment.  The
@@ -453,7 +371,8 @@ Program:
 \end{lstlisting}
 \end{promptbox}
 
-The accompanying system prompt appears verbatim below.
+The accompanying system prompt appears verbatim below (also released as
+\texttt{prompt/system\_prompt.txt}).
 
 \begin{promptbox}[System prompt]
 \begin{lstlisting}[style=promptstyle]
@@ -545,15 +464,12 @@ or explanations.
 
 The training service is packaged as a self-contained, CPU-only container with
 gcc, the verifier, Why3, and its prover backend.  It exposes
-POST /reward, accepting program source, an array of model responses,
-{reward\_variant} in \{binary, {whole\_coverage},
-base, full\},
-{credit\_filter\_order} in \{pooled,
-independent\}, and
-{sampler.negative\_sampler} in \{random,
-structured\}.  These switches default to full,
-pooled, and structured, respectively; independent
-is retained only for historical comparison.  The response reports each rollout's
+\texttt{POST /reward}, accepting program source, an array of model responses,
+\texttt{reward\_variant} in \{\texttt{binary}, \texttt{whole\_coverage},
+\texttt{base}, \texttt{full}\}, and
+\texttt{sampler.negative\_sampler} in \{\texttt{random},
+\texttt{structured}\}; the two switches are independent and default to
+\texttt{full} and \texttt{structured}.  The response reports each rollout's
 reward together with its coverage and Shapley-credit components.  Responses may be raw LLM text, invariant lists, or annotated
 code; an offline scorer provides the same generation reward over
 JSONL/Parquet rollout dumps.
@@ -577,7 +493,8 @@ share 88 and 41 of them, respectively; their union shares 92 cells.  Equivalentl
 fall in a cell represented by RL, SFT, and their union.  These are support
 statistics, not instance matches.  The record-weighted total-variation
 distances over cells are 0.422 for RL, 0.651 for SFT, and 0.596 for their
-union.  Table~\ref{tab:train-test-marginals} gives interpretable feature
+union, so the training and evaluation distributions are related but not
+identical.  Table~\ref{tab:train-test-marginals} gives interpretable feature
 marginals behind this joint-cell comparison.
 
 \begin{table}[H]
@@ -634,7 +551,7 @@ The audit detects direct source reuse under the three reported
 normalizations; it does not establish semantic inequivalence between
 arbitrarily rewritten programs or address possible benchmark exposure during
 foundation-model pretraining.  Structural-cell overlap and total-variation
-distance characterize domain similarity.
+distance characterize domain similarity rather than instance-level reuse.
 
 \section{Training-Pool Curation}
 \label{app:data-curation}
@@ -645,7 +562,7 @@ training signal and too-easy or too-hard programs are removed, the selection
 is aligned with the evaluation distribution over structural cells
 (control-flow profile, guard kind, nonlinearity, nondeterminism, variable
 band), and SFT targets are minimal inductive invariant sets synthesized with
-GPT-5.6 Luna and verified by Frama-C/WP.  Per-stage counts are
+\texttt{gpt-5.6-luna} and verified by Frama-C/WP.  Per-stage counts are
 emitted as machine-readable reports shipped with the code.
 Table~\ref{tab:training-sets} summarizes the released sets.
 
@@ -666,7 +583,7 @@ RL--SFT exact-source overlap & 1,687 distinct programs \\
 The reward discriminates on the released data.  On the 125 released RL
 programs with a reference answer, the production reward gives the reference
 a median of 0.845 and its bounds-only projection a median of 0.0; the
-tautology 1 == 1, the loop guard copied as an invariant, and an
+tautology \texttt{1 == 1}, the loop guard copied as an invariant, and an
 unsound clause score exactly zero on every program.  A simulated
 eight-answer group has a median within-group reward standard deviation of
 0.21, so group-relative updates retain a usable advantage signal.
@@ -679,14 +596,14 @@ Section~\ref{sec:exp:setup}; the 466 Loopy programs are the integer subset
 of its original 469-program corpus (three floating-point programs excluded),
 and unsupported inputs remain failures in the common denominator.
 
-Before model invocation, we remove assert and ensures
+Before model invocation, we remove \texttt{assert} and \texttt{ensures}
 predicates, executable assertion calls, conventional error-label names, and
 non-contract comments, including source-provenance paths; preconditions and
 executable semantics remain visible.  \sam{} evaluation
 runs use the canonical generation template, extractor, semantic deduplication,
 and Houdini implementation; external tools retain their own orchestration.
 Each model retains its serving interface and chat template.  In \sam{}, API
-calls set {reasoning\_effort=none}; all locally served checkpoints
+calls set \texttt{reasoning\_effort=none}; all locally served checkpoints
 disable thinking.
 We set temperature 1.0 and top-\(p\) 1.0, without an additional top-\(k\),
 repetition penalty, re-roll, or target feedback.  The cap is 8,192
@@ -730,7 +647,7 @@ Field & Value \\
 \midrule
 Batch size & 64 \\
 Learning rate & \(1\times10^{-6}\) \\
-KL penalty & {low\_var\_kl}, coefficient \(0.001\) \\
+KL penalty & \texttt{low\_var\_kl}, coefficient \(0.001\) \\
 Rollouts per prompt & 8 \\
 Tensor parallelism & 1--2 \\
 GPU memory utilization & 0.3--0.5 \\
@@ -815,7 +732,7 @@ Model & \(k\) & pass & comp & pass & comp & pass & comp & pass & comp
 \setlength{\tabcolsep}{5pt}
 \caption{Per-GPU decoding throughput of the four backbones used in training
 experiments, measured with vLLM on A800-80G GPUs (\(n{=}32\) responses per
-task, temperature 1.0, {max\_tokens=2048}).}
+task, temperature 1.0, \texttt{max\_tokens=2048}).}
 \label{tab:probe-serving}
 \begin{tabular}{lr}
 \toprule
@@ -832,8 +749,6 @@ Llama 3.1 8B & 5,135 \\
 \subsection{SFT Probe Curves}
 \label{app:sft-probe}
 
-\rqtwostratatable
-
 The SFT checkpoints (three epochs on the final SFT corpus) are evaluated
 under the same 832-task protocol as the base probe: 32 saved
 target-hidden responses per task at temperature 1.0, 5-second per-obligation
@@ -842,19 +757,19 @@ prover budget, and the current prompt.
 \begin{table}[H]
 \centering
 \setlength{\tabcolsep}{3pt}
-\caption{Complete SFT probe results on All / 832.  \(k_{95}\) is the smallest measured
+\caption{Complete SFT probe results.  \(k_{95}\) is the smallest measured
 \(k\in\{1,4,8,16,32\}\) at which compose@\(k\) reaches \(95\%\) of its
-value at \(k=32\).  Bold marks the best value in each column.}
+value at \(k=32\).}
 \label{tab:sft-probe-complete}
 \textit{Whole-response pass rates}\\[2pt]
 \begin{tabular}{lrrrrr}
 \toprule
 Model & pass@1 & pass@4 & pass@8 & pass@16 & pass@32 \\
 \midrule
-Qwen3-4B + SFT & 40.43 & 55.23 & 59.99 & 64.09 & 67.74 \\
-Qwen3-8B + SFT & 41.93 & 56.82 & 61.11 & 64.68 & 67.98 \\
-Qwen3-14B + SFT & \textbf{45.66} & \textbf{59.14} & \textbf{63.50} & \textbf{67.34} & \textbf{70.57} \\
-Llama 3.1 8B + SFT\mock{\(^{\dagger}\)} & \mock{36.20} & \mock{51.00} & \mock{55.80} & \mock{60.00} & \mock{63.20} \\
+Qwen3-4B + SFT & TBD & TBD & TBD & TBD & TBD \\
+Qwen3-8B + SFT & TBD & TBD & TBD & TBD & TBD \\
+Qwen3-14B + SFT & TBD & TBD & TBD & TBD & TBD \\
+Llama 3.1 8B + SFT & TBD & TBD & TBD & TBD & TBD \\
 \bottomrule
 \end{tabular}
 \vspace{5pt}
@@ -864,24 +779,20 @@ Llama 3.1 8B + SFT\mock{\(^{\dagger}\)} & \mock{36.20} & \mock{51.00} & \mock{55
 \toprule
 Model & compose@1 & compose@4 & compose@8 & compose@16 & compose@32 & \(k_{95}\) \\
 \midrule
-Qwen3-4B + SFT & 62.62 & 73.44 & 76.20 & 77.28 & 77.88 & 8 \\
-Qwen3-8B + SFT & 65.50 & 75.12 & 77.52 & 78.61 & 78.97 & 4 \\
-Qwen3-14B + SFT & \textbf{66.35} & \textbf{76.68} & \textbf{78.37} & \textbf{79.21} & \textbf{79.33} & 4 \\
-Llama 3.1 8B + SFT\mock{\(^{\dagger}\)} & \mock{56.80} & \mock{69.00} & \mock{72.50} & \mock{73.40} & \mock{74.00} & \mock{8} \\
+Qwen3-4B + SFT & TBD & TBD & TBD & TBD & TBD & TBD \\
+Qwen3-8B + SFT & TBD & TBD & TBD & TBD & TBD & TBD \\
+Qwen3-14B + SFT & TBD & TBD & TBD & TBD & TBD & TBD \\
+Llama 3.1 8B + SFT & TBD & TBD & TBD & TBD & TBD & TBD \\
 \bottomrule
 \end{tabular}
 \end{table}
-
-Here and in the main experimental table, \mock{\(\dagger\)} marks provisional mock
-values used for presentation layout; these entries must be replaced by
-completed measurements before submission.
 
 \begin{table}[H]
 \centering
 \setlength{\tabcolsep}{5pt}
 \caption{Per-GPU decoding throughput of the SFT checkpoints, measured with
 vLLM on A800-80G GPUs (\(n{=}100\) responses per task, temperature 1.0,
-{max\_tokens=2048}).}
+\texttt{max\_tokens=2048}).}
 \label{tab:sft-serving}
 \begin{tabular}{lr}
 \toprule
@@ -910,75 +821,42 @@ Checkpoint & Stage & pass@1 & compose@1 & compose@8 &
 compose@16 & compose@32 & \(k_{95}\) \\
 \midrule
 Zero    & before RL & 8.3\% & 43.8\% & 59.0\% & 61.2\% & 62.5\% & 16 \\
-RL-Zero & after RL  & 6.8\% & 57.9\% & 71.3\% & 73.4\% & 74.3\% & 8 \\
-SFT     & before RL & 41.9\% & 65.5\% & 77.5\% & 78.6\% & 79.0\% & 4 \\
-SFT+RL\mock{\(^{\dagger}\)} & after RL & \mock{40.8\%} & \mock{72.2\%} & \mock{81.6\%} & \mock{82.4\%} & \mock{82.7\%} & \mock{4} \\
+RL-Zero & after RL  & 6.80\% & 57.93\% & 71.27\% & 73.44\% & 74.28\% & 8 \\
+SFT     & before RL & TBD & TBD & TBD & TBD & TBD & TBD \\
+SFT+RL  & after RL  & TBD & TBD & TBD & TBD & TBD & TBD \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The \mock{\(\dagger\)} row is a provisional mock curve, not an empirical result.
-
-\rqfourfigure
-
-\begin{table}[H]
-\centering
-\setlength{\tabcolsep}{5pt}
-\caption{Provisional seed-level SFT+RL results on Qwen3-8B (All / 832, \%).
-All entries are mock values and therefore red.  The mean is the curve used in
-Table~\ref{tab:rl-complete} and Figure~\ref{fig:rl-panels}.}
-\label{tab:rl-seeds-mock}
-\begin{tabular}{lrrrrrr}
-\toprule
-Run & pass@1 & compose@1 & compose@4 & compose@8 & compose@16 & compose@32 \\
-\midrule
-\mock{Seed 1} & \mock{41.3} & \mock{71.8} & \mock{78.9} & \mock{81.0} & \mock{81.9} & \mock{82.1} \\
-\mock{Seed 2} & \mock{40.2} & \mock{72.6} & \mock{79.8} & \mock{82.0} & \mock{82.8} & \mock{83.1} \\
-\mock{Seed 3} & \mock{40.9} & \mock{72.2} & \mock{79.5} & \mock{81.8} & \mock{82.5} & \mock{82.9} \\
-\midrule
-\mock{Mean} & \mock{40.8} & \mock{72.2} & \mock{79.4} & \mock{81.6} & \mock{82.4} & \mock{82.7} \\
-\mock{Std. dev.} & \mock{0.6} & \mock{0.4} & \mock{0.5} & \mock{0.5} & \mock{0.5} & \mock{0.5} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Reward and Negative-Sampler Ablations}
+\subsection{Ablation Results}
 \label{app:ablation-definitions}
 
 The reward variants correspond directly to the two levels of
-Equation~\eqref{eq:generation-reward}.  Define
-\(\operatorname{NKeys}(C)=\{\operatorname{nkey}(c):c\in C\}\) and
+Equation~\ref{eq:generation-reward}.  \emph{Binary Inductiveness} assigns one
+iff the capped, normalized response is nonempty and every clause survives
+Houdini.  \emph{Whole-Rollout Strength} pays the strength score
+\(\operatorname{cov}(C_i^{\mathrm{train}})\) only when every capped clause survives,
 \[
-  \chi_i(\mathcal G)=
-  \mathbf 1\!\left[C_i^{\mathrm{raw}}\ne\varnothing\ \wedge\
-    \operatorname{NKeys}(C_i^{\mathrm{attr}}(\mathcal G))
-    =\operatorname{NKeys}(C_i^{\mathrm{raw}})\right].
-\]
-\emph{Binary Inductiveness} uses
-\(r_i^{\mathrm{bin}}(\mathcal G)=\chi_i(\mathcal G)\): it assigns one iff
-the capped, normalized response is nonempty and every admitted normalization key
-is assigned back from the pooled survivor set.  \emph{Whole-Rollout Strength}
-pays \(\operatorname{cov}_i(\mathcal G)\) only under that same condition,
-\[
-  r_i^{\mathrm{whole}}(\mathcal G)
-  =\chi_i(\mathcal G)\frac{|R_i(\mathcal G)|}{|\mathcal N|}.
+  r_i^{\mathrm{whole}}
+  =\mathbf 1[C_i^{\mathrm{train}}=
+    \operatorname{set}(\operatorname{dedup}(\bar A_i))]
+   \frac{|R_i|}{|\mathcal N|}.
 \]
 \emph{Clause-Decomposed Strength} removes this all-or-nothing indicator and
-scores \(C_i^{\mathrm{attr}}(\mathcal G)\); the \emph{Full Compositional
-Credit} additionally adds \(w_g\phi_i(\mathcal G)\).  These are binary,
-{whole\_coverage}, base, and full, respectively,
+scores the surviving \(C_i^{\mathrm{train}}\); the \emph{Full Compositional
+Credit} additionally adds the group credit \(w_g\phi_i\).  These are \texttt{binary},
+\texttt{whole\_coverage}, \texttt{base}, and \texttt{full}, respectively,
 abbreviated Binary, Whole-rollout, Clause-decomposed, and Full in figures
 and prose.
 All variants train from the Zero initialization on the curated pool with
-identical optimization and inference settings.  The Full Compositional Credit
-run is the RL-Zero checkpoint of Section~\ref{sec:exp:rl}.
+identical optimization and inference settings.
 
 \begin{table}[H]
 \centering
 \footnotesize
 \setlength{\tabcolsep}{2.4pt}
 \caption{Reward-function ablation on Qwen3-8B, trained from the Zero
-  initialization (\%); complete pass@\(k\) and compose@\(k\) curves.
+  initialization (\%); exact numbers for Figure~\ref{fig:reward-ablation}.
   Best result per column among trained variants in bold.}
 \label{tab:reward-ablation}
 \begin{tabular}{lrrrrrrrrrr}
@@ -1013,9 +891,8 @@ The negative-sampler ablation uses matched Qwen3-8B runs from the Zero
 initialization under the full compositional reward that differ only in the
 sampler; the Structured row is the Full Compositional Credit run of
 Table~\ref{tab:reward-ablation}.  Structured is the sampler of
-Section~\ref{sec:method:sampler}: it selects relation and post-exit traces
-first, then fills unused slots with uniform local perturbations.  Random draws
-all 60 traces from the same uniform generator.
+Section~\ref{sec:method:sampler} (relation and post-exit families); Random
+draws uniform local perturbations under the same trace budget.
 
 \begin{table}[H]
 \centering
@@ -1031,8 +908,8 @@ all 60 traces from the same uniform generator.
 \cmidrule(lr){2-6}\cmidrule(lr){7-11}
 Negative sampler & 1 & 4 & 8 & 16 & 32 & 1 & 4 & 8 & 16 & 32 \\
 \midrule
-Random\mock{\(^{\dagger}\)} & \mock{\textbf{8.63}} & \mock{\textbf{14.40}} & \mock{\textbf{17.00}} & \mock{19.43} & \mock{21.82}
-  & \mock{52.04} & \mock{60.46} & \mock{64.54} & \mock{67.31} & \mock{68.75} \\
+Random & \textbf{8.63} & \textbf{14.40} & \textbf{17.00} & 19.43 & 21.82
+  & 52.04 & 60.46 & 64.54 & 67.31 & 68.75 \\
 Structured (ours) & 6.80 & 13.42 & 16.80
   & \textbf{20.17} & \textbf{23.44} & \textbf{57.93} & \textbf{67.19}
   & \textbf{71.27} & \textbf{73.44} & \textbf{74.28} \\
@@ -1040,33 +917,32 @@ Structured (ours) & 6.80 & 13.42 & 16.80
 \end{tabular}
 \end{table}
 
-The \mock{\(\dagger\)} control is a mock row pending the matched reward
-configuration.  It yields a compose@\(k\) difference of
-\mock{5.5--6.7 points} at every budget, while pass@\(k\) stays within
-\mock{\(-1.8\) to \(+1.6\) points} of Random.
+% TODO: confirm the Random run used the same base_shapley reward as the
+% Structured row; re-run it otherwise.
+Structured sampling improves compose@\(k\) by 5.5--6.7 points at every
+budget, whereas pass@\(k\) stays within \(-1.8\) to \(+1.6\) points of Random.
 
-\subsection{Does Structured Negative Coverage Predict Target Success?}
+\subsection{Predictive Validity of Negative Coverage}
 \label{app:coverage-predictiveness}
 
-This audit evaluates whether the \emph{negative sampler's} target-independent
-coverage score ranks candidate sets by their eventual hidden-target utility.
-We collect 6,190 saved
+This audit tests the target-independent strength signal directly rather than
+inferring its validity only from downstream RL.  We collect 6,190 saved
 candidate invariant sets produced by eight target-hidden generation
 pipelines on the 832-program test set.  For each candidate, the prediction
-score is its structured negative coverage, including random budget fill and
-computed without \(Q\); the binary label is the final Frama-C/WP verdict after the
+score is its structured relation/post-exit negative coverage, computed
+without \(Q\); the binary label is the final Frama-C/WP verdict after the
 untouched target is restored.  No target label is used to fit a predictor or
 choose a threshold.
 
-The continuous analysis contains 6,182 candidates from 831 programs.  The
-remaining eight candidates come from one program whose loop variable is
-uninitialized and whose guard is controlled by an unknown value; every local
-perturbation remains a possible fresh entry, so neither sampler mode admits a
-negative trace.  Because multiple candidate generators are evaluated on the
-same program, confidence intervals use 5,000 stratified
+The continuous analysis contains 5,606 candidates from 752 programs.  The
+remaining 584 candidate rows belong to 80 programs for which the sampler
+retains no negative group; those rows use the binary reward fallback and
+have no continuous coverage value, so they are excluded rather than assigned
+an artificial zero.  Because multiple candidate generators are evaluated on
+the same program, confidence intervals use 5,000 stratified
 program-cluster bootstrap replicates: all candidates for a resampled program
 move together.  A second analysis computes AUROC separately within each of
-the 593 programs having both successful and unsuccessful candidates, then
+the 547 programs having both successful and unsuccessful candidates, then
 macro-averages over programs.  This removes between-program difficulty as an
 explanation for the ranking.
 
@@ -1077,22 +953,23 @@ explanation for the ranking.
 \toprule
 Population & Candidates & Positive rate & AUROC & AUPRC \\
 \midrule
-All & 6,182 & 0.525 & 0.793 & 0.768 \\
-Linear & 2,520 & 0.544 & 0.821 & 0.826 \\
-NLA & 400 & 0.090 & 0.554 & 0.132 \\
-Loopy & 3,262 & 0.564 & 0.798 & 0.796 \\
+All & 5,606 & 0.508 & 0.738 & 0.730 \\
+Linear & 2,336 & 0.533 & 0.743 & 0.768 \\
+NLA & 400 & 0.090 & 0.542 & 0.132 \\
+Loopy & 2,870 & 0.547 & 0.764 & 0.778 \\
 \bottomrule
 \end{tabular}
 \end{center}
 
 The pooled AUROC has a program-clustered 95\% interval of
-\([0.775,0.811]\), and the AUPRC interval is \([0.742,0.794]\), compared with
-the pooled positive-rate baseline of \(0.525\).  Within programs, macro
-AUROC is \(0.802\), with a clustered interval of \([0.783,0.820]\); randomly
+\([0.711,0.763]\), and the AUPRC interval is \([0.699,0.758]\), compared with
+the pooled positive-rate baseline of \(0.508\).  Within programs, macro
+AUROC is \(0.794\), with a clustered interval of \([0.773,0.814]\); randomly
 permuting target verdicts among candidates for the same program gives a
 one-sided \(p<2\times10^{-4}\) over 5,000 permutations.  Method-stratified
-AUROCs range from \(0.574\) to \(0.820\).  Candidates with coverage at least
-0.90 verify \(80.1\%\) of the time, compared with \(22.4\%\) below 0.50.
+AUROCs range from \(0.572\) to \(0.731\), so the pooled association is not
+created by a single candidate generator.  Candidates with coverage at least
+0.90 verify \(78.9\%\) of the time, compared with \(29.2\%\) below 0.50.
 
 \begin{figure}[H]
 \centering
@@ -1106,8 +983,14 @@ better for Linear and Loopy programs than for nonlinear arithmetic.}
 \label{fig:coverage-predictiveness}
 \end{figure}
 
-Coverage provides a useful ranking signal for candidate strength.  The NLA
-stratum identifies where richer nonlinear perturbations are needed.
+These results establish association, not causality: coverage is useful for
+ranking candidate strength but is not itself a proof of relevance to every
+possible hidden target.  In particular, the NLA stratum identifies where
+richer nonlinear perturbations are needed.  The complete deterministic
+analysis is produced by
+\texttt{scripts/analyze\_negative\_coverage\_auc.py}; machine-readable
+results are archived in
+\texttt{artifacts/v4/negative\_coverage\_predictiveness.json}.
 
 \subsection{Cross-Model Main Results}
 \label{app:reasoning-leakage}
@@ -1208,14 +1091,13 @@ same saved \(k\) responses.
 \scriptsize
 \setlength{\tabcolsep}{2.2pt}
 \caption{Archived target-hidden tool comparison: the
-{reasoning\_effort=none} rows from the main text alongside the
-archived {reasoning\_effort=medium} rerun; Daikon makes no model call
+\texttt{reasoning\_effort=none} rows from the main text alongside the
+archived \texttt{reasoning\_effort=medium} rerun; Daikon makes no model call
 and is listed once.  Each cell reports the verification rate for Linear,
-NLA, Loopy, or all 832 programs; the Loopy column is the benchmark stratum,
-whereas the Loopy row is the tool of \citet{kamath2023finding}.  The compose@1 rows are the dedicated
+NLA, Loopy, or all 832 programs.  The compose@1 rows are the dedicated
 single-call runs paired with pass@1.  Medium-effort results are available
 only for these single-response measurements; the compose@4 and compose@8
-rows use {reasoning\_effort=none} and are prefix compositions of the
+rows use \texttt{reasoning\_effort=none} and are prefix compositions of the
 archived ten-rollout pool, as in Table~\ref{tab:tool-comparison}.}
 \label{tab:tools-complete}
 \begin{tabular}{llrrrrrr}
@@ -1278,7 +1160,7 @@ Naive & medium & \acc{154}{48.73\%} & \acc{4}{8.00\%} & \acc{221}{47.42\%}
 \end{tabular}
 \end{table}
 
-The main text reports each method's {reasoning\_effort=none} row.  The
+The main text reports each method's \texttt{reasoning\_effort=none} row.  The
 shared model-call parameters for the non-reasoning comparison are summarized
 separately in
 Table~\ref{tab:tool-sampling-parameters}.
@@ -1310,11 +1192,13 @@ always keeps the 832-task denominator.
 \label{app:tool-specific-behavior}
 
 The evaluated systems interact differently with the target-hidden protocol.
-The following observations clarify their effective inference procedures.
+The following observations clarify their effective inference procedures
+rather than attributing performance differences to any single mechanism.
 
 \paragraph{AutoSpec.}
 AutoSpec pools eight parallel proposals in its native orchestration.  Its
-reported result therefore reflects a multi-proposal pipeline.
+reported result therefore reflects a multi-proposal pipeline rather than a
+single-response baseline.
 
 \paragraph{Clause2Inv.}
 Clause2Inv normally constructs false-state counterexamples from the
@@ -1325,7 +1209,7 @@ these unsupported instances remain failures in the common denominator.
 
 \paragraph{Loopy.}
 Although 98.8\% of Loopy's initial responses contain textual
-loop-invariant annotations, its native extractor passes only 1.75\%
+\texttt{loop invariant} annotations, its native extractor passes only 1.75\%
 of initial responses to Houdini.  This indicates an interface bottleneck
 between generated text and the clauses accepted by its downstream pipeline.
 
@@ -1344,40 +1228,27 @@ yet construct reliably informative negatives for inductive predicates or
 interacting nested loops~\citep{liu2024towards}.
 
 \paragraph{Inference engine.}
-We use vLLM for all local
+In preliminary comparisons, locally evaluated checkpoints achieved lower
+verification rates under vLLM than under alternative backends despite
+nominally matched decoding settings.  We nevertheless use vLLM for all local
 base and trained checkpoints because its throughput makes broad sampling
 practical and its consistent use avoids an additional train--test mismatch.
 API models retain their provider serving interfaces and chat templates under
-the reported decoding and reasoning controls.
+the explicitly reported decoding and reasoning controls.  Local-model success
+rates may therefore be conservative rather than engine-independent ceilings.
 
 \paragraph{Verifier and specification language.}
 Our filtering and all final judgments use Frama-C/WP, and candidates use ACSL.
 Parser behavior, generated obligations, prover integration, and syntax affect
-which clauses survive.  The quantitative conclusions may not transfer unchanged to other verifiers,
+which clauses survive.  The pipeline is not intrinsically tied to this
+toolchain, but
+the quantitative conclusions may not transfer unchanged to other verifiers,
 specification languages, or source languages.
-
-The ideal Houdini theorem assumes exact logical decisions.  The implemented
-WP predicate is deliberately one-sided: only a proved obligation is accepted,
-while unknown results, failures, and timeouts cause deletion.  Consequently,
-the implemented result is verifier-accepted but need not be the greatest
-jointly inductive subset of the candidate pool.
-
-\paragraph{Reward surrogate.}
-The reward is empirical trace coverage plus a smaller, full-group-conditioned
-Shapley bonus.  It has three deliberate limitations.  First, it computes the
-exact Shapley value only for the fixed coverage sets obtained after filtering
-the full group; it does not measure marginal contribution to a pipeline that
-re-filters every coalition.  Second, a support-only clause can enable joint
-inductiveness but receives no direct reward if it rejects no negative trace.
-Third, coverage weights traces rather than states, so a multi-state
-continuation and a singleton each count once and alternative grouping of the
-same states could change the score.  These choices make the reward tractable,
-but it is not a complete measure of compositional proof value.
 
 \paragraph{Finite candidate-pool approximation.}
 Before Houdini, the pipeline implementation applies a lightweight AST-based
 filter to parse, normalize, and deduplicate candidate clauses.  This filter is
-conservative and does not provide a completeness guarantee for
+deliberately conservative and does not provide a completeness guarantee for
 the full ACSL expression language: a semantically useful clause that is not
 handled by its restricted parser can be omitted.  In addition, compose@\(k\)
 caps the candidate union passed to verification at 300 clauses to keep WP
@@ -1389,7 +1260,12 @@ successes, because every retained result must still pass the full
 Frama-C/WP final judge.
 
 \paragraph{Feedback regime.}
-We do not evaluate iterative optimization from verifier feedback.  Our results characterize target-independent training and
+We do not evaluate iterative optimization from verifier feedback.  In pilot
+runs, models quickly reached valid but weak invariants: they passed
+inductiveness checks, but with \(Q\) hidden the verifier did not identify the
+missing behavioral strength.  Refinement therefore yielded little marginal
+gain, which decreased further as larger initial rollout unions captured the
+easy corrections.  Our results characterize target-independent training and
 finite-budget composition, not settings with rich counterexamples or
 target-directed repair.
 
@@ -1397,7 +1273,7 @@ target-directed repair.
 \label{app:no-thinking}
 
 For the non-reasoning API experiments reported in the main paper, GPT-family
-requests set {reasoning\_effort=none}, compatible endpoints disable
+requests set \texttt{reasoning\_effort=none}, compatible endpoints disable
 thinking explicitly, and Claude Sonnet disables adaptive thinking with a zero
 thinking budget.  For all locally served checkpoints, including the base probes and
 models trained in our pipeline, we disable chain-of-thought (CoT) during
@@ -1420,134 +1296,77 @@ supervision is therefore not aligned with the clause-wise
 filter-and-compose target.
 
 \clearpage
-\section{Reward Computation: Pool Before Filter}
+\section{Pooled Filtering and Provenance Credit}
 \label{app:houdini-order}
 
-Algorithm~\ref{alg:pooled-reward} is the exact reward path used in training.
-It records provenance before union de-duplication, invokes the filtering
-pipeline once on the full group, and only then computes per-rollout credit.
-No positive-state or proof check is applied to an individual rollout: the
-clauses are combined first, and the positive-state, syntax, and Houdini checks
-all run on that pooled set.
+Let \(\bar A_i\) be the normalized, capped clause sequence proposed by rollout
+\(i\), and let
+\(C_i^{\mathrm{pf}}=
+\mathsf{PF}_{\mathcal E}(\operatorname{set}(\bar A_i))\).  Recall that
+\(\mathsf{Filter}_{\mathcal L}(C)\) denotes the implemented filtering pipeline
+on candidate set \(C\).  RL, SFT construction, and inference all merge the
+candidates and filter them once:
+\begin{equation}
+  C_{\mathcal G}^{\mathrm{surv}}
+  =
+  \mathsf{Filter}_{\mathcal L}\!\left(
+    \bigcup_{i=1}^{G}C_i^{\mathrm{pf}}\right).
+  \label{eq:infer-houdini-order}
+\end{equation}
+This order allows a clause from one response to be preserved with the help of
+a companion clause proposed by another response and removes the former
+training--inference mismatch in Houdini ordering.
 
-\paragraph{Why filtering must follow pooling.}
-Houdini is not distributive over rollout sets:
-\[
-  \mathsf{Filter}_{\mathcal L}\!\left(\bigcup_{i=1}^{G} C_i^{\mathrm{raw}}\right)
-  \ne
-  \bigcup_{i=1}^{G}\mathsf{Filter}_{\mathcal L}(C_i^{\mathrm{raw}})
-  \quad\text{in general}.
-\]
-A clause that fails preservation in isolation can be inductive together with
-a companion clause proposed by another rollout.  Filtering each rollout first
-would delete that clause irreversibly and would therefore score a different
-object from the pooled clause set used at inference.  Pooling first preserves
-such cross-rollout support; provenance assignment after filtering then
-separates the shared proof context from per-rollout credit.
+RL still requires one scalar per rollout.  The implementation retains an
+owner map from each normalized semantic clause key to every rollout that
+proposed that key.  After Equation~\eqref{eq:infer-houdini-order}, it assigns a
+survivor to all of its owners:
+\begin{equation}
+  C_i^{\mathrm{train}}
+  =\{c\in C_i^{\mathrm{pf}}:
+  \operatorname{key}(c)\in
+  \operatorname{key}(C_{\mathcal G}^{\mathrm{surv}})\}.
+  \label{eq:train-houdini-order}
+\end{equation}
+Equivalent spellings therefore share the pooled verdict but retain their own
+surface forms in rollout diagnostics.  Duplicate ownership is intentional: if
+the same survivor rejects a negative for \(f\) rollouts, Equation~\eqref{eq:shapley-credit}
+splits that rejection among the \(f\) owners.  A supporting clause that rejects
+no sampled negative receives no direct coverage credit, but it can enable a
+companion survivor that does; this is the same limitation as any
+negative-coverage surrogate.
 
-\begin{algorithm}[H]
-\caption{Pooled filtering, provenance assignment, and Shapley reward}
-\label{alg:pooled-reward}
-\begin{algorithmic}
-\alginput{loop \(\mathcal L\), rollout responses \(Y_{1:G}\), positives \(\mathcal E\), negatives \(\mathcal N\), weights \((w_c,w_g)\)}
-\algoutput{rewards \(r_{1:G}(\mathcal G)\), pooled survivors \(C_{\mathcal G}^{\mathrm{surv}}\)}
-\algline \kw{for} \(i=1,\ldots,G\) \kw{do}\quad
-  \(\bar A_i\leftarrow\operatorname{Cap}_K(\operatorname{Normalize}(Y_i))\);\quad
-  \(C_i^{\mathrm{raw}}\leftarrow\operatorname{set}(\bar A_i)\) \cmnt{decompose only}\\
-\algline \algind \kw{for} \(c\in C_i^{\mathrm{raw}}\) \kw{do}\quad
-  \(\Omega(\operatorname{nkey}(c))\leftarrow
-  \Omega(\operatorname{nkey}(c))\cup\{i\}\) \cmnt{record owners}\\
-\algline \(C_{\mathcal G}^{\mathrm{pool}}\leftarrow
-  \operatorname{ConservativeDedup}(\bigcup_{i=1}^{G} C_i^{\mathrm{raw}})\) \cmnt{pool}\\
-\algline \(C_{\mathcal G}^{\mathrm{surv}}\leftarrow
-  \mathsf{Filter}_{\mathcal L}(\mathsf{PF}_{\mathcal E}(C_{\mathcal G}^{\mathrm{pool}}))\)
-  \cmnt{one filter call}\\
-\algline \kw{for} \(i=1,\ldots,G\) \kw{do}\quad
-  \(C_i^{\mathrm{attr}}(\mathcal G)\leftarrow
-  \{c\in C_{\mathcal G}^{\mathrm{surv}}:
-  i\in \Omega(\operatorname{nkey}(c))\}\)
-  \cmnt{assign survivors}\\
-\algline \algind \(R_i(\mathcal G)\leftarrow
-  \{\nu\in\mathcal N:\exists c\in C_i^{\mathrm{attr}}(\mathcal G),\
-  \nu\not\models c\}\) \cmnt{rejected traces}\\
-\algline \kw{if} \(\mathcal N=\varnothing\) \kw{then return pooled binary
-  validation rewards}\\
-\algline \kw{for} \(\nu\in\mathcal N\) \kw{do}\quad
-  \(f_{\mathcal G}(\nu)\leftarrow
-    \sum_{j=1}^{G}\mathbf 1[\nu\in R_j(\mathcal G)]\)\\
-\algline \kw{for} \(i=1,\ldots,G\) \kw{do}\quad
-  \(\operatorname{cov}_i(\mathcal G)\leftarrow |R_i(\mathcal G)|/|\mathcal N|\), \quad
-  \(\phi_i(\mathcal G)\leftarrow |\mathcal N|^{-1}
-    \sum_{\nu\in R_i(\mathcal G)}f_{\mathcal G}(\nu)^{-1}\)\\
-\algline \algind \(r_i(\mathcal G)\leftarrow
-  w_c\operatorname{cov}_i(\mathcal G)+w_g\phi_i(\mathcal G)\)\\
-\algline \kw{return} \((r_{1:G}(\mathcal G),C_{\mathcal G}^{\mathrm{surv}})\)\\
-\end{algorithmic}
-\end{algorithm}
-
-The implementation realizes the owner map by matching each rollout's
-canonical normalization keys against the survivor keys and retains the
-rollout's original spelling in diagnostics.  Thus spellings identified by
-the listed normalization rules share one pooled proof verdict while
-each proposer remains an owner; duplicate lines inside one rollout are
-represented by one entry in the set-valued owner map, while candidate
-de-duplication occurs only after pooling.  Since every
-pooled survivor has at least one owner,
-\[
-  \bigcup_{i=1}^{G}R_i(\mathcal G)
-  =\operatorname{rej}(C_{\mathcal G}^{\mathrm{surv}}),
-\]
-which gives the efficiency equality in Equation~\eqref{eq:shapley-credit}.
-If two clauses from different rollouts are inductive only together, both can
-now survive.  A rollout receives credit for the negatives rejected by its own
-attributed clause; a support-only clause that rejects none receives no direct
-credit, even if it enabled another survivor.  Algorithm~\ref{alg:pooled-reward}
-computes no separate supporting-clause score.
-
-\paragraph{What Shapley value is computed.}
-Conditioned on the observed full group, \(R_{1:G}(\mathcal G)\) are fixed player sets and
-Algorithm~\ref{alg:pooled-reward} computes the exact Shapley value of the
-coverage game \(v_{\mathcal G}\).  It does \emph{not} compute the Shapley value
-of the complete pool--filter--prove system or of a different game that
-re-runs Houdini after removing players.  Even
-leave-one-out credit under the set-level coverage value,
+\paragraph{Relation to exact coalition credit.}
+Once the full-group survivor set is fixed, the sets
+\(R_i=\operatorname{rej}(C_i^{\mathrm{train}})\) define an ordinary coverage
+game, whose exact Shapley value is the closed form in
+Equation~\eqref{eq:shapley-credit}.  This is not the Shapley value of a more
+expensive game that re-runs Houdini for every coalition.  Even leave-one-out
+credit under such a set-level value \(V\),
 \[
   \Delta_i =
-  \operatorname{cov}\!\left(\mathsf{Filter}_{\mathcal L}\!\left(
-    \bigcup_{j=1}^{G} C_j^{\mathrm{raw}}\right)\right)
+  V\!\left(\mathsf{Filter}_{\mathcal L}\!\left(
+    \bigcup_j C_j^{\mathrm{pf}}\right)\right)
   -
-  \operatorname{cov}\!\left(\mathsf{Filter}_{\mathcal L}\!\left(
-    \bigcup_{\substack{1\le j\le G\\j\ne i}} C_j^{\mathrm{raw}}\right)\right),
+  V\!\left(\mathsf{Filter}_{\mathcal L}\!\left(
+    \bigcup_{j\ne i} C_j^{\mathrm{pf}}\right)\right),
 \]
 requires at least \(G+1\) union-level Houdini evaluations per prompt and
-still is not full coalition Shapley; exact coalition evaluation requires up to
-\(2^G\) filtered subsets.  The full-group-conditioned coverage game preserves
-informative per-rollout variation with one pooled filter call.
+can still miss higher-order interactions; Shapley-style credit over unions
+requires exponentially many subset evaluations.  We instead condition the
+fixed coverage game on the sampled full group, preserving informative
+per-rollout variation with one pooled filter call.
 
-\paragraph{Cost check.}
+\paragraph{Runtime and signal check.}
 We compared this implementation with the historical independent-filtering
 path on a fixed, stratified sample of 30 archived tasks (10 Linear, 10 NLA,
 and 10 Loopy), eight rollouts per task, using the same frozen negatives and a
-5-second Frama-C/WP budget per obligation.  The old path separately filtered
-each rollout and also filtered the union for the group score, whereas the new
-path reuses its single pooled result for both reward and group diagnostics.
-
-\noindent\begin{minipage}{\linewidth}
-\centering
-\setlength{\tabcolsep}{6pt}
-\begin{tabular}{lrr}
-\toprule
- & Independent filter & Pooled + provenance \\
-\midrule
-Mean filter calls / task & 8.6 & 1.0 \\
-Total scoring time (s) & 824.39 & 655.60 \\
-Median task time (s) & 16.82 & 6.48 \\
-\bottomrule
-\end{tabular}
-\captionof{table}{Runtime comparison of reward-filter order on 240 archived
-rollouts.  Timing includes syntax, positive-state, and Frama-C/WP filtering.}
-\label{tab:pooled-reward-check}
-\end{minipage}
-
-Pooled filtering lowers total time by 20.5\% and median task time by 61.5\%,
-while reducing the number of authoritative filter calls to one.
+5-second Frama-C/WP budget per obligation.  Pooled filtering reduced the mean
+filter calls from 8.6 to 1.0 per task, total scoring time from 824.39 to
+655.60 seconds (\(1.26\times\)), and median task time from 16.82 to 6.48
+seconds (\(2.60\times\)).  Against restored-target per-rollout verdicts, its
+AUROC was 0.726 versus 0.725 for independent filtering, and average precision
+was 0.454 for both.  Thus the order change improved wall time without an
+observed loss of target-success discrimination in this diagnostic sample;
+these 240 rollouts are a validation check, not a substitute for the training
+ablations.

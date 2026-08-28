@@ -89,8 +89,8 @@
   {{\color{codered}\(\times\)} duplicate};
 \draw[draw=promptframe, line width=0.6pt] (10.95,-0.28) -- (13.25,-0.28);
 \node[ann, text=paperink] at (12.10,-0.62)
-  {\textbf{60 total} matched traces};
-\node[ann] at (12.10,-0.98) {relation + post-exit + random fill};
+  {\textbf{48} relation \(\cdot\) \textbf{12} post-exit};
+\node[ann] at (12.10,-0.98) {nearest perturbations first};
 
 \draw[flow] (13.50,0) -- (14.20,0);
 
@@ -105,8 +105,7 @@
 \caption{\textbf{Construction of target-hidden negative traces.}
 Concrete executions provide observed reachable states.  Two transformations
 probe relational structure and behavior past a genuine exit.  Conservative
-cleaning selects these traces first, then random perturbations fill the common
-60-trace budget.  The resulting \(\mathcal N\) is used for SFT acceptance and
-RL reward computation and never exposes \(Q\).}
+cleaning and per-family budgets produce \(\mathcal N\), which is used only
+for RL reward computation and never exposes \(Q\).}
 \label{fig:negative-sampling}
 \end{figure}

@@ -3,10 +3,9 @@
 %% ============================================================
 
 Loop invariants turn unbounded executions into finite proofs, but a formally
-valid invariant can still be useless.  In this paper, \emph{valid} specifically
-means inductive: the predicate is established when execution first reaches
-the loop and is preserved by every loop iteration.  A verifier can check these obligations,
-yet its pass/fail outcome
+valid invariant can still be useless.  An invariant is \emph{valid} if it
+holds when execution first reaches the loop and remains true after every loop
+iteration.  A verifier can check these obligations, yet its pass/fail outcome
 provides no graded measure of how much the invariant says: \(\mathit{true}\) is
 valid for every loop but proves nothing about its behavior or desired outcome.  A useful
 invariant must also be strong enough to establish downstream properties.
@@ -50,25 +49,13 @@ sees the function preconditions, executable prefix, loop guard, and body, but
 the target set \(Q\) is withheld until the generated invariant set has been
 fixed.  The final test still uses the original task: after \(Q\) is restored,
 the verifier must establish the
-loop obligations and prove every target at its original program point.
-
-Target hiding does more than remove a goal-copying shortcut: it changes the
-task from goal-directed proof completion to specification discovery.
-Conventional invariant generation assumes that the desired postcondition is
-given, providing a direct semantic direction for the search; in some
-benchmarks, the target itself, or a simple algebraic rearrangement of it, is
-already close to the required invariant.  Under target hiding, the generator
-must instead infer behavioral facts solely from the initialization, guard, and
-state transitions.  A verified inductive invariant serves both as a loop
-summary and, together with the exit condition, as a source of candidate
-postconditions.  Our task can therefore be viewed as a form of verified
-specification discovery: the system first infers what the program guarantees
-and only afterward tests whether those inferred facts support the original
-verification goals.  Because these summaries are not specialized to one
-visible assertion, they may also be reused across multiple downstream
-verification queries.  Hiding \(Q\) additionally rules out target-specific
-proof failures and target success as training signals, making a graded,
-target-independent measure of invariant strength necessary.
+loop obligations and prove every target at its original program point.  Hiding \(Q\) prevents a model
+from copying a target that happens to be valid or using target-specific proof
+failures to steer generation.  It also rules out target success as a training
+reward, making a graded, target-independent measure of invariant strength
+necessary.  The invariants this setting rewards are also the reusable ones:
+an invariant strong enough without knowing \(Q\) serves every property later
+asserted about the loop.
 
 \sam{} organizes inference around \emph{rollout--decompose--pool--filter--compose}.
 Given a budget of \(k\) target-hidden responses, the pipeline extracts each
@@ -89,12 +76,9 @@ subset; one rejected clause does not erase credit earned by the others.  We
 score the strength of that subset using the execution-derived negative
 examples it rejects, without adding a reward merely for well-formed syntax or
 whole-response validity.  \emph{Across} rollouts, we apply a closed-form
-Shapley allocation to a fixed coverage game induced by the pooled survivors
-and their rollout provenance: repeated rejections share the group-credit
-unit, whereas a rejection supplied by fewer peers receives a larger bonus.
-This allocation does not re-run filtering for subcoalitions and is not the
-Shapley value of the complete inference pipeline.  Thus the reward of one
-rollout depends in part on what the other rollouts in
+Shapley allocation to the union of their pooled-filtered, provenance-assigned
+negative-example coverage: repeated rejections share credit, whereas a
+rejection supplied by fewer peers receives more.  Thus the reward of one rollout depends on what the other rollouts in
 its Group Relative Policy Optimization (GRPO) group discover
 ~\citep{shao2024deepseekmath}.  Synthetic supervised fine-tuning (SFT)
 additionally distills a filtered multi-response union into one
@@ -106,18 +90,14 @@ while learning-based methods train from verified outputs, solver feedback, or
 behavioral examples~\citep{flanagan2001houdini,kamath2023finding,
 cao2025clause2inv,si2020code2inv,yan2025reform,yang2026coins,
 huang2026specrl}.  We instead train for the filtered clause pool used at
-inference: credit preserves useful clauses within a response and adds a
-group-conditioned bonus to the primary attributed-coverage reward.
+inference: credit preserves useful clauses within a response and depends on
+complementary coverage across responses.
 
-Our experiments separate standalone success from composed
+Our experiments deliberately separate standalone success from composed
 inference.  On 832 integer C programs, four target-hidden
-GPT-5 Nano responses with union and Houdini verify 408
+\texttt{gpt-5-nano} responses with union and Houdini verify 408
 programs (49.0\%), compared with 351 (42.2\%) for the
 strongest external baseline under each system's fixed budget.
-On the matched Qwen3-8B SFT path, the compositional reward keeps
-single-response accuracy nearly fixed (pass@1 \mock{41.9\% to 40.8\%})
-while shifting the composition curve upward (compose@4
-\mock{75.1\% to 79.4\%}; compose@32 \mock{79.0\% to 82.7\%}).
 
 \paragraph{Contributions.}
 This paper makes three contributions:
@@ -128,16 +108,13 @@ This paper makes three contributions:
   response.
   \item We align learning credit with that object at two levels, without
   using \(Q\).  Within a rollout, the unit of credit is the
-  pooled-retained clause attributed by provenance, so an imperfect response is paid for what
-  it contributes to the survivor pool; across rollouts, a closed-form Shapley
-  allocation adds a bonus for non-redundant trace rejection.  This allocation
-  is exact only for the fixed coverage game after full-group filtering.
+  verifier-retained clause, so an imperfect response is paid for what
+  survives; across rollouts, a closed-form Shapley allocation pays
+  complementary coverage rather than repetition.
   \item We show that clause-level credit is what turns RL from sharpening
   into expanding compose@\(k\), that group credit raises the curve further
   at every budget beyond one response, and that the trained policy reaches
   its untrained initialization's 32-response composition with four
-  responses.  On the SFT path, three training seeds give
-  compose@4 \mock{79.4\(\pm\)0.5\%} and compose@32
-  \mock{82.7\(\pm\)0.5\%}.  We audit the execution-derived examples that provide the
+  responses.  We audit the execution-derived examples that provide the
   graded strength signal.
 \end{itemize}

@@ -2,17 +2,22 @@
 \section{Conclusion and Limitations}\label{sec:conclusion}
 %% ============================================================
 
-CRAFT trains for the filtered clause composition used at inference.  SFT
-distills a multi-response union, while target-independent RL combines primary
-attributed coverage with a smaller complementarity bonus.  On the matched
-Qwen3-8B SFT path, RL preserves pass@1
-(\mock{41.9\% versus 40.8\%}) while raising compose@4 from
-\mock{75.1\% to 79.4\%} and compose@32 from \mock{79.0\% to 82.7\%}.
-Ablations attribute the larger effect to clause-level credit and the
-additional gain to group allocation.
+CRAFT makes filtered clause composition the inference target: its pipeline
+composes
+rollouts, SFT distills their union, and target-independent RL rewards useful
+clauses and complementary coverage.
 
-Evidence is limited to scalar-integer single-loop C, Frama-C/WP, and the
-tested model families; fixed-group provenance is not full coalition Shapley.
-The approach may transfer when outputs decompose into mechanically checkable
-units and execution-derived negatives distinguish weak from strong solutions.
-Appendix~\ref{app:limitations} details these boundaries.
+The recipe transfers beyond loop invariants.  It applies to problems whose
+answers (i) decompose into independently checkable units composed by
+conjunction, (ii) admit a cheap mechanical filter for unit validity,
+(iii) include valid-but-weak degenerate solutions that pass/fail cannot
+grade, and (iv) allow behavioral negatives, on which weak and strong
+solutions disagree, to be derived from executions or simulations.  Test
+generation judged by mutant killing, auxiliary-lemma synthesis for proof
+assistants, and data-constraint discovery all satisfy these conditions.
+
+Evidence is limited to scalar-integer, single-loop C programs, Frama-C/WP and
+ACSL, and vLLM-served local checkpoints.  The provenance allocation conditions
+credit on the sampled full group and is not an exponential coalition-value
+Shapley computation.  Appendices~\ref{app:limitations}
+and~\ref{app:houdini-order} detail these scope and reward approximations.

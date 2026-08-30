@@ -2,63 +2,35 @@
 \section{Related Work}\label{sec:related}
 %% ============================================================
 
-\paragraph{Candidate generation, filtering, and prompt-time composition.}
+\tightparagraph{Invariant generation and verified filtering.}
 Classical invariant synthesis uses abstract interpretation, affine relations,
-templates, interpolation, recurrences, syntax-guided search, or
-counterexamples; execution-driven systems instead mine likely properties from
-traces~\citep{cousot1977abstract,karr1976affine,colon2003linear,
-mcmillan2003interpolation,kincaid2017compositional,alur2013sygus,
-garg2014ice,daikon}.  Houdini iteratively removes invalid candidates to retain
-an inductive subset~\citep{flanagan2001houdini}.  LLM workflows reuse this
-pattern: Loopy couples proposals with Houdini and repair,
-iRank ranks candidates, and Clause2Inv composes retained
-clauses while iteratively accumulating counterexamples
-~\citep{kamath2023finding,chakraborty2023ranking,cao2025clause2inv}.
-LaM4Inv, ACInv, AutoSpec, SpecGen,
-SESpec, LEMUR, and Baldur similarly organize
-generation with static analysis, symbolic execution, verification, or repair
-~\citep{wu2024lam4inv,liu2024acinv,wen2024enchanting,ma2024specgen,
-yang2026sespec,wu2024lemur,first2023baldur}.  Together, these systems
-establish candidate generation, verification, filtering, and repair as
-effective inference-time patterns.
+templates, interpolation, syntax-guided search, or counterexamples
+~\citep{cousot1977abstract,karr1976affine,mcmillan2003interpolation,
+alur2013sygus,garg2014ice}; Houdini retains an inductive subset of proposed
+clauses~\citep{flanagan2001houdini}.  Neural and LLM systems learn construction
+policies or combine generation with solver feedback, static analysis,
+filtering, and repair
+~\citep{si2018learning,si2020code2inv,ryan2020cln2inv,yao2020gcln,
+yu2023lipus,kamath2023finding,chakraborty2023ranking,cao2025clause2inv,
+wu2024lam4inv,liu2024acinv,wen2024enchanting,ma2024specgen,yang2026sespec,
+wu2024lemur,first2023baldur}.  CRAFT instead makes the filtered union of
+multiple responses the shared inference and training object.
 
-\paragraph{Specialized neural invariant learning.}
-Code2Inv learns a construction policy from solver feedback;
-CLN2INV and G-CLN learn continuous representations of linear and
-nonlinear relations; and LIPuS composes RL-based pruning with SMT
-solving~\citep{si2018learning,si2020code2inv,ryan2020cln2inv,
-yao2020gcln,yu2023lipus}.  These task-specific models optimize an individual
-candidate or construction trajectory using solver-guided learning.
+\tightparagraph{Training from formal and behavioral feedback.}
+Verified data and execution or prover feedback have been used to train
+invariant, code, and proof models
+~\citep{wei2025invbench,pinto2026notall,le2022coderl,yan2025reform}.
+COINS and SpecRL further use positive and negative behaviors to distinguish
+weak valid specifications from stronger ones
+~\citep{yang2026coins,huang2026specrl}.  Our signal is likewise behavioral but
+is derived from target-hidden loop executions and applied only after pooled
+clauses survive verification.
 
-\paragraph{Behavioral-example objectives for specification strength.}
-COINS assesses specifications using trusted positive and
-mutation-derived negative input--output cases~\citep{yang2026coins};
-SpecRL rewards complete method-level specifications that reject
-impossible input--output pairs~\citep{huang2026specrl}.  Both show that
-behavioral examples can distinguish weak but valid specifications from
-stronger ones.  Our setting derives such examples from loop dynamics and
-evaluates verifier-retained subsets of imperfect responses.
-
-\paragraph{Language-model training from formal feedback.}
-InvBench and Wonda use verified data for invariant fine-tuning;
-CodeRL uses execution signals; and Re:Form applies
-verifier-guided RL to individual Dafny proofs
-~\citep{wei2025invbench,pinto2026notall,le2022coderl,yan2025reform}.  These
-methods establish verified execution or proof feedback as a training signal
-for code and formal-reasoning models.
-
-\paragraph{Set-level credit in verifiable-reward RL.}
-GRPO with a per-response verifiable reward tends to sharpen the base
-distribution: pass@1 improves while large-\(k\) coverage does not exceed
-the untrained model~\citep{yue2025rlcapacity,he2025unlikeliness}.  Remedies
-transform the group's rewards so that the objective becomes a set
-statistic---pass@\(k\) itself~\citep{walder2025pkpo,chen2025passktraining}
-or an up-weighting of rare correct responses~\citep{he2025unlikeliness}.
-These methods keep the response as the unit of credit: a set is valued by
-how many of its members are individually correct.  \sam{} combines these
-lines of work: it post-trains a general language model for the filtered
-clause pool used at inference, salvages verifier-retained clauses from
-imperfect responses, and allocates group credit according to their
-contribution to pooled negative-state coverage.  The resulting set objective
-values what the responses prove jointly rather than how many responses are
-individually complete.
+\tightparagraph{Set-level credit in verifiable-reward RL.}
+Per-response RL can improve pass@1 without expanding large-\(k\) coverage
+~\citep{yue2025rlcapacity,he2025unlikeliness}.  Recent objectives directly
+optimize pass@\(k\) or up-weight rare correct responses
+~\citep{walder2025pkpo,chen2025passktraining,he2025unlikeliness}, but still
+treat each response as an indivisible answer.  CRAFT instead credits verified
+clauses within imperfect responses and allocates group credit by their
+contribution to pooled negative coverage.

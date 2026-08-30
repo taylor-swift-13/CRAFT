@@ -2,304 +2,158 @@
 \section{Method}\label{sec:method}
 %% ============================================================
 
-CRAFT couples an inference protocol that proves targets by
-composing clauses across responses with a training pipeline that optimizes
-that protocol without ever seeing the target.  Three design decisions
-organize this section: (i)~\emph{target hiding}---generation, distillation,
-and reward computation all operate on the masked loop, and the target is
-restored only for the final proof (Section~\ref{sec:method:inference});
-(ii)~\emph{the clause, not the response, is the credit unit} that survives
-filtering and earns reward (Section~\ref{sec:method:core});
-(iii)~\emph{training mirrors inference}---credit rewards complementary
-coverage across a response group, because inference unions that group
-(Section~\ref{sec:method:reward}).  The guiding thesis is that because
-inference composes, training should optimize composability: raising the
-compose@\(k\) curve and reaching its large-pool performance with fewer
-rollouts.
+CRAFT aligns training with compositional inference.  At inference, it splits
+responses into clauses, pools clauses across responses, verifier-filters the
+pool, and conjoins the survivors.  SFT distills this pooled result into one
+response, while RL credits the verified clauses that contribute
+target-independent strength.  Assertions and postconditions remain hidden
+throughout generation and training and are restored only for final
+verification.  Appendix~\ref{app:formal-method} gives the complete formal
+definition.
 
-\subsection{Rollout--Decompose--Pool--Filter--Compose}
+\subsection{Target-Hidden Composable Inference}
 \label{sec:method:core}
+\label{sec:method:inference}
 
-For a target-masked loop \(\mathcal L\), the model emits ACSL loop-invariant
-annotations~\citep{acsl}.  Parsing extracts each
-\texttt{loop invariant ...;} annotation as one clause; normalization turns
-response \(i\) into the clause sequence
-\(A_i=\langle a_{i1},\ldots,a_{im_i}\rangle\).  We cap it at \(K\) clauses
-(\(K{=}20\); Appendix~\ref{app:constants}),
-\(\bar A_i=\langle a_{i1},\ldots,a_{i,\min(m_i,K)}\rangle\), and discard
-the rest.  Extraction makes the annotation, rather than the complete
-response, the unit that can survive filtering and earn credit.  The
-pipeline has five steps: \emph{rollout} samples responses, \emph{decompose}
-extracts their clauses, \emph{pool} unions the clauses across responses,
-\emph{filter} removes syntax failures and non-inductive clauses from the
-pool, and \emph{compose} conjoins the survivors into one invariant.  We write
-\(\operatorname{set}(\bar A_i)\) for the underlying clause set when applying
-set operations.
+For a masked loop \(\mathcal L\), let \(\operatorname{parts}(y)\) be the
+invariant clauses extracted from response \(y\).  Algorithm~\ref{alg:method-pipeline}
+defines the complete inference procedure.
 
-Given \(G\) responses, the pipeline unions their clauses,
-\[
-  C_G^{\mathrm{pool}}=
-  \bigcup_{i=1}^{G}\operatorname{set}(\bar A_i),
-\]
-then iteratively removes syntax failures and applies Houdini to delete clauses
-whose establishment or preservation obligations fail
-~\citep{flanagan2001houdini}.  We write the resulting inductive subset as
-\(\mathsf{Filter}_{\mathcal L}(C_G^{\mathrm{pool}})\).  Conjoining valid clauses preserves
-validity and can compose a bound from one response with a relation from
-another; filtering keeps such clauses from otherwise imperfect responses
-but cannot invent a missing relation.  Algorithm~\ref{alg:rcf} computes
-\(\mathsf{Filter}_{\mathcal L}\); we write its fixed point as
-\(\mathsf H_{\mathcal L}(C)\) and the conjunction of a clause set \(C\) as
-\(I_C=\bigwedge_{c\in C}c\).  The algorithm is shared by
-SFT synthesis and inference.
-
-\begin{algorithm}[t]
+\begin{algorithm}[H]
 \caption{Rollout--decompose--pool--filter--compose}
-\label{alg:rcf}
+\label{alg:method-pipeline}
 \begin{algorithmic}
-\alginput{masked loop \(\mathcal L\), parsed clause sequences \(A_{1:G}\), cap \(K\)}
-\algoutput{filtered clause set \(C\)}
-\algline \(C\leftarrow\bigcup_i\operatorname{set}\!\left(
-  \operatorname{Cap}_K(\operatorname{Normalize}(A_i))\right)\)\cmnt{decompose, pool}\\
-\algline \(C\leftarrow\operatorname{ConservativeDedup}(C)\)\cmnt{filter: dedup}\\
-\algline \kw{repeat}\cmnt{filter: syntax}\\
-\algline \algind \(C_{\mathrm{parse}}\leftarrow
-  \operatorname{ParserErrors}(\mathcal L,C)\);
-  \(C\leftarrow C\setminus C_{\mathrm{parse}}\)\\
-\algline \kw{until} \(C_{\mathrm{parse}}=\varnothing\) or \(C=\varnothing\)\\
-\algline \kw{repeat}\cmnt{filter: Houdini}\\
-\algline \algind \(C_{\mathrm{drop}}\leftarrow\{c\in C:
-  \neg\operatorname{WP}_{\mathrm{est,pres}}(\mathcal L,C,c)\}\);
-  \(C\leftarrow C\setminus C_{\mathrm{drop}}\)\\
-\algline \kw{until} \(C_{\mathrm{drop}}=\varnothing\) or \(C=\varnothing\)\\
-\algline \kw{return} \(C\)\cmnt{compose: \(I_C=\bigwedge_{c\in C}c\)}\\
+\alginput{task \(\mathcal T=(\mathcal L,\mathcal G)\), policy \(\pi\), number of responses \(n\)}
+\algoutput{composed invariant \(I\), final verdict \(v\)}
+\algline \(x\leftarrow\mathcal L\) by masking \(\mathcal G\) in \(\mathcal T\)\cmnt{hide target}\\
+\algline \(y_{1:n}\sim\pi(\cdot\mid x)\)\cmnt{rollout}\\
+\algline \(A_i\leftarrow\operatorname{parts}(y_i)\) for \(i=1,\ldots,n\)
+  \cmnt{decompose}\\
+\algline \(P\leftarrow\operatorname{Unique}(\bigcup_i A_i)\)\cmnt{pool}\\
+\algline \(C\leftarrow\operatorname{Filter}_{\mathcal L}(P)\)\cmnt{filter}\\
+\algline \(I\leftarrow\bigwedge_{c\in C}c\)\cmnt{compose}\\
+\algline \(v\leftarrow\operatorname{TaskVerify}(\mathcal T,C)\)\cmnt{restore target}\\
+\algline \kw{return} \((I,v)\)\\
 \end{algorithmic}
 \end{algorithm}
 
-The following statements formalize the composition used by the pipeline; all proofs
-are deferred to Appendix~\ref{app:composition-proofs}.
+\(\operatorname{Unique}\) performs conservative duplicate removal, and
+\(\operatorname{Filter}\) is resource-bounded Houdini: establishment and
+preservation are checked clause by clause under the current candidate family,
+so clauses from different responses may support one another.  Timeout and
+unknown cause deletion; a set is returned only after all its clauses are
+proved in their final joint context, while hitting the round limit returns
+the conservative empty result.  Appendix~\ref{app:formal-loop-verification} separates the semantic
+definition of an invariant from the Frama-C-aligned loop-verifier interface;
+Appendix~\ref{app:formal-houdini} defines both ideal and bounded Houdini.
+All clause statuses in one round may use the pre-deletion candidate context,
+including hypotheses whose own goals fail.  Houdini therefore reruns the
+survivors after every deletion and stops only when one complete round deletes
+nothing.
 
-\begin{proposition}[Closure and strengthening under conjunction]
-\label{prop:conjunctive-closure}
-Let \(I_1,\ldots,I_m\) be valid invariants of the same loop, for finite
-\(m\ge 1\).  Then \(I=\bigwedge_{j=1}^{m}I_j\) is valid and implies every
-\(I_j\), i.e., \(I\preceq I_j\).  Moreover, \(I\prec I_j\) exactly when
-\(I_j\not\Rightarrow\bigwedge_{i\ne j}I_i\).
-\end{proposition}
-
-\begin{proposition}[Mutually supported composition]
-\label{prop:mutual-support}
-Let \(C=\{c_1,\ldots,c_m\}\) be any finite set of candidate clauses.  The
-conjunction \(I_C\) is a valid invariant
-whenever
-
+Only after \(I\) is fixed do we restore the hidden targets \(\mathcal G\)
+and run the final verification conditions at their original locations.  The
+inference objective is therefore
 \[
-  P\Rightarrow I_C,
-  \qquad
-  \forall j,\ \{I_C\wedge B\}\,S\,\{c_j\}.
+  \max_\pi\ \Pr_{y_{1:n}\sim\pi(\cdot\mid\mathcal L)}
+  [\operatorname{TaskVerify}((\mathcal L,\mathcal G),C(y_{1:n}))].
 \]
+Its empirical estimate is compose@\(n\).  It can exceed pass@\(n\) because a
+conjunction of valid invariants remains valid and may combine complementary
+bounds and relations.  Appendix~\ref{app:formal-method} gives the complete
+definitions and algorithms; Appendix~\ref{app:composition-proofs} states and
+proves the composition and filtering properties.
 
-Individual obligations
-\(\{c_j\wedge B\}\,S\,\{c_j\}\) need not hold: preservation may be supplied
-by any number of companion clauses in \(C\).  Mutual support cannot, however,
-repair a clause that fails establishment from \(P\).  The resulting valid
-invariant satisfies \(I_C\preceq c_j\), with \(I_C\prec c_j\) whenever
-\(c_j\not\Rightarrow I_{C\setminus\{c_j\}}\).
-\end{proposition}
-
-\begin{theorem}[Candidate-relative optimality of ideal Houdini]
-\label{thm:houdini-greatest}
-For a finite parser-admitted pool \(C\), assume exact decisions for all
-establishment and preservation obligations in Algorithm~\ref{alg:rcf}.
-Its fixed point \(\mathsf H_{\mathcal L}(C)\) is jointly inductive, and every
-jointly inductive subset \(C'\subseteq C\) satisfies
-\(C'\subseteq\mathsf H_{\mathcal L}(C)\).  Consequently,
-\(I_{\mathsf H_{\mathcal L}(C)}\preceq I_{C'}\): the result is the strongest
-conjunction expressible as a subset of \(C\).
-\end{theorem}
-
-This is the classic Houdini greatest-fixpoint
-property~\citep{flanagan2001houdini}, restated in our clause notation.  In
-practice the per-obligation prover budget (Section~\ref{sec:exp:setup})
-makes this oracle approximate.
-
-RL scoring additionally removes clauses contradicted by observed reachable
-states \(\mathcal E\) before Houdini:
-\[
-  \mathsf{PF}_{\mathcal E}(C)
-  =\{c\in C:\forall p\in\mathcal E,\ p\models c\}.
-\]
-This positive filter is a cheap refutation step used only for RL scoring.
-Appendix~\ref{app:constants} gives normalization and filtering details.
-
-\subsection{Inference Objective}
-\label{sec:method:inference}
-
-At inference, the pipeline samples \(k\) masked responses and produces
-\[
-  C_k^{\mathrm{pool}}=
-  \bigcup_{i=1}^{k}\operatorname{set}(\bar A_i),\qquad
-  C_k=\mathsf{Filter}_{\mathcal L}(C_k^{\mathrm{pool}}),\qquad
-  I_k=I_{C_k}.
-\]
-Only then is \(Q\) restored.  The inference objective is the expected
-target-utility indicator,
-\[
-  \max_\pi\ \mathbb E_{A_{1:k}\sim\pi(\cdot\mid\mathcal L)}\,
-  \mathbf 1[\operatorname{Verify}(\mathcal L,I_k,Q)],
-\]
-where \(\operatorname{Verify}\) requires establishment, preservation, and every
-restored target at its original location; for one post-loop target, its last
-obligation is \(I_k\wedge\neg B\Rightarrow q\).
-Its empirical counterpart is compose@\(k\), which can succeed even when no
-standalone response is sufficient.  The training sections below therefore
-optimize a target-hidden surrogate for this curve.
-
-\subsection{Target-Independent Strength Examples}
+\subsection{Target-Independent Strength Signal}
 \label{sec:method:sampler}
 
-To grade inductive sets without \(Q\), we execute a deterministic,
-precondition-checked input sweep and record reachable loop-head states
-\(\mathcal E\).  From these executions we construct two negative-example
-families: local one- or two-variable perturbations that break relations, and
-continuations of the real body after a witnessed loop exit.  Cleaning is
-deliberately conservative---any candidate that executions cannot rule out is
-dropped: it removes observed reachable states, possible fresh entries,
-duplicates, and candidates involving unsupported state.  Unsupported or
-incomplete executions disable the affected family.  We call this
-family-based construction the \emph{structured} sampler;
-Section~\ref{sec:exp:ablations} contrasts it with uniform random
-perturbations.  Figure~\ref{fig:negative-sampling}, Algorithm~\ref{alg:negative-sampling},
-and exact budgets appear in Appendix~\ref{app:negative-sampling}.
+Because targets are hidden, training cannot score direct target proofs.  We
+instead execute the masked loop to collect reachable loop-head states
+\(\mathcal E\) and construct target-independent negative traces
+\(\mathcal N\).  The traces are either local relational perturbations or
+continuations beyond a witnessed loop exit.  Conservative cleaning removes
+observed reachable states, possible fresh entries, duplicates, and unsupported
+states; Appendix~\ref{app:negative-sampling} gives the construction.
 
-Let \(\mathcal N\) be the retained negative traces.  For a retained clause set
-\(C\), \(\operatorname{rej}(C)\subseteq\mathcal N\) contains each trace on which at
-least one clause in \(C\) is false at some recorded state; singleton traces
-recover ordinary state rejection.
+For a verified clause set \(C\), let \(\operatorname{rej}(C)\) contain every
+negative trace on which some clause is false.  Its trajectory-level coverage
+is
+\begin{equation}
+  \operatorname{cov}(C)=
+  \frac{|\operatorname{rej}(C)|}{|\mathcal N|},
+  \qquad |\mathcal N|>0.
+  \label{eq:method-coverage}
+\end{equation}
+Each trace contributes one unit regardless of its length.  Instances with no
+retained negatives are not used for SFT acceptance or RL updates.
 
 \subsection{Distilling Multi-Response Search}
 \label{sec:method:sft}
 
-SFT targets are built by the same rollout--decompose--pool--filter--compose
-loop that inference runs, driven by the untrained policy and accepted by the
-reward.  For each masked loop \(\mathcal L\) in the training corpus
-\(\mathcal D_{\mathrm{train}}\), round \(t\) samples a group of
-\(G_{\mathrm{sft}}{=}16\) target-hidden responses from the base model
-(Qwen3-8B), adds their clauses to the pool, and filters the union to an
-inductive set,
-\[
-  C^{(t)}_{\mathcal L}
-  =\mathsf{Filter}_{\mathcal L}\!\Bigl(C^{(t-1)}_{\mathcal L}\cup
-    \bigcup_{i=1}^{G_{\mathrm{sft}}}\operatorname{set}(\bar A^{(t)}_i)\Bigr),
-  \qquad C^{(0)}_{\mathcal L}=\varnothing.
-\]
-The filtered candidate is scored on the negative traces of
-Section~\ref{sec:method:sampler},
-\[
-  \operatorname{cov}(C)
-  =\frac{|\operatorname{rej}(C)|}{|\mathcal N|}.
-\]
-The search stops when
-\(\operatorname{cov}(C^{(t)}_{\mathcal L})\ge\tau\), with
-\(C^{\mathrm{sft}}_{\mathcal L}=C^{(t)}_{\mathcal L}\); otherwise another
-group is sampled and added to the accumulated pool, for at most \(T_{\mathrm{sft}}{=}5\)
-rounds (80 responses).  Loops that do not reach \(\tau\) within this budget
-are dropped.  Here coverage is an acceptance criterion for an already
-filtered, composed SFT target; Section~\ref{sec:method:reward} instead assigns
-clause-level credit within imperfect RL responses.
+SFT uses Algorithm~\ref{alg:method-pipeline} as a target synthesizer.  Starting
+from an empty raw pool, each round adds a new group of base-model clauses and
+re-filters the entire accumulated pool:
+\begin{equation}
+  P_t=P_{t-1}\cup\bigcup_i\operatorname{parts}(y_i^{(t)}),
+  \qquad
+  C_t=\operatorname{Filter}_{\mathcal L}(\operatorname{Unique}(P_t)).
+  \label{eq:method-sft}
+\end{equation}
+Re-filtering the raw pool allows a previously removed clause to return when a
+later response supplies a supporting clause.  The first set satisfying
+\(\operatorname{cov}(C_t)\ge\tau\) is serialized as one SFT target, where
+\(\tau\) is the acceptance threshold; otherwise the instance is dropped after
+the synthesis budget is exhausted.  Neither the SFT input nor its target
+contains \(\mathcal G\).
 
-Before serialization, we remove normalized duplicates, tautologies, and
-clauses implied by other retained atomic clauses, while retaining all
-remaining clauses to preserve coverage.  Every accepted set is serialized
-as one SFT target:
-\[
-  \mathcal D_{\mathrm{SFT}}
-  =\{(\mathcal L,\operatorname{serialize}(C_{\mathcal L}^{\mathrm{sft}})):
-      \mathcal L\in\mathcal D_{\mathrm{train}},\
-      \operatorname{cov}(C_{\mathcal L}^{\mathrm{sft}})\ge\tau\}.
-\]
-Neither input nor target contains \(Q\): SFT serializes a reward-accepted,
-Houdini-retained multi-response search result as one response.
-
-\subsection{Clause-Decomposed, Group-Compositional Reward}
+\subsection{Clause and Group Credit}
 \label{sec:method:reward}
 
-The reward design responds directly to the sharpening tendency described in
-Section~\ref{sec:intro}.  Group-relative optimization with a whole-response
-reward concentrates probability mass on a few high-reward responses, eroding
-the clause diversity that the pipeline composes at inference.  We therefore decompose
-credit \emph{within} each rollout---surviving clauses earn reward even when
-siblings fail---and re-allocate credit \emph{across} the group by each
-rollout's marginal contribution to pooled coverage, paying the policy for
-expanding the joint clause pool rather than for reproducing its most common
-clauses.
+RL applies exactly the same pool-then-filter order once per response group.
+Let \(L_i=\operatorname{parts}(y_i)\),
+\(o_i=\max(0,|L_i|-m_{\max})\), and
+\(A_i=\operatorname{Unique}(\operatorname{First}_{m_{\max}}(L_i))\).  Thus
+\(\operatorname{First}_{m}(L)\) is the prefix containing at most \(m\) clauses,
+\(o_i\) counts clauses beyond the per-response cap, while \(A_i\) retains the
+admitted clauses and their provenance.  The clauses are then de-duplicated
+globally and filtered only after the full group has been pooled:
+\begin{align}
+  P^*&=\operatorname{Unique}\!\left(\bigcup_iA_i\right),
+  &C^*&=\operatorname{Filter}_{\mathcal L}(P^*),\\
+  V_i&=\{c\in A_i:\operatorname{key}(c)\in\operatorname{key}(C^*)\},
+  &R_i&=\operatorname{rej}(V_i).
+  \label{eq:method-credit-pool}
+\end{align}
+Thus \(V_i\) assigns each pooled survivor back to every response that proposed
+it.  A useful clause can earn credit even when other clauses in its response
+fail, while mutually supporting clauses are checked in the same pooled context
+used at inference.  The cheap reachable-state check is an internal front-end
+of this single pooled filtering call; it does not filter responses separately.
 
-For rollout \(i\), first apply the clause-local positive filter, pool the group,
-and run the verifier filter once:
-\[
-  C_i^{\mathrm{pf}}=
-  \mathsf{PF}_{\mathcal E}(\operatorname{set}(\bar A_i)),\qquad
-  C_{\mathcal G}^{\mathrm{surv}}=
-  \mathsf{Filter}_{\mathcal L}\!\left(\bigcup_{j=1}^{G}C_j^{\mathrm{pf}}\right).
-\]
-We then use normalized semantic keys to assign each pooled survivor back to
-every rollout that proposed it,
-\[
-  C_i^{\mathrm{train}}
-  =\{c\in C_i^{\mathrm{pf}}:\operatorname{key}(c)
-      \in\operatorname{key}(C_{\mathcal G}^{\mathrm{surv}})\},
-  \qquad R_i=\operatorname{rej}(C_i^{\mathrm{train}}).
-\]
-This projection implements \emph{intra-rollout decomposition}: malformed or
-non-inductive clauses are removed without erasing useful clauses in the same
-response, while mutually supporting clauses from different responses are
-filtered under the same pooled context used at inference
-(Appendix~\ref{app:houdini-order}).  When retained negatives exist, the reward adds no bonus merely for
-valid syntax or whole-response validity.  The subset receives the dense,
-target-independent strength score
-\[
-  \operatorname{cov}(C_i^{\mathrm{train}})=\frac{|R_i|}{|\mathcal N|}.
-\]
-This and the following allocation apply when \(\mathcal N\neq\varnothing\);
-when the sampler retains none, we use the binary fallback in
-Appendix~\ref{app:grpo-details}.
-
-Independent coverage, however, rewards a complementary discovery exactly like
-one repeated by every peer.  We therefore allocate credit for the union
-\(\bigcup_i R_i\) across the rollout group \(\mathcal G=\{1,\ldots,G\}\) as
-a coverage game.  Let
-\(f(\nu)=\sum_{j=1}^{G}\mathbf 1[\nu\in R_j]\) count how many peers reject
-trace \(\nu\).  The Shapley value of rollout
-\(i\) has the closed form~
-\citep{shapley1953value} (proof in Appendix~\ref{app:composition-proofs})
+Coverage alone gives the same score to a unique discovery and a clause already
+supplied by every peer.  Let
+\(f(\nu)=|\{j:\nu\in R_j\}|\).  We add the closed-form Shapley allocation of
+the fixed coverage game:
 \begin{equation}
 \label{eq:shapley-credit}
   \phi_i=\frac{1}{|\mathcal N|}
-  \sum_{\nu\in R_i}\frac{1}{f(\nu)},
-  \qquad
-  \sum_{i=1}^{G}\phi_i
-  =\frac{|\bigcup_iR_i|}{|\mathcal N|}.
+  \sum_{\nu\in R_i}\frac{1}{f(\nu)}.
 \end{equation}
-Thus a unique rejection receives full credit, whereas \(f(\nu)\) redundant
-rejections split it.  The Shapley allocation is the unique credit rule
-satisfying efficiency, symmetry, linearity, and the null-player
-axiom~
-\citep{shapley1953value}.  It implements \emph{inter-rollout composition}:
-the same response earns less group credit when its verified constraints are
-already supplied by peers.
-
-The reward combines the two credits,
+The rollout reward is
 \begin{equation}
 \label{eq:generation-reward}
-  r_i=w_c\,\operatorname{cov}(C_i^{\mathrm{train}})+w_g\phi_i,
+  r_i=w_c\frac{|R_i|}{|\mathcal N|}+w_g\phi_i-w_o o_i.
 \end{equation}
-where \((w_c,w_g)=(1.0,0.3)\).  We call the first term the \emph{clause
-credit} and the second the \emph{group (Shapley) credit};
-Section~\ref{sec:exp:ablations} ablates each.  GRPO normalizes these
-group-conditioned rewards within the sampled response group.
-Each training step samples a group of \(G{=}8\) responses per masked loop,
-scores them by Equation~\eqref{eq:generation-reward}, and applies one GRPO
-update; this training-time group is distinct from the inference sweep over
-\(k\) (Section~\ref{sec:method:inference}).
-Appendix~\ref{app:grpo-details} gives the standard
-policy objective, clause normalization, and fallback behavior.
+Here \(w_c\), \(w_g\), and \(w_o\) denote the coverage, group-credit, and
+overflow weights.  The first term is the main verified-coverage reward; the
+second is a complementarity bonus that divides redundant coverage among its
+proposers; the final term penalizes clauses emitted beyond the response cap.
+It is the Shapley value after filtering the full group, not the value of a game
+that reruns Houdini for every coalition.  A clause that only supports another
+clause receives no direct coverage credit.
+
+GRPO normalizes these rewards within the sampled group and applies the
+standard clipped policy update (Appendix~\ref{app:grpo-details}).  Training and
+inference are aligned because inference, SFT synthesis, and RL scoring all use
+the same operation—filtering the union of decomposed responses—while the
+reward remains independent of the hidden target.

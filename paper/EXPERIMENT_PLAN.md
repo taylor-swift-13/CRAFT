@@ -72,8 +72,8 @@ reachability collision.
 | RQ3 common tool comparison | Program-level CRAFT/tool artifacts present; Clause2Inv token count is estimated and limited to supported tasks. |
 | RQ4 Zero to RL-Zero | The finalized pre-RL aggregate now uses the same Qwen3-8B base curve as RQ1. The canonical program-level pool artifact and training manifest must still be archived before submission. |
 | RQ4 SFT to SFT+RL | Missing. |
-| RQ5 reward ablation | Missing. |
-| RQ5 sampler ablation | Missing. |
+| RQ5 reward ablation | Re-measured full-grid values present for Binary / Whole-Rollout / Clause-Decomposed / Full from the Zero initialization (tab:reward-ablation, fig:reward-ablation); canonical program-level pool artifact still to be archived. |
+| RQ5 sampler ablation | Re-measured matched Structured vs Random runs under the full reward present (tab:sampler-ablation); canonical program-level pool artifact still to be archived. |
 | Training configuration | Optimizer, learning rate, batch/group sizes, update count, checkpoint IDs, seeds, and hardware manifest missing. |
 | Training--test overlap | Reproducible via paper/scripts/audit_train_test_overlap.py; input hashes are in paper/artifacts/train_test_overlap.json. |
 | Prompt provenance sanitation | **Submission rerun required.** The old model-facing transform preserved non-contract comments in 478 evaluation files: all 466 Loopy sources contain a `// Source:` path (98 encode an outcome label such as `true-unreach-call`, `safe`, or `ok`), and 12 NLA files contain generic section comments. The shared masking code now removes ordinary comments while retaining ACSL contracts. Every affected generation result predating this fix must be regenerated or supported by a predeclared sensitivity study. |

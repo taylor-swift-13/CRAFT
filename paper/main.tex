@@ -80,6 +80,7 @@
 \setlist[enumerate]{leftmargin=1.45em,itemsep=2pt,topsep=3pt,parsep=0pt}
 \renewcommand{\arraystretch}{1.08}
 \arrayrulecolor{promptframe}
+\raggedbottom
 
 %% Keep every data table at one fixed font size.  Table width is handled by
 %% column spacing and line breaks, never by scaling the tabular contents.
@@ -179,12 +180,29 @@
   boxed title style={arc=2pt,boxrule=0pt},
 }
 
+%% Compact experimental insight box
+\newtcolorbox{insightbox}{
+  enhanced,
+  colback=codegreen!5,
+  colframe=codegreen!48,
+  boxrule=0.45pt,
+  arc=2pt,
+  left=3pt,
+  right=3pt,
+  top=2pt,
+  bottom=2pt,
+  boxsep=0pt,
+  before skip=2pt,
+  after skip=2pt,
+}
+
 %% Shorthand commands
 \newcommand{\cmark}{\ding{51}}
 \newcommand{\xmark}{\ding{55}}
 \newcommand{\sam}{CRAFT}
 \newcommand{\denote}[1]{\left[\!\left[#1\right]\!\right]}
 \newcommand{\acc}[2]{#2}
+\newcommand{\tightparagraph}[1]{\par\addvspace{2pt}\noindent\textbf{#1}\hspace{0.45em}}
 
 %% Meta
 \title{\sam{}: Compositional Reward Alignment\\
@@ -205,17 +223,17 @@ Valid loop invariants are closed under conjunction: useful clauses from
 different responses can prove a target even when no response does so alone.
 Yet standard training scores each response as an indivisible answer.  We
 study this mismatch under \emph{target-hidden loop verification}, where target
-assertions and postconditions \(Q\) are withheld during generation and
+assertions and postconditions \(\mathcal G\) are withheld during generation and
 training.  CRAFT aligns both stages through
 rollout--decompose--pool--filter--compose.
 At inference, it decomposes responses into clauses, pools them across
 responses, filters the pool with syntax checking and Houdini, and composes
-the survivors into one invariant before restoring \(Q\).  SFT distills a
+the survivors into one invariant before restoring \(\mathcal G\).  SFT distills a
 filtered multi-response union into one response.  RL assigns credit within a
 rollout to its verifier-retained subset and across rollouts to complementary
 coverage beyond peers.  Its target-independent strength signal comes from
 reachable executions and conservatively filtered synthetic negatives.  On
-832 C programs, four \texttt{gpt-5-nano} rollouts verify 49.0\% of
+832 C programs, four GPT-5-nano rollouts verify 49.0\% of
 tasks, compared with 42.2\% for the strongest external baseline in an
 end-to-end target-hidden evaluation with system-native fixed budgets.
 \end{abstract}

@@ -2,119 +2,58 @@
 \section{Introduction}\label{sec:intro}
 %% ============================================================
 
-Loop invariants turn unbounded executions into finite proofs, but a formally
-valid invariant can still be useless.  An invariant is \emph{valid} if it
-holds when execution first reaches the loop and remains true after every loop
-iteration.  A verifier can check these obligations, yet its pass/fail outcome
-provides no graded measure of how much the invariant says: \(\mathit{true}\) is
-valid for every loop but proves nothing about its behavior or desired outcome.  A useful
-invariant must also be strong enough to establish downstream properties.
-Since the exact reachable-state set may be expensive to compute
-or inexpressible in the annotation language, generation must navigate many
-valid but weak over-approximations and receive credit for approaching stronger
-ones.
+Loop invariants turn unbounded executions into finite proofs, but validity
+alone does not imply usefulness: \(\mathit{true}\) is valid for every loop and
+proves nothing downstream.  At the same time, valid invariants are closed
+under conjunction.  A range bound from one response and a relational equality
+from another can therefore prove a target that neither response proves alone,
+while clause-wise verification can discard failures without losing useful
+clauses.  This makes the filtered cross-response clause pool, rather than one
+complete response, the natural inference object.
 
-This search need not succeed in a single attempt.  Validity is closed under
-conjunction: the conjunction of two valid invariants is valid and no weaker
-than either one.  Useful clauses can therefore be accumulated across samples
-instead of demanding a complete answer from one response.  Model responses
-expose such partial results as clauses: one may discover a range
-bound, another a relational equality, and together they may prove a target
-that neither proves alone.  Clause-wise verification can discard invalid
-clauses while preserving valid ones, motivating the filtered clause pool as
-the inference object.
+Whole-response rewards are mismatched to this object.  They erase credit for
+a useful clause when a sibling clause fails, and they value a complementary
+constraint no more than one repeated by every peer.  More generally,
+response-level RLVR can sharpen probability on already-supported answers
+without expanding large-\(k\) coverage~\citep{yue2025rlcapacity}, potentially
+reducing the diversity that composition needs.  Our central claim is therefore
+an alignment claim: the training reward should value the same verified
+composition that inference constructs from a fixed rollout group, rather than
+each rollout as an independent final answer.
 
-Response-level rewards are mismatched to this unit in two ways.  First,
-verifiable rewards credited to whole responses chiefly sharpen the sampling
-distribution toward responses the policy already produces, improving pass@1
-without widening what \(k\) samples can cover~\citep{yue2025rlcapacity}.
-For a clause pool, such sharpening toward a few individually complete
-responses is
-at best orthogonal and at worst collapses the diversity that composition
-exploits.  Second, a complete response is also the wrong unit of training
-credit.  A whole-response reward
-withholds credit from useful clauses whenever another clause in the same
-response fails.  A reward computed independently for each response cannot
-distinguish a constraint that expands group coverage from one already repeated
-by every peer.  Under repeated sampling, this can encourage the policy to
-reproduce easy high-reward clauses instead of exploring a clause pool whose
-members work together.  Our central claim is that loop-invariant learning
-should optimize the verified composition obtained from a fixed rollout group,
-rather than treating every rollout as an independent final answer.
+We study this claim under \emph{target-hidden loop verification}.  The model
+sees the loop context but not the target assertions and postconditions \(\mathcal G\).
+After the invariant set is fixed, the untouched source is restored and the
+verifier checks both induction and every original target.  Hiding \(\mathcal G\)
+prevents target copying and target-specific proof feedback, so generation and
+training require a graded, target-independent strength signal.
+
+At inference, \sam{} implements
+\emph{rollout--decompose--pool--filter--compose}: given \(k\) responses, it
+extracts and pools clauses, filters them with syntax checks and Houdini, and
+then restores \(\mathcal G\).  compose@\(k\) measures the verified rate of this composed
+prefix, preserving partial answers that pass@\(k\) discards.  Training is
+aligned to this object at the same two compositional levels.  Within a rollout,
+execution-derived negative coverage credits the clauses retained by the
+inference filter; across each GRPO group~\citep{shao2024deepseekmath}, a
+closed-form Shapley term credits coverage not already supplied by peers.  SFT
+distills the same filtered multi-response union into one response.
 
 \input{sections/fig_overview}
 
-We study this claim under \emph{target-hidden loop verification}.  The model
-sees the function preconditions, executable prefix, loop guard, and body, but
-the target set \(Q\) is withheld until the generated invariant set has been
-fixed.  The final test still uses the original task: after \(Q\) is restored,
-the verifier must establish the
-loop obligations and prove every target at its original program point.  Hiding \(Q\) prevents a model
-from copying a target that happens to be valid or using target-specific proof
-failures to steer generation.  It also rules out target success as a training
-reward, making a graded, target-independent measure of invariant strength
-necessary.  The invariants this setting rewards are also the reusable ones:
-an invariant strong enough without knowing \(Q\) serves every property later
-asserted about the loop.
-
-\sam{} organizes inference around \emph{rollout--decompose--pool--filter--compose}.
-Given a budget of \(k\) target-hidden responses, the pipeline extracts each
-invariant
-annotation as a clause, unions clauses across responses, removes syntax failures,
-and applies Houdini to retain a jointly valid subset.  Only then is \(Q\)
-restored for the final proof.  We measure this inference-time object with
-compose@\(k\): the fraction of programs verified after composing the first
-\(k\) responses.  Unlike pass@\(k\), which requires at least one response to
-contain the complete proof, compose@\(k\) preserves useful partial answers.
-The objective is to make this curve both higher and faster to converge, so a
-small rollout budget recovers the compositions otherwise found only through
-much broader sampling.
-
-Training aligns credit with the two levels of this inference procedure.  \emph{Within}
-each rollout, we project its extracted clauses onto a verifier-retained
-subset; one rejected clause does not erase credit earned by the others.  We
-score the strength of that subset using the execution-derived negative
-examples it rejects, without adding a reward merely for well-formed syntax or
-whole-response validity.  \emph{Across} rollouts, we apply a closed-form
-Shapley allocation to the union of their pooled-filtered, provenance-assigned
-negative-example coverage: repeated rejections share credit, whereas a
-rejection supplied by fewer peers receives more.  Thus the reward of one rollout depends on what the other rollouts in
-its Group Relative Policy Optimization (GRPO) group discover
-~\citep{shao2024deepseekmath}.  Synthetic supervised fine-tuning (SFT)
-additionally distills a filtered multi-response union into one
-individual response.  Together, these stages make sampled responses more
-useful to the clause pool that the pipeline composes at inference.
-
-Prior systems synthesize and prune candidate invariants at inference time,
-while learning-based methods train from verified outputs, solver feedback, or
-behavioral examples~\citep{flanagan2001houdini,kamath2023finding,
-cao2025clause2inv,si2020code2inv,yan2025reform,yang2026coins,
-huang2026specrl}.  We instead train for the filtered clause pool used at
-inference: credit preserves useful clauses within a response and depends on
-complementary coverage across responses.
-
-Our experiments deliberately separate standalone success from composed
-inference.  On 832 integer C programs, four target-hidden
-\texttt{gpt-5-nano} responses with union and Houdini verify 408
-programs (49.0\%), compared with 351 (42.2\%) for the
-strongest external baseline under each system's fixed budget.
-
-\paragraph{Contributions.}
+\begin{samepage}
+\tightparagraph{Contributions.}
 This paper makes three contributions:
 \begin{itemize}
-  \item We formulate target-hidden loop verification around a fixed-budget
-  rollout--decompose--pool--filter--compose objective.  The evaluated object at inference is
-  the verified composition measured by compose@\(k\), not an isolated
-  response.
-  \item We align learning credit with that object at two levels, without
-  using \(Q\).  Within a rollout, the unit of credit is the
-  verifier-retained clause, so an imperfect response is paid for what
-  survives; across rollouts, a closed-form Shapley allocation pays
-  complementary coverage rather than repetition.
-  \item We show that clause-level credit is what turns RL from sharpening
-  into expanding compose@\(k\), that group credit raises the curve further
-  at every budget beyond one response, and that the trained policy reaches
-  its untrained initialization's 32-response composition with four
-  responses.  We audit the execution-derived examples that provide the
-  graded strength signal.
+  \item We formulate target-hidden verification around fixed-budget filtered
+  composition and introduce compose@\(k\) to evaluate it.
+  \item We align training with the two compositional levels used at inference:
+  clause-level negative coverage rewards what survives within a response,
+  group-level Shapley allocation rewards what complements other responses, and
+  SFT distills the same filtered union, all without exposing \(\mathcal G\).
+  \item On 832 C programs, four target-hidden GPT-5-nano responses
+  verify 49.0\% of tasks, versus 42.2\% for the strongest external baseline
+  under system-native fixed budgets.  Controlled probes and ablations
+  separate standalone success, composition, and the two levels of credit.
 \end{itemize}
+\end{samepage}

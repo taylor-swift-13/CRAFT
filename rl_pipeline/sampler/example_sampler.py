@@ -12,14 +12,18 @@ union is the sampled reachable set. We produce:
     ("real prefix + this state"); an escape continuation is one group.
     A rollout rejects a history iff some invariant is false at ANY witness.
 
-Two complementary negative-candidate families:
+The structured sampler prioritizes two hard negative-candidate families:
   * relation : guard-preserving off-manifold perturbations around densely
     witnessed transitions and observed terminal transitions;
   * escape   : the body executed past an observed genuine exit.
+Unused trace slots are filled by the same local random perturbation generator
+used by the random baseline.  Both modes therefore target the same 60-trace
+budget; validity filters may leave either mode below it when too few admissible
+states exist.
 
-Families have independent trace budgets (48 relation, 12 escape; 60 total).
-Candidates are selected round-robin across structural buckets.  There is no
-range family: a marginal bound alone must not dominate the quality score.
+The hard families reserve independent budgets (48 relation, 12 escape), and
+random fill uses only their unused capacity.  Candidates are selected
+round-robin across structural buckets.  There is no range family.
 
 Conservative filters (a reachable state mislabeled as negative would distort
 the tightness signal):
@@ -61,7 +65,7 @@ NEGATIVE_SAMPLER_MODES = (
 )
 # Bump whenever negative construction changes: persisted per-program coverage
 # ledgers stamped with an older version are stale and must be regenerated.
-NEGATIVE_SCHEMA_VERSION = 7
+NEGATIVE_SCHEMA_VERSION = 9
 
 _SMALL_DELTAS = (1, -1, 2, -2)
 # Terminal transitions are especially scarce in short loops.  Probe a slightly
@@ -788,25 +792,39 @@ class ExampleSampler:
         if unsupported_state:
             relation_blockers.append("unsupported_state")
 
-        # Cross-family de-duplication follows the two-family semantic order:
-        # relation > escape. Each family keeps its own budget.
+        # Cross-family de-duplication follows the semantic order relation >
+        # escape > random fill.  Both sampler modes target the same total
+        # number of trace units.
         relation: List[State] = []
         escape_groups: List[List[State]] = []
         random_states: List[State] = []
-        if self.negative_sampler == "random":
-            if not relation_blocked:
-                # Budget-matched unstructured baseline.  It uses the same
-                # reachable bases, context-preserving axes, entry filter, seed,
-                # and total trace cap as the structured sampler, but chooses one
-                # or two axes and local deltas uniformly.
-                rng = random.Random(self.seed ^ 0x4C4F4F50)
-                deltas = tuple(range(-34, 0)) + tuple(range(1, 35))
+
+        def select_random_states(limit: int) -> List[State]:
+            """Select local random singleton traces up to ``limit``.
+
+            The random baseline and structured fill share this exact
+            generator, seed, reachability checks, and entry filter.  The
+            shared ``seen`` set also prevents cross-family duplicates.
+            """
+            selected: List[State] = []
+            if limit <= 0 or relation_blocked:
+                return selected
+            rng = random.Random(self.seed ^ 0x4C4F4F50)
+            # Draw nearby perturbations first.  If an escape trace consumes
+            # much of that finite support during cross-family de-duplication,
+            # widen the same generator rather than leaving the matched budget
+            # under-filled.
+            delta_stages = (
+                tuple(range(-34, 0)) + tuple(range(1, 35)),
+                tuple(range(-128, -34)) + tuple(range(35, 129)),
+            )
+            for deltas in delta_stages:
                 attempts = 0
-                max_attempts = max(1024, 100 * _NEGATIVE_GROUP_BUDGET)
+                max_attempts = max(1024, 100 * limit)
                 while (
                     bases
                     and movable
-                    and len(random_states) < _NEGATIVE_GROUP_BUDGET
+                    and len(selected) < limit
                     and attempts < max_attempts
                 ):
                     attempts += 1
@@ -818,10 +836,18 @@ class ExampleSampler:
                         values[variable] += rng.choice(deltas)
                     state = base.with_vars(values)
                     key = state.key()
-                    if key in reachable or key in seen or entry_feasible(state):
+                    if (
+                        key in reachable
+                        or key in seen
+                        or entry_feasible(state)
+                    ):
                         continue
                     seen.add(key)
-                    random_states.append(state)
+                    selected.append(state)
+            return selected
+
+        if self.negative_sampler == "random":
+            random_states = select_random_states(_NEGATIVE_GROUP_BUDGET)
         else:  # structured
             if not relation_blocked:
                 relation = select_candidates(
@@ -839,6 +865,13 @@ class ExampleSampler:
             # continuation, so it remains available even when arbitrary state
             # perturbation is conservatively disabled.
             escape_groups = select_escape_groups()
+            remaining = max(
+                0,
+                _NEGATIVE_GROUP_BUDGET
+                - len(relation)
+                - len(escape_groups),
+            )
+            random_states = select_random_states(remaining)
 
         negatives: List[State] = []
         groups: List[List[int]] = []
@@ -861,10 +894,15 @@ class ExampleSampler:
         zero_blockers: List[str] = []
         if not groups:
             zero_blockers.extend(relation_blockers)
-            if not relation:
-                zero_blockers.append("no_admissible_relation_trace")
-            if not escape_groups:
-                zero_blockers.append("no_admissible_escape_trace")
+            if self.negative_sampler == "random":
+                zero_blockers.append("no_admissible_random_trace")
+            else:
+                if not relation:
+                    zero_blockers.append("no_admissible_relation_trace")
+                if not escape_groups:
+                    zero_blockers.append("no_admissible_escape_trace")
+                if not random_states:
+                    zero_blockers.append("no_admissible_random_trace")
 
         stats = {
             "n_traces": len(groups),
@@ -876,6 +914,13 @@ class ExampleSampler:
             "negative_budget": _NEGATIVE_GROUP_BUDGET,
             "relation_budget": _RELATION_GROUP_BUDGET,
             "escape_budget": _ESCAPE_GROUP_BUDGET,
+            "random_fill_budget": max(
+                0,
+                _NEGATIVE_GROUP_BUDGET
+                - len(relation)
+                - len(escape_groups),
+            ) if self.negative_sampler == "structured"
+            else _NEGATIVE_GROUP_BUDGET,
             "capped": capped,
             "nondet_guard": nondet,
             "nondet_body": nondet_body,

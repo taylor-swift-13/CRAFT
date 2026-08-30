@@ -2,22 +2,17 @@
 \section{Conclusion and Limitations}\label{sec:conclusion}
 %% ============================================================
 
-CRAFT makes filtered clause composition the inference target: its pipeline
-composes
+CRAFT aligns training with compositional inference: its pipeline composes
 rollouts, SFT distills their union, and target-independent RL rewards useful
 clauses and complementary coverage.
 
-The recipe transfers beyond loop invariants.  It applies to problems whose
-answers (i) decompose into independently checkable units composed by
-conjunction, (ii) admit a cheap mechanical filter for unit validity,
-(iii) include valid-but-weak degenerate solutions that pass/fail cannot
-grade, and (iv) allow behavioral negatives, on which weak and strong
-solutions disagree, to be derived from executions or simulations.  Test
-generation judged by mutant killing, auxiliary-lemma synthesis for proof
-assistants, and data-constraint discovery all satisfy these conditions.
+The interface extends to reusable atoms that can be pooled and soundly
+filtered.  Specification and test-case generation are potential instances,
+with task-specific operators, verifiers, and signals; Appendix~\ref{app:formal-method}
+states the formal conditions.
 
-Evidence is limited to scalar-integer, single-loop C programs, Frama-C/WP and
-ACSL, and vLLM-served local checkpoints.  The provenance allocation conditions
-credit on the sampled full group and is not an exponential coalition-value
-Shapley computation.  Appendices~\ref{app:limitations}
-and~\ref{app:houdini-order} detail these scope and reward approximations.
+Evidence is limited to scalar-integer single-loop C programs, Frama-C/WP,
+ACSL, and the evaluated checkpoints.  Provenance credit is conditioned on the
+sampled group rather than exact coalition Shapley values;
+Appendices~\ref{app:limitations} and~\ref{app:houdini-order} give the
+evaluation scope and pooled-credit measurements.

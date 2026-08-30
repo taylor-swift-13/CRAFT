@@ -141,7 +141,8 @@ units — one fake continuation is ONE negative, not twenty-four):
 - `shapley_credit[A]` allocates the union of the group's attributed negative
   coverage: a trace rejected by `f` rollouts contributes `1/f` to each.
   Credits therefore sum exactly to attributed union coverage;
-- `reward[A]`   = `1.0·base[A] + 0.3·shapley_credit[A]` by default.
+- `reward[A]`   = `1.0·base[A] + 0.3·shapley_credit[A]
+  - 0.1·overflow[A]` by default.
   Repeated clauses collapse in the same clause-set construction used at
   inference (the solver-free key handles comparison direction, commutative
   equality/addition/multiplication, harmless identities, and order-preserving
@@ -155,8 +156,9 @@ units — one fake continuation is ONE negative, not twenty-four):
   no sampled negative coverage is not charged: it may support another
   survivor or an unseen proof target;
 - each model response admits at most 20 `loop invariant` lines. Later lines do
-  not enter filtering or scoring; the response exposes `generated`,
-  `accepted`, and `overflow` as diagnostics;
+  not enter filtering or scoring, and each later line incurs a 0.1 overflow
+  penalty. The response exposes `generated`, `accepted`, `overflow`, and
+  `overflow_penalty`;
 - `batch_score` = candidate traces rejected by `Houdini(∪)`. If no
   negatives are available, the group falls back to binary inductiveness
   (1 iff the response is nonempty and every admitted clause survives

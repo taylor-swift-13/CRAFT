@@ -2,63 +2,27 @@
 \section{Preliminaries}\label{sec:preliminaries}
 %% ============================================================
 
-\paragraph{Loop verification.}
-A task consists of a loop \(\mathcal L=(P,B,S)\) and a target set
-\(Q=\{(\ell,q_\ell)\}\), where predicate \(q_\ell\) occurs at assertion or
-postcondition location \(\ell\).  Here \(P\) describes the loop-entry states induced by the function
-preconditions and executable prefix, \(B\) is the guard, and \(S\) is the
-body.  Let
-\(\operatorname{Reach}(\mathcal L)\) be the reachable loop-head states,
-including the final guard test.  An invariant \(I\) is \emph{valid} (or
-inductive) when
+\tightparagraph{Loop verification.}
+A task contains a loop \(\mathcal L=(\mathsf{Init},B,S)\) and targets
+\(\mathcal G=\{(\ell,g_\ell)\}\), where \(\mathsf{Init}\) describes loop entry,
+\(B\) is the guard, \(S\) is the body, and \(g_\ell\) occurs at program
+location \(\ell\).  In this paper, \emph{valid invariant} means inductive:
 \[
-  P\Rightarrow I,
+  \mathsf{Init}\Rightarrow I,
   \qquad
   \{I\wedge B\}\,S\,\{I\},
 \]
-which ensures \(\operatorname{Reach}(\mathcal L)\subseteq\denote I\)
-~\citep{floyd1967assigning,hoare1969axiomatic}.  The semantic ideal---an
-invariant whose meaning is exactly \(\operatorname{Reach}(\mathcal L)\)---need
-not be finitely expressible in the annotation language.
+which implies every reachable loop-head state satisfies \(I\)
+~\citep{floyd1967assigning,hoare1969axiomatic}.  A finite clause set \(C\)
+composes as \(I(C)=\bigwedge_{c\in C}c\) and is \emph{jointly inductive} when
+\(I(C)\) is valid.  It is target-sufficient when it proves every \(g_\ell\) at
+its original location; for a post-loop target this reduces to
+\(I(C)\wedge\neg B\Rightarrow g\).
 
-For predicates \(I\) and \(J\), write
-\[
-  I\preceq J
-  \quad\Longleftrightarrow\quad
-  I\Rightarrow J
-  \quad\Longleftrightarrow\quad
-  \denote I\subseteq\denote J.
-\]
-Thus \(I\preceq J\) means that \(I\) is at least as strong as \(J\), and
-\(I\prec J\) means that it is strictly stronger.  For a finite clause set
-\(C\), define
-\[
-  I_C\triangleq\bigwedge_{c\in C}c,
-  \qquad I_\varnothing\triangleq\mathit{true}.
-\]
-We call \(C\) \emph{jointly inductive} when \(I_C\) is valid, equivalently
-when
-\[
-  P\Rightarrow I_C,
-  \qquad
-  \{I_C\wedge B\}\,S\,\{I_C\}.
-\]
-We reserve \(\mathsf H_{\mathcal L}(C)\) for the ideal Houdini fixed point
-under exact establishment and preservation decisions, and
-\(\mathsf{Filter}_{\mathcal L}(C)\) for the implemented parsing,
-deduplication, and resource-bounded WP/Houdini pipeline.
-
-A valid invariant is
-\emph{\(Q\)-sufficient} when annotating the loop with \(I\) lets the verifier
-prove every \(q_\ell\) at \(\ell\).  For one post-loop target this reduces to
-\(I\wedge\neg B\Rightarrow q\).  Thus validity is target-independent, whereas
-sufficiency is tested only after restoring \(Q\).
-
-\paragraph{Target-hidden verification.}
-The generator and all intermediate scores use \(\mathcal L=(P,B,S)\), not
-\(Q\).  Assertions, postconditions, executable assertion calls, and
-conventional error-label names are masked; non-contract comments are removed.  Preconditions and executable loop
-semantics remain visible.  The generated invariant is fixed before the
-untouched program is restored for final verification.  We study scalar-integer
-C programs with one loop; Appendix~\ref{app:scope-example} gives the scope and
-a motivating nonlinear example.
+\tightparagraph{Target-hidden verification.}
+Generation and intermediate scores use \(\mathcal L\), not \(\mathcal G\).
+Targets and target-revealing text are masked, while preconditions and executable
+loop semantics remain visible.  The invariant is fixed before the original
+targets are restored for final verification.  We study scalar-integer C
+programs with one loop; Appendix~\ref{app:scope-example} gives the scope and an
+example.

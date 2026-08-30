@@ -9,6 +9,7 @@ each rollout and the batch, using synthetic negative candidates from the sampler
                 survive pooled Houdini filtering
   shapley[A]  = Shapley allocation of the group's rejection coverage
   reward[A]   = w_base * base[A] + w_shapley * shapley[A]
+                - w_overflow * overflow[A]
   batch_score = fraction of candidates rejected by Houdini(union)    (batch performance)
 
 The default credit path first pools all rollout clauses, runs Houdini once, and
@@ -79,6 +80,7 @@ class RolloutScore:
     overflow: int                 # clauses beyond max_invariants
     base: float
     shapley_credit: float         # allocation of group negative coverage
+    overflow_penalty: float
     reward: float
     rejected: int                 # negatives rejected by attributed survivors
 
@@ -126,12 +128,14 @@ class BatchReward:
             "rollout_rewards": [r.reward for r in self.rollouts],
             "base": [r.base for r in self.rollouts],
             "shapley_credit": [r.shapley_credit for r in self.rollouts],
+            "overflow_penalty": [r.overflow_penalty for r in self.rollouts],
             "generated": [r.generated for r in self.rollouts],
             "accepted": [r.accepted for r in self.rollouts],
             "overflow": [r.overflow for r in self.rollouts],
             "rollouts": [
                 {"index": r.index, "reward": r.reward, "base": r.base,
                  "shapley_credit": r.shapley_credit,
+                 "overflow_penalty": r.overflow_penalty,
                  "generated": r.generated, "accepted": r.accepted,
                  "overflow": r.overflow,
                  "rejected": r.rejected,
@@ -188,6 +192,7 @@ class RewardCalculator:
         invariant_filter=None,
         w_base: float = 1.0,
         w_shapley: float = 0.3,
+        w_overflow: float = 0.1,
         max_invariants: int = MAX_INVARIANTS_PER_RESPONSE,
         n_jobs: Optional[int] = None,     # parallel frama-c filter calls per group
         logger: Optional[logging.Logger] = None,
@@ -209,12 +214,13 @@ class RewardCalculator:
         self.filter = invariant_filter or filters.auto_filter(log)
         self.w_base = w_base
         self.w_shapley = w_shapley
+        self.w_overflow = w_overflow
         self.max_invariants = max_invariants
         self.n_jobs = n_jobs or min(16, (os.cpu_count() or 8))
         self.sampler_kwargs = sampler_kwargs or {}
         self.reward_variant = reward_variant
         self.credit_filter_order = credit_filter_order
-        if min(self.w_base, self.w_shapley) < 0:
+        if min(self.w_base, self.w_shapley, self.w_overflow) < 0:
             raise ValueError("reward weights must be non-negative")
         if not 1 <= self.max_invariants <= MAX_INVARIANTS_PER_RESPONSE:
             raise ValueError(
@@ -283,8 +289,8 @@ class RewardCalculator:
         n_neg = len(groups)
         scorable = self.reward_variant == "binary" or n_neg > 0
 
-        # Keep the model's actual clause count for the generated/accepted/
-        # overflow diagnostics. Filtering/scoring uses a canonical
+        # Keep the model's actual clause count for generated/accepted/overflow
+        # accounting. Filtering/scoring uses a canonical
         # de-duplicated set of the first ``max_invariants`` clauses.
         roll_invs_raw = [_rollout_invariants_raw(r) for r in rollouts]
         roll_invs_capped = [
@@ -301,10 +307,13 @@ class RewardCalculator:
         def survive(invs: List[str]) -> List[str]:
             if not invs:
                 return []
-            key = frozenset(normalize_invariant(i) for i in invs)
+            # Frama-C may introduce invariant proof dependencies in annotation
+            # order.  Preserve the pooled first-occurrence order used by
+            # inference, and include that order in the memoization key.
+            key = tuple(normalize_invariant(i) for i in invs)
             cached = survive_cache.get(key)
             if cached is None:
-                cached = self.filter.filter(prog, loop_idx, sorted(key), positives)
+                cached = self.filter.filter(prog, loop_idx, invs, positives)
                 survive_cache[key] = cached
             return cached
 
@@ -316,12 +325,12 @@ class RewardCalculator:
             if self.credit_filter_order == "pooled"
             else [union] + roll_invs
         )
-        uniq = {frozenset(normalize_invariant(i) for i in invs): invs
+        uniq = {tuple(normalize_invariant(i) for i in invs): invs
                 for invs in needed if invs}
         if len(uniq) > 1 and self.n_jobs > 1:
             with ThreadPoolExecutor(max_workers=self.n_jobs) as ex:
                 list(ex.map(lambda kv: survive_cache.__setitem__(
-                    kv[0], self.filter.filter(prog, loop_idx, sorted(kv[0]), positives)),
+                    kv[0], self.filter.filter(prog, loop_idx, kv[1], positives)),
                     uniq.items()))
         union_surv = survive(union)
         if self.credit_filter_order == "pooled":
@@ -397,23 +406,30 @@ class RewardCalculator:
                 max(0, n_generated - self.max_invariants)
                 if cap_responses else 0
             )
+            overflow_penalty = self.w_overflow * overflow
             if not scorable or self.reward_variant == "binary":
                 # Binary inductiveness: either the explicit ablation or the
                 # fallback when no negative trace exists to measure strength.
+                overflow_penalty = 0.0
                 reward = 1.0 if fully_verified(invs, surv) else 0.0
             elif self.reward_variant == "whole_coverage":
                 # All-or-nothing response control: use the same dense
                 # negative-coverage signal as ``base``, but do not salvage a
                 # sound subset from an imperfect response.
-                reward = base if fully_verified(invs, surv) else 0.0
+                reward = (
+                    (base if fully_verified(invs, surv) else 0.0)
+                    - overflow_penalty
+                )
             else:
                 reward = self.w_base * base
                 if self.reward_variant == "full":
                     reward += self.w_shapley * shapley_credit
+                reward -= overflow_penalty
             scores.append(RolloutScore(
                 index=idx, invariants=invs, survivors=surv,
                 generated=n_generated, accepted=n_accepted, overflow=overflow,
                 base=base, shapley_credit=shapley_credit,
+                overflow_penalty=overflow_penalty,
                 reward=reward, rejected=len(base_rej),
             ))
 

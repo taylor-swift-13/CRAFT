@@ -56,8 +56,8 @@
 \node[card, draw=paperink!30, text width=1.95cm]
   (masked) at (1.32,5.20)
   {{\bfseries Masked loop}\\[-1pt]
-   \(\mathcal L=(P,B,S)\)\\[-2pt]
-   {\textcolor{codered}{target \(Q\) hidden}}};
+   \(\mathcal L=(\mathsf{Init},B,S)\)\\[-2pt]
+   {\textcolor{codered}{target \(\mathcal G\) hidden}}};
 \draw[flow] (masked.east) -- (2.67,5.20);
 
 %% ---------------- DECOMPOSE block ----------------
@@ -67,9 +67,9 @@
 
 \node[heading] at (4.25,5.92) {1\; ROLLOUT};
 \foreach \y/\lab/\cols/\mk/\rowstyle/\labcol in {
-  5.60/Y_1/{codegreen!85,codegreen!50,codegreen!85,codegreen!35,codegreen!65}/\cmark/validrow/codegreen!70,
-  5.18/Y_2/{codegreen!70,wrongred,codegreen!45,codegreen!80,codegreen!30}/\xmark/wrongrow/codered!68,
-  4.76/Y_3/{wrongred,codegreen!60,wrongred,codegreen!40,codegreen!75}/\xmark/wrongrow/codered!68}{
+  5.60/y_1/{codegreen!85,codegreen!50,codegreen!85,codegreen!35,codegreen!65}/\cmark/validrow/codegreen!70,
+  5.18/y_2/{codegreen!70,wrongred,codegreen!45,codegreen!80,codegreen!30}/\xmark/wrongrow/codered!68,
+  4.76/y_3/{wrongred,codegreen!60,wrongred,codegreen!40,codegreen!75}/\xmark/wrongrow/codered!68}{
   \node[\rowstyle, minimum width=2.05cm, minimum height=0.42cm] at (4.35,\y) {};
   \node[font=\tiny, text=\labcol] at (3.52,\y) {\(\lab\)};
   \foreach \c [count=\i from 0] in \cols {
@@ -79,12 +79,12 @@
 }
 \node[text=codegray!70] at (4.35,4.40) {\(\vdots\)};
 
-\draw[flow] (5.52,5.18) -- (5.88,5.18);
+\draw[flow] (5.38,5.18) -- (5.84,5.18);
 \node[heading] at (7.12,5.92) {2\; DECOMPOSE};
 \foreach \y/\lab/\cols in {
-  5.60/{\bar A_1}/{codegreen!85,codegreen!50,codegreen!85,codegreen!35,codegreen!65},
-  5.18/{\bar A_2}/{codegreen!70,wrongred,codegreen!45,codegreen!80,codegreen!30},
-  4.76/{\bar A_3}/{wrongred,codegreen!60,wrongred,codegreen!40,codegreen!75}}{
+  5.60/{A_1}/{codegreen!85,codegreen!50,codegreen!85,codegreen!35,codegreen!65},
+  5.18/{A_2}/{codegreen!70,wrongred,codegreen!45,codegreen!80,codegreen!30},
+  4.76/{A_3}/{wrongred,codegreen!60,wrongred,codegreen!40,codegreen!75}}{
   \node[font=\tiny, text=paperink!75, anchor=east] at (6.31,\y) {\(\lab\)};
   \foreach \c [count=\i from 0] in \cols {
     \node[clausebox, fill=\c, draw=paperink!45] at (6.42+\i*0.36,\y) {};
@@ -157,7 +157,7 @@
 \node[card, draw=codepurple!58, fill=white, text width=3.0cm]
   (composed) at (2.35,2.30)
   {{\bfseries Composed set \(C_{\mathcal L}^{(t)}\)}\\[-1pt]
-   {\tiny 16 rollouts \(\cup\) pool \(\to\) filter}};
+   {\tiny \(g_{\mathrm{sft}}\) rollouts \(\cup\) pool \(\to\) filter}};
 \foreach \x/\c in {1.15/codegreen!85,1.39/codegreen!45,1.63/codegreen!70,
                    3.07/codegreen!55,3.31/codegreen!30,3.55/codegreen!80}{
   \node[clausebox, fill=\c] at (\x,1.78) {};
@@ -169,7 +169,7 @@
 \draw[dataflow, rounded corners=2pt]
   (accept.west) -- (0.50,1.10) -- (0.50,2.30) -- (composed.west);
 \node[font=\tiny, text=codepurple!80, rotate=90] at (0.33,1.70)
-  {no: +16 rollouts, \(\le 5\) rounds};
+  {no: +\(g_{\mathrm{sft}}\) rollouts, \(\le t_{\mathrm{sft}}\) rounds};
 \node[card, draw=codepurple!45, fill=white, text width=3.5cm,
   inner ysep=2.5pt] (sfttarget) at (2.35,0.10)
   {{\bfseries SFT target}: the accepted set};
@@ -222,7 +222,7 @@
   (6.75,0.44) rectangle (8.85,0.74);
 \draw[draw=none, fill=codegreen!55] (6.75,0.44) rectangle (8.10,0.74);
 \node[font=\tiny, text=codegray, anchor=west] at (9.00,0.59)
-  {\(\operatorname{cov}=.64\)};
+  {\(\operatorname{cov}_i\)};
 \node[font=\tiny, text=codegray, anchor=west] at (9.00,0.34)
   {rejected negatives};
 \draw[rewardflow] (7.95,0.30) -- (7.95,0.10);
@@ -230,9 +230,9 @@
 %% Shapley split of shared rejections
 \node[heading, anchor=west] at (5.15,-0.04) {SHAPLEY ALLOCATION};
 \foreach \y/\lab/\marks/\phiv in {
-  -0.38/Y_1/{2,1,1,0,0}/{\(\phi_1=.20\)},
-  -0.68/Y_2/{2,2,1,0,1}/{\(\phi_2=.50\)},
-  -0.98/Y_3/{0,0,1,2,1}/{\(\phi_3=.30\)}}{
+  -0.38/y_1/{2,1,1,0,0}/{\(\phi_1\)},
+  -0.68/y_2/{2,2,1,0,1}/{\(\phi_2\)},
+  -0.98/y_3/{0,0,1,2,1}/{\(\phi_3\)}}{
   \node[font=\tiny, text=codegreen!70, anchor=east] at (6.40,\y) {\(\lab\)};
   \foreach \s [count=\i from 0] in \marks {
     \pgfmathsetmacro{\bx}{6.52+\i*0.26}
@@ -268,7 +268,7 @@
 \node[card, draw=codeolive!55, fill=algobg!60, text width=4.9cm,
   inner ysep=3pt] (rewardformula) at (7.95,-2.04)
   {{\bfseries RL reward per rollout}\\[-1pt]
-   \(r_i=\operatorname{cov}_i+0.3\,\phi_i\)};
+   \(r_i=w_c\operatorname{cov}_i+w_g\phi_i-w_o o_i\)};
 
 %% =================================================================
 %% RIGHT --- RL: pool + filter once, provenance credit, GRPO
@@ -280,7 +280,7 @@
 \node[card, draw=codeblue!58, fill=white, text width=3.6cm]
   (group) at (13.70,2.30)
   {{\bfseries Rollout group}\\[-1pt]
-   {\tiny \(G{=}8\) rollouts \(\to\) decompose}};
+   {\tiny \(g_{\mathrm{rl}}\) rollouts \(\to\) decompose}};
 \foreach \x/\c in {12.50/codegreen!70,12.74/wrongred,12.98/codegreen!45,
                    14.42/codegreen!80,14.66/codegreen!30,14.90/codegreen!60}{
   \node[clausebox, fill=\c] at (\x,1.78) {};
@@ -299,8 +299,7 @@
   inner ysep=3pt] (rwd) at (13.70,-1.00)
   {{\bfseries reward} = attributed coverage\\[-1pt]
    + Shapley bonus\\[-1pt]
-   {\color{codegray}\(Y_1\): .30 + .05\quad \(Y_2\): .80 + .18}\\[-1pt]
-   {\color{codegray}\(Y_3\): .60 + .12}};
+   {\color{codegray}\(y_i\): \(w_c\operatorname{cov}_i+w_g\phi_i-w_o o_i\)}};
 \draw[trainflow] (assign.south) -- (rwd.north);
 \node[card, draw=codeblue!62, fill=white, text width=3.6cm,
   inner ysep=1.2pt] (grpo) at (13.70,-2.22)
@@ -316,22 +315,11 @@
 \end{tikzpicture}
 }%
 \caption{\textbf{Decompose--compose is the organizing principle.}
-Each target-hidden rollout is \emph{decomposed} into clauses, and their union
-is \emph{composed} into one filtered invariant (top).  One target-independent
-scorer (center) evaluates clause sets against execution-derived negatives;
-its coverage signal governs SFT acceptance, while its per-rollout allocation
-defines the RL reward.  \emph{Left:} SFT accepts a composed set once
-its whole-rollout coverage of the negatives reaches \(\tau\), strengthening it
-with further rollout groups otherwise, and distills each accepted set into one
-response.  \emph{Center:} the reward ladder starts from binary validity, adds
-target-independent negative coverage, and allocates shared rejections with a
-closed-form Shapley value, paying
-\(r_i=\operatorname{cov}_i+0.3\,\phi_i\) per rollout; the alternative credit
-rules are evaluated in Section~\ref{sec:exp:ablations}.
-\emph{Right:} RL pools and filters each rollout group once, assigns survivors
-to owners by normalization-key provenance, combines attributed coverage and
-the Shapley bonus into one reward, and applies a GRPO update.  The hidden
-target \(Q\) is restored only for the final proof of the composed output;
-neither generation nor training ever sees it.}
+Target-hidden rollouts are decomposed into clauses, pooled, filtered, and
+composed into one invariant (top).  SFT distills an accepted multi-response
+pool into one response (left).  The shared scorer uses execution-derived
+negative coverage and Shapley allocation (center); RL assigns pooled survivors
+to their proposers and optimizes the resulting rewards (right).  The hidden
+target \(\mathcal G\) is restored only for final verification.}
 \label{fig:overview}
 \end{figure}

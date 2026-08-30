@@ -111,6 +111,7 @@ def batch_reward_to_rows(batch: Batch, br, include_program: bool = False) -> Lis
             "reward": rs.reward,
             "base": rs.base,
             "shapley_credit": rs.shapley_credit,
+            "overflow_penalty": rs.overflow_penalty,
             "generated": rs.generated,
             "accepted": rs.accepted,
             "overflow": rs.overflow,

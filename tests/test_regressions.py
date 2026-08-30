@@ -848,6 +848,7 @@ class RewardPatchRegressionTests(unittest.TestCase):
         self.assertNotIn("w_surv", request_fields)
         self.assertNotIn("reroll_threshold", request_fields)
         self.assertIn("w_shapley", request_fields)
+        self.assertIn("w_overflow", request_fields)
         self.assertIn("reward_variant", request_fields)
         self.assertIn("credit_filter_order", request_fields)
         if hasattr(service.SamplerCfg, "model_fields"):
@@ -859,6 +860,7 @@ class RewardPatchRegressionTests(unittest.TestCase):
         self.assertFalse(hasattr(RewardCalculator(), "reroll_threshold"))
         configured = RewardCalculator(w_shapley=0.7)
         self.assertEqual(configured.w_shapley, 0.7)
+        self.assertEqual(configured.w_overflow, 0.1)
         self.assertEqual(configured.credit_filter_order, "pooled")
 
     def test_pooled_filtering_assigns_survivors_before_shapley(self):
@@ -909,6 +911,41 @@ class RewardPatchRegressionTests(unittest.TestCase):
         self.assertEqual(independent.rollouts[0].reward, 0.0)
         self.assertEqual(
             pooled.to_dict()["credit_filter_order"], "pooled"
+        )
+
+    def test_pooled_reward_preserves_inference_clause_order(self):
+        source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
+        examples = ExampleSet(
+            program=parse_program(source),
+            positives={0: [State(vars={"x": 0})]},
+            negatives={0: [State(vars={"x": -1})]},
+            neg_groups={0: [[0]]},
+        )
+
+        class RecordingFilter:
+            name = "recording"
+
+            def __init__(self):
+                self.calls = []
+
+            def filter(self, _program, _loop_idx, invariants, _positives=None):
+                self.calls.append(list(invariants))
+                return list(invariants)
+
+        recording_filter = RecordingFilter()
+        RewardCalculator(
+            invariant_filter=recording_filter,
+            credit_filter_order="pooled",
+            n_jobs=1,
+        ).compute(
+            source,
+            [["x <= 1", "x >= 0"], ["x == x", "x <= 1"]],
+            examples=examples,
+        )
+
+        self.assertEqual(
+            recording_filter.calls,
+            [["x <= 1", "x >= 0", "x == x"]],
         )
 
     def test_pooled_provenance_credits_semantically_equivalent_owners(self):
@@ -1299,7 +1336,7 @@ class RewardPatchRegressionTests(unittest.TestCase):
         self.assertAlmostEqual(sum(credits), 1.0)
         self.assertEqual(result.batch_score, 1.0)
 
-    def test_response_cap_truncates_overflow_lines(self):
+    def test_response_cap_truncates_and_penalizes_overflow_lines(self):
         source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
         examples = ExampleSet(
             program=parse_program(source),
@@ -1316,9 +1353,10 @@ class RewardPatchRegressionTests(unittest.TestCase):
         self.assertEqual(score.generated, 25)
         self.assertEqual(score.accepted, 20)
         self.assertEqual(score.overflow, 5)
+        self.assertEqual(score.overflow_penalty, 0.5)
         self.assertEqual(len(score.invariants), 20)
         self.assertNotIn("x >= -24", score.invariants)
-        self.assertEqual(score.reward, 1.3)
+        self.assertEqual(score.reward, 0.8)
 
     def test_supporting_clause_enables_standalone_coverage(self):
         source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
@@ -1402,7 +1440,8 @@ class SamplerIntegrationRegressionTests(unittest.TestCase):
         }
 
         random_stats = sampled["random"].stats[0]
-        self.assertGreater(random_stats["random"], 0)
+        self.assertEqual(random_stats["random"], 60)
+        self.assertEqual(random_stats["n_traces"], 60)
         self.assertEqual(random_stats["relation"], 0)
         self.assertEqual(random_stats["escape"], 0)
         self.assertNotIn("range", random_stats)
@@ -1420,15 +1459,43 @@ class SamplerIntegrationRegressionTests(unittest.TestCase):
         structured_stats = sampled["structured"].stats[0]
         self.assertGreater(structured_stats["relation"], 0)
         self.assertGreater(structured_stats["escape"], 0)
-        self.assertEqual(structured_stats["random"], 0)
+        self.assertGreater(structured_stats["random"], 0)
+        self.assertEqual(structured_stats["n_traces"], 60)
+        self.assertEqual(
+            structured_stats["n_traces"], random_stats["n_traces"]
+        )
+        self.assertEqual(
+            structured_stats["random_fill_budget"],
+            60
+            - structured_stats["relation"]
+            - structured_stats["escape"],
+        )
         self.assertNotIn("range", structured_stats)
         self.assertEqual(
             set(sampled["structured"].group_families()),
-            {"relation", "escape"},
+            {"relation", "escape", "random"},
         )
 
         with self.assertRaisesRegex(ValueError, "negative_sampler"):
             ExampleSampler(source, negative_sampler="not-a-sampler")
+
+    def test_random_fill_matches_budget_after_multistate_escape_dedup(self):
+        source = "void f(void) { int x = 0; while (x < 1) { x++; } }"
+
+        sampled = {
+            mode: ExampleSampler(
+                source,
+                n_runs=1,
+                seed=0,
+                negative_sampler=mode,
+            ).sample()
+            for mode in ("random", "structured")
+        }
+
+        self.assertEqual(sampled["random"].stats[0]["n_traces"], 60)
+        self.assertEqual(sampled["structured"].stats[0]["n_traces"], 60)
+        self.assertEqual(sampled["structured"].stats[0]["escape"], 1)
+        self.assertEqual(sampled["structured"].stats[0]["random"], 59)
 
     def test_unknown_call_names_are_oracles_not_body_call_blockers(self):
         source = (
@@ -1762,7 +1829,7 @@ class SamplerIntegrationRegressionTests(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn("gcc failed", response.json()["detail"])
 
-    def test_nondeterministic_scalar_tangent_has_no_fake_relation_or_escape(self):
+    def test_nondeterministic_scalar_uses_only_random_fill(self):
         programs = {
             "guard": (
                 "int unknown(void); void f(void) { int x = 0; "
@@ -1778,16 +1845,14 @@ class SamplerIntegrationRegressionTests(unittest.TestCase):
             with self.subTest(label=label):
                 examples = ExampleSampler(source, n_runs=1).sample()
                 self.assertGreater(len(examples.pos(0)), 0)
-                self.assertEqual(examples.neg(0), [])
-                self.assertEqual(examples.groups(0), [])
-                self.assertIn(
-                    "no_admissible_relation_trace",
-                    examples.stats[0]["zero_blockers"],
+                self.assertEqual(examples.stats[0]["relation"], 0)
+                self.assertEqual(examples.stats[0]["escape"], 0)
+                self.assertEqual(examples.stats[0]["random"], 60)
+                self.assertEqual(examples.stats[0]["n_traces"], 60)
+                self.assertEqual(
+                    set(examples.group_families()), {"random"}
                 )
-                self.assertIn(
-                    "no_admissible_escape_trace",
-                    examples.stats[0]["zero_blockers"],
-                )
+                self.assertEqual(examples.stats[0]["zero_blockers"], [])
 
     def test_sampling_determinizes_oracle_calls_without_rewriting_declarations(self):
         source = (
@@ -1826,7 +1891,11 @@ class SamplerIntegrationRegressionTests(unittest.TestCase):
         examples = ExampleSampler(source, n_runs=1).sample()
 
         self.assertGreater(len(examples.neg(0)), 0)
-        self.assertEqual(set(examples.group_families()), {"escape"})
+        self.assertEqual(
+            set(examples.group_families()), {"escape", "random"}
+        )
+        self.assertGreater(examples.stats[0]["escape"], 0)
+        self.assertEqual(examples.stats[0]["n_traces"], 60)
         self.assertEqual(examples.stats[0]["safe_movable"], ["x"])
         self.assertEqual(examples.stats[0]["tainted_persistent"], ["x"])
         self.assertEqual(examples.stats[0]["tainted_relation_axes"], ["x"])
@@ -1840,16 +1909,13 @@ class SamplerIntegrationRegressionTests(unittest.TestCase):
 
         examples = ExampleSampler(source, n_runs=1).sample()
 
-        self.assertEqual(examples.neg(0), [])
+        self.assertEqual(examples.stats[0]["relation"], 0)
+        self.assertEqual(examples.stats[0]["escape"], 0)
+        self.assertEqual(examples.stats[0]["random"], 60)
+        self.assertEqual(examples.stats[0]["n_traces"], 60)
+        self.assertEqual(set(examples.group_families()), {"random"})
         self.assertNotIn("frame", examples.stats[0])
-        self.assertIn(
-            "no_admissible_relation_trace",
-            examples.stats[0]["zero_blockers"],
-        )
-        self.assertIn(
-            "no_admissible_escape_trace",
-            examples.stats[0]["zero_blockers"],
-        )
+        self.assertEqual(examples.stats[0]["zero_blockers"], [])
 
     def test_reachability_dedup_is_relative_to_pre_and_loop_entry(self):
         source = (

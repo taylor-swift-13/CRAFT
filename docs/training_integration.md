@@ -213,6 +213,7 @@ program prompt.
   ],
   "w_base": 1.0,
   "w_shapley": 0.3,
+  "w_overflow": 0.1,
   "max_invariants": 20,
   "reward_variant": "full",
   "credit_filter_order": "pooled",
@@ -231,6 +232,8 @@ The response is order-aligned with the submitted rollouts:
   "rollout_rewards": [0.41, 0.17],
   "base": [0.35, 0.14],
   "shapley_credit": [0.20, 0.10],
+  "overflow": [0, 0],
+  "overflow_penalty": [0.0, 0.0],
   "reward_variant": "full",
   "credit_filter_order": "pooled",
   "negative_sampler": "structured",
@@ -247,11 +250,11 @@ clause back to every rollout that proposed an equivalent clause. `base` is the
 fraction of sampled negative-candidate traces rejected by those attributed
 survivors. `shapley_credit` allocates their union coverage: a trace covered by
 `f` rollouts contributes `1/f` to each. The default reward is
-`base + 0.3 * shapley_credit`. Set `credit_filter_order` to `independent` only
+`base + 0.3 * shapley_credit - 0.1 * overflow`. Set `credit_filter_order` to `independent` only
 to reproduce the historical per-rollout filtering baseline.
 
-Only the first 20 invariant lines enter Houdini; later lines are discarded
-and counted in `overflow`. All generated relation and escape traces
+Only the first 20 invariant lines enter Houdini; later lines are discarded,
+counted in `overflow`, and charged 0.1 each. All generated relation and escape traces
 enter `base`, Shapley credit, and `n_negatives`. If the sampler produces no
 negative traces, the service falls back to binary Frama-C/WP inductiveness
 (reward 1 iff the response is nonempty and every admitted clause survives

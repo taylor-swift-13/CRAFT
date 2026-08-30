@@ -1,4 +1,4 @@
-"""Rescore saved Full-832 candidates with the relation/escape sampler.
+"""Rescore saved Full-832 candidates with the structured sampler.
 
 The expensive target-free Houdini survivors are reused from the immutable
 Full-832 event ledger.  Program text and candidate invariants are unchanged;
@@ -323,7 +323,7 @@ def main() -> int:
     completed = [row for row in rows if row.get("score_error") is None]
     reproduction = validate_archived_scores(completed)
     summary = {
-        "protocol": "relation_escape_full832_rescore_v1",
+        "protocol": "structured_random_fill_full832_rescore_v2",
         "predicate_evaluator": (
             "c_identifier_keyword_and_integer_constant_safe_v3"
         ),

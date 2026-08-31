@@ -1,6 +1,6 @@
 {
-  "description": "Per-stratum probe grid behind tab:probe-complete / tab:probe-stratum / tab:rcf-paired (base checkpoints) and the RQ4/RQ5 Zero-initialized RL runs (step 200).  32-response target-hidden pools, reasoning off, temperature 1.0, max_tokens 2048.  pass@k = unbiased estimator, compose@k = prefix composition of the first k responses.  Values are percentages of each stratum; whole-set values are the 316/50/466-weighted mean, which reproduces the aggregate tables to +-0.05.",
-  "source": "new-stack cluster runs, transcribed 2026-08-25 (commit 8ff342b3 filled the aggregates)",
+  "description": "Archived per-stratum probe grid from the preceding Bare runs and the RQ4/RQ5 Zero-initialized RL runs (step 200).  The current whole-workload Bare curves are stored in bare_probe_aggregate.json.  Qwen3-8B uses a 128-response target-hidden pool, Qwen3-30B-A3B and Llama 3.1 8B use 100, and the other base probes use 32; reasoning is off, temperature is 1.0, and max_tokens is 2048.  pass@k = unbiased estimator, compose@k = prefix composition of the first k responses.",
+  "source": "new-stack cluster runs; Qwen3-8B n=128 and Qwen3-30B-A3B/Llama 3.1 8B n=100 updated 2026-08-30 (k=2 was not supplied for these reruns)",
   "k_grid": [
     1,
     2,
@@ -126,54 +126,54 @@
     "Qwen3-8B": {
       "pass": {
         "linear": [
-          8.6,
-          12.6,
-          16.8,
-          20.7,
-          24.5,
-          27.8
+          6.13,
+          null,
+          13.06,
+          17.4,
+          21.84,
+          25.63
         ],
         "NLA": [
-          3.2,
-          4.4,
-          5.3,
-          5.9,
+          2.25,
+          null,
+          4.88,
+          5.77,
           6.0,
           6.0
         ],
         "Loopy": [
-          8.6,
-          12.8,
-          17.4,
-          22.0,
-          26.2,
-          30.7
+          7.07,
+          null,
+          14.25,
+          18.52,
+          23.14,
+          28.33
         ]
       },
       "compose": {
         "linear": [
-          43.7,
-          51.6,
-          56.6,
-          60.4,
-          61.7,
-          63.6
+          37.97,
+          null,
+          50.95,
+          54.75,
+          56.65,
+          58.23
         ],
         "NLA": [
           6.0,
+          null,
           6.0,
-          6.0,
-          12.0,
-          12.0,
-          12.0
+          10.0,
+          10.0,
+          10.0
         ],
         "Loopy": [
-          47.9,
-          52.4,
-          59.4,
-          63.1,
-          66.1,
-          67.2
+          41.2,
+          null,
+          55.15,
+          58.58,
+          61.16,
+          62.66
         ]
       }
     },
@@ -234,108 +234,108 @@
     "Qwen3-30B-A3B": {
       "pass": {
         "linear": [
-          10.6,
-          14.1,
-          17.0,
-          19.7,
-          22.5,
-          25.6
+          1.33,
+          null,
+          4.76,
+          8.33,
+          13.27,
+          18.82
         ],
         "NLA": [
-          3.6,
-          4.9,
-          5.7,
-          6.0,
-          6.0,
-          6.0
+          0.06,
+          null,
+          0.23,
+          0.45,
+          0.82,
+          1.38
         ],
         "Loopy": [
-          9.8,
-          13.8,
-          17.9,
-          21.9,
-          26.2,
-          30.5
+          1.59,
+          null,
+          4.84,
+          7.97,
+          12.6,
+          18.38
         ]
       },
       "compose": {
         "linear": [
-          48.1,
-          52.8,
-          57.6,
-          61.1,
-          62.0,
-          62.3
+          16.14,
+          null,
+          29.43,
+          36.71,
+          43.35,
+          43.99
         ],
         "NLA": [
+          0.0,
+          null,
+          4.0,
+          4.0,
           8.0,
-          8.0,
-          8.0,
-          8.0,
-          10.0,
-          10.0
+          8.0
         ],
         "Loopy": [
-          52.4,
-          57.7,
-          65.0,
-          67.2,
-          68.2,
-          68.5
+          20.17,
+          null,
+          34.33,
+          39.91,
+          45.28,
+          47.64
         ]
       }
     },
     "Llama 3.1 8B": {
       "pass": {
         "linear": [
-          0.8,
-          1.6,
-          3.0,
-          5.5,
-          9.3,
-          14.6
+          0.57,
+          null,
+          2.15,
+          3.97,
+          6.88,
+          10.88
         ],
         "NLA": [
-          0.0,
-          0.0,
-          0.0,
-          0.0,
-          0.0,
-          0.0
+          0.02,
+          null,
+          0.08,
+          0.16,
+          0.32,
+          0.64
         ],
         "Loopy": [
-          0.9,
-          1.8,
-          3.3,
-          5.9,
-          9.6,
-          14.8
+          0.69,
+          null,
+          2.39,
+          4.08,
+          6.54,
+          9.98
         ]
       },
       "compose": {
         "linear": [
-          29.4,
-          40.8,
-          49.7,
-          55.4,
-          57.0,
-          57.0
+          28.16,
+          null,
+          48.73,
+          54.43,
+          55.06,
+          55.06
         ],
         "NLA": [
-          2.0,
-          4.0,
-          8.0,
-          14.0,
-          14.0,
-          14.0
+          6.0,
+          null,
+          12.0,
+          12.0,
+          12.0,
+          12.0
         ],
         "Loopy": [
-          32.0,
-          42.3,
-          51.7,
-          58.4,
-          59.9,
-          60.1
+          30.04,
+          null,
+          47.85,
+          53.22,
+          53.65,
+          54.51
         ]
       }
     }

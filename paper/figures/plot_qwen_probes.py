@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Generate the base-checkpoint exploration and RL-Zero figures.
 
-Probe grid: k in {1, 4, 8, 16, 32} (32-response pools, new stack); the
-RL-Zero comparison shares the same grid.
+Probe grid: k in {1, 2, 4, 8, 16, 32}.  Qwen3-8B uses a 128-response saved
+pool, Qwen3-30B-A3B and Llama 3.1 8B use 100, and the remaining base probes
+use 32.  The RL-Zero comparison uses k in {1, 4, 8, 16, 32}.
 """
 
 from pathlib import Path
@@ -15,48 +16,48 @@ import matplotlib.pyplot as plt
 
 OUT = Path(__file__).resolve().parent
 
-RQ1_K = [1, 4, 8, 16, 32]
+RQ1_K = [1, 2, 4, 8, 16, 32]
 RL_K = [1, 4, 8, 16, 32]
 
 OFFICIAL = {
     "Qwen3-1.7B": {
-        "direct": [7.8, 15.0, 18.8, 22.4, 26.0],
-        "combine": [22.7, 33.1, 36.8, 39.3, 41.4],
+        "direct": [7.74, 11.22, 15.02, 18.77, 22.41, 25.99],
+        "combine": [19.47, 23.68, 28.97, 33.05, 35.34, 37.86],
         "color": "#b47a5f",
         "marker": "P",
         "style": "-",
     },
     "Qwen3-4B": {
-        "direct": [6.4, 11.6, 14.1, 16.5, 19.1],
-        "combine": [38.3, 46.3, 51.2, 55.0, 57.0],
+        "direct": [6.42, 9.02, 11.66, 14.05, 16.49, 19.12],
+        "combine": [32.93, 38.94, 44.11, 47.60, 50.72, 52.76],
         "color": "#9d6652",
         "marker": "o",
         "style": "-",
     },
     "Qwen3-8B": {
-        "direct": [8.3, 16.5, 20.5, 24.4, 28.1],
-        "combine": [43.8, 55.2, 59.0, 61.2, 62.5],
+        "direct": [6.43, 9.54, 13.24, 17.33, 21.62, 25.96],
+        "combine": [37.86, 45.07, 50.60, 54.21, 56.37, 57.81],
         "color": "#4f8a6b",
         "marker": "s",
         "style": "--",
     },
     "Qwen3-14B": {
-        "direct": [10.1, 17.5, 21.3, 25.2, 29.1],
-        "combine": [52.5, 62.1, 65.0, 66.2, 67.8],
+        "direct": [7.67, 10.74, 14.17, 17.97, 22.04, 26.13],
+        "combine": [43.51, 51.20, 58.29, 61.54, 63.70, 64.54],
         "color": "#2d7053",
         "marker": "^",
         "style": "-.",
     },
     "Qwen3-30B-A3B": {
-        "direct": [9.7, 16.9, 20.1, 23.6, 27.2],
-        "combine": [48.1, 58.8, 61.3, 62.4, 62.6],
+        "direct": [1.40, 2.57, 4.53, 7.65, 12.15, 17.53],
+        "combine": [17.43, 23.92, 30.65, 36.54, 42.31, 43.87],
         "color": "#5b7185",
         "marker": "D",
         "style": ":",
     },
     "Llama 3.1 8B": {
-        "direct": [0.61, 2.16, 3.81, 6.30, 9.76],
-        "combine": [27.88, 46.03, 51.20, 51.68, 52.16],
+        "direct": [0.61, 1.16, 2.16, 3.81, 6.30, 9.76],
+        "combine": [27.88, 37.14, 46.03, 51.20, 51.68, 52.16],
         "color": "#75618f",
         "marker": "v",
         "style": "-",
@@ -67,8 +68,8 @@ OFFICIAL = {
 # full-reward RL-Zero checkpoint (compose@k on the same k grid).
 RL_COMPARISON = {
     "Zero": {
-        "direct": [8.3, 16.5, 20.5, 24.4, 28.1],
-        "combine": [43.8, 55.2, 59.0, 61.2, 62.5],
+        "direct": [6.43, 13.24, 17.33, 21.62, 25.96],
+        "combine": [37.86, 50.60, 54.21, 56.37, 57.81],
         "color": "#5b7185",
         "marker": "s",
         "style": "--",

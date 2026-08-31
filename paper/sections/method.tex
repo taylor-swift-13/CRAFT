@@ -5,8 +5,9 @@
 CRAFT aligns training with compositional inference.  At inference, it splits
 responses into clauses, pools clauses across responses, verifier-filters the
 pool, and conjoins the survivors.  SFT distills this pooled result into one
-response, while RL credits the verified clauses that contribute
-target-independent strength.  Assertions and postconditions remain hidden
+response, while RL rewards each response based on the negative coverage of
+its pooled survivors and their group-level complementarity.  Assertions and
+postconditions remain hidden
 throughout generation and training and are restored only for final
 verification.  Appendix~\ref{app:formal-method} gives the complete formal
 definition.
@@ -16,8 +17,13 @@ definition.
 \label{sec:method:inference}
 
 For a masked loop \(\mathcal L\), let \(\operatorname{parts}(y)\) be the
-invariant clauses extracted from response \(y\).  Algorithm~\ref{alg:method-pipeline}
-defines the complete inference procedure.
+ordered invariant clauses extracted from response \(y\).  Let
+\(\operatorname{Admit}(y)=\operatorname{Unique}(
+\operatorname{First}_{m_{\max}}(\operatorname{parts}(y)))\), where
+\(\operatorname{First}_{m}\) keeps the first \(m\) clauses.  The value of
+\(m_{\max}\) is reported in the parameter table rather than embedded in the
+formula.  Algorithm~\ref{alg:method-pipeline} defines the complete inference
+procedure.
 
 \begin{algorithm}[H]
 \caption{Rollout--decompose--pool--filter--compose}
@@ -27,9 +33,10 @@ defines the complete inference procedure.
 \algoutput{composed invariant \(I\), final verdict \(v\)}
 \algline \(x\leftarrow\mathcal L\) by masking \(\mathcal G\) in \(\mathcal T\)\cmnt{hide target}\\
 \algline \(y_{1:n}\sim\pi(\cdot\mid x)\)\cmnt{rollout}\\
-\algline \(A_i\leftarrow\operatorname{parts}(y_i)\) for \(i=1,\ldots,n\)
-  \cmnt{decompose}\\
-\algline \(P\leftarrow\operatorname{Unique}(\bigcup_i A_i)\)\cmnt{pool}\\
+\algline \(A_i\leftarrow\operatorname{Admit}(y_i)\) for \(i=1,\ldots,n\)
+  \cmnt{decompose and cap}\\
+\algline \(P\leftarrow\operatorname{Unique}(A_1\Vert\cdots\Vert A_n)\)
+  \cmnt{pool in response order}\\
 \algline \(C\leftarrow\operatorname{Filter}_{\mathcal L}(P)\)\cmnt{filter}\\
 \algline \(I\leftarrow\bigwedge_{c\in C}c\)\cmnt{compose}\\
 \algline \(v\leftarrow\operatorname{TaskVerify}(\mathcal T,C)\)\cmnt{restore target}\\
@@ -85,21 +92,29 @@ is
   \label{eq:method-coverage}
 \end{equation}
 Each trace contributes one unit regardless of its length.  Instances with no
-retained negatives are not used for SFT acceptance or RL updates.
+retained negatives are not used for SFT acceptance; RL uses the binary
+all-admitted-clauses-survive fallback defined in
+Algorithm~\ref{alg:formal-rl-reward}.
 
 \subsection{Distilling Multi-Response Search}
 \label{sec:method:sft}
 
 SFT uses Algorithm~\ref{alg:method-pipeline} as a target synthesizer.  Starting
-from an empty raw pool, each round adds a new group of base-model clauses and
+from an empty accumulated clause pool, each round adds a new group sampled
+from the same small open-weight base model that is subsequently fine-tuned.
+Executor-derived traces and verifier outcomes jointly determine which
+candidate sets become SFT targets; no external model proposes labels or
+judges responses.  Each round adds the new base-model clauses and
 re-filters the entire accumulated pool:
 \begin{equation}
-  P_t=P_{t-1}\cup\bigcup_i\operatorname{parts}(y_i^{(t)}),
+  P_t=\operatorname{Unique}\!\left(P_{t-1}\Vert
+    \operatorname{Admit}(y_1^{(t)})\Vert\cdots\Vert
+    \operatorname{Admit}(y_{g_{\mathrm{sft}}}^{(t)})\right),
   \qquad
-  C_t=\operatorname{Filter}_{\mathcal L}(\operatorname{Unique}(P_t)).
+  C_t=\operatorname{Filter}_{\mathcal L}(P_t).
   \label{eq:method-sft}
 \end{equation}
-Re-filtering the raw pool allows a previously removed clause to return when a
+Re-filtering the accumulated clause pool allows a previously removed clause to return when a
 later response supplies a supporting clause.  The first set satisfying
 \(\operatorname{cov}(C_t)\ge\tau\) is serialized as one SFT target, where
 \(\tau\) is the acceptance threshold; otherwise the instance is dropped after
@@ -110,23 +125,29 @@ contains \(\mathcal G\).
 \label{sec:method:reward}
 
 RL applies exactly the same pool-then-filter order once per response group.
+The current small open-weight policy produces the group, and its rewards are
+computed entirely from executor-derived traces, verifier-retained clauses,
+and deterministic provenance.  No external LLM, critic model, or target
+assertion contributes to the reward.
 Let \(L_i=\operatorname{parts}(y_i)\),
 \(o_i=\max(0,|L_i|-m_{\max})\), and
-\(A_i=\operatorname{Unique}(\operatorname{First}_{m_{\max}}(L_i))\).  Thus
+\(A_i=\operatorname{Admit}(y_i)\).  Thus
 \(\operatorname{First}_{m}(L)\) is the prefix containing at most \(m\) clauses,
 \(o_i\) counts clauses beyond the per-response cap, while \(A_i\) retains the
 admitted clauses and their provenance.  The clauses are then de-duplicated
 globally and filtered only after the full group has been pooled:
 \begin{align}
-  P^*&=\operatorname{Unique}\!\left(\bigcup_iA_i\right),
+  P^*&=\operatorname{Unique}\!\left(A_1\Vert\cdots\Vert A_{g_{\mathrm{rl}}}\right),
   &C^*&=\operatorname{Filter}_{\mathcal L}(P^*),\\
-  V_i&=\{c\in A_i:\operatorname{key}(c)\in\operatorname{key}(C^*)\},
+  V_i&=\{c\in A_i:\operatorname{key}(c)\in\operatorname{keys}(C^*)\},
   &R_i&=\operatorname{rej}(V_i).
   \label{eq:method-credit-pool}
 \end{align}
-Thus \(V_i\) assigns each pooled survivor back to every response that proposed
-it.  A useful clause can earn credit even when other clauses in its response
-fail, while mutually supporting clauses are checked in the same pooled context
+Here \(\operatorname{keys}(C^*)\) is the family of canonical keys of the
+pooled survivors.  Thus \(V_i\) assigns each pooled survivor back to every response that proposed
+it.  A response retains the coverage contributed by its surviving clauses
+even when its other clauses fail, while mutually supporting clauses are
+checked in the same pooled context
 used at inference.  The cheap reachable-state check is an internal front-end
 of this single pooled filtering call; it does not filter responses separately.
 
@@ -145,7 +166,8 @@ The rollout reward is
   r_i=w_c\frac{|R_i|}{|\mathcal N|}+w_g\phi_i-w_o o_i.
 \end{equation}
 Here \(w_c\), \(w_g\), and \(w_o\) denote the coverage, group-credit, and
-overflow weights.  The first term is the main verified-coverage reward; the
+overflow weights.  The first term rewards each response by the negative
+coverage of its pooled survivors; the
 second is a complementarity bonus that divides redundant coverage among its
 proposers; the final term penalizes clauses emitted beyond the response cap.
 It is the Shapley value after filtering the full group, not the value of a game

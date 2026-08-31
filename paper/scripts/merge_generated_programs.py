@@ -5,7 +5,7 @@ Rows follow the released RL parquet schema exactly (same system prompt, the
 canonical user prompt, ``reward_model.ground_truth.raw_code`` = the source,
 ``extra_info.file_id`` = ``gen_<sha12>``).  Sources already present in the
 pool are skipped.  The same programs are also written as SFT-format rows with
-an empty answer so ``synthesize_sft_from_rollouts.py`` can produce targets.
+an empty answer for downstream target construction.
 """
 
 from __future__ import annotations

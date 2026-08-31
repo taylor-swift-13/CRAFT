@@ -32,12 +32,20 @@ At inference, \sam{} implements
 \emph{rollout--decompose--pool--filter--compose}: given \(k\) responses, it
 extracts and pools clauses, filters them with syntax checks and Houdini, and
 then restores \(\mathcal G\).  compose@\(k\) measures the verified rate of this composed
-prefix, preserving partial answers that pass@\(k\) discards.  Training is
+prefix, preserving partial answers that pass@\(k\) discards; compose@1 is
+our primary optimization and reporting metric.  Training is
 aligned to this object at the same two compositional levels.  Within a rollout,
-execution-derived negative coverage credits the clauses retained by the
-inference filter; across each GRPO group~\citep{shao2024deepseekmath}, a
-closed-form Shapley term credits coverage not already supplied by peers.  SFT
-distills the same filtered multi-response union into one response.
+execution-derived negative coverage rewards each response according to the
+clauses retained by the pooled inference filter; across each GRPO group~\citep{shao2024deepseekmath}, a
+closed-form Shapley term discounts coverage repeated by multiple peers.  SFT
+distills the same filtered multi-response union into one response.  The two
+training stages therefore have distinct roles: SFT raises the compositional
+ceiling, RL amortizes that capability into the first rollout, and Shapley
+credit enables this compression without collapsing complementary
+exploration.  Both stages are self-generated: the only learned generator is
+the small open-weight model being trained, while the program executor and
+verifier provide every SFT acceptance decision and RL reward.  No external
+teacher model generates targets, critiques responses, or supplies reward.
 
 \input{sections/fig_overview}
 
@@ -45,15 +53,22 @@ distills the same filtered multi-response union into one response.
 \tightparagraph{Contributions.}
 This paper makes three contributions:
 \begin{itemize}
-  \item We formulate target-hidden verification around fixed-budget filtered
-  composition and introduce compose@\(k\) to evaluate it.
-  \item We align training with the two compositional levels used at inference:
-  clause-level negative coverage rewards what survives within a response,
-  group-level Shapley allocation rewards what complements other responses, and
-  SFT distills the same filtered union, all without exposing \(\mathcal G\).
-  \item On 832 C programs, four target-hidden GPT-5-nano responses
-  verify 49.0\% of tasks, versus 42.2\% for the strongest external baseline
-  under system-native fixed budgets.  Controlled probes and ablations
-  separate standalone success, composition, and the two levels of credit.
+  \item We introduce a rollout--decompose--pool--filter--compose inference
+  framework for target-hidden invariant generation and use compose@1 as its
+  primary metric.  On Qwen3-8B, the framework raises one-response
+  verification from 6.43\% pass@1 to 37.86\% compose@1, a 31.43-point gain.
+  \item We introduce a two-stage training pipeline: rejection-filtered SFT
+  raises Qwen3-8B compose@1 to 65.50\%, and a subsequent 4,992-record
+  compositional RL stage reaches 69.23\%.  RL adds 3.73 points, reduces
+  verification error by 10.8\%, and produces an 8B model that exceeds Claude
+  Sonnet-4.6 at compose@1 by 12.26 points.  Target synthesis and
+  reward computation require only the trained open-weight model, program
+  execution, and verification, with no external teacher model.
+  \item Through controlled reward and sampler ablations, cross-model
+  evaluation, and 832-program analysis, we show that decompose--compose RLVR
+  provides effective credit for invariant generation.  Clause-decomposed
+  feedback preserves partially correct responses, while Shapley allocation
+  adds 9.85--11.30 compose points over clause-only credit and mitigates the
+  exploration collapse of binary and whole-response rewards.
 \end{itemize}
 \end{samepage}

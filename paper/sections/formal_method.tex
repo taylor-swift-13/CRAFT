@@ -104,66 +104,31 @@ where \(\mathsf{valid}\) means that at least one configured prover returned
 least one exhausted \(\delta\); and \(\mathsf{unknown}\) contains every other
 non-valid, unsupported, missing, or malformed result.
 
-For the ordered current family
-\(D=\langle d_1,\ldots,d_m\rangle\), let
-\(g^{\mathrm{est}}_{D,k}\) and \(g^{\mathrm{pres}}_{D,k}\) be the generated
-establishment and preservation goals for \(d_k\).  Suppressing
-language-specific memory, frame, and contract hypotheses, their logical shape
-is
-\begin{align}
-  g^{\mathrm{est}}_{D,k}:\quad
-  &\forall\sigma:\
-    \mathsf{Init}(\sigma)\land\bigwedge_{j<k}d_j(\sigma)
-    \Rightarrow d_k(\sigma),
-  \label{eq:formal-verifier-est}\\
-  g^{\mathrm{pres}}_{D,k}:\quad
-  &\forall\sigma,\sigma':\
-    I(D)(\sigma)\land B(\sigma)\land S(\sigma,\sigma')
-    \land\bigwedge_{j<k}d_j(\sigma')
-    \Rightarrow d_k(\sigma').
-  \label{eq:formal-verifier-pres}
-\end{align}
-Thus earlier annotations can be hypotheses even when their own goals are not
-ultimately discharged in the current round, while every member of \(D\) is a
-loop-head hypothesis for preservation.  The verifier may simplify these
-formulas or split them by control-flow path; all generated subgoals for a
-clause are required.  Define
-\begin{align}
-  s^{\mathrm{est}}_{D,k}
-    &=\operatorname{GoalStatus}_{\delta}(g^{\mathrm{est}}_{D,k}), &
-  s^{\mathrm{pres}}_{D,k}
-    &=\operatorname{GoalStatus}_{\delta}(g^{\mathrm{pres}}_{D,k}).
-  \label{eq:formal-clause-statuses}
-\end{align}
 Let \(\mathcal S_{\mathrm{ver}}=
 \{\mathsf{valid},\mathsf{timeout},\mathsf{unknown}\}\).  One invocation
-returns the complete clause-to-status map
+of the resource-bounded loop verifier on the current ordered family
+\(D=\langle d_1,\ldots,d_m\rangle\) returns the clause-to-status map
 \begin{equation}
   \operatorname{LoopVerify}_{\mathcal L,\delta}(D)
   =\{d_k\mapsto v_{D,k}:1\le k\le m\}
   \in\mathcal S_{\mathrm{ver}}^{D},
   \label{eq:formal-loop-verify-map}
 \end{equation}
-where every component is
+where \(v_{D,k}=\mathsf{valid}\) means that the verifier proves all
+establishment and preservation obligations generated for \(d_k\) in the
+current family \(D\).  If the obligations are not all proved,
+\(v_{D,k}=\mathsf{timeout}\) records an exhausted prover budget and
+\(v_{D,k}=\mathsf{unknown}\) records every other outcome.  The interface is
+sound when
 \begin{equation}
-  v_{D,k}=
-  \begin{cases}
-    \mathsf{valid},
-      & s^{\mathrm{est}}_{D,k}=s^{\mathrm{pres}}_{D,k}=\mathsf{valid},\\
-    \mathsf{timeout},
-      & \mathsf{timeout}\in
-        \{s^{\mathrm{est}}_{D,k},s^{\mathrm{pres}}_{D,k}\},\\
-    \mathsf{unknown}, & \text{otherwise}.
-  \end{cases}
-  \label{eq:formal-loop-verify}
+  \left(\forall c\in D:\
+    \operatorname{LoopVerify}_{\mathcal L,\delta}(D)[c]=\mathsf{valid}\right)
+  \Longrightarrow \operatorname{Ind}_{\mathcal L}(I(D)).
+  \label{eq:formal-loop-verify-soundness}
 \end{equation}
-The map aggregates the generated goals for each clause.  Both kinds of goals
-can temporarily depend on a clause that is deleted at the end of the round.
 The filter treats \(\mathsf{timeout}\) and \(\mathsf{unknown}\) identically,
-but the interface keeps them distinct.  At a fixed point, all establishment
-and preservation goals for the returned family have been discharged in that
-same family.  Assuming verifier soundness, its conjunction satisfies
-Equation~\eqref{eq:formal-inductive}; incompleteness can cause false negatives.
+but the interface keeps them distinct.  Appendix~\ref{app:loop-verifier-realization}
+describes how the implementation generates and aggregates the clause goals.
 
 After the invariant set is fixed, the separate binary operator
 \(\operatorname{TaskVerify}_{\delta}(\mathcal T,C)\) runs the verifier on the
@@ -211,20 +176,21 @@ Ideal Houdini starts with \(C_0=C\) and repeats
 \end{equation}
 until a fixed point \(\mathsf H_{\mathcal L}(C)\) is reached.
 
-The implemented deletion round uses the clause-level loop verifier:
+The implemented deletion round uses the clause-level loop verifier and
+preserves the relative order of retained clauses:
 \begin{equation}
   \widehat{\mathsf F}_{\mathcal L,\delta}(D)
-  =\{c\in D:
+  =\left\langle c\in D\ \middle|\
     \operatorname{LoopVerify}_{\mathcal L,\delta}(D)[c]=\mathsf{valid}
-  \}.
+  \right\rangle.
   \label{eq:formal-bounded-houdini-round}
 \end{equation}
 Thus timeout and unknown both cause conservative deletion.  Every status in
 one round is computed under the same pre-deletion context \(D\).  A clause
 removed at the end of that round may therefore have helped another clause
 receive \(\mathsf{valid}\).  The survivors must be verified again without the
-removed hypotheses; this is why a single deletion pass is insufficient.  Let
-\(D_0=C\) and
+removed hypotheses; this is why a single deletion pass is insufficient.  For
+an ordered input sequence \(D\), let \(D_0=D\) and
 \(D_{j+1}=\widehat{\mathsf F}_{\mathcal L,\delta}(D_j)\).  Iteration stops at
 the first proved fixed point or at the symbolic round limit \(h_{\max}\).  Let
 \begin{equation}
@@ -234,15 +200,15 @@ the first proved fixed point or at the symbolic round limit \(h_{\max}\).  Let
 \end{equation}
 when this set is nonempty.  The implemented filter is
 \begin{equation}
-  \operatorname{Filter}_{\mathcal L}^{\delta,h_{\max}}(C)=
+  \operatorname{Filter}_{\mathcal L}^{\delta,h_{\max}}(D)=
   \begin{cases}
     D_{j^*}, & j^*\text{ exists},\\
-    \varnothing, & \text{the round limit is reached first}.
+    \langle\rangle, & \text{the round limit is reached first}.
   \end{cases}
   \label{eq:formal-bounded-houdini}
 \end{equation}
 At a returned fixed point, every surviving clause has just been proved in the
-context of that same set.  Reaching the limit returns the empty set.  Under a
+context of that same sequence.  Reaching the limit returns the empty sequence.  Under a
 sound loop verifier, the result is sound and may be smaller than the ideal
 fixed point.  In
 the remainder, \(\operatorname{Filter}_{\mathcal L}\) abbreviates
@@ -252,18 +218,30 @@ Equation~\eqref{eq:formal-bounded-houdini}, and
 
 \subsection{The Shared Composition Operator}
 
-Let \(\operatorname{parts}(y)\) extract the invariant clauses in response
-\(y\).  \(\operatorname{Unique}\) removes duplicates using the finite-rule
+Let \(\operatorname{parts}(y)\) extract the ordered sequence of invariant
+clauses in response \(y\), let \(\operatorname{First}_{m}(L)\) be the prefix
+of sequence \(L\) containing at most \(m\) clauses, and let \(\Vert\) denote
+sequence concatenation.  Define the clauses admitted from one response by
+\begin{equation}
+  \operatorname{Admit}(y)=
+  \operatorname{Unique}\!\left(
+    \operatorname{First}_{m_{\max}}(\operatorname{parts}(y))
+  \right).
+  \label{eq:formal-admit}
+\end{equation}
+\(\operatorname{Unique}\) removes duplicates using the finite-rule
 canonical normalization \(\operatorname{key}(c)\).  Equal keys identify the
 clauses merged by those rules.  Provenance is retained by
 recording which responses supplied each key.  It keeps the first occurrence;
-the unions below are traversed in response order and then clause order, which
+concatenations are traversed in response order and then clause order, which
 fixes the sequence supplied to \(\operatorname{LoopVerify}\).
+For a clause sequence \(D\), let
+\(\operatorname{keys}(D)=\langle\operatorname{key}(c):c\in D\rangle\).
 
 For any response sequence \(y_{1:n}\), define
 \begin{align}
-  A_i&=\operatorname{parts}(y_i),
-  &P(y_{1:n})&=\operatorname{Unique}\!\left(\bigcup_{i=1}^{n}A_i\right),
+  A_i&=\operatorname{Admit}(y_i),
+  &P(y_{1:n})&=\operatorname{Unique}\!\left(A_1\Vert\cdots\Vert A_n\right),
   \label{eq:formal-pool}\\
   C(y_{1:n})&=\operatorname{Filter}_{\mathcal L}(P(y_{1:n})),
   &I(y_{1:n})&=\bigwedge_{c\in C(y_{1:n})}c.
@@ -284,8 +262,8 @@ not required.
 \algoutput{composed invariant \(I\), final verdict \(v\)}
 \algline \(x\leftarrow\operatorname{Mask}(\mathcal T)=\mathcal L\)\cmnt{hide goals}\\
 \algline sample \(y_{1:n}\sim\pi(\cdot\mid x)\)\cmnt{rollout}\\
-\algline \(A_i\leftarrow\operatorname{parts}(y_i)\) for every \(i\)\cmnt{decompose}\\
-\algline \(P\leftarrow\operatorname{Unique}(\bigcup_iA_i)\)\cmnt{pool}\\
+\algline \(A_i\leftarrow\operatorname{Admit}(y_i)\) for every \(i\)\cmnt{decompose and cap}\\
+\algline \(P\leftarrow\operatorname{Unique}(A_1\Vert\cdots\Vert A_n)\)\cmnt{pool}\\
 \algline \(C\leftarrow\operatorname{Filter}_{\mathcal L}^{\delta,h_{\max}}(P)\)\cmnt{filter}\\
 \algline \(I\leftarrow\bigwedge_{c\in C}c\)\cmnt{compose}\\
 \algline \(v\leftarrow\operatorname{TaskVerify}_{\delta}(\mathcal T,C)\)\cmnt{restore goals}\\
@@ -300,7 +278,11 @@ Compose@\(n\) estimates
 
 SFT distills the same multi-response map into one response.  It accumulates
 raw candidates so that a clause discarded in one round can later acquire a
-supporting companion.
+supporting companion.  The policy \(\pi_0\) is the small open-weight model
+being trained and is the only learned generator in target construction.
+Executions of \(\mathcal L\) produce the trace signal, and
+\(\operatorname{Filter}_{\mathcal L}\) supplies the verifier decision; no
+external model supplies candidates, labels, or acceptance judgments.
 
 \begin{algorithm}[H]
 \caption{Multi-response SFT synthesis}
@@ -309,12 +291,13 @@ supporting companion.
 \alginput{masked loop \(\mathcal L\), policy \(\pi_0\), negatives \(\mathcal N\), group size \(g_{\mathrm{sft}}\), round limit \(t_{\mathrm{sft}}\)}
 \algoutput{one serialized target, or \(\mathsf{reject}\)}
 \algline \kw{if} \(\mathcal N=\varnothing\) \kw{then return} \(\mathsf{reject}\)\\
-\algline \(P\leftarrow\varnothing\)\\
+\algline \(P\leftarrow\langle\rangle\)\\
 \algline \kw{for} \(t=1,\ldots,t_{\mathrm{sft}}\) \kw{do}\\
 \algline \algind sample a response group \(y_{1:g_{\mathrm{sft}}}\sim\pi_0(\cdot\mid\mathcal L)\)\\
-\algline \algind \(P\leftarrow P\cup\bigcup_i\operatorname{parts}(y_i)\)\\
-\algline \algind \(C\leftarrow\operatorname{Filter}_{\mathcal L}(
-  \operatorname{Unique}(P))\)\\
+\algline \algind \(P\leftarrow\operatorname{Unique}(P\Vert
+  \operatorname{Admit}(y_1)\Vert\cdots\Vert
+  \operatorname{Admit}(y_{g_{\mathrm{sft}}}))\)\\
+\algline \algind \(C\leftarrow\operatorname{Filter}_{\mathcal L}(P)\)\\
 \algline \algind \kw{if} \(\operatorname{cov}_{\mathcal N}(C)\ge\tau\)
   \kw{then return} \(\operatorname{Serialize}(C)\)\\
 \algline \kw{return} \(\mathsf{reject}\)\\
@@ -326,12 +309,27 @@ values appear in Appendix~\ref{app:constants}.
 
 \subsection{Complete RL Group-Scoring Algorithm}
 
+The sampled policy is the same small open-weight model updated by RL.  Given
+its rollouts, every reward component below is computed from program
+executions, verifier outcomes, and deterministic clause provenance; no
+external model enters the scoring function.
+
 Executions of the masked loop yield reachable loop-head states \(\mathcal E\)
-and target-independent negative traces \(\mathcal N\).  A trace counts as
-rejected when at least one retained clause is false at one of its states:
+and target-independent negative traces \(\mathcal N\).  The lightweight
+evaluator is three-valued:
+\begin{equation}
+  \operatorname{Eval}(c,s)\in
+  \{\mathsf{true},\mathsf{false},\mathsf{unknown}\}.
+  \label{eq:formal-state-eval}
+\end{equation}
+An unknown result neither rejects a negative trace nor removes a candidate in
+the reachable-state front end; syntax and induction are left to the verifier.
+A trace counts as rejected only when at least one retained clause evaluates
+definitively to false at one of its states:
 \begin{equation}
   \operatorname{rej}_{\mathcal N}(C)
-  =\{\nu\in\mathcal N:\exists s\in\nu,\exists c\in C,\ s\not\models c\},
+  =\{\nu\in\mathcal N:\exists s\in\nu,\exists c\in C,\
+    \operatorname{Eval}(c,s)=\mathsf{false}\},
   \qquad
   \operatorname{cov}_{\mathcal N}(C)
   =\frac{|\operatorname{rej}_{\mathcal N}(C)|}{|\mathcal N|}.
@@ -343,17 +341,16 @@ SFT construction.  For RL, the explicit fallback below uses a binary survivor
 signal and never evaluates this ratio.
 
 For an RL group \(y_{1:g_{\mathrm{rl}}}\), first form the same globally
-de-duplicated pool used at inference, and then invoke the verifier filter once.
-Let \(\operatorname{First}_{m}(L)\) denote the prefix containing at most \(m\)
-clauses:
+de-duplicated pool used at inference, and then invoke the verifier filter once:
 \begin{align}
   L_i&=\operatorname{parts}(y_i),
   &o_i&=\max(0,|L_i|-m_{\max}),\nonumber\\
-  A_i&=\operatorname{Unique}(\operatorname{First}_{m_{\max}}(L_i)),
-  &P^*&=\operatorname{Unique}\!\left(\bigcup_iA_i\right),
+  A_i&=\operatorname{Admit}(y_i),
+  &P^*&=\operatorname{Unique}\!\left(A_1\Vert\cdots\Vert A_{g_{\mathrm{rl}}}\right),
   \label{eq:formal-pooled-filter}\\
   C^*&=\operatorname{Filter}_{\mathcal L}(P^*),
-  &V_i&=\{c\in A_i:\operatorname{key}(c)\in\operatorname{key}(C^*)\},
+  &V_i&=\left\langle c\in A_i\ \middle|\
+    \operatorname{key}(c)\in\operatorname{keys}(C^*)\right\rangle,
   &R_i&=\operatorname{rej}_{\mathcal N}(V_i).
   \label{eq:formal-projection}
 \end{align}
@@ -369,7 +366,8 @@ it.  A reachable-state front end evaluates the globally pooled candidates on
   \label{eq:formal-reward}
 \end{equation}
 Here \(w_c\), \(w_g\), and \(w_o\) are the coverage, group-credit, and overflow
-weights.  The first term rewards verified negative coverage.  The second is the Shapley
+weights.  The first term rewards each response by the negative coverage of
+its pooled survivors.  The second is the Shapley
 value of the fixed post-filter coverage game
 \(u(A)=|\bigcup_{i\in A}R_i|/|\mathcal N|\): repeated coverage is shared among
 its proposers, while unique coverage receives full credit.  A purely supporting
@@ -384,15 +382,16 @@ credit.  The final term charges each clause beyond the per-response cap.
 \algoutput{response rewards \(r_{1:g_{\mathrm{rl}}}\)}
 \algline \(L_i\leftarrow\operatorname{parts}(y_i)\);
   \quad \(o_i\leftarrow\max(0,|L_i|-m_{\max})\) for every \(i\)\\
-\algline \(A_i\leftarrow\operatorname{Unique}(
-  \operatorname{First}_{m_{\max}}(L_i))\) for every \(i\)\\
-\algline \(P^*\leftarrow\operatorname{Unique}(\bigcup_iA_i)\)\cmnt{pool globally}\\
+\algline \(A_i\leftarrow\operatorname{Admit}(y_i)\) for every \(i\)\\
+\algline \(P^*\leftarrow\operatorname{Unique}(A_1\Vert\cdots\Vert
+  A_{g_{\mathrm{rl}}})\)\cmnt{pool globally}\\
 \algline \(C^*\leftarrow\operatorname{Filter}_{\mathcal L}(P^*)\)
   \cmnt{filter the pool once}\\
-\algline \(V_i\leftarrow\{c\in A_i:\operatorname{key}(c)\in
-  \operatorname{key}(C^*)\}\) for every \(i\)\cmnt{project by provenance}\\
+\algline \(V_i\leftarrow\langle c\in A_i\mid\operatorname{key}(c)\in
+  \operatorname{keys}(C^*)\rangle\) for every \(i\)\cmnt{project by provenance}\\
 \algline \kw{if} \(\mathcal N=\varnothing\) \kw{then}\\
-\algline \algind \(r_i\leftarrow\mathbf 1[V_i\ne\varnothing]\) for every \(i\)\\
+\algline \algind \(r_i\leftarrow\mathbf 1[A_i\ne\langle\rangle\ \land\
+  \operatorname{keys}(V_i)=\operatorname{keys}(A_i)]\) for every \(i\)\\
 \algline \algind \kw{return} \(r_{1:g_{\mathrm{rl}}}\)\\
 \algline \(R_i\leftarrow\operatorname{rej}_{\mathcal N}(V_i)\) for every \(i\)\\
 \algline \(f(\nu)\leftarrow|\{j:\nu\in R_j\}|\) for every \(\nu\in\mathcal N\)\\
@@ -446,10 +445,14 @@ For token \(a_{i,u}\) and its prefix
   &k_{i,u}(\theta)&=q_{i,u}-\log q_{i,u}-1.
   \label{eq:formal-token-kl}
 \end{align}
-The nonnegative sample \(k_{i,u}\) is an unbiased estimator, under tokens
-drawn from \(\pi_\theta(\cdot\mid h_{i,u})\), of the conditional token KL
+The nonnegative quantity \(k_{i,u}\) is the sampled conditional-token KL
+surrogate used by the implementation.  Its expectation equals
 \(D_{\mathrm{KL}}(\pi_\theta(\cdot\mid h_{i,u})\Vert
-\pi_{\mathrm{ref}}(\cdot\mid h_{i,u}))\).  The clipped group objective is
+\pi_{\mathrm{ref}}(\cdot\mid h_{i,u}))\) when the token is sampled from
+\(\pi_\theta(\cdot\mid h_{i,u})\).  During an update, however, the saved token
+comes from \(\pi_{\theta_{\mathrm{old}}}\), so \(k_{i,u}\) is used as a
+sampled penalty rather than claimed to be an unbiased off-policy estimate.
+The clipped group objective is
 \begin{equation}
   \mathcal J(\theta)=\mathbb E\!\left[
   \frac{1}{g_{\mathrm{rl}}}\sum_i\frac{1}{T_i}\sum_{u=1}^{T_i}
@@ -467,7 +470,7 @@ Inference, SFT target construction, and RL group scoring all call the same
 pooled map in Equation~\eqref{eq:formal-craft-map}; they differ only in how
 the returned clauses are consumed.  Inference checks the restored goals, SFT
 serializes an accepted fixed point, and RL projects the fixed point back to
-its contributing responses.  Negative coverage supplies the target-independent
+the responses that proposed its surviving clauses.  Negative coverage supplies the target-independent
 training surrogate; restored-goal verification supplies the final verdict.
 
 \subsection{Extension to Verifiably Composable Generation}

@@ -228,14 +228,27 @@ training.  CRAFT aligns both stages through
 rollout--decompose--pool--filter--compose.
 At inference, it decomposes responses into clauses, pools them across
 responses, filters the pool with syntax checking and Houdini, and composes
-the survivors into one invariant before restoring \(\mathcal G\).  SFT distills a
-filtered multi-response union into one response.  RL assigns credit within a
-rollout to its verifier-retained subset and across rollouts to complementary
-coverage beyond peers.  Its target-independent strength signal comes from
-reachable executions and conservatively filtered synthetic negatives.  On
-832 C programs, four GPT-5-nano rollouts verify 49.0\% of
-tasks, compared with 42.2\% for the strongest external baseline in an
-end-to-end target-hidden evaluation with system-native fixed budgets.
+the survivors into one invariant before restoring \(\mathcal G\).  Training
+uses the same object: rejection-filtered SFT distills accepted multi-response
+pools, while RL scores each response by the negative coverage of its pooled
+survivors and uses Shapley allocation to preserve complementary exploration.
+The only learned generator in both stages is the small open-weight model being
+trained: SFT acceptance and RL rewards use only program executions and
+verifier outcomes, without an external teacher or reward model.
+On 832 C programs, the inference pipeline raises bare Qwen3-8B from 6.43\%
+pass@1 to 37.86\% compose@1.  Large-scale SFT then reaches 65.50\%
+compose@1.  A subsequent RL stage uses only 4,992 records---15.0\% as many
+as SFT, with partial source overlap---yet raises compose@1 to 69.23\%.
+This 3.73-point gain solves 31 additional programs and reduces verification
+error by 10.8\%.  The gain is concentrated at the primary metric,
+compose@1: compose@4--32 stays within one point of the SFT checkpoint.  RL
+therefore amortizes the compositional capability learned by SFT into the
+first rollout.  Under the same target-hidden reasoning-off protocol, one
+RFT+RL Qwen3-8B rollout exceeds Claude Sonnet-4.6 at compose@1 by 12.26
+points.  Reward ablations show why this compression preserves
+exploration: Shapley credit adds 9.85--11.30 compose points over
+clause-decomposed credit, while binary and whole-response rewards collapse
+composition.
 \end{abstract}
 
 %% ============================================================

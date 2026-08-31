@@ -191,34 +191,7 @@ class EndToEndTests(unittest.TestCase):
         self.assertLessEqual(len(out), 3)
 
 
-class SynthesisPruningTests(unittest.TestCase):
-    def test_remove_implied_keeps_strongest_and_drops_consequences(self):
-        from experiments.synthesize_sft_from_rollouts import remove_implied
-        from paper.scripts.audit_sft_invariant_quality import _clause_features
-        from rl_pipeline.common.program import parse_program
-        from rl_pipeline.sampler.example_sampler import ExampleSampler
-        program = parse_program("void f(int n) { int i = 0; int s = 0; while (i < n) { s = s + i; i = i + 1; } }")
-        modified = set(ExampleSampler._modified_vars(program))
-        clauses = ["0 <= i", "i <= n", "0 <= i && i <= n", "2 * s == i * (i - 1)",
-                   "2 * s <= n * (n - 1)", "(n >= 1 ==> i <= n)", "(n > 1 ==> i <= n)"]
-        features = {c: _clause_features(c, program, modified) for c in clauses}
-        kept, dropped = remove_implied(clauses, features)
-        self.assertIn("2 * s == i * (i - 1)", kept)
-        self.assertIn("0 <= i && i <= n", kept)
-        for redundant in ("0 <= i", "i <= n", "2 * s <= n * (n - 1)", "(n >= 1 ==> i <= n)", "(n > 1 ==> i <= n)"):
-            self.assertIn(redundant, dropped, redundant)
-
-    def test_remove_implied_keeps_untrusted_division_clauses(self):
-        from experiments.synthesize_sft_from_rollouts import remove_implied
-        from paper.scripts.audit_sft_invariant_quality import _clause_features
-        from rl_pipeline.common.program import parse_program
-        program = parse_program("void f(int n) { int i = 0; while (i < n) { i = i + 2; } }")
-        clauses = ["i % 2 == 0", "i >= 0"]
-        features = {c: _clause_features(c, program, {"i"}) for c in clauses}
-        kept, dropped = remove_implied(clauses, features)
-        self.assertEqual(kept, clauses)
-        self.assertEqual(dropped, [])
-
+class TrainingCurationTests(unittest.TestCase):
     def test_frontier_verdicts(self):
         from experiments.measure_policy_frontier import frontier_verdict
         kw = dict(min_std=0.05, min_mean=0.05, max_mean=0.95)

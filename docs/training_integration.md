@@ -128,22 +128,6 @@ python experiments/measure_policy_frontier.py --input traindata/craft_rl_train.p
   --ledger paper/artifacts/v4/rl_frontier.jsonl --policy <sft-checkpoint> --group 8 \
   --apply --output traindata/craft_rl_frontier.parquet --report paper/artifacts/v4/rl_frontier_report.json
 
-# 5. SFT targets distilled from the pipeline (OpenAI-compatible API + local Frama-C)
-python paper/scripts/select_sft_programs.py --match-eval --keep-existing-all \
-  --sft traindata/craft_sft_canonical.json --rl traindata/craft_rl_canonical_plus.parquet \
-  --output traindata/craft_sft_programs.json \
-  --report paper/artifacts/v4/sft_program_selection.json \
-  --target 20000 --extra-shape-cap 512 --nla-extra 3000
-#   --match-eval fills evaluation-cell quotas; --keep-existing-all keeps every
-#   difficulty-screened archival answer; --nla-extra admits nonlinear programs
-#   past the too-hard screen (shape-capped).  Without --match-eval the legacy
-#   relatedness ranking over curated metadata is used.
-OPENAI_API_KEY=... OPENAI_BASE_URL=... CRAFT_MODEL=... \
-python experiments/synthesize_sft_from_rollouts.py all --dataset sft \
-  --input traindata/craft_sft_programs.json --root results/sft_synth \
-  --output traindata/craft_sft_train.json --report paper/artifacts/v4/sft_synthesis_report.json --k 4
-#   rollouts and compose are independently resumable; on long runs re-invoke
-#   `compose` periodically while `rollouts` streams in, then `write`.
 ```
 
 Gates applied by `curate_training_pool.py` (all recorded in the report and
@@ -165,15 +149,6 @@ re-balances the survivors toward the evaluation corpus' distribution over
 structural cells (clipped to [0.25, 4]). Loop shapes that match an evaluation
 program after renaming, constant abstraction and initializer removal are
 *related*, not duplicates, and are kept (capped).
-
-SFT targets from `synthesize_sft_from_rollouts.py` are the union of k rollouts
-(plus the archival answer) -> interface gate -> Houdini on the target-hidden
-program (exactly the inference filter) -> frame equalities of unmodified
-variables dropped (`loop assigns` states them) -> z3 implication pruning
-(weaker clauses implied by the rest are dropped, strongest first) -> every
-relational clause kept, other clauses kept only while they add negative-trace
-coverage -> Houdini re-check. Typical answers shrink from ~10 clauses to 3-6
-and always contain the relational law when any rollout produced one.
 
 ## 1. Start the service
 

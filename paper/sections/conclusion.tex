@@ -4,7 +4,16 @@
 
 CRAFT aligns training with compositional inference: its pipeline composes
 rollouts, SFT distills their union, and target-independent RL rewards useful
-clauses and complementary coverage.
+responses through their pooled survivors while discounting repeated coverage.  On
+Qwen3-8B, the pipeline alone raises one-response verification from 6.43\% to
+37.86\% (+31.43 points; +488.8\%).  Rejection-filtered SFT raises compose@1
+to 65.50\%, and the subsequent compositional RL stage reaches 69.23\%.
+Together they deliver a 62.80-point (976.7\%) end-to-end gain, reduce the SFT
+checkpoint's verification error by 10.8\%, and exceed Claude Sonnet-4.6 at
+compose@1 by 12.26 points.
+Whole-response RL sharpens pass@1 while collapsing compose@32; decomposed
+credit preserves partial candidates, and group credit rewards complementary
+coverage, mitigating the corresponding exploration collapse in GRPO.
 
 The interface extends to reusable atoms that can be pooled and soundly
 filtered.  Specification and test-case generation are potential instances,

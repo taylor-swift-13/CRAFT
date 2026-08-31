@@ -1,14 +1,9 @@
 #!/usr/bin/env python3
-"""Render the per-stratum base-probe rows from paper/artifacts/v4/probe_stratum_grid.json.
+"""Validate the archived per-stratum base-probe artifact.
 
-Fills, in place:
-  * tab:probe-complete: one unified table with per-stratum and whole-workload
-    pass/compose results at k=1,4,8,16,32, plus k_95;
-  * the "bare (pass)" and "+pipeline (compose)" rows of tab:rcf-paired
-    (experiments.tex) for every checkpoint the table lists.
-
-It also checks that the 316/50/466-weighted whole-set values reproduce the
-aggregates already printed in tab:probe-complete.
+The current whole-workload Bare curves live in
+paper/artifacts/v4/bare_probe_aggregate.json.  This script no longer rewrites
+the manuscript because the archived stratum grid predates those aggregates.
 """
 
 from __future__ import annotations
@@ -41,8 +36,8 @@ OVERALL = {
         "k95": 16,
     },
     "Qwen3-8B": {
-        "pass": {1: 8.3, 4: 16.5, 8: 20.5, 16: 24.4, 32: 28.1},
-        "compose": {1: 43.8, 4: 55.2, 8: 59.0, 16: 61.2, 32: 62.5},
+        "pass": {1: 6.43, 4: 13.24, 8: 17.33, 16: 21.62, 32: 25.96},
+        "compose": {1: 37.86, 4: 50.60, 8: 54.21, 16: 56.37, 32: 57.81},
         "k95": 16,
     },
     "Qwen3-14B": {
@@ -51,13 +46,13 @@ OVERALL = {
         "k95": 8,
     },
     "Qwen3-30B-A3B": {
-        "pass": {1: 9.7, 4: 16.9, 8: 20.1, 16: 23.6, 32: 27.2},
-        "compose": {1: 48.1, 4: 58.8, 8: 61.3, 16: 62.4, 32: 62.6},
-        "k95": 8,
+        "pass": {1: 1.40, 4: 4.53, 8: 7.65, 16: 12.15, 32: 17.53},
+        "compose": {1: 17.43, 4: 30.65, 8: 36.54, 16: 42.31, 32: 43.87},
+        "k95": 16,
     },
     "Llama 3.1 8B": {
-        "pass": {1: 0.8, 4: 3.0, 8: 5.4, 16: 8.9, 32: 13.8},
-        "compose": {1: 29.2, 4: 48.3, 8: 54.6, 16: 56.0, 32: 56.1},
+        "pass": {1: 0.61, 4: 2.16, 8: 3.81, 16: 6.30, 32: 9.76},
+        "compose": {1: 27.88, 4: 46.03, 8: 51.20, 16: 51.68, 32: 52.16},
         "k95": 8,
     },
 }
@@ -163,12 +158,8 @@ def check_aggregates(ks, sizes, base, tol: float = 0.15) -> dict:
 
 def main() -> None:
     ks, sizes, base = load()
-    appendix = APPENDIX.read_text()
-    agg = check_aggregates(ks, sizes, base)
-    appendix = replace_between(appendix, "tab:probe-complete", render_probe_table(ks, base, agg))
-    APPENDIX.write_text(appendix)
-    EXPERIMENTS.write_text(fill_rcf_paired(EXPERIMENTS.read_text(), ks, base, agg))
-    print("rendered tab:probe-stratum and tab:rcf-paired bare/+pipeline rows")
+    check_aggregates(ks, sizes, base)
+    print("validated archived per-stratum grid; manuscript not modified")
 
 
 if __name__ == "__main__":

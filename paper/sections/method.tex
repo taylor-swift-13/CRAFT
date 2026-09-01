@@ -2,12 +2,15 @@
 \section{Method}\label{sec:method}
 %% ============================================================
 
-CRAFT aligns training with compositional inference.  At inference, it splits
-responses into clauses, pools clauses across responses, verifier-filters the
-pool, and conjoins the survivors.  SFT distills this pooled result into one
-response, while RL rewards each response based on the negative coverage of
-its pooled survivors and their group-level complementarity.  Assertions and
-postconditions remain hidden
+CRAFT aligns training and inference around one clause-processing pipeline.
+Decompose turns a complete response into clauses that can be retained
+separately, so a local failure does not obscure the remaining useful content;
+pool and filter merge clauses across responses and remove invalid or
+incompatible candidates; compose conjoins the complementary survivors into
+one invariant.  The same filtered result is then consumed in three ways:
+inference verifies its composition, SFT serializes an accepted composition as
+one response, and RL maps the surviving contributions back to the rollouts
+that proposed them.  Assertions and postconditions remain hidden
 throughout generation and training and are restored only for final
 verification.  Appendix~\ref{app:formal-method} gives the complete formal
 definition.

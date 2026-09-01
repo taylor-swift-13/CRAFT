@@ -2,24 +2,28 @@
 \section{Introduction}\label{sec:intro}
 %% ============================================================
 
-Loop invariants turn unbounded executions into finite proofs, but validity
-alone does not imply usefulness: \(\mathit{true}\) is valid for every loop and
-proves nothing downstream.  At the same time, valid invariants are closed
-under conjunction.  A range bound from one response and a relational equality
-from another can therefore prove a target that neither response proves alone,
-while clause-wise verification can discard failures without losing useful
-clauses.  This makes the filtered cross-response clause pool, rather than one
-complete response, the natural inference object.
+Loop invariants turn unbounded executions into finite proofs, but a generated
+response need not be wholly correct or wholly useless.  One incorrect clause
+can invalidate the complete response even when its other clauses are valid and
+useful.  CRAFT separates these two cases by decomposing each response into
+clauses and verifying them jointly after pooling.  It can then compose
+complementary valid clauses across responses, so even two responses that fail
+individually may yield a correct invariant together.  Decompose preserves
+useful parts of imperfect responses; compose combines complementary parts
+across responses.  The filtered cross-response clause pool, rather than one
+complete response, is therefore the natural inference object.
 
-Whole-response rewards are mismatched to this object.  They erase credit for
-a useful clause when a sibling clause fails, and they value a complementary
-constraint no more than one repeated by every peer.  More generally,
+Whole-response training is mismatched to this inference procedure.  A failed
+clause can obscure useful clauses from the same response, while response-level
+rewards do not distinguish a complementary constraint from one repeated by
+every peer.  More generally,
 response-level RLVR can sharpen probability on already-supported answers
 without expanding large-\(k\) coverage~\citep{yue2025rlcapacity}, potentially
 reducing the diversity that composition needs.  Our central claim is therefore
-an alignment claim: the training reward should value the same verified
-composition that inference constructs from a fixed rollout group, rather than
-each rollout as an independent final answer.
+that training feedback should align with the filtered clause pool constructed
+at inference.  SFT uses accepted compositions as training targets, while RL
+assigns credit according to each response's contribution to the same pool,
+rather than treating every rollout as an independent final answer.
 
 We study this claim under \emph{target-hidden loop verification}.  The model
 sees the loop context but not the target assertions and postconditions \(\mathcal G\).
@@ -30,19 +34,20 @@ training require a graded, target-independent strength signal.
 
 At inference, \sam{} implements
 \emph{rollout--decompose--pool--filter--compose}: given \(k\) responses, it
-extracts and pools clauses, filters them with syntax checks and Houdini, and
-then restores \(\mathcal G\).  compose@\(k\) measures the verified rate of this composed
-prefix, preserving partial answers that pass@\(k\) discards; compose@1 is
-our primary optimization and reporting metric.  Training is
-aligned to this object at the same two compositional levels.  Within a rollout,
-execution-derived negative coverage rewards each response according to the
-clauses retained by the pooled inference filter; across each GRPO group~\citep{shao2024deepseekmath}, a
-closed-form Shapley term discounts coverage repeated by multiple peers.  SFT
-distills the same filtered multi-response union into one response.  The two
-training stages therefore have distinct roles: SFT raises the compositional
-ceiling, RL amortizes that capability into the first rollout, and Shapley
-credit enables this compression without collapsing complementary
-exploration.  Both stages are self-generated: the only learned generator is
+extracts their clauses, pools and filters them with syntax checks and Houdini,
+and composes the survivors before restoring \(\mathcal G\).  compose@\(k\)
+measures the verified rate of this composed result, preserving useful clauses
+that pass@\(k\) discards; compose@1 is our primary optimization and reporting
+metric.  Training uses the same filtered clause pool.  SFT distills an
+accepted composition found through offline exploration into one response.  RL
+rewards each response by the negative coverage of the clauses it contributes,
+while a closed-form Shapley term across each GRPO
+group~\citep{shao2024deepseekmath} discounts repeated contributions.  Both
+stages reduce the number of inference-time samples needed to obtain the gains
+of multi-response composition: SFT learns the composed result, and RL further
+increases the probability that one rollout produces useful, nonredundant
+clauses.
+Both stages are self-generated: the only learned generator is
 the small open-weight model being trained, while the program executor and
 verifier provide every SFT acceptance decision and RL reward.  No external
 teacher model generates targets, critiques responses, or supplies reward.
@@ -54,21 +59,27 @@ teacher model generates targets, critiques responses, or supplies reward.
 This paper makes three contributions:
 \begin{itemize}
   \item We introduce a rollout--decompose--pool--filter--compose inference
-  framework for target-hidden invariant generation and use compose@1 as its
-  primary metric.  On Qwen3-8B, the framework raises one-response
-  verification from 6.43\% pass@1 to 37.86\% compose@1, a 31.43-point gain.
-  \item We introduce a two-stage training pipeline: rejection-filtered SFT
-  raises Qwen3-8B compose@1 to 65.50\%, and a subsequent 4,992-record
-  compositional RL stage reaches 69.23\%.  RL adds 3.73 points, reduces
-  verification error by 10.8\%, and produces an 8B model that exceeds Claude
-  Sonnet-4.6 at compose@1 by 12.26 points.  Target synthesis and
-  reward computation require only the trained open-weight model, program
-  execution, and verification, with no external teacher model.
+  framework for target-hidden invariant generation.  Decomposition exposes
+  useful clauses inside responses that fail as a whole, pooling and filtering
+  remove invalid or incompatible clauses, and composition combines
+  complementary clauses across responses.  On Qwen3-8B, the framework raises
+  one-response verification from 6.43\% pass@1 to 37.86\% compose@1, a
+  31.43-point gain.
+  \item We make SFT and RL use the same filtered clause pool constructed at
+  inference: SFT distills an accepted multi-response composition into one
+  response, while RL assigns credit according to each rollout's contribution
+  to that pool.  On Qwen3-8B, SFT raises compose@1 to 63.90\%, and RL then
+  reaches 69.23\% with only 4,992 records.  Both stages reduce the number of
+  inference-time samples needed to obtain multi-response gains, and RL remains
+  effective after SFT.  Under the same target-hidden, reasoning-off protocol,
+  the resulting 8B model exceeds Claude Sonnet-4.6 at compose@1 by 12.26
+  points; training uses no external teacher or reward model.
   \item Through controlled reward and sampler ablations, cross-model
-  evaluation, and 832-program analysis, we show that decompose--compose RLVR
-  provides effective credit for invariant generation.  Clause-decomposed
-  feedback preserves partially correct responses, while Shapley allocation
-  adds 9.85--11.30 compose points over clause-only credit and mitigates the
-  exploration collapse of binary and whole-response rewards.
+  evaluation, and 832-program analysis, we demonstrate the importance of
+  aligning training credit with the decomposed, pooled result used at
+  inference.  Across all \(k\), full compositional credit improves over Binary
+  by 49.88--54.69 compose points and over Whole-rollout by 39.06--51.33
+  points; within the full reward, Shapley group credit adds 9.62--11.30 points
+  over clause-level credit alone.
 \end{itemize}
 \end{samepage}

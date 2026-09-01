@@ -24,6 +24,8 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+from paper_style import GREEN, SLATE, use_paper_style
+
 OUT = Path(__file__).resolve().parent
 
 K = [1, 4, 8, 16, 32]
@@ -35,14 +37,14 @@ PANELS = {
     "SFT (before RL)": {
         "pass": None,
         "combine": None,
-        "color": "#5b7185",
+        "color": SLATE,
         "marker": "s",
         "style": "--",
     },
     "SFT+RL": {
         "pass": None,
         "combine": None,
-        "color": "#2d7053",
+        "color": GREEN,
         "marker": "o",
         "style": "-",
     },
@@ -55,22 +57,7 @@ SFT_COMBINE32 = None
 
 
 def configure() -> None:
-    plt.rcParams.update(
-        {
-            "font.family": "DejaVu Sans",
-            "font.size": 8.2,
-            "axes.titlesize": 9.2,
-            "axes.labelsize": 8.5,
-            "legend.fontsize": 7.6,
-            "xtick.labelsize": 7.7,
-            "ytick.labelsize": 7.7,
-            "axes.edgecolor": "#5c6e65",
-            "axes.linewidth": 0.6,
-            "grid.color": "#dce5df",
-            "grid.linewidth": 0.55,
-            "pdf.fonttype": 42,
-        }
-    )
+    use_paper_style()
 
 
 def style_axis(ax: plt.Axes) -> None:
@@ -132,7 +119,7 @@ def rl_panels() -> None:
 
     axes[1].axhline(
         SFT_COMBINE32,
-        color="#5b7185",
+        color=SLATE,
         linestyle=":",
         linewidth=1.1,
     )
@@ -141,7 +128,7 @@ def rl_panels() -> None:
         SFT_COMBINE32 + 0.4,
         "SFT compose@32",
         fontsize=7.0,
-        color="#5b7185",
+        color=SLATE,
     )
 
     k_star = crossing_budget(PANELS["SFT+RL"]["combine"], SFT_COMBINE32)
@@ -151,8 +138,8 @@ def rl_panels() -> None:
             xy=(k_star, SFT_COMBINE32),
             xytext=(k_star * 0.35, SFT_COMBINE32 - 6.0),
             fontsize=7.4,
-            color="#2d7053",
-            arrowprops={"arrowstyle": "->", "color": "#2d7053", "lw": 0.8},
+            color=GREEN,
+            arrowprops={"arrowstyle": "->", "color": GREEN, "lw": 0.8},
         )
 
     handles, labels = axes[0].get_legend_handles_labels()

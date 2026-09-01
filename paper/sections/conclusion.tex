@@ -2,26 +2,28 @@
 \section{Conclusion and Limitations}\label{sec:conclusion}
 %% ============================================================
 
-CRAFT aligns training with compositional inference: its pipeline composes
-rollouts, SFT distills their union, and target-independent RL rewards useful
-responses through their pooled survivors while discounting repeated coverage.  On
-Qwen3-8B, the pipeline alone raises one-response verification from 6.43\% to
-37.86\% (+31.43 points; +488.8\%).  Rejection-filtered SFT raises compose@1
-to 65.50\%, and the subsequent compositional RL stage reaches 69.23\%.
-Together they deliver a 62.80-point (976.7\%) end-to-end gain, reduce the SFT
-checkpoint's verification error by 10.8\%, and exceed Claude Sonnet-4.6 at
-compose@1 by 12.26 points.
-Whole-response RL sharpens pass@1 while collapsing compose@32; decomposed
-credit preserves partial candidates, and group credit rewards complementary
-coverage, mitigating the corresponding exploration collapse in GRPO.
+Our results show that treating each response as an indivisible final answer
+wastes useful clauses inside responses that fail as a whole.  By decomposing
+responses and recombining their filtered clauses, CRAFT can exploit
+complementary information across such responses.  This structure also
+provides training signals aligned with inference: SFT learns compositions
+found through offline exploration, while RL assigns credit according to each
+rollout's contribution to the pooled result.  Both stages reduce the number
+of inference-time samples needed to obtain multi-response gains, and RL
+remains effective after SFT.
 
-The interface extends to reusable atoms that can be pooled and soundly
-filtered.  Specification and test-case generation are potential instances,
-with task-specific operators, verifiers, and signals; Appendix~\ref{app:formal-method}
-states the formal conditions.
+The reward ablations further show that improving standalone responses does
+not necessarily improve their composition.  Whole-response credit raises
+pass@1 but substantially reduces compose@32, whereas clause- and group-level
+credit better preserve the partial correctness and cross-response
+complementarity used at inference.
 
-Evidence is limited to scalar-integer single-loop C programs, Frama-C/WP,
-ACSL, and the evaluated checkpoints.  Provenance credit is conditioned on the
-sampled group rather than exact coalition Shapley values;
-Appendices~\ref{app:limitations} and~\ref{app:houdini-order} give the
-evaluation scope and pooled-credit measurements.
+Our experiments focus on scalar-integer single-loop C programs, but the
+underlying mechanism is not specific to loop invariants.  The same approach
+can in principle apply when candidate solutions can be decomposed into
+reusable components, these components can be reliably verified, and valid
+components can be recombined.  These conditions allow the
+decompose--filter--compose procedure to provide aligned SFT targets and RL
+credit beyond the current setting.  Evaluating this transfer across other
+program structures and problem domains remains future work
+(Appendix~\ref{app:limitations}).

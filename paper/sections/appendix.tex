@@ -263,7 +263,6 @@ proposing rollouts before computing credit
 \midrule
 \(w_c,w_g,w_o\) & \(1.0,0.3,0.1\) & coverage, group-credit, and overflow weights \\
 \(m_{\max}\) & 20 clauses & cap applied independently to each response \\
-\(\alpha\) & 0.95 & saturation fraction used to report \(k_{\alpha}\) \\
 \(\mathcal K\) & \(\{1,2,4,8,16,32\}\) & reported Bare response budgets \\
 \(n_{\mathrm{probe}}\) & 128; 100; 32 & saved responses per task (8B; A3B/Llama; remaining base models) \\
 \(\vartheta\) & 1.0 & decoding temperature except for Loopy (Table~\ref{tab:tool-sampling-parameters}) \\
@@ -510,7 +509,6 @@ are the defaults.  The response reports each rollout's
 reward together with its coverage and Shapley-credit components.  Responses may be raw LLM text, invariant lists, or annotated
 code.
 
-\clearpage
 \section{Training--Evaluation Overlap Audit}
 \label{app:data-leakage}
 
@@ -704,39 +702,55 @@ the main aggregates.
 \begin{table}[p]
 \centering
 \scriptsize
-\renewcommand{\arraystretch}{0.94}
-\caption{Complete whole-workload Bare probe curves (\% verified).
-\(k_{\alpha}\) is the smallest measured budget at which compose@\(k\)
-reaches fraction \(\alpha\) of compose@\(k_{\max}\).}
+\renewcommand{\arraystretch}{0.86}
+\caption{Complete Bare probe results by benchmark stratum and sampling
+budget.  Each cell reports a percentage; All / 832 is the whole-workload
+result.  Bold marks the best value in each column at a fixed budget.}
 \label{tab:probe-complete}
-\setlength{\tabcolsep}{5pt}
-\begin{tabular}{llrrrrrrr}
+\setlength{\tabcolsep}{2.4pt}
+\begin{tabular}{lccccccccc}
 \toprule
-Model & Metric & 1 & 2 & 4 & 8 & 16 & 32 & \(k_{\alpha}\) \\
+& & \multicolumn{2}{c}{Linear / 316} & \multicolumn{2}{c}{NLA / 50}
+  & \multicolumn{2}{c}{Loopy / 466} & \multicolumn{2}{c}{All / 832} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(lr){9-10}
+Model & \(k\) & pass & comp & pass & comp & pass & comp & pass & comp
+  \\
 \midrule
-\multirow{2}{*}{Qwen3-1.7B}
-  & pass    & 7.74 & 11.22 & 15.02 & 18.77 & 22.41 & 25.99 & \multirow{2}{*}{32} \\
-  & compose & 19.47 & 23.68 & 28.97 & 33.05 & 35.34 & 37.86 & \\
-\midrule
-\multirow{2}{*}{Qwen3-4B}
-  & pass    & 6.42 & 9.02 & 11.66 & 14.05 & 16.49 & 19.12 & \multirow{2}{*}{16} \\
-  & compose & 32.93 & 38.94 & 44.11 & 47.60 & 50.72 & 52.76 & \\
-\midrule
-\multirow{2}{*}{Qwen3-8B}
-  & pass    & 6.43 & 9.54 & 13.24 & 17.33 & 21.62 & 25.96 & \multirow{2}{*}{16} \\
-  & compose & 37.86 & 45.07 & 50.60 & 54.21 & 56.37 & 57.81 & \\
-\midrule
-\multirow{2}{*}{Qwen3-14B}
-  & pass    & 7.67 & 10.74 & 14.17 & 17.97 & 22.04 & 26.13 & \multirow{2}{*}{8} \\
-  & compose & 43.51 & 51.20 & 58.29 & 61.54 & 63.70 & 64.54 & \\
-\midrule
-\multirow{2}{*}{Qwen3-30B-A3B}
-  & pass    & 1.40 & 2.57 & 4.53 & 7.65 & 12.15 & 17.53 & \multirow{2}{*}{16} \\
-  & compose & 17.43 & 23.92 & 30.65 & 36.54 & 42.31 & 43.87 & \\
-\midrule
-\multirow{2}{*}{Llama 3.1 8B}
-  & pass    & 0.61 & 1.16 & 2.16 & 3.81 & 6.30 & 9.76 & \multirow{2}{*}{8} \\
-  & compose & 27.88 & 37.14 & 46.03 & 51.20 & 51.68 & 52.16 & \\
+\multirow{5}{*}{Qwen3-1.7B} & 1 & 5.50 & 19.30 & 2.22 & 6.00 & 6.32 & 21.03 & 5.76 & 19.47 \\
+ & 4  & 9.70 & 29.75 & 4.77 & 8.00 & 12.32 & 30.69 & 10.87 & 28.97 \\
+ & 8  & 12.24 & 33.23 & \textbf{5.97} & 8.00 & 15.54 & 35.62 & 13.71 & 33.05 \\
+ & 16 & 15.14 & 35.76 & \textbf{7.05} & 10.00 & 18.84 & 37.77 & 16.72 & 35.34 \\
+ & 32 & 18.30 & 38.29 & \textbf{7.79} & \textbf{14.00} & 22.13 & 40.13 & 19.81 & 37.86 \\
+\cmidrule(l{3pt}r{3pt}){1-10}
+\multirow{5}{*}{Qwen3-4B} & 1 & 5.04 & 33.54 & 0.46 & \textbf{8.00} & 5.95 & 35.19 & 5.27 & 32.93 \\
+ & 4  & 10.36 & 44.94 & 1.59 & 10.00 & 10.53 & 47.21 & 9.93 & 44.11 \\
+ & 8  & 13.14 & 50.00 & 2.66 & 10.00 & 13.12 & 50.00 & 12.50 & 47.60 \\
+ & 16 & 15.73 & 52.53 & 3.93 & 12.00 & 15.95 & 53.65 & 15.14 & 50.72 \\
+ & 32 & 18.31 & 54.11 & 5.15 & 12.00 & 18.96 & 56.22 & 17.88 & 52.76 \\
+\cmidrule(l{3pt}r{3pt}){1-10}
+\multirow{5}{*}{Qwen3-8B} & 1 & \textbf{6.13} & 37.97 & \textbf{2.25} & 6.00 & 7.07 & 41.20 & 6.43 & 37.86 \\
+ & 4  & \textbf{13.06} & 50.95 & \textbf{4.88} & 6.00 & 14.25 & 55.15 & 13.24 & 50.60 \\
+ & 8  & \textbf{17.40} & 54.75 & 5.77 & 10.00 & 18.52 & 58.58 & 17.33 & 54.21 \\
+ & 16 & \textbf{21.84} & 56.65 & 6.00 & 10.00 & 23.14 & 61.16 & 21.62 & 56.37 \\
+ & 32 & \textbf{25.63} & 58.23 & 6.00 & 10.00 & 28.33 & 62.66 & 25.96 & 57.81 \\
+\cmidrule(l{3pt}r{3pt}){1-10}
+\multirow{5}{*}{Qwen3-14B} & 1 & 6.06 & \textbf{48.10} & 1.08 & 4.00 & \textbf{9.47} & \textbf{44.64} & \textbf{7.67} & \textbf{43.51} \\
+ & 4  & 11.66 & \textbf{61.39} & 2.85 & 10.00 & \textbf{17.09} & \textbf{61.37} & \textbf{14.17} & \textbf{58.29} \\
+ & 8  & 15.01 & \textbf{64.56} & 3.79 & \textbf{12.00} & \textbf{21.49} & \textbf{64.81} & \textbf{17.97} & \textbf{61.54} \\
+ & 16 & 18.82 & \textbf{66.14} & 4.50 & \textbf{14.00} & \textbf{26.11} & \textbf{67.38} & \textbf{22.04} & \textbf{63.70} \\
+ & 32 & 22.91 & \textbf{66.46} & 5.08 & \textbf{14.00} & \textbf{30.57} & \textbf{68.67} & \textbf{26.13} & \textbf{64.54} \\
+\cmidrule(l{3pt}r{3pt}){1-10}
+\multirow{5}{*}{Qwen3-30B-A3B} & 1 & 1.33 & 16.14 & 0.06 & 0.00 & 1.59 & 20.17 & 1.40 & 17.43 \\
+ & 4  & 4.76 & 29.43 & 0.23 & 4.00 & 4.84 & 34.33 & 4.53 & 30.65 \\
+ & 8  & 8.33 & 36.71 & 0.45 & 4.00 & 7.97 & 39.91 & 7.65 & 36.54 \\
+ & 16 & 13.27 & 43.35 & 0.82 & 8.00 & 12.60 & 45.28 & 12.15 & 42.31 \\
+ & 32 & 18.82 & 43.99 & 1.38 & 8.00 & 18.38 & 47.64 & 17.53 & 43.87 \\
+\cmidrule(l{3pt}r{3pt}){1-10}
+\multirow{5}{*}{Llama 3.1 8B} & 1 & 0.57 & 28.16 & 0.02 & 6.00 & 0.69 & 30.04 & 0.61 & 27.88 \\
+ & 4  & 2.15 & 48.73 & 0.08 & \textbf{12.00} & 2.39 & 47.85 & 2.16 & 46.03 \\
+ & 8  & 3.97 & 54.43 & 0.16 & \textbf{12.00} & 4.08 & 53.22 & 3.81 & 51.20 \\
+ & 16 & 6.88 & 55.06 & 0.32 & 12.00 & 6.54 & 53.65 & 6.30 & 51.68 \\
+ & 32 & 10.88 & 55.06 & 0.64 & 12.00 & 9.98 & 54.51 & 9.76 & 52.16 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -778,39 +792,45 @@ protocol defined in Section~\ref{sec:method:sft}.
 \renewcommand{\arraystretch}{0.86}
 \caption{Complete SFT-checkpoint probe results by benchmark stratum and
 sampling budget.  Each cell reports a percentage; All / 832 is the
-whole-workload result.  \(k_{\alpha}\) is the smallest measured budget at which
-compose@\(k\) reaches fraction \(\alpha\) of compose@\(k_{\max}\).  Bold marks
-the best value in each column at a fixed budget.}
+whole-workload result.  Bold marks the best value in each column at a fixed
+budget.}
 \label{tab:sft-probe-complete}
 \setlength{\tabcolsep}{2.4pt}
-\begin{tabular}{lcccccccccc}
+\begin{tabular}{lccccccccc}
 \toprule
 & & \multicolumn{2}{c}{Linear / 316} & \multicolumn{2}{c}{NLA / 50}
-  & \multicolumn{2}{c}{Loopy / 466} & \multicolumn{2}{c}{All / 832} & \\
+  & \multicolumn{2}{c}{Loopy / 466} & \multicolumn{2}{c}{All / 832} \\
 \cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(lr){9-10}
 Model & \(k\) & pass & comp & pass & comp & pass & comp & pass & comp
-  & \(k_{\alpha}\) \\
+  \\
 \midrule
 \multirow{5}{*}{Qwen3-4B + SFT}
- & 1  & 43.69 & 65.82 & 2.08 & 8.00  & 42.34 & 66.31 & 40.43 & 62.62 & \multirow{5}{*}{8} \\
- & 4  & 58.55 & 78.48 & 4.81 & 10.00 & 58.38 & 76.82 & 55.23 & 73.44 & \\
- & 8  & 63.36 & 81.01 & 6.23 & 12.00 & 63.47 & 79.83 & 59.99 & 76.20 & \\
- & 16 & 67.55 & 82.28 & 7.99 & 12.00 & 67.77 & 80.90 & 64.09 & 77.28 & \\
- & 32 & 71.22 & 82.28 & 10.36 & 12.00 & 71.54 & 81.97 & 67.74 & 77.88 & \\
-\cmidrule(l{3pt}r{3pt}){1-11}
+ & 1  & 43.69 & 65.82 & 2.08 & 8.00  & 42.34 & 66.31 & 40.43 & 62.62 \\
+ & 4  & 58.55 & 78.48 & 4.81 & 10.00 & 58.38 & 76.82 & 55.23 & 73.44 \\
+ & 8  & 63.36 & 81.01 & 6.23 & 12.00 & 63.47 & 79.83 & 59.99 & 76.20 \\
+ & 16 & 67.55 & 82.28 & 7.99 & 12.00 & 67.77 & 80.90 & 64.09 & 77.28 \\
+ & 32 & 71.22 & 82.28 & 10.36 & 12.00 & 71.54 & 81.97 & 67.74 & 77.88 \\
+\cmidrule(l{3pt}r{3pt}){1-10}
 \multirow{5}{*}{Qwen3-8B + SFT}
- & 1  & 45.69 & \textbf{71.52} & \textbf{3.60} & 8.00 & 43.50 & 67.60 & 41.93 & 65.50 & \multirow{5}{*}{4} \\
- & 4  & 60.99 & 79.43 & 6.26 & 12.00 & 59.41 & 78.97 & 56.82 & 75.12 & \\
- & 8  & 65.36 & 80.70 & 7.34 & 14.00 & 64.00 & 82.19 & 61.11 & 77.52 & \\
- & 16 & 69.01 & 81.33 & 8.44 & 14.00 & 67.78 & \textbf{83.69} & 64.68 & 78.61 & \\
- & 32 & 72.34 & 81.96 & 9.64 & 14.00 & 71.28 & \textbf{83.91} & 67.98 & 78.97 & \\
-\cmidrule(l{3pt}r{3pt}){1-11}
+ & 1  & 45.69 & 68.40 & \textbf{3.60} & 8.00 & 43.50 & 67.00 & 41.93 & 63.90 \\
+ & 4  & 60.99 & 77.20 & 6.26 & 10.00 & 59.41 & 78.30 & 56.82 & 73.80 \\
+ & 8  & 65.36 & 80.10 & 7.34 & 10.00 & 64.00 & 80.70 & 61.11 & 76.20 \\
+ & 16 & 69.01 & 81.30 & 8.44 & 12.00 & 67.78 & 81.50 & 64.68 & 77.30 \\
+ & 32 & 72.34 & 81.60 & 9.64 & 12.00 & 71.28 & 82.40 & 67.98 & 77.90 \\
+\cmidrule(l{3pt}r{3pt}){1-10}
 \multirow{5}{*}{Qwen3-14B + SFT}
- & 1  & \textbf{50.18} & 70.25 & 3.54 & \textbf{12.00} & \textbf{47.12} & \textbf{69.53} & \textbf{45.66} & \textbf{66.35} & \multirow{5}{*}{4} \\
- & 4  & \textbf{63.93} & \textbf{81.33} & \textbf{7.27} & \textbf{16.00} & \textbf{61.46} & \textbf{80.04} & \textbf{59.14} & \textbf{76.68} & \\
- & 8  & \textbf{68.00} & \textbf{82.28} & \textbf{9.79} & \textbf{16.00} & \textbf{66.21} & \textbf{82.62} & \textbf{63.50} & \textbf{78.49} & \\
- & 16 & \textbf{71.42} & \textbf{82.91} & \textbf{12.06} & \textbf{16.00} & \textbf{70.50} & \textbf{83.69} & \textbf{67.34} & \textbf{79.33} & \\
- & 32 & \textbf{74.17} & \textbf{82.91} & \textbf{13.52} & \textbf{16.00} & \textbf{74.25} & \textbf{83.91} & \textbf{70.57} & \textbf{79.45} & \\
+ & 1  & \textbf{50.18} & 70.25 & 3.54 & \textbf{12.00} & \textbf{47.12} & \textbf{69.53} & \textbf{45.66} & \textbf{66.35} \\
+ & 4  & \textbf{63.93} & \textbf{81.33} & \textbf{7.27} & \textbf{16.00} & \textbf{61.46} & \textbf{80.04} & \textbf{59.14} & \textbf{76.68} \\
+ & 8  & \textbf{68.00} & \textbf{82.28} & \textbf{9.79} & \textbf{16.00} & \textbf{66.21} & \textbf{82.40} & \textbf{63.50} & \textbf{78.37} \\
+ & 16 & \textbf{71.42} & \textbf{82.91} & \textbf{12.06} & \textbf{16.00} & \textbf{70.50} & \textbf{83.48} & \textbf{67.34} & \textbf{79.21} \\
+ & 32 & \textbf{74.17} & \textbf{82.91} & \textbf{13.52} & \textbf{16.00} & \textbf{74.25} & \textbf{83.69} & \textbf{70.57} & \textbf{79.33} \\
+\cmidrule(l{3pt}r{3pt}){1-10}
+\multirow{5}{*}{Llama 3.1 8B + SFT}
+ & 1  & 43.60 & 67.09 & 2.22 & 8.00  & 40.26 & 63.09 & 39.24 & 61.30 \\
+ & 4  & 56.03 & 75.32 & 4.51 & 14.00 & 55.41 & 72.96 & 52.59 & 70.31 \\
+ & 8  & 60.05 & 77.53 & 6.15 & 14.00 & 60.15 & 76.39 & 56.86 & 73.08 \\
+ & 16 & 63.64 & 78.48 & 7.99 & 14.00 & 63.96 & 77.47 & 60.47 & 74.04 \\
+ & 32 & 66.90 & 78.80 & 9.57 & 14.00 & 67.34 & 77.90 & 63.70 & 74.40 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -837,27 +857,53 @@ Llama 3.1 8B + SFT & 5,135 \\
 
 \subsection{Reinforcement-Learning Results}
 
-\begin{table}[H]
+\begin{table}[p]
 \centering
-\setlength{\tabcolsep}{2.5pt}
-\caption{Complete RL-from-Zero comparison with the SFT checkpoint shown as a
-separate reference.  All rows use the same decoding and verification
-configuration.  Unmarked rows are Qwen3-8B.}
+\scriptsize
+\renewcommand{\arraystretch}{0.86}
+\caption{Complete SFT+RL-checkpoint results by benchmark stratum and sampling
+budget.  Each cell reports a percentage; All / 832 is the whole-workload
+result.  Bold marks the best value in each column at a fixed budget.}
 \label{tab:rl-complete}
-\begin{tabular}{llrrrrrrr}
+\setlength{\tabcolsep}{2.4pt}
+\begin{tabular}{lccccccccc}
 \toprule
-Checkpoint & Stage & pass@1 & compose@1 & compose@8 &
-compose@16 & compose@32 & \(k_{\alpha}\) \\
+& & \multicolumn{2}{c}{Linear / 316} & \multicolumn{2}{c}{NLA / 50}
+  & \multicolumn{2}{c}{Loopy / 466} & \multicolumn{2}{c}{All / 832} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(lr){9-10}
+Model & \(k\) & pass & comp & pass & comp & pass & comp & pass & comp \\
 \midrule
-Zero    & before RL & 6.43\% & 37.86\% & 54.21\% & 56.37\% & 57.81\% & 16 \\
-RL-Zero & after RL  & 6.80\% & 57.93\% & 70.43\% & 72.60\% & 73.20\% & 8 \\
-SFT     & reference & 41.93\% & 65.50\% & 77.52\% & 78.61\% & 78.97\% & 4 \\
-\midrule
-Zero (Qwen3-14B)    & before RL & 10.1\% & 52.5\% & 65.0\% & 66.2\% & 67.8\% & 8 \\
-RL-Zero (Qwen3-14B) & after RL  & 35.60\% & 70.55\% & 77.04\% & 77.64\% & 78.00\% & 4 \\
+\multirow{5}{*}{Qwen3-4B + SFT+RL}
+ & 1  & 35.3 & 69.9 & 2.8 & 8.0 & 35.4 & 69.7 & 33.4 & 66.1 \\
+ & 4  & 50.0 & 76.9 & 4.1 & 12.0 & 48.1 & 76.0 & 46.1 & 72.5 \\
+ & 8  & 54.2 & 79.1 & 4.5 & \textbf{14.0} & 51.9 & 77.9 & 49.9 & 74.5 \\
+ & 16 & 58.2 & 79.1 & 5.0 & \textbf{14.0} & 55.2 & 79.0 & 53.3 & 75.1 \\
+ & 32 & 62.3 & 80.1 & 6.0 & \textbf{14.0} & 57.9 & 79.2 & 56.5 & 75.6 \\
+\cmidrule(l{3pt}r{3pt}){1-10}
+\multirow{5}{*}{Qwen3-8B + SFT+RL}
+ & 1  & 32.77 & 75.00 & 2.78 & \textbf{14.00} & 32.43 & 71.24 & 30.78 & 69.23 \\
+ & 4  & 46.39 & \textbf{79.75} & 3.83 & \textbf{14.00} & 45.69 & 78.76 & 43.44 & 75.24 \\
+ & 8  & 51.03 & \textbf{80.70} & 3.99 & \textbf{14.00} & 49.72 & 80.90 & 47.47 & \textbf{76.80} \\
+ & 16 & 54.65 & \textbf{80.70} & 4.00 & \textbf{14.00} & 52.92 & \textbf{82.40} & 50.63 & \textbf{77.64} \\
+ & 32 & 57.78 & \textbf{81.33} & 4.00 & \textbf{14.00} & 55.85 & \textbf{83.26} & 53.47 & \textbf{78.37} \\
+\cmidrule(l{3pt}r{3pt}){1-10}
+\multirow{5}{*}{Qwen3-14B + SFT+RL}
+ & 1  & \textbf{45.1} & \textbf{75.3} & \textbf{4.9} & 10.0 & \textbf{41.6} & \textbf{74.2} & \textbf{40.7} & \textbf{70.8} \\
+ & 4  & \textbf{57.2} & 79.1 & \textbf{7.3} & 12.0 & \textbf{54.9} & \textbf{80.3} & \textbf{52.9} & \textbf{75.7} \\
+ & 8  & \textbf{60.3} & 80.1 & \textbf{8.3} & 12.0 & \textbf{59.6} & \textbf{81.5} & \textbf{56.8} & \textbf{76.8} \\
+ & 16 & \textbf{63.4} & \textbf{80.7} & \textbf{9.0} & \textbf{14.0} & \textbf{63.4} & 82.0 & \textbf{60.1} & 77.3 \\
+ & 32 & \textbf{66.8} & 80.7 & \textbf{10.0} & \textbf{14.0} & \textbf{66.3} & 82.0 & \textbf{63.1} & 77.4 \\
+\cmidrule(l{3pt}r{3pt}){1-10}
+\multirow{5}{*}{Llama 3.1 8B + SFT+RL}
+ & 1  & 38.16 & 67.7 & 1.62 & 8.0 & 34.12 & 67.0 & 33.70 & 63.7 \\
+ & 4  & 50.78 & 74.7 & 3.15 & \textbf{14.0} & 47.06 & 74.0 & 45.83 & 70.7 \\
+ & 8  & 54.35 & 76.6 & 3.69 & \textbf{14.0} & 51.38 & 76.4 & 49.64 & 72.7 \\
+ & 16 & 57.25 & 76.9 & 3.96 & \textbf{14.0} & 55.40 & 76.8 & 53.01 & 73.1 \\
+ & 32 & 60.18 & 77.2 & 4.00 & \textbf{14.0} & 59.44 & 76.8 & 56.39 & 73.2 \\
 \bottomrule
 \end{tabular}
 \end{table}
+\clearpage
 
 \subsection{Ablation Results}
 \label{app:ablation-definitions}
@@ -1118,7 +1164,7 @@ and is listed once.  Each cell reports the verification rate for Linear,
 NLA, Loopy, or all 832 programs.  Medium-effort results are available only
 for the single-response measurements.  The non-reasoning compose@1,
 compose@4, and compose@8 rows are prefix compositions of the same archived
-ten-rollout pool, as in Table~\ref{tab:tool-comparison}.}
+ten-rollout pool.}
 \label{tab:tools-complete}
 \begin{tabular}{llrrrrrr}
 \toprule
@@ -1229,7 +1275,6 @@ Loopy's initial responses contain textual loop-invariant annotations in
 to Houdini.  These rates measure the interface between generated text and
 the clauses accepted by its downstream pipeline.
 
-\clearpage
 \section{Detailed Limitations}
 \label{app:limitations}
 
@@ -1267,6 +1312,10 @@ while the hidden goals left the verifier without a target-directed signal for
 the missing behavioral strength.  The marginal gain from refinement decreased
 as the initial rollout pool grew.
 
+\paragraph{Training variance.}
+We did not repeat training and inference multiple times for every experimental
+configuration.
+
 \section{Why Thinking Is Disabled for Local Models}
 \label{app:no-thinking}
 
@@ -1283,7 +1332,6 @@ retain its siblings, and merge survivors from different rollouts.  Reasoning
 traces are generated and consumed as whole sequences and are not included in
 this clause-level composition operator.
 
-\clearpage
 \section{Pooled Filtering and Provenance Credit}
 \label{app:houdini-order}
 

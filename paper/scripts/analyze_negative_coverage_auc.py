@@ -259,11 +259,16 @@ def render_figure(rows: list[dict], bands: list[dict], destination: Path) -> Non
     destination.parent.mkdir(parents=True, exist_ok=True)
     figure, axes = plt.subplots(1, 2, figsize=(9.2, 3.45))
 
+    import sys
+
+    sys.path.insert(0, str(REPO / "paper" / "figures"))
+    from paper_style import FAINT, GREEN, GREEN_TINT, INK, MUTED, OCHRE, RUST, TEAL
+
     curves = [("All", rows)] + [
         (SUITE_LABELS[suite], [row for row in rows if row["suite"] == suite])
         for suite in ("linear", "NLA_lipus", "Loopy")
     ]
-    colors = ["#2d7053", "#347f78", "#b87a2c", "#9d5b49"]
+    colors = [GREEN, TEAL, OCHRE, RUST]
     for (label, subset), color in zip(curves, colors):
         labels = np.asarray([bool(row["verified"]) for row in subset], dtype=int)
         scores = np.asarray(
@@ -278,7 +283,7 @@ def render_figure(rows: list[dict], bands: list[dict], destination: Path) -> Non
             color=color,
             label=f"{label} ({auc:.3f})",
         )
-    axes[0].plot([0, 1], [0, 1], linestyle="--", color="#6c756f", linewidth=1)
+    axes[0].plot([0, 1], [0, 1], linestyle="--", color=MUTED, linewidth=1)
     axes[0].set(
         xlabel="False-positive rate",
         ylabel="True-positive rate",
@@ -292,13 +297,13 @@ def render_figure(rows: list[dict], bands: list[dict], destination: Path) -> Non
     rates = np.asarray([band["success_rate"] for band in bands])
     lower = rates - np.asarray([band["wilson_ci95"][0] for band in bands])
     upper = np.asarray([band["wilson_ci95"][1] for band in bands]) - rates
-    axes[1].bar(x, rates, color="#81ae96", edgecolor="#2d7053", linewidth=0.7)
+    axes[1].bar(x, rates, color=GREEN_TINT, edgecolor=GREEN, linewidth=0.7)
     axes[1].errorbar(
         x,
         rates,
         yerr=np.vstack([lower, upper]),
         fmt="none",
-        ecolor="#1f3128",
+        ecolor=INK,
         capsize=2.5,
         linewidth=0.9,
     )
@@ -313,7 +318,7 @@ def render_figure(rows: list[dict], bands: list[dict], destination: Path) -> Non
     for axis in axes:
         axis.spines["top"].set_visible(False)
         axis.spines["right"].set_visible(False)
-        axis.grid(axis="y", color="#d9e1dc", linewidth=0.6, alpha=0.8)
+        axis.grid(axis="y", color=FAINT, linewidth=0.6, alpha=0.8)
         axis.set_axisbelow(True)
     figure.tight_layout()
     figure.savefig(destination, bbox_inches="tight")

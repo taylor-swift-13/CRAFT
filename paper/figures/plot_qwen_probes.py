@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Generate the base-checkpoint exploration and RL-Zero figures.
+"""Generate the base-checkpoint exploration and paired RL figures.
 
 Probe grid: k in {1, 2, 4, 8, 16, 32}.  Qwen3-8B uses a 128-response saved
 pool, Qwen3-30B-A3B and Llama 3.1 8B use 100, and the remaining base probes
-use 32.  The RL-Zero comparison uses k in {1, 4, 8, 16, 32}.
+use 32.  The paired RL comparison uses k in {1, 4, 8, 16, 32}.
 """
 
 from pathlib import Path
@@ -12,6 +12,8 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+
+from paper_style import GREEN, RUST, SLATE, use_paper_style
 
 
 OUT = Path(__file__).resolve().parent
@@ -64,22 +66,16 @@ OFFICIAL = {
     },
 }
 
-# Matched runs on the new stack: Zero (untrained Qwen3-8B) vs the
-# full-reward RL-Zero checkpoint (compose@k on the same k grid).
-RL_COMPARISON = {
-    "Zero": {
-        "direct": [6.43, 13.24, 17.33, 21.62, 25.96],
-        "combine": [37.86, 50.60, 54.21, 56.37, 57.81],
-        "color": "#5b7185",
-        "marker": "s",
-        "style": "--",
+# Matched Qwen3-8B runs on the same inference stack.  Each panel compares an
+# initialization with its full-reward RL checkpoint.
+RL_PAIRS = {
+    "(a) Zero initialization": {
+        "Before RL": [37.86, 50.60, 54.21, 56.37, 57.81],
+        "After RL": [57.93, 66.95, 70.43, 72.60, 73.20],
     },
-    "RL-Zero": {
-        "direct": [6.80, 13.41, 16.80, 20.17, 23.44],
-        "combine": [57.93, 66.95, 70.43, 72.60, 73.20],
-        "color": "#2d7053",
-        "marker": "o",
-        "style": "-",
+    "(b) SFT initialization": {
+        "Before RL": [63.90, 73.80, 76.20, 77.30, 77.90],
+        "After RL": [69.23, 75.24, 76.80, 77.64, 78.37],
     },
 }
 
@@ -101,22 +97,7 @@ def require_complete(data: dict, name: str, ks: list[int]) -> None:
 
 
 def configure() -> None:
-    plt.rcParams.update(
-        {
-            "font.family": "DejaVu Sans",
-            "font.size": 8.2,
-            "axes.titlesize": 9.2,
-            "axes.labelsize": 8.5,
-            "legend.fontsize": 7.6,
-            "xtick.labelsize": 7.7,
-            "ytick.labelsize": 7.7,
-            "axes.edgecolor": "#5c6e65",
-            "axes.linewidth": 0.6,
-            "grid.color": "#dce5df",
-            "grid.linewidth": 0.55,
-            "pdf.fonttype": 42,
-        }
-    )
+    use_paper_style()
 
 
 def style_axis(ax: plt.Axes, display_ticks: list[int]) -> None:
@@ -155,7 +136,7 @@ def official_probe() -> None:
             RQ1_K,
             values["direct"],
             label="pass@$k$",
-            color="#9d6652",
+            color=RUST,
             marker="o",
             linestyle="-",
             linewidth=1.6,
@@ -167,7 +148,7 @@ def official_probe() -> None:
             RQ1_K,
             values["combine"],
             label="compose@$k$",
-            color="#2d7053",
+            color=GREEN,
             marker="s",
             linestyle="--",
             linewidth=1.6,
@@ -200,17 +181,31 @@ def official_probe() -> None:
     plt.close(fig)
 
 
-def rlzero_probe() -> None:
-    require_complete(RL_COMPARISON, "rlzero_probe", RL_K)
-    fig, axes = plt.subplots(1, 2, figsize=(7.15, 2.55))
-    plot_lines(axes[0], RL_COMPARISON, "direct", RL_K)
-    plot_lines(axes[1], RL_COMPARISON, "combine", RL_K)
-    style_axis(axes[0], RL_K)
-    style_axis(axes[1], RL_K)
-    axes[0].set_title("(a) Complete responses")
-    axes[1].set_title("(b) compose@$k$ (composed responses)")
-    axes[0].set_ylim(0, 32)
-    axes[1].set_ylim(40, 75)
+def rl_comparison_probe() -> None:
+    fig, axes = plt.subplots(1, 2, figsize=(7.15, 2.55), sharey=True)
+    styles = {
+        "Before RL": (SLATE, "s", "--"),
+        "After RL": (GREEN, "o", "-"),
+    }
+    for ax, (title, pair) in zip(axes, RL_PAIRS.items()):
+        for label, values in pair.items():
+            color, marker, linestyle = styles[label]
+            ax.plot(
+                RL_K,
+                values,
+                label=label,
+                color=color,
+                marker=marker,
+                linestyle=linestyle,
+                linewidth=1.7,
+                markersize=4.2,
+                markeredgewidth=0.6,
+                markeredgecolor="white",
+            )
+        style_axis(ax, RL_K)
+        ax.set_title(title)
+        ax.set_ylim(34, 82)
+    axes[1].set_ylabel("")
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="upper center", ncol=2, frameon=False)
     fig.tight_layout(rect=(0, 0, 1, 0.86), w_pad=2.0)
@@ -221,4 +216,4 @@ def rlzero_probe() -> None:
 if __name__ == "__main__":
     configure()
     official_probe()
-    rlzero_probe()
+    rl_comparison_probe()

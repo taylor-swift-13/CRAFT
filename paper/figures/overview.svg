@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1500 868" width="1500" height="868" role="img" aria-labelledby="title desc" xmlns="http://www.w3.org/2000/svg">
+  <title id="title">CRAFT: decompose, verify, and learn from reusable clauses</title>
+  <desc id="desc">Panel A: target-hidden rollouts are decomposed into clauses, pooled, filtered, composed, and verified. Panel B: the same verified clauses supervise SFT distillation and RL credit assignment via a shared target-free scorer.</desc>
+  <style>
+    text{font-family:Lato,"Helvetica Neue",Arial,sans-serif;fill:#1F3128}
+    .paneltag{font-size:14px;font-weight:700;letter-spacing:2px}
+    .stepnum{font-size:12px;font-weight:700}
+    .title{font-size:17px;font-weight:700}
+    .body{font-size:15px;font-weight:500}
+    .cap{font-size:11px;font-weight:500}
+    .math{font-family:Georgia,"Times New Roman",serif;font-style:italic}
+    .green{fill:#2E7D5B}.teal{fill:#347F78}.olive{fill:#B87A2C}.slate{fill:#5B7185}
+    .muted{fill:#66786F}.red{fill:#B85C47}.white{fill:#fff}
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto" markerUnits="strokeWidth"><path d="M0 0L9 4.5 0 9Z" fill="#8A9A91"/></marker>
+    <marker id="ga" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto" markerUnits="strokeWidth"><path d="M0 0L9 4.5 0 9Z" fill="#2E7D5B"/></marker>
+    <marker id="ta" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto" markerUnits="strokeWidth"><path d="M0 0L9 4.5 0 9Z" fill="#347F78"/></marker>
+    <marker id="sa" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto" markerUnits="strokeWidth"><path d="M0 0L9 4.5 0 9Z" fill="#5B7185"/></marker>
+  </defs>
+  <rect width="1500" height="868" fill="#fff"/>
+
+  <!-- ==================== PANEL A · TARGET-HIDDEN INFERENCE ==================== -->
+  <rect x="24" y="40" width="1452" height="312" rx="16" fill="#FBFCFB" stroke="#E2E8E3" stroke-width="1.5"/>
+  <rect x="48" y="24" width="336" height="32" rx="16" fill="#fff" stroke="#2E7D5B" stroke-width="1.5"/>
+  <text x="216" y="45" text-anchor="middle" class="paneltag green">A · TARGET-HIDDEN INFERENCE</text>
+  <text x="1452" y="46" text-anchor="end" class="cap muted" style="font-size:12px">decompose within each rollout · compose across rollouts</text>
+
+  <!-- step headers -->
+  <g class="title">
+    <circle cx="60" cy="94" r="10" fill="#2E7D5B"/><text x="60" y="98.5" text-anchor="middle" class="stepnum white">1</text><text x="78" y="100">Mask the target</text>
+    <circle cx="291" cy="94" r="10" fill="#2E7D5B"/><text x="291" y="98.5" text-anchor="middle" class="stepnum white">2</text><text x="309" y="100">Sample responses</text>
+    <circle cx="591" cy="94" r="10" fill="#2E7D5B"/><text x="591" y="98.5" text-anchor="middle" class="stepnum white">3</text><text x="609" y="100">Decompose</text>
+    <circle cx="869" cy="94" r="10" fill="#2E7D5B"/><text x="869" y="98.5" text-anchor="middle" class="stepnum white">4</text><text x="887" y="100">Pool &amp; filter</text>
+    <circle cx="1198" cy="94" r="10" fill="#2E7D5B"/><text x="1198" y="98.5" text-anchor="middle" class="stepnum white">5</text><text x="1216" y="100">Compose &amp; verify</text>
+  </g>
+
+  <!-- step 1: mask -->
+  <rect x="56" y="140" width="140" height="150" rx="12" fill="#fff" stroke="#DFE7E1" stroke-width="1.5"/>
+  <g transform="translate(86 158)">
+    <path d="M0 6Q0 0 6 0H62L80 18V94Q80 100 74 100H6Q0 100 0 94Z" fill="#fff" stroke="#C3D0C7" stroke-width="1.5"/>
+    <path d="M62 0V18H80" fill="none" stroke="#C3D0C7" stroke-width="1.5"/>
+    <rect x="14" y="32" width="48" height="5" rx="2.5" fill="#C6CFC9"/>
+    <rect x="14" y="48" width="56" height="5" rx="2.5" fill="#C6CFC9"/>
+    <rect x="14" y="64" width="50" height="5" rx="2.5" fill="#C6CFC9"/>
+  </g>
+  <rect x="91" y="252" width="70" height="22" rx="11" fill="#F6E3DF"/>
+  <text x="126" y="267" text-anchor="middle" class="cap red">G hidden</text>
+  <text x="126" y="320" text-anchor="middle" class="body math">L = (Init, B, S)</text>
+  <path d="M200 215H240" stroke="#8A9A91" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- step 2: sample responses -->
+  <rect x="244" y="140" width="240" height="150" rx="12" fill="#fff" stroke="#DFE7E1" stroke-width="1.5"/>
+  <g>
+    <text x="262" y="183" class="body math muted">y₁</text>
+    <rect x="286" y="168" width="28" height="20" rx="4" fill="#2E7D5B"/><rect x="320" y="168" width="28" height="20" rx="4" fill="#4C9A74"/><rect x="354" y="168" width="28" height="20" rx="4" fill="#7FB99C"/><rect x="388" y="168" width="28" height="20" rx="4" fill="#A9D0BD"/>
+    <path d="M441 176l7 8 16-18" fill="none" stroke="#2E7D5B" stroke-width="3.5" stroke-linecap="round"/>
+    <text x="262" y="220" class="body math muted">y₂</text>
+    <rect x="286" y="205" width="28" height="20" rx="4" fill="#2E7D5B"/><rect x="320" y="205" width="28" height="20" rx="4" fill="#E0968A"/><rect x="354" y="205" width="28" height="20" rx="4" fill="#3A8F83"/><rect x="388" y="205" width="28" height="20" rx="4" fill="#7FB99C"/>
+    <path d="M443 207l16 18M459 207l-16 18" stroke="#B85C47" stroke-width="3" fill="none"/>
+    <text x="262" y="257" class="body math muted">y₃</text>
+    <rect x="286" y="242" width="28" height="20" rx="4" fill="#E0968A"/><rect x="320" y="242" width="28" height="20" rx="4" fill="#4C9A74"/><rect x="354" y="242" width="28" height="20" rx="4" fill="#62A98A"/><rect x="388" y="242" width="28" height="20" rx="4" fill="#A9D0BD"/>
+    <path d="M443 244l16 18M459 244l-16 18" stroke="#B85C47" stroke-width="3" fill="none"/>
+  </g>
+  <path d="M488 215H520" stroke="#8A9A91" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- step 3: decompose (same clause identities as the rollouts) -->
+  <rect x="524" y="140" width="240" height="150" rx="12" fill="#fff" stroke="#DFE7E1" stroke-width="1.5"/>
+  <g>
+    <text x="542" y="183" class="body math muted">A₁</text>
+    <rect x="566" y="165" width="34" height="26" rx="5" fill="#2E7D5B"/><rect x="608" y="165" width="34" height="26" rx="5" fill="#4C9A74"/><rect x="650" y="165" width="34" height="26" rx="5" fill="#7FB99C"/><rect x="692" y="165" width="34" height="26" rx="5" fill="#A9D0BD"/>
+    <text x="542" y="220" class="body math muted">A₂</text>
+    <rect x="566" y="202" width="34" height="26" rx="5" fill="#2E7D5B"/><rect x="608" y="202" width="34" height="26" rx="5" fill="#E0968A"/><rect x="650" y="202" width="34" height="26" rx="5" fill="#3A8F83"/><rect x="692" y="202" width="34" height="26" rx="5" fill="#7FB99C"/>
+    <text x="542" y="257" class="body math muted">A₃</text>
+    <rect x="566" y="239" width="34" height="26" rx="5" fill="#E0968A"/><rect x="608" y="239" width="34" height="26" rx="5" fill="#4C9A74"/><rect x="650" y="239" width="34" height="26" rx="5" fill="#62A98A"/><rect x="692" y="239" width="34" height="26" rx="5" fill="#A9D0BD"/>
+  </g>
+  <text x="644" y="320" text-anchor="middle" class="cap muted" style="font-size:12px">one failed clause leaves the others intact</text>
+  <path d="M768 215H800" stroke="#8A9A91" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- step 4: verified pool (hero) -->
+  <rect x="804" y="140" width="250" height="150" rx="12" fill="#EDF6F0" stroke="#2E7D5B" stroke-width="1.8"/>
+  <text x="929" y="168" text-anchor="middle" class="title green" style="font-size:15px">Verified clause pool</text>
+  <text x="929" y="188" text-anchor="middle" class="cap muted">syntax · dedup · Houdini</text>
+  <line x1="828" y1="200" x2="1030" y2="200" stroke="#BCD8C8" stroke-width="1.5"/>
+  <g>
+    <rect x="828" y="210" width="56" height="24" rx="4" fill="#2E7D5B"/><rect x="894" y="210" width="64" height="24" rx="4" fill="#7FB99C"/><rect x="968" y="210" width="52" height="24" rx="4" fill="#3A8F83"/>
+    <rect x="828" y="240" width="64" height="24" rx="4" fill="#4C9A74"/><rect x="902" y="240" width="58" height="24" rx="4" fill="#A9D0BD"/><rect x="970" y="240" width="50" height="24" rx="4" fill="#62A98A"/>
+  </g>
+  <rect x="882" y="272" width="94" height="34" rx="17" fill="#2E7D5B"/>
+  <text x="929" y="294" text-anchor="middle" class="body math white">C<tspan baseline-shift="super" font-size="10" font-style="normal">surv</tspan></text>
+  <path d="M1058 215H1090" stroke="#8A9A91" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- step 5: compose & verify -->
+  <path d="M1094 190C1110 190 1112 210 1118 212M1094 215H1118M1094 240C1110 240 1112 220 1118 218" fill="none" stroke="#7FB99C" stroke-width="2.5"/>
+  <rect x="1120" y="178" width="120" height="74" rx="10" fill="#fff" stroke="#2E7D5B" stroke-width="1.5"/>
+  <text x="1180" y="210" text-anchor="middle" class="math green" font-size="15">c₁ ∧ ··· ∧ cₘ</text>
+  <text x="1180" y="232" text-anchor="middle" class="cap muted">candidate</text>
+  <path d="M1244 215H1270" stroke="#8A9A91" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <g transform="translate(1280 190)">
+    <path d="M4 14a10 10 0 0120 0v6h-5v-6a5 5 0 00-10 0v6H4z" fill="#8A9A91"/>
+    <rect x="0" y="19" width="28" height="24" rx="4" fill="#8A9A91"/>
+  </g>
+  <text x="1294" y="252" text-anchor="middle" class="cap muted">restore G</text>
+  <path d="M1314 215H1340" stroke="#8A9A91" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <rect x="1348" y="178" width="104" height="74" rx="10" fill="#EDF6F0" stroke="#2E7D5B" stroke-width="1.5"/>
+  <text x="1400" y="208" text-anchor="middle" class="body green" font-weight="700">Verifier</text>
+  <path d="M1387 222l8 9 18-20" fill="none" stroke="#2E7D5B" stroke-width="3.5" stroke-linecap="round"/>
+
+  <!-- legend -->
+  <rect x="1356" y="322" width="13" height="13" rx="2" fill="#E0968A" stroke="#B85C47" stroke-width="1"/>
+  <text x="1377" y="333" class="cap muted" style="font-size:12px">rejected clause</text>
+
+  <!-- ==================== bridge: the same verified clauses ==================== -->
+  <path d="M929 306V374" fill="none" stroke="#2E7D5B" stroke-width="2.5" marker-end="url(#ga)"/>
+  <rect x="694" y="378" width="470" height="36" rx="18" fill="#fff" stroke="#2E7D5B" stroke-width="1.5"/>
+  <text x="929" y="402" text-anchor="middle" class="body green">the same verified clauses supervise both learning stages</text>
+  <path d="M929 414V420" fill="none" stroke="#2E7D5B" stroke-width="2"/>
+  <path d="M340 420H1242" fill="none" stroke="#2E7D5B" stroke-width="2"/>
+  <path d="M340 420V464" fill="none" stroke="#2E7D5B" stroke-width="2" marker-end="url(#ga)"/>
+  <path d="M1242 420V464" fill="none" stroke="#2E7D5B" stroke-width="2" marker-end="url(#ga)"/>
+  <text x="354" y="448" class="cap muted">composed set</text>
+  <text x="1228" y="448" text-anchor="end" class="cap muted">rollout group</text>
+
+  <!-- ==================== PANEL B · ALIGNED TRAINING ==================== -->
+  <rect x="24" y="436" width="1452" height="408" rx="16" fill="#FBFCFB" stroke="#E2E8E3" stroke-width="1.5"/>
+  <rect x="48" y="420" width="260" height="32" rx="16" fill="#fff" stroke="#2E7D5B" stroke-width="1.5"/>
+  <text x="178" y="441" text-anchor="middle" class="paneltag green">B · ALIGNED TRAINING</text>
+
+  <!-- SFT card -->
+  <rect x="48" y="472" width="452" height="348" rx="14" fill="#fff" stroke="#DFE7E1" stroke-width="1.5"/>
+  <text x="72" y="512" class="title teal">SFT · distill exploration</text>
+  <line x1="72" y1="524" x2="476" y2="524" stroke="#347F78" stroke-width="2"/>
+  <rect x="174" y="536" width="200" height="68" rx="10" fill="#fff" stroke="#C3D0C7" stroke-width="1.5"/>
+  <text x="194" y="566" class="body">compose a set</text>
+  <text x="300" y="566" class="body math muted">C</text><text x="309" y="569" font-size="10" class="math muted">L</text><text x="316" y="566" class="body math muted">(t)</text>
+  <text x="194" y="590" class="cap math muted">g</text><text x="200" y="592.5" font-size="8" class="muted">sft</text><text x="212" y="590" class="cap muted">rollouts <tspan style="font-family:DejaVu Sans">∪</tspan> pool → filter</text>
+  <path d="M274 604V624" stroke="#8A9A91" stroke-width="2" marker-end="url(#arrow)"/>
+  <polygon points="186,664 274,624 362,664 274,704" fill="#E6F2F0" stroke="#347F78" stroke-width="1.8"/>
+  <text x="274" y="660" text-anchor="middle" class="body teal" style="font-size:14px">coverage ≥ τ?</text>
+  <text x="274" y="678" text-anchor="middle" class="cap muted" style="font-size:10.5px">target-free</text>
+  <path d="M186 664H140V570H174" fill="none" stroke="#9DB0A5" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+  <text x="100" y="684" class="cap muted" style="font-size:10px">no · +</text>
+  <text x="127" y="684" class="cap math muted" style="font-size:10px">g</text><text x="133" y="686.5" font-size="7.5" class="muted">sft</text><text x="144" y="684" class="cap muted" style="font-size:10px">rollouts</text>
+  <text x="113" y="698" class="cap muted" style="font-size:10px">≤</text>
+  <text x="125" y="698" class="cap math muted" style="font-size:10px">t</text><text x="131" y="700.5" font-size="7.5" class="muted">sft</text><text x="142" y="698" class="cap muted" style="font-size:10px">rounds</text>
+  <path d="M274 704V726" stroke="#347F78" stroke-width="2" marker-end="url(#ta)"/>
+  <text x="289" y="720" class="cap teal">yes</text>
+  <rect x="174" y="726" width="200" height="44" rx="8" fill="#347F78"/>
+  <text x="233" y="745" class="body white" style="font-size:13px" font-weight="700">accepted set</text>
+  <text x="233" y="762" class="cap white" style="font-size:10px">SFT corpus</text>
+  <text x="290" y="762" class="cap math white" style="font-size:10px">D</text>
+  <text x="297" y="764" font-size="8" fill="#fff">SFT</text>
+  <path d="M274 770V788" stroke="#347F78" stroke-width="2" marker-end="url(#ta)"/>
+  <text x="274" y="810" text-anchor="middle" class="title teal" style="font-size:15px">fine-tune</text>
+
+  <!-- scorer card -->
+  <rect x="524" y="472" width="452" height="348" rx="14" fill="#fff" stroke="#DFE7E1" stroke-width="1.5"/>
+  <text x="548" y="512" class="title olive">Target-free scorer</text>
+  <line x1="548" y1="524" x2="952" y2="524" stroke="#B87A2C" stroke-width="2"/>
+  <text x="548" y="542" class="cap muted" font-style="italic">one target-free signal, two consumers</text>
+  <text x="548" y="578" class="body">① validity</text>
+  <text x="952" y="578" text-anchor="end" class="cap math muted" style="font-size:13px">v ∈ {0,1}</text>
+  <text x="548" y="630" class="body">② negative coverage</text>
+  <text x="548" y="654" class="cap muted">execution-derived negatives</text>
+  <g>
+    <circle cx="852" cy="624" r="7" fill="#EEF2EF" stroke="#66786F" stroke-width="1.2"/>
+    <circle cx="876" cy="624" r="7" fill="#EEF2EF" stroke="#66786F" stroke-width="1.2"/>
+    <circle cx="900" cy="624" r="7" fill="#EEF2EF" stroke="#66786F" stroke-width="1.2"/>
+    <circle cx="924" cy="624" r="7" fill="#EEF2EF" stroke="#66786F" stroke-width="1.2"/>
+    <circle cx="948" cy="624" r="7" fill="#EEF2EF" stroke="#66786F" stroke-width="1.2"/>
+    <path d="M847 619l10 10M857 619l-10 10M895 619l10 10M905 619l-10 10M919 619l10 10M929 619l-10 10" stroke="#2E7D5B" stroke-width="2"/>
+  </g>
+  <text x="952" y="654" text-anchor="end" class="cap math muted" style="font-size:13px">covᵢ = 3/5</text>
+  <text x="548" y="700" class="body">③ Shapley credit</text>
+  <rect x="840" y="688" width="22" height="14" rx="3" fill="#4C9A74"/>
+  <path d="M866 695H884" stroke="#8A9A91" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <text x="875" y="682" text-anchor="middle" class="cap math muted">1</text>
+  <circle cx="898" cy="695" r="7" fill="#EEF2EF" stroke="#66786F" stroke-width="1.2"/>
+  <rect x="918" y="680" width="22" height="14" rx="3" fill="#2E7D5B"/>
+  <rect x="918" y="702" width="22" height="14" rx="3" fill="#7FB99C"/>
+  <path d="M944 687L956 692M944 709L956 698" stroke="#8A9A91" stroke-width="1.6"/>
+  <text x="951" y="678" text-anchor="middle" class="cap math muted">½</text>
+  <text x="951" y="722" text-anchor="middle" class="cap math muted">½</text>
+  <circle cx="962" cy="695" r="7" fill="#EEF2EF" stroke="#66786F" stroke-width="1.2"/>
+  <line x1="548" y1="736" x2="952" y2="736" stroke="#E2E8E3" stroke-width="1.5"/>
+  <g class="math olive" font-size="16">
+    <text x="627" y="770">r</text><text x="637" y="774" font-size="10.5">i</text>
+    <text x="649" y="770">=</text>
+    <text x="669" y="770">w</text><text x="683" y="774" font-size="10.5">c</text><text x="693" y="770">·cov</text><text x="727" y="774" font-size="10.5">i</text>
+    <text x="739" y="770">+</text>
+    <text x="759" y="770">w</text><text x="773" y="774" font-size="10.5">g</text><text x="783" y="770">·φ</text><text x="807" y="774" font-size="10.5">i</text>
+    <text x="817" y="770">−</text>
+    <text x="839" y="770">w</text><text x="853" y="774" font-size="10.5">o</text><text x="863" y="770">·o</text><text x="883" y="774" font-size="10.5">i</text>
+  </g>
+  <path d="M524 770H504" fill="none" stroke="#347F78" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#ta)"/>
+  <text x="514" y="758" text-anchor="middle" class="cap teal" style="font-size:10px">accept</text>
+  <path d="M976 770H1000" fill="none" stroke="#5B7185" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#sa)"/>
+  <text x="988" y="758" text-anchor="middle" class="cap slate" style="font-size:10px">credit</text>
+
+  <!-- RL card -->
+  <rect x="1000" y="472" width="452" height="348" rx="14" fill="#fff" stroke="#DFE7E1" stroke-width="1.5"/>
+  <text x="1024" y="512" class="title slate">RL · attribute exploration</text>
+  <line x1="1024" y1="524" x2="1428" y2="524" stroke="#5B7185" stroke-width="2"/>
+  <text x="1024" y="560" class="body">rollout group</text>
+  <text x="1024" y="579" class="cap math muted">g</text><text x="1030" y="581.5" font-size="8" class="muted">rl</text><text x="1040" y="579" class="cap muted">rollouts → decompose</text>
+  <text x="1282" y="548" text-anchor="middle" class="cap muted">surviving clauses · pooled + filtered once</text>
+  <g>
+    <rect x="1145" y="556" width="30" height="22" rx="4" fill="#2E7D5B"/>
+    <rect x="1197" y="556" width="30" height="22" rx="4" fill="#4C9A74"/>
+    <rect x="1249" y="556" width="30" height="22" rx="4" fill="#7FB99C"/>
+    <rect x="1301" y="556" width="30" height="22" rx="4" fill="#3A8F83"/>
+    <rect x="1353" y="556" width="30" height="22" rx="4" fill="#62A98A"/>
+  </g>
+  <!-- shared column: this clause was proposed by two rollouts -->
+  <rect x="1142" y="590" width="36" height="124" rx="6" fill="#E9EEF3"/>
+  <g>
+    <text x="1030" y="619" class="body math muted">y₁</text>
+    <circle cx="1160" cy="614" r="7" fill="#5B7185"/><circle cx="1212" cy="614" r="7" fill="#5B7185"/><circle cx="1264" cy="614" r="7" fill="#5B7185"/><circle cx="1316" cy="614" r="7" fill="#F0F3F1" stroke="#D8E2DC" stroke-width="1.2"/><circle cx="1368" cy="614" r="7" fill="#F0F3F1" stroke="#D8E2DC" stroke-width="1.2"/>
+    <text x="1030" y="655" class="body math muted">y₂</text>
+    <circle cx="1160" cy="650" r="7" fill="#5B7185"/><circle cx="1212" cy="650" r="7" fill="#F0F3F1" stroke="#D8E2DC" stroke-width="1.2"/><circle cx="1264" cy="650" r="7" fill="#F0F3F1" stroke="#D8E2DC" stroke-width="1.2"/><circle cx="1316" cy="650" r="7" fill="#5B7185"/><circle cx="1368" cy="650" r="7" fill="#F0F3F1" stroke="#D8E2DC" stroke-width="1.2"/>
+    <text x="1030" y="691" class="body math muted">y₃</text>
+    <circle cx="1160" cy="686" r="7" fill="#F0F3F1" stroke="#D8E2DC" stroke-width="1.2"/><circle cx="1212" cy="686" r="7" fill="#5B7185"/><circle cx="1264" cy="686" r="7" fill="#F0F3F1" stroke="#D8E2DC" stroke-width="1.2"/><circle cx="1316" cy="686" r="7" fill="#5B7185"/><circle cx="1368" cy="686" r="7" fill="#5B7185"/>
+  </g>
+  <path d="M1384 614H1400M1384 650H1400M1384 686H1400" stroke="#5B7185" stroke-width="1.8" marker-end="url(#sa)"/>
+  <circle cx="1418" cy="614" r="16" fill="#fff" stroke="#5B7185" stroke-width="1.5"/>
+  <circle cx="1418" cy="650" r="16" fill="#fff" stroke="#5B7185" stroke-width="1.5"/>
+  <circle cx="1418" cy="686" r="16" fill="#fff" stroke="#5B7185" stroke-width="1.5"/>
+  <text x="1418" y="619" text-anchor="middle" class="cap math slate" style="font-size:13px">r₁</text>
+  <text x="1418" y="655" text-anchor="middle" class="cap math slate" style="font-size:13px">r₂</text>
+  <text x="1418" y="691" text-anchor="middle" class="cap math slate" style="font-size:13px">r₃</text>
+  <text x="1024" y="732" class="cap muted" style="font-size:12px">each surviving clause credits its proposers</text>
+  <path d="M1418 702V724H1310V740" fill="none" stroke="#5B7185" stroke-width="2" marker-end="url(#sa)"/>
+  <rect x="1232" y="744" width="156" height="52" rx="10" fill="#E9EEF3" stroke="#5B7185" stroke-width="1.5"/>
+  <text x="1310" y="768" text-anchor="middle" class="title slate">GRPO</text>
+  <text x="1310" y="786" text-anchor="middle" class="cap muted" style="font-size:10px">group-normalized advantage</text>
+</svg>

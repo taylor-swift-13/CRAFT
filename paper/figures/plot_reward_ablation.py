@@ -13,6 +13,8 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+from paper_style import GREEN, MUTED, OCHRE, RUST, TEAL, use_paper_style
+
 
 OUT = Path(__file__).resolve().parent
 
@@ -22,28 +24,28 @@ VARIANTS = {
     "Binary": {
         "pass": [3.78, 6.21, 7.72, 9.40, 11.26],
         "combine": [7.21, 12.26, 16.71, 20.31, 23.32],
-        "color": "#9D6652",   # muted terracotta
+        "color": RUST,   # baseline family
         "marker": "o",
         "style": "-",
     },
     "Whole-rollout": {
         "pass": [16.67, 19.17, 20.03, 20.90, 21.92],
         "combine": [18.87, 19.95, 20.31, 21.27, 22.72],
-        "color": "#A17B45",   # muted ochre
+        "color": OCHRE,  # weak ablation
         "marker": "s",
         "style": "-",
     },
     "Clause-decomposed": {
         "pass": [4.10, 9.35, 12.27, 14.88, 17.14],
         "combine": [48.08, 57.33, 60.22, 61.54, 61.90],
-        "color": "#708C7C",   # desaturated sage
+        "color": TEAL,   # decomposed ablation
         "marker": "^",
         "style": "-",
     },
     "Full (ours)": {
         "pass": [6.80, 13.41, 16.80, 20.17, 23.44],
         "combine": [57.93, 66.95, 70.43, 72.60, 73.20],
-        "color": "#2D7053",   # paper deep green
+        "color": GREEN,  # ours
         "marker": "D",
         "style": "-",
     },
@@ -56,22 +58,17 @@ UNTRAINED = {
 
 
 def configure() -> None:
+    use_paper_style(base_size=10.7)
     plt.rcParams.update(
         {
-            "font.family": "DejaVu Sans",
-            "font.size": 10.7,
             "axes.titlesize": 11.8,
             "axes.labelsize": 10.8,
             "legend.fontsize": 9.3,
             "xtick.labelsize": 9.8,
             "ytick.labelsize": 9.8,
-            "axes.edgecolor": "#5c6e65",
             "axes.linewidth": 0.7,
             "axes.facecolor": "#F7FAF8",
-            "figure.facecolor": "white",
             "grid.color": "#D5E0D9",
-            "grid.linewidth": 0.55,
-            "pdf.fonttype": 42,
         }
     )
 
@@ -92,7 +89,7 @@ def plot_panel(ax: plt.Axes, metric: str) -> None:
         K,
         UNTRAINED[metric],
         label="Zero (untrained)",
-        color="#737B77",
+        color=MUTED,
         marker="x",
         linestyle=":",
         linewidth=1.7,

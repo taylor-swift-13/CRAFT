@@ -12,15 +12,15 @@
   bus/.style={draw=codeblue!64, line width=1.0pt},
   dataflow/.style={-{Stealth[length=1.45mm,width=1.0mm]}, draw=codepurple!86,
     line width=0.65pt},
-  trainflow/.style={-{Stealth[length=1.45mm,width=1.0mm]}, draw=codeblue!88,
+  trainflow/.style={-{Stealth[length=1.45mm,width=1.0mm]}, draw=codeslate!88,
     line width=0.65pt},
   inferflow/.style={-{Stealth[length=2.0mm]}, draw=codeolive!80,
     line width=0.95pt},
   rewardflow/.style={-{Stealth[length=1.15mm,width=0.9mm]},
     draw=codeolive!82, line width=0.6pt},
-  panel/.style={draw=promptframe, fill=white, rounded corners=5pt,
-    line width=0.85pt},
-  card/.style={draw=promptframe, fill=white, rounded corners=2.5pt,
+  panel/.style={draw=promptframe!85, fill=white, rounded corners=5pt,
+    line width=0.6pt},
+  card/.style={draw=none, fill=paperink!4, rounded corners=2.5pt,
     line width=0.75pt, align=center, inner xsep=5pt, inner ysep=4pt,
     outer sep=1pt},
   tag/.style={rounded corners=2pt, inner xsep=5pt, inner ysep=2.3pt,
@@ -42,8 +42,8 @@
 %% THE HUB: decompose (within a rollout) and compose (across rollouts)
 %% -----------------------------------------------------------------
 \draw[panel] (0.10,3.72) rectangle (15.90,7.05);
-\node[tag, fill=codeblue, anchor=west]
-  at (0.40,7.05) {DECOMPOSE \(\rightleftarrows\) COMPOSE};
+\node[font=\small\bfseries, text=codeblue, anchor=west]
+  at (0.45,6.88) {DECOMPOSE \(\rightleftarrows\) COMPOSE};
 
 %% legend: red marks a rejected clause
 \begin{scope}[shift={(13.85,6.82)}]
@@ -53,7 +53,7 @@
 \end{scope}
 
 %% masked program card
-\node[card, draw=paperink!30, text width=1.95cm]
+\node[card, fill=paperink!4, text width=1.95cm]
   (masked) at (1.32,5.20)
   {{\bfseries Masked loop}\\[-1pt]
    \(\mathcal L=(\mathsf{Init},B,S)\)\\[-2pt]
@@ -63,7 +63,7 @@
 %% ---------------- DECOMPOSE block ----------------
 \draw[rounded corners=4pt, draw=codeblue!48, fill=codeblue!4,
   line width=0.9pt] (2.75,4.00) rectangle (8.20,6.45);
-\node[tag, fill=codeblue!80, anchor=west] at (3.00,6.45) {WITHIN A ROLLOUT};
+\node[font=\tiny\bfseries, text=codeblue!75, anchor=west] at (3.05,6.28) {WITHIN A ROLLOUT};
 
 \node[heading] at (4.25,5.92) {1\; ROLLOUT};
 \foreach \y/\lab/\cols/\mk/\rowstyle/\labcol in {
@@ -100,7 +100,7 @@
 %% ---------------- COMPOSE block ----------------
 \draw[rounded corners=4pt, draw=codegreen!58, fill=codegreen!4,
   line width=0.9pt] (8.65,4.00) rectangle (15.60,6.45);
-\node[tag, fill=codegreen!72, anchor=west] at (8.90,6.45) {ACROSS ROLLOUTS};
+\node[font=\tiny\bfseries, text=codegreen!75, anchor=west] at (8.95,6.28) {ACROSS ROLLOUTS};
 
 \node[heading] at (9.75,5.92) {3\; POOL};
 \node[poolbound, minimum width=1.55cm, minimum height=1.25cm] at (9.75,5.18) {};
@@ -118,7 +118,7 @@
   (11.48,5.06) -- (11.87,5.46) -- cycle;
 \draw[draw=codeblue!74, fill=codeblue!84, line width=0.7pt]
   (11.40,5.46) ellipse (0.47 and 0.085);
-\node[font=\tiny, text=codegray, align=center] at (11.40,4.32)
+\node[font=\tiny, text=codegray, align=center] at (11.40,4.42)
   {syntax, dedup,\\Houdini};
 
 \draw[flow] (11.82,5.18) -- (12.45,5.18);
@@ -128,9 +128,9 @@
   -0.36/-0.19/codegreen!55, 0.00/-0.19/codegreen!30, 0.36/-0.19/codegreen!80}{
   \node[clausebox, fill=\c, draw=paperink!45] at (13.10+\dx,5.18+\dy) {};
 }
-\node[font=\tiny, text=codegray] at (13.10,4.32) {conjoin survivors};
+\node[font=\tiny, text=codegray] at (13.10,4.22) {conjoin survivors};
 
-\node[card, draw=codegreen!64, fill=codegreen!10,
+\node[card, fill=codegreen!12,
   text width=1.30cm] (survivors) at (14.70,5.18)
   {{\bfseries Output}\\[-1pt] \(C^{\mathrm{surv}}\)};
 \draw[flow] (13.65,5.18) -- (survivors.west);
@@ -150,11 +150,11 @@
 %% =================================================================
 %% LEFT --- SFT: reward-accepted distillation into SFT targets
 %% =================================================================
-\draw[rounded corners=5pt, fill=white, draw=codepurple!34,
-  line width=0.8pt] (0.10,-2.75) rectangle (4.40,3.05);
-\node[tag, fill=codepurple!84, anchor=west] at (0.40,3.05) {SFT};
+\draw[rounded corners=5pt, fill=white, draw=promptframe!90,
+  line width=0.6pt] (0.10,-2.75) rectangle (4.40,3.05);
+\node[font=\footnotesize\bfseries, text=codepurple!85, anchor=west] at (0.45,2.88) {SFT \(\cdot\) distill exploration};
 
-\node[card, draw=codepurple!58, fill=white, text width=3.0cm]
+\node[card, fill=codepurple!7, text width=3.0cm]
   (composed) at (2.35,2.30)
   {{\bfseries Composed set \(C_{\mathcal L}^{(t)}\)}\\[-1pt]
    {\tiny \(g_{\mathrm{sft}}\) rollouts \(\cup\) pool \(\to\) filter}};
@@ -162,7 +162,7 @@
                    3.07/codegreen!55,3.31/codegreen!30,3.55/codegreen!80}{
   \node[clausebox, fill=\c] at (\x,1.78) {};
 }
-\node[card, draw=codepurple!58, fill=codepurple!4, text width=2.9cm,
+\node[card, fill=codepurple!9, text width=2.9cm,
   inner ysep=2.5pt] (accept) at (2.35,1.10)
   {{\bfseries Accept?}\; coverage \(\ge\tau\)};
 \draw[dataflow] (composed.south) -- (accept.north);
@@ -170,7 +170,7 @@
   (accept.west) -- (0.50,1.10) -- (0.50,2.30) -- (composed.west);
 \node[font=\tiny, text=codepurple!80, rotate=90] at (0.33,1.70)
   {no: +\(g_{\mathrm{sft}}\) rollouts, \(\le t_{\mathrm{sft}}\) rounds};
-\node[card, draw=codepurple!45, fill=white, text width=3.5cm,
+\node[card, fill=codepurple!7, text width=3.5cm,
   inner ysep=2.5pt] (sfttarget) at (2.35,0.10)
   {{\bfseries SFT target}: the accepted set};
 \draw[dataflow] (accept.south) -- (sfttarget.north);
@@ -183,7 +183,7 @@
 \node[tag, fill=codepurple!84] (sftcorpus) at (2.35,-0.75)
   {SFT CORPUS \(\mathcal D_{\mathrm{SFT}}\)};
 \draw[dataflow] (sfttarget.south) -- (2.35,-0.31);
-\node[card, draw=codepurple!58, fill=white, text width=3.3cm,
+\node[card, fill=codepurple!7, text width=3.3cm,
   inner ysep=2.5pt] (sftmodel) at (2.35,-1.57)
   {{\bfseries fine-tune}\\[-1pt] {\tiny many rollouts \(\to\) one response}};
 \draw[dataflow] (sftcorpus.south) -- (sftmodel.north);
@@ -194,10 +194,10 @@
 %% =================================================================
 %% CENTER --- one target-independent scorer shared by SFT and RL
 %% =================================================================
-\draw[rounded corners=5pt, fill=white, draw=codeolive!45,
-  line width=0.8pt] (4.90,-2.75) rectangle (11.00,3.05);
-\node[tag, fill=codeolive!85, anchor=west] at (5.20,3.05) {REWARD};
-\node[font=\tiny\itshape, text=codegray, anchor=east] at (10.80,2.70)
+\draw[rounded corners=5pt, fill=white, draw=promptframe!90,
+  line width=0.6pt] (4.90,-2.75) rectangle (11.00,3.05);
+\node[font=\footnotesize\bfseries, text=codeolive!90, anchor=west] at (5.25,2.88) {TARGET-FREE SCORER};
+\node[font=\tiny\itshape, text=codegray, anchor=east] at (10.80,2.60)
   {one target-free signal, two consumers};
 
 %% binary baseline
@@ -219,8 +219,8 @@
 %% coverage score
 \node[heading, anchor=west] at (5.15,0.68) {COVERAGE};
 \draw[draw=paperink!45, fill=white, line width=0.5pt]
-  (6.75,0.44) rectangle (8.85,0.74);
-\draw[draw=none, fill=codegreen!55] (6.75,0.44) rectangle (8.10,0.74);
+  (7.10,0.44) rectangle (8.85,0.74);
+\draw[draw=none, fill=codegreen!55] (7.10,0.44) rectangle (8.10,0.74);
 \node[font=\tiny, text=codegray, anchor=west] at (9.00,0.59)
   {\(\operatorname{cov}_i\)};
 \node[font=\tiny, text=codegray, anchor=west] at (9.00,0.34)
@@ -257,15 +257,15 @@
   inner sep=0pt] at (6.52,-0.02) {};
 \node[font=\tiny, text=codegray, anchor=west] at (6.66,-0.02) {unique};
 \node[circle, draw=codegreen!60, fill=codegreen!32, minimum size=0.20cm,
-  inner sep=0pt] at (7.52,-0.02) {};
+  inner sep=0pt] at (7.66,-0.02) {};
 \draw[codegreen!90, line width=0.45pt]
-  (7.45,-0.09) -- (7.59,0.05) (7.45,0.05) -- (7.59,-0.09);
-\node[font=\tiny, text=codegray, anchor=west] at (7.66,-0.02) {shared};
+  (7.59,-0.09) -- (7.73,0.05) (7.59,0.05) -- (7.73,-0.09);
+\node[font=\tiny, text=codegray, anchor=west] at (7.80,-0.02) {shared};
 \end{scope}
 \draw[rewardflow] (7.95,-1.48) -- (7.95,-1.68);
 
 %% the per-rollout reward
-\node[card, draw=codeolive!55, fill=algobg!60, text width=4.9cm,
+\node[card, fill=codeolive!8, text width=4.9cm,
   inner ysep=3pt] (rewardformula) at (7.95,-2.04)
   {{\bfseries RL reward per rollout}\\[-1pt]
    \(r_i=w_c\operatorname{cov}_i+w_g\phi_i-w_o o_i\)};
@@ -273,11 +273,11 @@
 %% =================================================================
 %% RIGHT --- RL: pool + filter once, provenance credit, GRPO
 %% =================================================================
-\draw[rounded corners=5pt, fill=white, draw=codeblue!34,
-  line width=0.8pt] (11.50,-2.75) rectangle (15.90,3.05);
-\node[tag, fill=codeblue, anchor=west] at (11.80,3.05) {RL};
+\draw[rounded corners=5pt, fill=white, draw=promptframe!90,
+  line width=0.6pt] (11.50,-2.75) rectangle (15.90,3.05);
+\node[font=\footnotesize\bfseries, text=codeslate!90, anchor=west] at (11.85,2.88) {RL \(\cdot\) attribute exploration};
 
-\node[card, draw=codeblue!58, fill=white, text width=3.6cm]
+\node[card, fill=codeslate!7, text width=3.6cm]
   (group) at (13.70,2.30)
   {{\bfseries Rollout group}\\[-1pt]
    {\tiny \(g_{\mathrm{rl}}\) rollouts \(\to\) decompose}};
@@ -285,23 +285,23 @@
                    14.42/codegreen!80,14.66/codegreen!30,14.90/codegreen!60}{
   \node[clausebox, fill=\c] at (\x,1.78) {};
 }
-\node[card, draw=codeblue!58, fill=codeblue!4, text width=3.6cm,
+\node[card, fill=codeslate!9, text width=3.6cm,
   inner ysep=2.5pt] (pool) at (13.70,1.10)
   {{\bfseries Pool + filter once}\\[-1pt]
    {\tiny one filter call per group}};
 \draw[trainflow] (group.south) -- (pool.north);
-\node[card, draw=codeblue!58, fill=white, text width=3.6cm,
+\node[card, fill=codeslate!7, text width=3.6cm,
   inner ysep=2.5pt] (assign) at (13.70,0.18)
   {{\bfseries Assign survivors to proposers}\\[-1pt]
    {\tiny normalization-key provenance}};
 \draw[trainflow] (pool.south) -- (assign.north);
-\node[card, draw=codeblue!62, fill=algobg!85, text width=3.6cm,
+\node[card, fill=codeslate!10, text width=3.6cm,
   inner ysep=3pt] (rwd) at (13.70,-1.00)
   {{\bfseries reward} = attributed coverage\\[-1pt]
    + Shapley bonus\\[-1pt]
    {\color{codegray}\(y_i\): \(w_c\operatorname{cov}_i+w_g\phi_i-w_o o_i\)}};
 \draw[trainflow] (assign.south) -- (rwd.north);
-\node[card, draw=codeblue!62, fill=white, text width=3.6cm,
+\node[card, fill=codeslate!7, text width=3.6cm,
   inner ysep=1.2pt] (grpo) at (13.70,-2.22)
   {{\bfseries GRPO}: group-normalized advantage\\[-2pt]
    \(\to\) policy update \(\to\) next group};

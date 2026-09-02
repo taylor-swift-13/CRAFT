@@ -8,12 +8,11 @@
   font=\sffamily\footnotesize,
   >=Stealth,
   flow/.style={-{Stealth[length=2.2mm]}, draw=paperink!58, line width=1.1pt},
-  panel/.style={rounded corners=6pt, fill=algobg!58, draw=promptframe,
-    line width=0.8pt},
-  subcard/.style={rounded corners=3.5pt, fill=white, line width=0.8pt},
-  stage/.style={font=\scriptsize\bfseries, text=codegray},
-  ttl/.style={font=\scriptsize\bfseries, text=paperink, anchor=west},
-  ann/.style={font=\tiny, text=codegray, align=center},
+  panel/.style={rounded corners=6pt, fill=algobg!58, draw=none},
+  subcard/.style={rounded corners=3.5pt, fill=white, draw=none},
+  stage/.style={font=\sffamily\scriptsize, text=codegray},
+  ttl/.style={font=\sffamily\scriptsize, text=paperink, anchor=west},
+  ann/.style={font=\sffamily\tiny, text=codegray, align=center},
   pdot/.style={circle, fill=codegreen, inner sep=1.55pt},
   neg/.style={circle, draw=codered, fill=wrongred!35, line width=0.8pt,
     inner sep=1.35pt},
@@ -44,8 +43,8 @@
 \draw[panel] (3.30,-1.90) rectangle (10.00,1.90);
 
 % relation family
-\draw[subcard, draw=codepurple!50] (3.55,0.12) rectangle (9.75,1.66);
-\node[ttl] at (3.75,1.42) {Relation};
+\draw[subcard] (3.55,0.12) rectangle (9.75,1.66);
+\node[ttl, text=codepurple!85] at (3.75,1.42) {Relation};
 \node[pdot] (r1) at (4.15,0.62) {};
 \node[pdot] (r2) at (5.05,0.62) {};
 \node[pdot] (r3) at (5.95,0.62) {};
@@ -59,8 +58,8 @@
   {guard preserved,\\[-1pt]off the transition\\[-1pt]tangent};
 
 % post-exit family
-\draw[subcard, draw=codeblue!50] (3.55,-1.66) rectangle (9.75,-0.12);
-\node[ttl] at (3.75,-0.38) {Post-exit};
+\draw[subcard] (3.55,-1.66) rectangle (9.75,-0.12);
+\node[ttl, text=codeslate!85] at (3.75,-0.38) {Post-exit};
 \node[pdot] (p1) at (4.15,-1.10) {};
 \node[pdot] (p2) at (4.95,-1.10) {};
 \node[pdot] (p3) at (5.75,-1.10) {};
@@ -89,13 +88,13 @@
   {{\color{codered}\(\times\)} duplicate};
 \draw[draw=promptframe, line width=0.6pt] (10.95,-0.28) -- (13.25,-0.28);
 \node[ann, text=paperink] at (12.10,-0.62)
-  {\textbf{48} relation \(\cdot\) \textbf{12} post-exit};
+  {48 relation \(\cdot\) 12 post-exit};
 \node[ann] at (12.10,-0.98) {nearest perturbations first};
 
 \draw[flow] (13.50,0) -- (14.20,0);
 
 %% ---------------- Output ----------------
-\node[circle, draw=codered!70, fill=wrongred!22, line width=1.1pt,
+\node[circle, fill=wrongred!25,
   inner sep=0pt, minimum size=1.18cm] (out) at (14.95,0)
   {\(\mathcal N\)};
 \node[ann] at (14.95,-0.98) {negative traces\\[-1pt]for the RL reward};

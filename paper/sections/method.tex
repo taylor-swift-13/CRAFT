@@ -2,18 +2,13 @@
 \section{Method}\label{sec:method}
 %% ============================================================
 
-CRAFT aligns training and inference around one clause-processing pipeline.
-Decompose turns a complete response into clauses that can be retained
-separately, so a local failure does not obscure the remaining useful content;
-pool and filter merge clauses across responses and remove invalid or
-incompatible candidates; compose conjoins the complementary survivors into
-one invariant.  The same filtered result is then consumed in three ways:
-inference verifies its composition, SFT serializes an accepted composition as
-one response, and RL maps the surviving contributions back to the rollouts
-that proposed them.  Assertions and postconditions remain hidden
-throughout generation and training and are restored only for final
-verification.  Appendix~\ref{app:formal-method} gives the complete formal
-definition.
+CRAFT applies one clause-processing pipeline to inference, SFT target
+construction, and RL credit assignment.  Inference verifies the composition
+of the filtered clause union, SFT serializes an accepted composition as one
+response, and RL maps surviving contributions back to their proposing
+rollouts.  Assertions and postconditions remain hidden throughout generation
+and training and are restored only for final verification.
+Appendix~\ref{app:formal-method} gives the complete formal definition.
 
 \subsection{Target-Hidden Composable Inference}
 \label{sec:method:core}
@@ -24,9 +19,8 @@ ordered invariant clauses extracted from response \(y\).  Let
 \(\operatorname{Admit}(y)=\operatorname{Unique}(
 \operatorname{First}_{m_{\max}}(\operatorname{parts}(y)))\), where
 \(\operatorname{First}_{m}\) keeps the first \(m\) clauses.  The value of
-\(m_{\max}\) is reported in the parameter table rather than embedded in the
-formula.  Algorithm~\ref{alg:method-pipeline} defines the complete inference
-procedure.
+\(m_{\max}\) is reported in Table~\ref{tab:constants}.
+Algorithm~\ref{alg:method-pipeline} defines the complete inference procedure.
 
 \begin{algorithm}[H]
 \caption{Rollout--decompose--pool--filter--compose}
@@ -48,18 +42,13 @@ procedure.
 \end{algorithm}
 
 \(\operatorname{Unique}\) performs conservative duplicate removal, and
-\(\operatorname{Filter}\) is resource-bounded Houdini: establishment and
-preservation are checked clause by clause under the current candidate family,
-so clauses from different responses may support one another.  Timeout and
-unknown cause deletion; a set is returned only after all its clauses are
-proved in their final joint context, while hitting the round limit returns
-the conservative empty result.  Appendix~\ref{app:formal-loop-verification} separates the semantic
-definition of an invariant from the Frama-C-aligned loop-verifier interface;
-Appendix~\ref{app:formal-houdini} defines both ideal and bounded Houdini.
-All clause statuses in one round may use the pre-deletion candidate context,
-including hypotheses whose own goals fail.  Houdini therefore reruns the
-survivors after every deletion and stops only when one complete round deletes
-nothing.
+\(\operatorname{Filter}\) is resource-bounded Houdini.  It checks
+establishment and preservation under the current joint candidate family,
+removes unproved clauses, and repeats until one round deletes nothing.  This
+joint context allows clauses from different responses to support one another;
+the filter returns only a proved final conjunction.  Timeout, unknown, and
+round-limit behavior are specified in Appendices~\ref{app:formal-loop-verification}
+and~\ref{app:formal-houdini}.
 
 Only after \(I\) is fixed do we restore the hidden targets \(\mathcal G\)
 and run the final verification conditions at their original locations.  The
@@ -106,9 +95,8 @@ SFT uses Algorithm~\ref{alg:method-pipeline} as a target synthesizer.  Starting
 from an empty accumulated clause pool, each round adds a new group sampled
 from the same small open-weight base model that is subsequently fine-tuned.
 Executor-derived traces and verifier outcomes jointly determine which
-candidate sets become SFT targets; no external model proposes labels or
-judges responses.  Each round adds the new base-model clauses and
-re-filters the entire accumulated pool:
+candidate sets become SFT targets.  Each round adds the new base-model clauses
+and re-filters the entire accumulated pool:
 \begin{equation}
   P_t=\operatorname{Unique}\!\left(P_{t-1}\Vert
     \operatorname{Admit}(y_1^{(t)})\Vert\cdots\Vert
@@ -130,8 +118,7 @@ contains \(\mathcal G\).
 RL applies exactly the same pool-then-filter order once per response group.
 The current small open-weight policy produces the group, and its rewards are
 computed entirely from executor-derived traces, verifier-retained clauses,
-and deterministic provenance.  No external LLM, critic model, or target
-assertion contributes to the reward.
+and deterministic provenance.
 Let \(L_i=\operatorname{parts}(y_i)\),
 \(o_i=\max(0,|L_i|-m_{\max})\), and
 \(A_i=\operatorname{Admit}(y_i)\).  Thus
@@ -171,8 +158,9 @@ The rollout reward is
 Here \(w_c\), \(w_g\), and \(w_o\) denote the coverage, group-credit, and
 overflow weights.  The first term rewards each response by the negative
 coverage of its pooled survivors; the
-second is a complementarity bonus that divides redundant coverage among its
-proposers; the final term penalizes clauses emitted beyond the response cap.
+second is a redundancy-adjusted allocation that divides repeated coverage
+among its proposers; the final term penalizes clauses emitted beyond the
+response cap.
 It is the Shapley value after filtering the full group, not the value of a game
 that reruns Houdini for every coalition.  A clause that only supports another
 clause receives no direct coverage credit.

@@ -24,8 +24,8 @@
     line width=0.75pt, align=center, inner xsep=5pt, inner ysep=4pt,
     outer sep=1pt},
   tag/.style={rounded corners=2pt, inner xsep=5pt, inner ysep=2.3pt,
-    font=\small\bfseries, text=white, outer sep=0.8pt},
-  heading/.style={font=\scriptsize\bfseries, text=codegray, align=center},
+    font=\sffamily\scriptsize, text=white, outer sep=0.8pt},
+  heading/.style={font=\sffamily\scriptsize, text=paperink, align=center},
   clausebox/.style={rectangle, rounded corners=0.5pt, minimum width=0.26cm,
     minimum height=0.26cm, inner sep=0pt, draw=paperink!20, line width=0.3pt},
   validrow/.style={rounded corners=2.2pt, draw=codegreen!42, fill=codegreen!6,
@@ -42,41 +42,48 @@
 %% THE HUB: decompose (within a rollout) and compose (across rollouts)
 %% -----------------------------------------------------------------
 \draw[panel] (0.10,3.72) rectangle (15.90,7.05);
-\node[font=\small\bfseries, text=codeblue, anchor=west]
+\node[font=\sffamily\scriptsize, text=codeblue, anchor=west]
   at (0.45,6.88) {DECOMPOSE \(\rightleftarrows\) COMPOSE};
 
 %% legend: red marks a rejected clause
 \begin{scope}[shift={(13.85,6.82)}]
   \fill[wrongred] (0,0) rectangle (0.16,0.16);
-  \node[font=\tiny, text=codegray, anchor=west] at (0.26,0.08)
+  \node[font=\sffamily\tiny, text=codegray, anchor=west] at (0.26,0.08)
     {rejected};
 \end{scope}
 
 %% masked program card
 \node[card, fill=paperink!4, text width=1.95cm]
   (masked) at (1.32,5.20)
-  {{\bfseries Masked loop}\\[-1pt]
-   \(\mathcal L=(\mathsf{Init},B,S)\)\\[-2pt]
+  {{Masked loop}\\[-1pt]
+   \(\mathcal L=(\mathrm{Init},B,S)\)\\[-2pt]
    {\textcolor{codered}{target \(\mathcal G\) hidden}}};
 \draw[flow] (masked.east) -- (2.67,5.20);
+\node[font=\sffamily\tiny, text=codegray, align=center] at (1.32,4.28)
+  {sampling never sees \\[-1pt] the target \(\mathcal G\)};
 
 %% ---------------- DECOMPOSE block ----------------
 \draw[rounded corners=4pt, draw=codeblue!48, fill=codeblue!4,
   line width=0.9pt] (2.75,4.00) rectangle (8.20,6.45);
-\node[font=\tiny\bfseries, text=codeblue!75, anchor=west] at (3.05,6.28) {WITHIN A ROLLOUT};
+\node[font=\sffamily\tiny, text=codegray, anchor=west] at (3.05,6.28) {WITHIN A ROLLOUT};
 
 \node[heading] at (4.25,5.92) {1\; ROLLOUT};
-\foreach \y/\lab/\cols/\mk/\rowstyle/\labcol in {
-  5.60/y_1/{codegreen!85,codegreen!50,codegreen!85,codegreen!35,codegreen!65}/\cmark/validrow/codegreen!70,
-  5.18/y_2/{codegreen!70,wrongred,codegreen!45,codegreen!80,codegreen!30}/\xmark/wrongrow/codered!68,
-  4.76/y_3/{wrongred,codegreen!60,wrongred,codegreen!40,codegreen!75}/\xmark/wrongrow/codered!68}{
+\foreach \y/\lab/\cols/\rowstyle/\labcol in {
+  5.60/y_1/{codegreen!85,codegreen!50,codegreen!85,codegreen!35,codegreen!65}/validrow/codegreen!70,
+  5.18/y_2/{codegreen!70,wrongred,codegreen!45,codegreen!80,codegreen!30}/wrongrow/codered!68,
+  4.76/y_3/{wrongred,codegreen!60,wrongred,codegreen!40,codegreen!75}/wrongrow/codered!68}{
   \node[\rowstyle, minimum width=2.05cm, minimum height=0.42cm] at (4.35,\y) {};
-  \node[font=\tiny, text=\labcol] at (3.52,\y) {\(\lab\)};
+  \node[font=\sffamily\tiny, text=codegray] at (3.52,\y) {\(\lab\)};
   \foreach \c [count=\i from 0] in \cols {
     \node[clausebox, fill=\c] at (3.84+\i*0.30,\y) {};
   }
-  \node[font=\tiny\bfseries, text=\labcol] at (5.24,\y) {\mk};
 }
+%% verdict marks drawn as paths (no extra symbol font)
+\draw[codegreen!75, line width=0.9pt]
+  (5.18,5.60) -- (5.225,5.545) -- (5.31,5.675);
+\draw[codered!75, line width=0.9pt]
+  (5.185,5.125) -- (5.295,5.235) (5.185,5.235) -- (5.295,5.125)
+  (5.185,4.705) -- (5.295,4.815) (5.185,4.815) -- (5.295,4.705);
 \node[text=codegray!70] at (4.35,4.40) {\(\vdots\)};
 
 \draw[flow] (5.38,5.18) -- (5.84,5.18);
@@ -85,12 +92,12 @@
   5.60/{A_1}/{codegreen!85,codegreen!50,codegreen!85,codegreen!35,codegreen!65},
   5.18/{A_2}/{codegreen!70,wrongred,codegreen!45,codegreen!80,codegreen!30},
   4.76/{A_3}/{wrongred,codegreen!60,wrongred,codegreen!40,codegreen!75}}{
-  \node[font=\tiny, text=paperink!75, anchor=east] at (6.31,\y) {\(\lab\)};
+  \node[font=\sffamily\tiny, text=codegray, anchor=east] at (6.31,\y) {\(\lab\)};
   \foreach \c [count=\i from 0] in \cols {
     \node[clausebox, fill=\c, draw=paperink!45] at (6.42+\i*0.36,\y) {};
   }
 }
-\node[font=\tiny, text=codegray, align=center] at (7.10,4.35)
+\node[font=\sffamily\tiny, text=codegray, align=center] at (7.10,4.35)
   {one failed clause leaves\\the other clauses intact};
 
 %% the hinge between the two operations
@@ -100,7 +107,7 @@
 %% ---------------- COMPOSE block ----------------
 \draw[rounded corners=4pt, draw=codegreen!58, fill=codegreen!4,
   line width=0.9pt] (8.65,4.00) rectangle (15.60,6.45);
-\node[font=\tiny\bfseries, text=codegreen!75, anchor=west] at (8.95,6.28) {ACROSS ROLLOUTS};
+\node[font=\sffamily\tiny, text=codegray, anchor=west] at (8.95,6.28) {ACROSS ROLLOUTS};
 
 \node[heading] at (9.75,5.92) {3\; POOL};
 \node[poolbound, minimum width=1.55cm, minimum height=1.25cm] at (9.75,5.18) {};
@@ -118,7 +125,7 @@
   (11.48,5.06) -- (11.87,5.46) -- cycle;
 \draw[draw=codeblue!74, fill=codeblue!84, line width=0.7pt]
   (11.40,5.46) ellipse (0.47 and 0.085);
-\node[font=\tiny, text=codegray, align=center] at (11.40,4.42)
+\node[font=\sffamily\tiny, text=codegray, align=center] at (11.40,4.42)
   {syntax, dedup,\\Houdini};
 
 \draw[flow] (11.82,5.18) -- (12.45,5.18);
@@ -128,11 +135,11 @@
   -0.36/-0.19/codegreen!55, 0.00/-0.19/codegreen!30, 0.36/-0.19/codegreen!80}{
   \node[clausebox, fill=\c, draw=paperink!45] at (13.10+\dx,5.18+\dy) {};
 }
-\node[font=\tiny, text=codegray] at (13.10,4.22) {conjoin survivors};
+\node[font=\sffamily\tiny, text=codegray] at (13.10,4.22) {conjoin survivors};
 
 \node[card, fill=codegreen!12,
   text width=1.30cm] (survivors) at (14.70,5.18)
-  {{\bfseries Output}\\[-1pt] \(C^{\mathrm{surv}}\)};
+  {{Output}\\[-1pt] \(C^{\mathrm{surv}}\)};
 \draw[flow] (13.65,5.18) -- (survivors.west);
 
 %% -----------------------------------------------------------------
@@ -142,9 +149,9 @@
 \foreach \x in {2.35,13.70}{\fill[codeblue!72] (\x,3.42) circle (1.8pt);}
 \draw[dataflow]  (2.35,3.42) -- (2.35,3.12);
 \draw[trainflow] (13.70,3.42) -- (13.70,3.12);
-\node[font=\tiny, text=codegray, anchor=west] at (2.49,3.22)
+\node[font=\sffamily\tiny, text=codegray, anchor=west] at (2.49,3.22)
   {composed set};
-\node[font=\tiny, text=codegray, anchor=west] at (13.84,3.22)
+\node[font=\sffamily\tiny, text=codegray, anchor=west] at (13.84,3.22)
   {rollout group};
 
 %% =================================================================
@@ -152,29 +159,26 @@
 %% =================================================================
 \draw[rounded corners=5pt, fill=white, draw=promptframe!90,
   line width=0.6pt] (0.10,-2.75) rectangle (4.40,3.05);
-\node[font=\footnotesize\bfseries, text=codepurple!85, anchor=west] at (0.45,2.88) {SFT \(\cdot\) distill exploration};
+\node[font=\sffamily\scriptsize, text=codepurple!85, anchor=west] at (0.45,2.88) {SFT \(\cdot\) distill exploration};
 
 \node[card, fill=codepurple!7, text width=3.0cm]
   (composed) at (2.35,2.30)
-  {{\bfseries Composed set \(C_{\mathcal L}^{(t)}\)}\\[-1pt]
+  {{Composed set \(C_{\mathcal L}^{(t)}\)}\\[-1pt]
    {\tiny \(g_{\mathrm{sft}}\) rollouts \(\cup\) pool \(\to\) filter}};
-\foreach \x/\c in {1.15/codegreen!85,1.39/codegreen!45,1.63/codegreen!70,
-                   3.07/codegreen!55,3.31/codegreen!30,3.55/codegreen!80}{
-  \node[clausebox, fill=\c] at (\x,1.78) {};
-}
 \node[card, fill=codepurple!9, text width=2.9cm,
   inner ysep=2.5pt] (accept) at (2.35,1.10)
-  {{\bfseries Accept?}\; coverage \(\ge\tau\)};
+  {{Accept?}\; coverage \(\ge\tau\)};
 \draw[dataflow] (composed.south) -- (accept.north);
 \draw[dataflow, rounded corners=2pt]
   (accept.west) -- (0.50,1.10) -- (0.50,2.30) -- (composed.west);
-\node[font=\tiny, text=codepurple!80, rotate=90] at (0.33,1.70)
-  {no: +\(g_{\mathrm{sft}}\) rollouts, \(\le t_{\mathrm{sft}}\) rounds};
+\node[font=\sffamily\tiny, text=codegray, anchor=west, align=left] at (0.58,1.70)
+  {no: +\(g_{\mathrm{sft}}\) rollouts,\\[-1pt]
+   \(\le t_{\mathrm{sft}}\) rounds};
 \node[card, fill=codepurple!7, text width=3.5cm,
   inner ysep=2.5pt] (sfttarget) at (2.35,0.10)
-  {{\bfseries SFT target}: the accepted set};
+  {{SFT target}: the accepted set};
 \draw[dataflow] (accept.south) -- (sfttarget.north);
-\node[font=\tiny, text=codepurple!80, anchor=west] at (2.47,0.62)
+\node[font=\sffamily\tiny, text=codegray, anchor=west] at (2.47,0.62)
   {yes};
 \draw[rounded corners=2pt, draw=none, fill=codepurple!18]
   (1.50,-0.63) rectangle (3.48,-0.35);
@@ -185,7 +189,7 @@
 \draw[dataflow] (sfttarget.south) -- (2.35,-0.31);
 \node[card, fill=codepurple!7, text width=3.3cm,
   inner ysep=2.5pt] (sftmodel) at (2.35,-1.57)
-  {{\bfseries fine-tune}\\[-1pt] {\tiny many rollouts \(\to\) one response}};
+  {{fine-tune}\\[-1pt] {\tiny many rollouts \(\to\) one response}};
 \draw[dataflow] (sftcorpus.south) -- (sftmodel.north);
 %% shared reward link: the composed set is scored, the verdict returns
 \draw[scoreflow, rounded corners=2pt]
@@ -196,13 +200,13 @@
 %% =================================================================
 \draw[rounded corners=5pt, fill=white, draw=promptframe!90,
   line width=0.6pt] (4.90,-2.75) rectangle (11.00,3.05);
-\node[font=\footnotesize\bfseries, text=codeolive!90, anchor=west] at (5.25,2.88) {TARGET-FREE SCORER};
-\node[font=\tiny\itshape, text=codegray, anchor=east] at (10.80,2.60)
+\node[font=\sffamily\scriptsize, text=codeolive!90, anchor=west] at (5.25,2.88) {TARGET-FREE SCORER};
+\node[font=\sffamily\tiny, text=codegray, anchor=east] at (10.80,2.60)
   {one target-free signal, two consumers};
 
 %% binary baseline
 \node[heading] at (7.95,2.38) {BINARY};
-\node[font=\tiny, text=codegray] at (7.95,2.12)
+\node[font=\sffamily\tiny, text=codegray] at (7.95,2.12)
   {valid set \(\mapsto \{0,1\}\)};
 \draw[rewardflow] (7.95,1.98) -- (7.95,1.84);
 
@@ -212,7 +216,7 @@
   \node[circle, draw=codegray!55, fill=codegray!20, minimum size=0.22cm,
     inner sep=0pt] at (7.35+\i*0.30,1.38) {};
 }
-\node[font=\tiny, text=codegray] at (7.95,1.10)
+\node[font=\sffamily\tiny, text=codegray] at (7.95,1.10)
   {execution-derived};
 \draw[rewardflow] (7.95,0.96) -- (7.95,0.80);
 
@@ -221,9 +225,9 @@
 \draw[draw=paperink!45, fill=white, line width=0.5pt]
   (7.10,0.44) rectangle (8.85,0.74);
 \draw[draw=none, fill=codegreen!55] (7.10,0.44) rectangle (8.10,0.74);
-\node[font=\tiny, text=codegray, anchor=west] at (9.00,0.59)
+\node[font=\sffamily\tiny, text=codegray, anchor=west] at (9.00,0.59)
   {\(\operatorname{cov}_i\)};
-\node[font=\tiny, text=codegray, anchor=west] at (9.00,0.34)
+\node[font=\sffamily\tiny, text=codegray, anchor=west] at (9.00,0.34)
   {rejected negatives};
 \draw[rewardflow] (7.95,0.30) -- (7.95,0.10);
 
@@ -233,7 +237,7 @@
   -0.38/y_1/{2,1,1,0,0}/{\(\phi_1\)},
   -0.68/y_2/{2,2,1,0,1}/{\(\phi_2\)},
   -0.98/y_3/{0,0,1,2,1}/{\(\phi_3\)}}{
-  \node[font=\tiny, text=codegreen!70, anchor=east] at (6.40,\y) {\(\lab\)};
+  \node[font=\sffamily\tiny, text=codegray, anchor=east] at (6.40,\y) {\(\lab\)};
   \foreach \s [count=\i from 0] in \marks {
     \pgfmathsetmacro{\bx}{6.52+\i*0.26}
     \ifcase\s
@@ -250,24 +254,24 @@
         minimum size=0.22cm, inner sep=0pt] at (\bx,\y) {};
     \fi
   }
-  \node[font=\tiny, text=codegray, anchor=west] at (7.75,\y) {\phiv};
+  \node[font=\sffamily\tiny, text=codegray, anchor=west] at (7.75,\y) {\phiv};
 }
 \begin{scope}[yshift=-1.34cm]
 \node[circle, draw=codegreen!90, fill=codegreen!80, minimum size=0.20cm,
   inner sep=0pt] at (6.52,-0.02) {};
-\node[font=\tiny, text=codegray, anchor=west] at (6.66,-0.02) {unique};
+\node[font=\sffamily\tiny, text=codegray, anchor=west] at (6.66,-0.02) {unique};
 \node[circle, draw=codegreen!60, fill=codegreen!32, minimum size=0.20cm,
   inner sep=0pt] at (7.66,-0.02) {};
 \draw[codegreen!90, line width=0.45pt]
   (7.59,-0.09) -- (7.73,0.05) (7.59,0.05) -- (7.73,-0.09);
-\node[font=\tiny, text=codegray, anchor=west] at (7.80,-0.02) {shared};
+\node[font=\sffamily\tiny, text=codegray, anchor=west] at (7.80,-0.02) {shared};
 \end{scope}
 \draw[rewardflow] (7.95,-1.48) -- (7.95,-1.68);
 
 %% the per-rollout reward
 \node[card, fill=codeolive!8, text width=4.9cm,
   inner ysep=3pt] (rewardformula) at (7.95,-2.04)
-  {{\bfseries RL reward per rollout}\\[-1pt]
+  {{RL reward per rollout}\\[-1pt]
    \(r_i=w_c\operatorname{cov}_i+w_g\phi_i-w_o o_i\)};
 
 %% =================================================================
@@ -275,41 +279,37 @@
 %% =================================================================
 \draw[rounded corners=5pt, fill=white, draw=promptframe!90,
   line width=0.6pt] (11.50,-2.75) rectangle (15.90,3.05);
-\node[font=\footnotesize\bfseries, text=codeslate!90, anchor=west] at (11.85,2.88) {RL \(\cdot\) attribute exploration};
+\node[font=\sffamily\scriptsize, text=codeslate!90, anchor=west] at (11.85,2.88) {RL \(\cdot\) attribute exploration};
 
 \node[card, fill=codeslate!7, text width=3.6cm]
   (group) at (13.70,2.30)
-  {{\bfseries Rollout group}\\[-1pt]
+  {{Rollout group}\\[-1pt]
    {\tiny \(g_{\mathrm{rl}}\) rollouts \(\to\) decompose}};
-\foreach \x/\c in {12.50/codegreen!70,12.74/wrongred,12.98/codegreen!45,
-                   14.42/codegreen!80,14.66/codegreen!30,14.90/codegreen!60}{
-  \node[clausebox, fill=\c] at (\x,1.78) {};
-}
 \node[card, fill=codeslate!9, text width=3.6cm,
   inner ysep=2.5pt] (pool) at (13.70,1.10)
-  {{\bfseries Pool + filter once}\\[-1pt]
+  {{Pool + filter once}\\[-1pt]
    {\tiny one filter call per group}};
 \draw[trainflow] (group.south) -- (pool.north);
 \node[card, fill=codeslate!7, text width=3.6cm,
   inner ysep=2.5pt] (assign) at (13.70,0.18)
-  {{\bfseries Assign survivors to proposers}\\[-1pt]
+  {{Assign survivors to proposers}\\[-1pt]
    {\tiny normalization-key provenance}};
 \draw[trainflow] (pool.south) -- (assign.north);
 \node[card, fill=codeslate!10, text width=3.6cm,
   inner ysep=3pt] (rwd) at (13.70,-1.00)
-  {{\bfseries reward} = attributed coverage\\[-1pt]
+  {{reward} = attributed coverage\\[-1pt]
    + Shapley bonus\\[-1pt]
    {\color{codegray}\(y_i\): \(w_c\operatorname{cov}_i+w_g\phi_i-w_o o_i\)}};
 \draw[trainflow] (assign.south) -- (rwd.north);
 \node[card, fill=codeslate!7, text width=3.6cm,
   inner ysep=1.2pt] (grpo) at (13.70,-2.22)
-  {{\bfseries GRPO}: group-normalized advantage\\[-2pt]
+  {{GRPO}: group-normalized advantage\\[-2pt]
    \(\to\) policy update \(\to\) next group};
 \draw[trainflow] (rwd.south) -- (grpo.north);
 %% shared reward link: survivors are scored, per-rollout rewards return
 \draw[scoreflow, rounded corners=2pt]
   (rwd.west) -- (11.25,-1.00) -- (11.25,-2.04) -- (rewardformula.east);
-\node[font=\tiny, text=paperink!70, fill=white, inner sep=1pt]
+\node[font=\sffamily\tiny, text=codegray, fill=white, inner sep=1pt]
   at (11.25,-1.52) {\(r_i\)};
 
 \end{tikzpicture}

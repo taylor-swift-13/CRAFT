@@ -2,28 +2,13 @@
 \section{Conclusion and Limitations}\label{sec:conclusion}
 %% ============================================================
 
-Our results show that treating each response as an indivisible final answer
-wastes useful clauses inside responses that fail as a whole.  By decomposing
-responses and recombining their filtered clauses, CRAFT can exploit
-complementary information across such responses.  This structure also
-provides training signals aligned with inference: SFT learns compositions
-found through offline exploration, while RL assigns credit according to each
-rollout's contribution to the pooled result.  Both stages reduce the number
-of inference-time samples needed to obtain multi-response gains, and RL
-remains effective after SFT.
-
-The reward ablations further show that improving standalone responses does
-not necessarily improve their composition.  Whole-response credit raises
-pass@1 but substantially reduces compose@32, whereas clause- and group-level
-credit better preserve the partial correctness and cross-response
-complementarity used at inference.
-
-Our experiments focus on scalar-integer single-loop C programs, but the
-underlying mechanism is not specific to loop invariants.  The same approach
-can in principle apply when candidate solutions can be decomposed into
-reusable components, these components can be reliably verified, and valid
-components can be recombined.  These conditions allow the
-decompose--filter--compose procedure to provide aligned SFT targets and RL
-credit beyond the current setting.  Evaluating this transfer across other
-program structures and problem domains remains future work
+Our results show that useful invariant clauses need not occur in a single
+successful response.  Filtering and combining clauses across responses
+substantially improves bare-model verification, while SFT and RL make these
+gains available at smaller sampling budgets.  RL continues to improve
+compose@1 after SFT, despite little change at larger \(k\).  The reward
+ablations further show that higher pass does not necessarily imply better
+composition: clause and group credit retain compositional gains that are lost
+under whole-response credit.  Future work should test whether the same training
+design transfers to other tasks with independently verifiable components
 (Appendix~\ref{app:limitations}).

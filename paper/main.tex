@@ -222,42 +222,23 @@ for Target-Hidden Loop Verification}
 \begin{abstract}
 Valid loop invariants are closed under conjunction: useful clauses from
 different responses can prove a target even when no response does so alone.
-Yet standard training scores each response as an indivisible answer.  We
-study this mismatch under \emph{target-hidden loop verification}, where target
-assertions and postconditions \(\mathcal G\) are withheld during generation and
-training.  CRAFT addresses this mismatch through two complementary operations:
-decompose each rollout so that a partially incorrect response does not erase
-its valid clauses, and compose verified clauses across rollouts so that
-complementary partial answers can form a proof.  At inference, it realizes
-this idea through rollout--decompose--pool--filter--compose: responses are
-decomposed into clauses, pooled across rollouts, filtered with syntax checking
-and Houdini, and composed into one invariant before restoring \(\mathcal G\).
-Training
-is aligned with inference through the same filtered clause pool:
-rejection-filtered SFT distills accepted multi-response pools into single
-responses, while RL scores each response by the negative coverage of its
-pooled survivors and uses Shapley allocation to preserve complementary
-exploration.  Both stages transfer the benefits of multi-response exploration
-to fewer inference-time samples: SFT learns from composed exploration
-outcomes, and RL further increases the probability of producing useful
-clauses within a single rollout.
-The only learned generator in both stages is the small open-weight model being
-trained: SFT acceptance and RL rewards use only program executions and
-verifier outcomes, without an external teacher or reward model.
-On 832 C programs, the inference pipeline raises bare Qwen3-8B from 6.43\%
-pass@1 to 37.86\% compose@1.  Large-scale SFT then reaches 63.90\%
-compose@1.  A subsequent RL stage uses only 4,992 records---15.0\% as many
-as SFT, with partial source overlap---yet raises compose@1 to 69.23\%.
-This 5.33-point gain reduces verification error by 14.8\%.  The gain is
-concentrated at the primary metric: compose@8--32 stays within 0.6 points of
-the SFT checkpoint.  Thus, even after SFT has nearly saturated performance at
-larger sampling budgets, RL further improves single-rollout generation.
-Under the same target-hidden reasoning-off protocol, one
-SFT+RL Qwen3-8B rollout exceeds Claude Sonnet-4.6 at compose@1 by 12.26
-points.  Reward ablations show why these gains need not sacrifice
-exploration: Shapley credit adds 9.85--11.30 compose points over
-clause-decomposed credit, while binary and whole-response rewards collapse
-composition.
+Yet standard generation and training treat each response as an indivisible
+answer.  We study this mismatch under \emph{target-hidden loop verification},
+where target assertions and postconditions \(\mathcal G\) are withheld during
+generation and training.  CRAFT decomposes each response into clauses, pools
+and filters clauses across responses, and composes the survivors before
+restoring \(\mathcal G\).  This preserves valid parts of imperfect responses
+and combines complementary parts discovered separately.  Training uses the
+same filtered result: rejection-filtered SFT distills accepted compositions
+into single responses, while RL scores each response by its coverage of
+target-independent negative traces and uses Shapley allocation to discount
+coverage repeated across the sampled group.  Both stages transfer gains from
+multi-response exploration to smaller inference budgets.  On 832 C programs, compositional inference
+raises bare Qwen3-8B from 6.43\% pass@1 to 37.86\% compose@1 without additional
+model calls.  SFT reaches 63.90\% compose@1, and subsequent RL raises it to
+69.23\%.  Across all \(k\), Shapley group credit adds 9.62--11.30 compose
+points over clause-level credit alone, whereas binary and whole-response
+credit substantially reduce composition.
 \end{abstract}
 
 %% ============================================================

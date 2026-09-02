@@ -263,7 +263,7 @@ proposing rollouts before computing credit
 \midrule
 \(w_c,w_g,w_o\) & \(1.0,0.3,0.1\) & coverage, group-credit, and overflow weights \\
 \(m_{\max}\) & 20 clauses & cap applied independently to each response \\
-\(\mathcal K\) & \(\{1,2,4,8,16,32\}\) & reported Bare response budgets \\
+\(\mathcal K\) & \(\{1,4,8,16,32\}\) & reported Bare response budgets \\
 \(n_{\mathrm{probe}}\) & 128; 100; 32 & saved responses per task (8B; A3B/Llama; remaining base models) \\
 \(\vartheta\) & 1.0 & decoding temperature except for Loopy (Table~\ref{tab:tool-sampling-parameters}) \\
 \(p\) & 1.0 & nucleus-sampling probability \\
@@ -390,11 +390,10 @@ penalty.
 \section{Generation Prompt}
 \label{app:prompt}
 
-The canonical evaluation template appears below; every target and non-contract
-comment is stripped before insertion, and general annotation rules are supplied
+The canonical evaluation template appears below; every target is
+stripped before insertion, and general annotation rules are supplied
 by the common system prompt.  Both the SFT and RL data use this single prompt
-pair, and no model-visible prompt contains a target clause or non-contract
-comment.
+pair.
 
 \begin{promptbox}[Generation prompt]
 \begin{lstlisting}[style=promptstyle]
@@ -621,8 +620,8 @@ of its original 469-program corpus (three floating-point programs excluded),
 and unsupported inputs remain failures in the common denominator.
 
 Before model invocation, we remove assert and ensures
-predicates, executable assertion calls, conventional error-label names, and
-non-contract comments, including source-provenance paths; preconditions and
+predicates, executable assertion calls, and conventional error-label names;
+preconditions and
 executable semantics remain visible.  \sam{} evaluation
 runs use the canonical generation template, extractor, canonical-key deduplication,
 and Houdini implementation; external tools retain their own orchestration.
@@ -683,8 +682,6 @@ Rollouts per prompt \(g_{\mathrm{rl}}\) & 8 \\
 Tensor parallelism \(p_{\mathrm{tp}}\) & 1--2 \\
 GPU memory utilization \(\mu_{\mathrm{gpu}}\) & 0.3--0.5 \\
 Epochs \(e_{\mathrm{rl}}\) & 5 \\
-Total steps \(s_{\mathrm{rl}}\) & 200 \\
-Checkpoint interval \(s_{\mathrm{ckpt}}\) & 100 \\
 \bottomrule
 \end{tabular}
 \caption{RL training configurations.}
@@ -782,7 +779,7 @@ Llama 3.1 8B & 5,135 \\
 The SFT checkpoints use rejection-filtered synthetic targets and are evaluated
 under the same 832-task protocol as the base probe, using response budget
 \(n_{\mathrm{probe}}\), temperature \(\vartheta\), per-obligation prover
-budget \(\delta\), and the current prompt.  All three checkpoints are
+budget \(\delta\), and the current prompt.  All four checkpoints are
 evaluated after three epochs and use the SFT synthesis and verification
 protocol defined in Section~\ref{sec:method:sft}.
 
@@ -905,6 +902,62 @@ Model & \(k\) & pass & comp & pass & comp & pass & comp & pass & comp \\
 \end{table}
 \clearpage
 
+\subsection{Clause-Cap Ablation}
+\label{app:clause-cap}
+
+We vary the per-response clause cap while keeping the saved Qwen3-8B response
+pools and all other evaluation settings fixed.  For cap (c), only the first
+(c) parsed clauses from each response are admitted to standalone verification
+or pooled filtering.  Table~\ref{tab:clause-cap-ablation} therefore isolates
+how the number of available clauses changes the tradeoff between pass and
+composition at the Bare, SFT, and SFT+RL stages.
+
+\begin{table}[H]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3.2pt}
+\caption{Qwen3-8B clause-cap ablation (\%).  Each column uses the same saved
+  response pools while varying the maximum number of admitted clauses per
+  response.}
+\label{tab:clause-cap-ablation}
+\begin{tabular}{crrrrrrrrr}
+\toprule
+& \multicolumn{3}{c}{pass@1} & \multicolumn{3}{c}{compose@1}
+& \multicolumn{3}{c}{compose@8} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}
+Cap & Bare & SFT & SFT+RL & Bare & SFT & SFT+RL
+& Bare & SFT & SFT+RL \\
+\midrule
+1  & 12.16 & 19.59 & 22.86 & 11.06 & 19.23 & 22.72 & 17.67 & 35.10 & 25.48 \\
+2  &  9.45 & 27.31 & 30.24 & 17.31 & 30.89 & 34.01 & 25.24 & 49.40 & 39.18 \\
+4  &  8.20 & 41.41 & 45.26 & 27.76 & 45.67 & 50.48 & 40.75 & 67.07 & 57.45 \\
+8  &  7.04 & 44.53 & 41.91 & 35.46 & 57.09 & 63.34 & 52.40 & 73.56 & 71.39 \\
+16 &  6.56 & 42.80 & 30.88 & 39.42 & 64.90 & 69.11 & 54.21 & 76.56 & 76.32 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For Bare Qwen3-8B, increasing the cap from 1 to 16 decreases pass@1
+monotonically from 12.16\% to 6.56\%, while compose@1 rises from 11.06\% to
+39.42\% and compose@8 from 17.67\% to 54.21\%.  More clauses increase the
+chance that an unfiltered response contains a failure, but also enlarge the
+candidate set from which pooled filtering can retain useful constraints.
+SFT and RL respond differently to the clause cap.  SFT provides stronger
+multi-response support: its compose@8 exceeds SFT+RL at every cap.  RL instead
+raises compose@1 over SFT by 3.12--6.25 points across all caps.  Its compose@8
+does not exceed SFT, but the gap narrows from 10.22 points at cap 2 to only
+0.24 points at cap 16.  These results indicate that SFT establishes broad
+clause support across responses, whereas RL makes more of that support
+available at a smaller sampling budget.
+
+At larger caps, this transfer is accompanied by lower whole-response success.
+At cap 16, RL raises compose@1 from 64.90\% to 69.11\% while pass@1 falls from
+42.80\% to 30.88\%.  RL therefore does not simply improve the correctness of
+each complete response; it increases the utility of a single rollout after
+decomposition, filtering, and composition.  Because the experiment controls
+the admitted clause cap rather than the number of clauses actually emitted,
+we do not interpret it as evidence that RL generates more clauses.
+
 \subsection{Ablation Results}
 \label{app:ablation-definitions}
 
@@ -1008,14 +1061,14 @@ without \(\mathcal G\); the binary label is the final verifier verdict after the
 untouched target is restored.  Predictors use coverage alone; restored targets
 supply evaluation labels.
 
-The continuous analysis contains 5,606 candidates from 752 programs.  The
-remaining 584 candidate rows belong to 80 programs for which the sampler
+The continuous analysis contains 6,182 candidates from 831 programs.  The
+remaining 8 candidate rows belong to 1 program for which the sampler
 retains no negative group; those rows use the binary reward fallback and are
 excluded from the continuous-coverage analysis.  Because multiple candidate generators are evaluated on
 the same program, confidence intervals use 5,000 stratified
 program-cluster bootstrap replicates: all candidates for a resampled program
 move together.  A second analysis computes AUROC separately within each of
-the 547 programs having both successful and unsuccessful candidates, then
+the 593 programs having both successful and unsuccessful candidates, then
 macro-averages over programs.  This removes between-program difficulty as an
 explanation for the ranking.
 
@@ -1026,23 +1079,23 @@ explanation for the ranking.
 \toprule
 Population & Candidates & Positive rate & AUROC & AUPRC \\
 \midrule
-All & 5,606 & 0.508 & 0.738 & 0.730 \\
-Linear & 2,336 & 0.533 & 0.743 & 0.768 \\
-NLA & 400 & 0.090 & 0.542 & 0.132 \\
-Loopy & 2,870 & 0.547 & 0.764 & 0.778 \\
+All & 6,182 & 0.525 & 0.793 & 0.768 \\
+Linear & 2,520 & 0.544 & 0.821 & 0.826 \\
+NLA & 400 & 0.090 & 0.554 & 0.132 \\
+Loopy & 3,262 & 0.564 & 0.798 & 0.797 \\
 \bottomrule
 \end{tabular}
 \end{center}
 
 The pooled AUROC has a program-clustered 95\% confidence interval of
-\([0.711,0.763]\), and the AUPRC interval is \([0.699,0.758]\), compared with
-the pooled positive-rate baseline of \(0.508\).  Within programs, macro
-AUROC is \(0.794\), with a clustered interval of \([0.773,0.814]\); randomly
+\([0.775,0.811]\), and the AUPRC interval is \([0.742,0.794]\), compared with
+the pooled positive-rate baseline of \(0.525\).  Within programs, macro
+AUROC is \(0.802\), with a clustered interval of \([0.783,0.820]\); randomly
 permuting target verdicts among candidates for the same program gives a
 one-sided \(p<2\times10^{-4}\) over 5,000 permutations.  Method-stratified
-AUROCs range from \(0.572\) to \(0.731\), so the pooled association is not
+AUROCs range from \(0.574\) to \(0.820\), so the pooled association is not
 created by a single candidate generator.  Candidates with coverage at least
-0.90 verify \(78.9\%\) of the time, compared with \(29.2\%\) below 0.50.
+0.90 verify \(80.1\%\) of the time, compared with \(22.4\%\) below 0.50.
 
 \begin{figure}[H]
 \centering

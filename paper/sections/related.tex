@@ -13,8 +13,9 @@ filtering, and repair
 ~\citep{si2018learning,si2020code2inv,ryan2020cln2inv,yao2020gcln,
 yu2023lipus,kamath2023finding,chakraborty2023ranking,cao2025clause2inv,
 wu2024lam4inv,liu2024acinv,wen2024enchanting,ma2024specgen,yang2026sespec,
-wu2024lemur,first2023baldur}.  CRAFT instead makes the filtered union of
-multiple responses the shared inference and training object.
+wu2024lemur,first2023baldur}.  CRAFT's distinction is not verifier use alone:
+it exposes clauses from independent responses to one pooled filter and uses
+the resulting composition during both inference and training.
 
 \tightparagraph{Training from formal and behavioral feedback.}
 Verified data and execution or prover feedback have been used to train
@@ -22,15 +23,15 @@ invariant, code, and proof models
 ~\citep{wei2025invbench,pinto2026notall,le2022coderl,yan2025reform}.
 COINS and SpecRL further use positive and negative behaviors to distinguish
 weak valid specifications from stronger ones
-~\citep{yang2026coins,huang2026specrl}.  Our signal is likewise behavioral but
-is derived from target-hidden loop executions and applied only after pooled
-clauses survive verification.
+~\citep{yang2026coins,huang2026specrl}.  CRAFT likewise uses behavioral
+evidence, but derives it from target-hidden executions and applies it only
+after clauses survive pooled verification.
 
 \tightparagraph{Set-level credit in verifiable-reward RL.}
 Per-response RL can improve pass@1 without expanding large-\(k\) coverage
 ~\citep{yue2025rlcapacity,he2025unlikeliness}.  Recent objectives directly
 optimize pass@\(k\) or up-weight rare correct responses
-~\citep{walder2025pkpo,chen2025passktraining,he2025unlikeliness}, but still
-treat each response as an indivisible answer.  CRAFT instead credits verified
-clauses within imperfect responses and allocates group credit by their
-contribution to pooled negative coverage.
+~\citep{walder2025pkpo,chen2025passktraining,he2025unlikeliness}.  These
+objectives remain response-level even when they consider a set of samples.
+CRAFT instead decomposes responses before assigning clause coverage and group
+credit.

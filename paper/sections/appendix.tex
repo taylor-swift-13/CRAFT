@@ -690,13 +690,17 @@ Epochs \(e_{\mathrm{rl}}\) & 5 \\
 
 \section{Complete Experimental Data}
 \label{app:complete-results}
+\begingroup
+\setlength{\floatsep}{7pt plus 2pt minus 2pt}
+\setlength{\textfloatsep}{7pt plus 2pt minus 2pt}
+\setlength{\intextsep}{7pt plus 2pt minus 2pt}
 
 This section collects the per-model and per-stratum measurements behind
 the main aggregates.
 
 \subsection{Probe Curves}
 
-\begin{table}[p]
+\begin{table}[H]
 \centering
 \scriptsize
 \renewcommand{\arraystretch}{0.86}
@@ -752,7 +756,6 @@ Model & \(k\) & pass & comp & pass & comp & pass & comp & pass & comp
 \end{tabular}
 \end{table}
 
-\clearpage
 \begin{table}[H]
 \centering
 \setlength{\tabcolsep}{5pt}
@@ -783,7 +786,7 @@ budget \(\delta\), and the current prompt.  All four checkpoints are
 evaluated after three epochs and use the SFT synthesis and verification
 protocol defined in Section~\ref{sec:method:sft}.
 
-\begin{table}[p]
+\begin{table}[H]
 \centering
 \scriptsize
 \renewcommand{\arraystretch}{0.86}
@@ -831,8 +834,6 @@ Model & \(k\) & pass & comp & pass & comp & pass & comp & pass & comp
 \bottomrule
 \end{tabular}
 \end{table}
-\clearpage
-
 \begin{table}[H]
 \centering
 \setlength{\tabcolsep}{5pt}
@@ -854,7 +855,7 @@ Llama 3.1 8B + SFT & 5,135 \\
 
 \subsection{Reinforcement-Learning Results}
 
-\begin{table}[p]
+\begin{table}[H]
 \centering
 \scriptsize
 \renewcommand{\arraystretch}{0.86}
@@ -900,8 +901,6 @@ Model & \(k\) & pass & comp & pass & comp & pass & comp & pass & comp \\
 \bottomrule
 \end{tabular}
 \end{table}
-\clearpage
-
 \subsection{Clause-Cap Ablation}
 \label{app:clause-cap}
 
@@ -1112,7 +1111,8 @@ better for Linear and Loopy programs than for nonlinear arithmetic.}
 Coverage ranks candidate strength.  The NLA stratum identifies where richer
 nonlinear perturbations are needed.
 
-\subsection{Cross-Model Main Results}
+\subsection{Cross-Model Results}
+\label{app:rq3}
 \label{app:reasoning-leakage}
 
 \begin{table}[H]
@@ -1205,15 +1205,16 @@ Pass@\(k\) and compose@\(k\) use the same archived response pool for each
 model.  Pass@\(k\) is the unbiased pool estimator, whereas compose@\(k\)
 evaluates the first \(k\) saved responses.
 
-\subsection{Comparison with Specialized Tools}
+\subsection{Complete Comparison with Specialized Tools}
 
 \begin{table}[H]
 \centering
 \scriptsize
 \setlength{\tabcolsep}{2.2pt}
-\caption{Archived target-hidden tool comparison: the non-reasoning rows from
-the main text alongside the archived medium-reasoning rerun; Daikon makes no model call
-and is listed once.  Each cell reports the verification rate for Linear,
+\caption{Complete target-hidden tool comparison underlying
+Figure~\ref{fig:tool-pareto}: the non-reasoning rows alongside the archived
+medium-reasoning rerun; Daikon makes no model call and is listed once.  Each
+cell reports the verification rate for Linear,
 NLA, Loopy, or all 832 programs.  Medium-effort results are available only
 for the single-response measurements.  The non-reasoning compose@1,
 compose@4, and compose@8 rows are prefix compositions of the same archived
@@ -1305,7 +1306,10 @@ Loopy & 15 initial + up to 7 repairs & 0.7 / 1.0 & 8,192 & none \\
 \end{table}
 
 Token totals are means over tasks with at least one model call; accuracy
-always keeps the 832-task denominator.
+always keeps the 832-task denominator.  AutoSpec makes one request that
+returns eight proposals; its non-reasoning token count is the native estimate
+for that complete request.  Four failed tasks have no token record, so its
+reported token mean uses the remaining 828 tasks.
 
 \subsection{Tool-Specific Behavior under Target Hiding}
 \label{app:tool-specific-behavior}
@@ -1328,6 +1332,7 @@ Loopy's initial responses contain textual loop-invariant annotations in
 to Houdini.  These rates measure the interface between generated text and
 the clauses accepted by its downstream pipeline.
 
+\endgroup
 \section{Detailed Limitations}
 \label{app:limitations}
 
@@ -1336,6 +1341,21 @@ Our implementation targets numerical programs with one scalar-integer loop.
 The evaluation excludes nested loops and invariants over arrays, heaps, or
 recursively defined predicates.  The negative sampler covers scalar arithmetic
 relations and exit boundaries~\citep{liu2024towards}.
+
+\paragraph{Nonlinear arithmetic under target hiding.}
+NLA exposes the clearest boundary of the current approach: negative coverage
+predicts restored-target success with an AUROC of only 0.554, close to random
+ranking.  This reflects both a limitation of our sampler and an inherent
+challenge of the setting.  Because the target \(\mathcal G\) is hidden, the model cannot
+identify which multiplicative relation or coupled nonlinear constraint the
+final proof requires.  A candidate may reject many sampled negative traces yet
+miss that relation, while a crucial invariant may matter only in a narrow
+state region not reached by those traces.  Consequently, execution-derived,
+target-independent coverage is a less faithful proxy for nonlinear invariant
+utility.  Our results therefore support a compositional framework for settings
+where such signals approximate hidden-target utility, rather than a general
+solution to invariant synthesis.  Richer nonlinear trace generation and
+target-independent symbolic signals are needed to broaden this scope.
 
 \paragraph{Inference engine.}
 Local base and trained checkpoints are served with vLLM.  In preliminary

@@ -186,23 +186,34 @@ sizes and families.
 \end{insightbox}
 
 % ---------------------------------------------------------------------------
+\newpage
 \subsection{RQ3: How Does \sam{} Compare with Specialized Tools?}
 \label{sec:exp:tools}
 
+\begin{wrapfigure}[18]{r}{0.48\linewidth}
+\vspace{-0.75\baselineskip}
+\centering
+\includegraphics[width=\linewidth]{figures/tool_pareto.pdf}
+\caption{Accuracy--cost frontier using GPT-5-nano with reasoning disabled;
+upper-left is better.  Full results are in
+Appendix~\ref{app:complete-results}.}
+\label{fig:tool-pareto}
+\vspace{-0.6\baselineskip}
+\end{wrapfigure}
 We compare \sam{} with the target-hidden pipelines of AutoSpec, SESpec,
 Clause2Inv, Loopy, and Daikon~\citep{wen2024enchanting,yang2026sespec,
 cao2025clause2inv,kamath2023finding,daikon}.  All LLM-based systems use
 GPT-5-nano with reasoning disabled, all outputs face the same untouched
 Frama-C/WP judge, and unsupported inputs count as failures among all 832
-programs.  At compose@4, \sam{} verifies 49.04\%, 6.85 points above the
-strongest external baseline in this reasoning-disabled comparison, AutoSpec
-(42.19\%); compose@8 reaches 55.53\%.  This is an end-to-end
-comparison under each system's native orchestration, so costs differ.  The
-comparison is therefore neither call- nor token-matched.  The
-complete accuracy, token, runtime, and reasoning-effort breakdown appears in
-Appendix~\ref{tab:tools-complete}.  The benefit of clause pooling and
-composition also holds for three additional API models
-(Appendix~\ref{tab:cross-model-main}).
+programs.  Figure~\ref{fig:tool-pareto} compares verification rate against
+mean total tokens under each system's native orchestration.  All three
+\sam{} budgets lie on the model-matched Pareto frontier: compose@4 verifies
+49.04\% with fewer tokens than AutoSpec, the strongest external baseline in
+this reasoning-disabled comparison (42.19\%), while compose@8 reaches
+55.53\%.  The comparison is end-to-end rather than call- or token-matched.
+The complete per-category accuracy, token, runtime, and reasoning-effort
+breakdown appears in Appendix~\ref{app:complete-results}; the benefit also
+holds for three additional API models (Table~\ref{tab:cross-model-main}).
 
 % ---------------------------------------------------------------------------
 \subsection{RQ4: How Does RL Reshape Compositional Exploration Before and After SFT?}
@@ -289,8 +300,11 @@ We also test how the target-independent surrogate should be constructed by
 comparing structured negatives with random perturbations.
 Structured negatives add 2.0--5.3 compose points over random perturbations;
 their target-hidden coverage predicts restored-target success (pooled AUROC
-0.793; within-program 0.802).  Appendices~\ref{app:ablation-definitions} and
-\ref{app:coverage-predictiveness} give full results and the weaker NLA case.
+0.793; within-program 0.802).  On NLA, composition still improves
+verification, but the near-chance coverage AUROC of 0.554 shows that the
+current target-independent signal cannot reliably rank nonlinear candidates.
+Appendices~\ref{app:ablation-definitions} and
+\ref{app:coverage-predictiveness} give the full results.
 
 \begin{insightbox}
 \textbf{Insight.}

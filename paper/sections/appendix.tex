@@ -332,6 +332,7 @@ does.}
 \label{tab:strict-complementarity-case}
 \end{table}
 
+\noindent\begin{minipage}{\textwidth}
 Response~4 proposes \(m\geq1\), but that clause is not provably inductive in
 its standalone context: on the nondeterministic branch, preservation requires
 showing that the assigned value \(x\) is at least one.  Response~2 supplies
@@ -347,6 +348,7 @@ survive.  The complete composed loop annotation is
 At loop exit this annotation proves the restored target.  Thus every
 independently filtered response fails, while their composition succeeds; the
 gain cannot be attributed to merely sampling a better standalone response.
+\end{minipage}
 
 \section{Implementation Details}
 \label{app:constants}
@@ -357,7 +359,7 @@ union once, then uses clause provenance to assign survivors back to their
 proposing rollouts before computing credit
 (Appendix~\ref{app:houdini-order}).
 
-\begin{table}[t]
+\begin{table}[H]
 \centering
 \begin{tabular}{p{2.6cm}p{3.1cm}p{5.9cm}}
 \toprule

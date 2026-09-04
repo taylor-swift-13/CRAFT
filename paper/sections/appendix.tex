@@ -285,15 +285,80 @@ All three clauses rearrange to the hidden assertion.  None of the ten raw
 responses in these pools passes as a whole on this program; pooled filtering
 removes incompatible siblings and retains the useful relation.
 
-\paragraph{Case study: strict cross-response complementarity.}
-To separate cross-response composition from merely sampling a better
-standalone response, we replay the first four archived GPT-5-nano responses
-for the following task.  We apply the target-hidden
-\(\operatorname{Filter}_{\mathcal L}\) used in evaluation first to each
-response separately and then, following the pooled order of
+\paragraph{Case study: composition without cross-response support.}
+To separate target-proof composition from both sampling a better standalone
+response and mutual support during filtering, we replay the first four
+archived GPT-5-nano responses for the following task.  We apply the
+target-hidden \(\operatorname{Filter}_{\mathcal L}\) used in evaluation first
+to each response separately and then, following the pooled order of
 Appendix~\ref{app:houdini-order}, once to their merged clause union.  The
 restored-target judge is applied only after filtering.  The assertion is shown
-here for clarity but is hidden from every response.
+for clarity but is hidden from every response.
+
+\begin{lstlisting}[language=C]
+/*@ requires n >= 0; */
+void f(int n) {
+  int x = n, y = 0;
+  while (x > 0) {
+    y = y + 1;
+    x = x - 1;
+  }
+  /*@ assert y == n; */
+}
+\end{lstlisting}
+
+Table~\ref{tab:no-support-composition-case} reports both the relevant admitted
+proposal from each response and the result of filtering that response alone.
+
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{cllc}
+\toprule
+Response & Relevant proposal & Independent survivors & Target \\
+\midrule
+1 & \(x\geq0,\ y\geq0\) & \(x\geq0,\ y\geq0\) & fail \\
+2 & --- & \(\varnothing\) & fail \\
+3 & \(x=n-y,\ y=n-x\) & \(x=n-y,\ y=n-x\) & fail \\
+4 & \(x\geq0,\ y\geq0\) & \(x\geq0,\ y\geq0\) & fail \\
+\midrule
+Pooled 1--4 & \multicolumn{2}{l}{\(x\geq0,\ y\geq0,\ x=n-y,\ y=n-x\)} & verified \\
+\bottomrule
+\end{tabular}
+\caption{A cross-response composition case without mutual support: every
+pooled survivor already survives independent filtering, yet no response alone
+verifies the target.}
+\label{tab:no-support-composition-case}
+\end{table}
+
+\noindent\begin{minipage}{\textwidth}
+Each of the four distinct pooled clauses also survives when filtered alone,
+so pooling does not rescue any clause by supplying a missing inductive
+hypothesis.  The complete pooled annotation is
+\begin{lstlisting}
+/*@
+  loop invariant x >= 0;
+  loop invariant y >= 0;
+  loop invariant x == n - y;
+  loop invariant y == n - x;
+*/
+\end{lstlisting}
+The proof-minimal cross-response core is \(x\geq0\) from Response~1 (also
+duplicated by Response~4) and \(y=n-x\) from Response~3.  Each clause alone
+fails the restored-target judge.  Together, the exit condition gives
+\(x\leq0\), the bound gives \(x=0\), and the relation yields \(y=n\).
+Thus the gain is genuine composition for proving the target, not a better
+standalone response or cross-response support during inductiveness filtering.
+\end{minipage}
+
+\noindent\begin{minipage}{\textwidth}
+\paragraph{Case study: composition through cross-response support.}
+The preceding case needs composition only to prove the target.  A second
+archived GPT-5-nano replay shows the stronger mechanism from
+Proposition~\ref{prop:mutual-support}: pooling can also make a clause provably
+inductive.  As before, the assertion is restored only after target-hidden
+filtering.
 
 \begin{lstlisting}[language=C]
 extern int unknown(void);
@@ -307,11 +372,8 @@ void f(int n) {
 }
 \end{lstlisting}
 
-Table~\ref{tab:strict-complementarity-case} reports both the relevant admitted
-proposal from each response and the result of filtering that response alone.
-
-\begin{table}[H]
-\centering
+Replaying its first four responses gives:
+\begin{center}
 \small
 \setlength{\tabcolsep}{4pt}
 \begin{tabular}{cllc}
@@ -326,18 +388,12 @@ Response & Relevant proposal & Independent survivors & Target \\
 Pooled 1--4 & \multicolumn{2}{l}{\(m\leq x,\ x\geq1,\ m\geq1\)} & verified \\
 \bottomrule
 \end{tabular}
-\caption{A strict cross-response composition case: no independently
-filtered response verifies the task, whereas filtering their pooled clauses
-does.}
-\label{tab:strict-complementarity-case}
-\end{table}
+\end{center}
 
-\noindent\begin{minipage}{\textwidth}
-Response~4 proposes \(m\geq1\), but that clause is not provably inductive in
-its standalone context: on the nondeterministic branch, preservation requires
-showing that the assigned value \(x\) is at least one.  Response~2 supplies
-exactly the missing invariant \(x\geq1\).  In the pooled context, both clauses
-survive.  The complete composed loop annotation is
+Response~4's \(m\geq1\) cannot be established inductive alone: after the
+nondeterministic assignment \(m=x\), preservation requires \(x\geq1\).
+Response~2 supplies that hypothesis, so pooled filtering retains both clauses.
+The complete composed annotation is
 \begin{lstlisting}
 /*@
   loop invariant m <= x;
@@ -345,9 +401,9 @@ survive.  The complete composed loop annotation is
   loop invariant m >= 1;
 */
 \end{lstlisting}
-At loop exit this annotation proves the restored target.  Thus every
-independently filtered response fails, while their composition succeeds; the
-gain cannot be attributed to merely sampling a better standalone response.
+All four independently filtered responses fail, whereas the pooled annotation
+verifies.  This is cross-response support during filtering, not merely
+complementary facts combined at the final target check.
 \end{minipage}
 
 \section{Implementation Details}

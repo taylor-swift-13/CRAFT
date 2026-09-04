@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "claim": "Every one of the first four responses fails after independent target-hidden filtering, while their pooled composition verifies without rescuing any clause through mutual support.",
+  "run": "results/gpt5nano_tools_no_reasoning_cap8192",
+  "model": "gpt-5-nano",
+  "protocol": "loopgym-gpt5nano-full832-no-reasoning-cap8192-v3",
+  "protocol_sha256": "cbc88a9de0f3df9aaabb105487b8ca0c6e3d850584d94a9c252df6a974d5430f",
+  "suite": "Loopy",
+  "case_id": "216",
+  "source": "src/input/Loopy/216.c",
+  "source_sha256": "1a98c3aceb2f3ffac543bf89f6a8a6d9721a8325a9b84bfb15552427f40dd1cc",
+  "hidden_source_sha256": "40b401a9eca8e6e08ad2d036b9f2ccc1b5349f62bfc916bef402ececc4887ff8",
+  "archived_compose_record": {
+    "file": "results/gpt5nano_tools_no_reasoning_cap8192/grid_recompute.jsonl",
+    "key": {
+      "suite": "Loopy",
+      "case_id": "216",
+      "k": 4
+    },
+    "n_union": 34,
+    "n_survivors": 4,
+    "verified": true
+  },
+  "independent_replay": [
+    {
+      "response": 1,
+      "survivors": ["x >= 0", "y >= 0"],
+      "verified": false
+    },
+    {
+      "response": 2,
+      "survivors": [],
+      "verified": false
+    },
+    {
+      "response": 3,
+      "survivors": ["x == (n - y)", "y == (n - x)"],
+      "verified": false
+    },
+    {
+      "response": 4,
+      "survivors": ["x >= 0", "y >= 0"],
+      "verified": false
+    }
+  ],
+  "pooled_replay": {
+    "survivors": ["x >= 0", "y >= 0", "x == (n - y)", "y == (n - x)"],
+    "verified": true
+  },
+  "no_mutual_support_check": {
+    "each_pooled_clause_survives_when_filtered_alone": true,
+    "minimal_cross_response_core": ["x >= 0", "y == (n - x)"],
+    "each_core_clause_alone_verifies_target": false,
+    "core_conjunction_verifies_target": true
+  }
+}

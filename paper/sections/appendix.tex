@@ -1581,6 +1581,12 @@ AutoSpec pools eight parallel proposals in its native
 orchestration.  The reported result is produced by this multi-proposal
 pipeline.
 
+\paragraph{SESpec.}
+SESpec does not pool independently sampled responses as CRAFT does; its
+additional calls iteratively repair a running candidate.  With reasoning
+disabled, it reaches 29.69\%, close to CRAFT compose@1 at 33.89\%, while using
+22,081.61 versus 1,136.82 mean tokens per task (19.4\(\times\)).
+
 \paragraph{Clause2Inv.}
 Clause2Inv normally constructs false-state counterexamples from the
 postcondition.  Under target hiding, this source of counterexamples is

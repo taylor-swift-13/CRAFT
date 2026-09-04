@@ -13,9 +13,12 @@ filtering, and repair
 ~\citep{si2018learning,si2020code2inv,ryan2020cln2inv,yao2020gcln,
 yu2023lipus,kamath2023finding,chakraborty2023ranking,cao2025clause2inv,
 wu2024lam4inv,liu2024acinv,wen2024enchanting,ma2024specgen,yang2026sespec,
-wu2024lemur,first2023baldur}.  CRAFT's distinction is not verifier use alone:
-it exposes clauses from independent responses to one pooled filter and uses
-the resulting composition during both inference and training.
+wu2024lemur,first2023baldur}.  Clause2Inv adaptively generates and combines
+clauses using SMT counterexamples, but its postcondition-derived feedback
+cannot be used under target hiding without revealing the goal
+~\citep{cao2025clause2inv}.  CRAFT instead pools clauses across independent
+responses with target-independent filtering and uses the composition during
+both inference and training.
 
 \tightparagraph{Training from formal and behavioral feedback.}
 Verified data and execution or prover feedback have been used to train
@@ -33,5 +36,5 @@ Per-response RL can improve pass@1 without expanding large-\(k\) coverage
 optimize pass@\(k\) or up-weight rare correct responses
 ~\citep{walder2025pkpo,chen2025passktraining,he2025unlikeliness}.  These
 objectives remain response-level even when they consider a set of samples.
-CRAFT instead decomposes responses before assigning clause coverage and group
-credit.
+CRAFT instead decomposes responses before assigning each response the coverage
+of its surviving clauses and allocating shared coverage across the group.

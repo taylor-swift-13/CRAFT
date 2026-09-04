@@ -1,219 +1,260 @@
 {
-  "by_method": {
-    "clause2inv": {
-      "auprc": 0.2575810595236979,
-      "auroc": 0.5737645348837208,
-      "positive_rate": 0.17534246575342466,
-      "positives": 64,
-      "rows": 365
-    },
-    "daikon": {
-      "auprc": 0.37419820044463664,
-      "auroc": 0.7300118966391994,
-      "positive_rate": 0.20938628158844766,
-      "positives": 174,
-      "rows": 831
-    },
-    "loopgym_r10_houdini": {
-      "auprc": 0.8774343583150647,
-      "auroc": 0.7408270664479347,
-      "positive_rate": 0.7677496991576414,
-      "positives": 638,
-      "rows": 831
-    },
-    "loopgym_r1_houdini": {
-      "auprc": 0.8209895657460131,
-      "auroc": 0.7879926945293918,
-      "positive_rate": 0.6064981949458483,
-      "positives": 504,
-      "rows": 831
-    },
-    "loopgym_r1_no_houdini": {
-      "auprc": 0.7896702802702701,
-      "auroc": 0.807189389870876,
-      "positive_rate": 0.5439229843561973,
-      "positives": 452,
-      "rows": 831
-    },
-    "loopgym_r5_houdini": {
-      "auprc": 0.8592846819107279,
-      "auroc": 0.7290112155571624,
-      "positive_rate": 0.7484957882069796,
-      "positives": 622,
-      "rows": 831
-    },
-    "naive": {
-      "auprc": 0.7722554103797019,
-      "auroc": 0.8199412753636726,
-      "positive_rate": 0.45607701564380265,
-      "positives": 379,
-      "rows": 831
-    },
-    "sespec": {
-      "auprc": 0.7702540214747386,
-      "auroc": 0.8007912510571252,
-      "positive_rate": 0.4981949458483754,
-      "positives": 414,
-      "rows": 831
-    }
-  },
   "by_suite": {
-    "Linear": {
-      "auprc": 0.8259078132397475,
-      "auroc": 0.8213852911135107,
-      "positive_rate": 0.544047619047619,
-      "positives": 1371,
-      "rows": 2520
-    },
     "Loopy": {
-      "auprc": 0.796482243533879,
-      "auroc": 0.7975304607717238,
-      "positive_rate": 0.5640711220110362,
-      "positives": 1840,
-      "rows": 3262
+      "macro_within_program_auroc": 0.8190498851824993,
+      "pair_weighted_within_program_auroc": 0.8255208333333334,
+      "pooled": {
+        "auprc": 0.8421294418803789,
+        "auroc": 0.817080160007325,
+        "candidates": 3099,
+        "positive_rate": 0.5943852855759922
+      },
+      "tasks": 394
     },
-    "NLA": {
-      "auprc": 0.13214305690683603,
-      "auroc": 0.5541819291819292,
-      "positive_rate": 0.09,
-      "positives": 36,
-      "rows": 400
+    "NLA_lipus": {
+      "macro_within_program_auroc": 0.829628279883382,
+      "pair_weighted_within_program_auroc": 0.8482142857142857,
+      "pooled": {
+        "auprc": 0.3171720156084551,
+        "auroc": 0.6869669689995939,
+        "candidates": 439,
+        "positive_rate": 0.18906605922551253
+      },
+      "tasks": 49
+    },
+    "linear": {
+      "macro_within_program_auroc": 0.8813328052995392,
+      "pair_weighted_within_program_auroc": 0.8766676128299744,
+      "pooled": {
+        "auprc": 0.867496978081508,
+        "auroc": 0.8452562484663653,
+        "candidates": 2173,
+        "positive_rate": 0.5913483663138518
+      },
+      "tasks": 248
     }
-  },
-  "candidate_rows": 6190,
-  "cluster_bootstrap": {
-    "pooled_auprc_ci95": [
-      0.7419275154643309,
-      0.7941810518682902
-    ],
-    "pooled_auroc_ci95": [
-      0.7747543338215497,
-      0.8111605661435948
-    ],
-    "replicates": 5000,
-    "scheme": "stratified program-cluster bootstrap; all candidate rows for a sampled program move together",
-    "seed": 0,
-    "within_program_macro_auroc_ci95": [
-      0.7828177888368462,
-      0.8204026531410384
-    ]
   },
   "coverage_bands": [
     {
-      "band": "0",
-      "rows": 888,
-      "success_rate": 0.11936936936936937,
-      "successes": 106,
+      "band": "[0,.25]",
+      "rows": 1516,
+      "success_rate": 0.18997361477572558,
       "wilson_ci95": [
-        0.09966698211917709,
-        0.142350762947426
-      ]
-    },
-    {
-      "band": "(0,.25]",
-      "rows": 853,
-      "success_rate": 0.23446658851113716,
-      "successes": 200,
-      "wilson_ci95": [
-        0.20726462299892937,
-        0.2640494744497604
+        0.17101991966320043,
+        0.21049451757823243
       ]
     },
     {
       "band": "(.25,.50]",
-      "rows": 347,
-      "success_rate": 0.44668587896253603,
-      "successes": 155,
+      "rows": 286,
+      "success_rate": 0.43006993006993005,
       "wilson_ci95": [
-        0.39524524335819333,
-        0.4992940162710122
+        0.37399272685095536,
+        0.48800079141800295
       ]
     },
     {
       "band": "(.50,.75]",
-      "rows": 645,
-      "success_rate": 0.4062015503875969,
-      "successes": 262,
+      "rows": 608,
+      "success_rate": 0.4473684210526316,
       "wilson_ci95": [
-        0.3689634797423803,
-        0.44455028644031047
+        0.40829903201422535,
+        0.48709870694086443
       ]
     },
     {
       "band": "(.75,.90]",
-      "rows": 953,
-      "success_rate": 0.5603357817418678,
-      "successes": 534,
+      "rows": 910,
+      "success_rate": 0.5879120879120879,
       "wilson_ci95": [
-        0.5286431827842901,
-        0.5915439171159769
+        0.5556276793789064,
+        0.6194573952202133
       ]
     },
     {
       "band": "(.90,1)",
-      "rows": 1035,
-      "success_rate": 0.7777777777777778,
-      "successes": 805,
+      "rows": 941,
+      "success_rate": 0.7970244420828906,
       "wilson_ci95": [
-        0.751448702709151,
-        0.8020525030020142
+        0.7701420142040281,
+        0.8214916347489538
       ]
     },
     {
       "band": "1",
-      "rows": 1461,
-      "success_rate": 0.811088295687885,
-      "successes": 1185,
+      "rows": 1450,
+      "success_rate": 0.856551724137931,
       "wilson_ci95": [
-        0.7902104195749773,
-        0.8303345510266962
+        0.8375666919895518,
+        0.8736525359967265
       ]
     }
   ],
-  "excluded_zero_negative_programs": 1,
-  "excluded_zero_negative_rows": 8,
-  "exclusion_reason": "no retained negative groups; these rows use a binary fallback and have no continuous coverage score",
-  "input": "results/negative_sampler_relation_escape_832/candidate_scores.jsonl",
-  "interpretation": "AUC is an associational diagnostic, not a causal estimate; the within-program analysis controls task-level difficulty by ranking candidates only against other candidates for the same program.",
+  "evaluated_candidates": 5711,
+  "evaluated_tasks": 691,
+  "excluded": {
+    "no_verified_gold": [
+      "linear/166",
+      "linear/177",
+      "linear/192",
+      "linear/193",
+      "linear/206",
+      "linear/212",
+      "linear/213",
+      "linear/214",
+      "linear/216",
+      "linear/217",
+      "linear/218",
+      "linear/228",
+      "linear/230",
+      "linear/234",
+      "linear/241",
+      "linear/242",
+      "linear/244",
+      "linear/245",
+      "linear/248",
+      "linear/303",
+      "linear/304",
+      "linear/306",
+      "linear/307",
+      "linear/308",
+      "linear/309",
+      "linear/310",
+      "linear/311",
+      "linear/312",
+      "linear/313",
+      "NLA_lipus/38",
+      "Loopy/26",
+      "Loopy/46",
+      "Loopy/47",
+      "Loopy/55",
+      "Loopy/165",
+      "Loopy/175",
+      "Loopy/179",
+      "Loopy/187",
+      "Loopy/188",
+      "Loopy/342",
+      "Loopy/357",
+      "Loopy/361",
+      "Loopy/362",
+      "Loopy/363",
+      "Loopy/364",
+      "Loopy/365",
+      "Loopy/373",
+      "Loopy/449",
+      "Loopy/458",
+      "Loopy/463"
+    ],
+    "target_trivial": [
+      "linear/37",
+      "linear/38",
+      "linear/39",
+      "linear/42",
+      "linear/43",
+      "linear/44",
+      "linear/47",
+      "linear/48",
+      "linear/49",
+      "linear/52",
+      "linear/55",
+      "linear/56",
+      "linear/57",
+      "linear/60",
+      "linear/61",
+      "linear/62",
+      "linear/73",
+      "linear/76",
+      "linear/77",
+      "linear/79",
+      "linear/80",
+      "linear/82",
+      "linear/97",
+      "linear/98",
+      "linear/136",
+      "linear/140",
+      "linear/144",
+      "linear/200",
+      "linear/207",
+      "linear/215",
+      "linear/236",
+      "linear/246",
+      "linear/256",
+      "linear/257",
+      "linear/265",
+      "linear/280",
+      "linear/288",
+      "linear/291",
+      "linear/302",
+      "Loopy/15",
+      "Loopy/19",
+      "Loopy/21",
+      "Loopy/22",
+      "Loopy/23",
+      "Loopy/30",
+      "Loopy/42",
+      "Loopy/70",
+      "Loopy/71",
+      "Loopy/75",
+      "Loopy/76",
+      "Loopy/77",
+      "Loopy/111",
+      "Loopy/112",
+      "Loopy/113",
+      "Loopy/114",
+      "Loopy/168",
+      "Loopy/170",
+      "Loopy/192",
+      "Loopy/203",
+      "Loopy/205",
+      "Loopy/206",
+      "Loopy/210",
+      "Loopy/211",
+      "Loopy/273",
+      "Loopy/274",
+      "Loopy/275",
+      "Loopy/279",
+      "Loopy/280",
+      "Loopy/281",
+      "Loopy/284",
+      "Loopy/285",
+      "Loopy/286",
+      "Loopy/290",
+      "Loopy/293",
+      "Loopy/299",
+      "Loopy/310",
+      "Loopy/312",
+      "Loopy/313",
+      "Loopy/315",
+      "Loopy/317",
+      "Loopy/319",
+      "Loopy/335",
+      "Loopy/336",
+      "Loopy/346",
+      "Loopy/348",
+      "Loopy/390",
+      "Loopy/460",
+      "Loopy/461",
+      "Loopy/465",
+      "Loopy/466",
+      "Loopy/467"
+    ]
+  },
+  "gold_score_summary": {
+    "mean": 0.7651953690303908,
+    "median": 0.9333333333333333
+  },
+  "macro_within_program_auroc": 0.8421533664116877,
+  "macro_within_program_auroc_ci95": [
+    0.8263094376679762,
+    0.8576248693519858
+  ],
+  "pair_weighted_within_program_auroc": 0.8487492373398413,
   "pooled": {
-    "auprc": 0.7678038924652224,
-    "auroc": 0.7933558378353704,
-    "positive_rate": 0.5252345519249434,
-    "positives": 3247,
-    "rows": 6182
+    "auprc": 0.8100108216025133,
+    "auroc": 0.8099306694767576,
+    "candidates": 5711,
+    "positive_rate": 0.5620731920854491
   },
-  "protocol": "target-independent relation/post-exit negative coverage predicts restored-target Frama-C/WP verification",
-  "schema_version": 1,
-  "scoreable_candidate_rows": 6182,
-  "scoreable_programs": 831,
-  "threshold_diagnostics": {
-    "coverage_ge_0.90": {
-      "auprc": 0.8117612046226225,
-      "auroc": 0.5304644485572084,
-      "positive_rate": 0.8013066871637202,
-      "positives": 2085,
-      "rows": 2602
-    },
-    "coverage_lt_0.50": {
-      "auprc": 0.3629859265118434,
-      "auroc": 0.6676251702962578,
-      "positive_rate": 0.2240038872691934,
-      "positives": 461,
-      "rows": 2058
-    }
-  },
-  "within_program": {
-    "macro_auroc": 0.80195936722075,
-    "pair_weighted_auroc": 0.8205332907552291,
-    "tasks": 593
-  },
-  "within_program_permutation": {
-    "exceedances": 0,
-    "informative_programs": 593,
-    "null_mean": 0.5002343204448725,
-    "one_sided_p": 0.0001999600079984003,
-    "replicates": 5000,
-    "scheme": "target verdicts permuted within each informative program",
-    "seed": 1
-  }
+  "protocol": "one current-judge-verified gold set per nontrivial task, original frozen candidates, and an empty decoy only when the originals contain no failure; all scores use target-hidden negative coverage",
+  "verified_gold_tasks": 782
 }

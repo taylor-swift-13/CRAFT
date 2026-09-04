@@ -257,41 +257,55 @@ def coverage_bands(rows: list[dict]) -> list[dict]:
 
 def render_figure(rows: list[dict], bands: list[dict], destination: Path) -> None:
     destination.parent.mkdir(parents=True, exist_ok=True)
-    figure, axes = plt.subplots(1, 2, figsize=(9.2, 3.45))
+    figure, axes = plt.subplots(1, 2, figsize=(7.15, 2.55))
 
     import sys
 
     sys.path.insert(0, str(REPO / "paper" / "figures"))
-    from paper_style import FAINT, GREEN, GREEN_TINT, INK, MUTED, OCHRE, RUST, TEAL
+    from paper_style import FAINT, GREEN, GREEN_TINT, INK, OCHRE, RUST, TEAL
 
-    curves = [("All", rows)] + [
-        (SUITE_LABELS[suite], [row for row in rows if row["suite"] == suite])
+    grouped = task_groups(rows)
+    curves = [("All", grouped)] + [
+        (
+            SUITE_LABELS[suite],
+            {key: task_rows for key, task_rows in grouped.items() if key[0] == suite},
+        )
         for suite in ("linear", "NLA_lipus", "Loopy")
     ]
+    fpr_grid = np.linspace(0.0, 1.0, 1001)
     colors = [GREEN, TEAL, OCHRE, RUST]
-    for (label, subset), color in zip(curves, colors):
-        labels = np.asarray([bool(row["verified"]) for row in subset], dtype=int)
-        scores = np.asarray(
-            [float(row["current_negative_score"]) for row in subset], dtype=float
-        )
-        false_positive, true_positive, _ = roc_curve(labels, scores)
-        auc = roc_auc_score(labels, scores)
+    for (label, task_rows), color in zip(curves, colors):
+        interpolated_tprs = []
+        task_aucs = []
+        for candidates in task_rows.values():
+            labels = np.asarray([bool(row["verified"]) for row in candidates], dtype=int)
+            if labels.min() == labels.max():
+                continue
+            scores = np.asarray(
+                [float(row["current_negative_score"]) for row in candidates], dtype=float
+            )
+            false_positive, true_positive, _ = roc_curve(labels, scores)
+            interpolated_tprs.append(np.interp(fpr_grid, false_positive, true_positive))
+            task_aucs.append(roc_auc_score(labels, scores))
+        mean_tpr = np.mean(interpolated_tprs, axis=0)
+        mean_tpr[0] = 0.0
+        mean_tpr[-1] = 1.0
         axes[0].plot(
-            false_positive,
-            true_positive,
-            linewidth=1.8,
+            fpr_grid,
+            mean_tpr,
+            linewidth=1.6,
             color=color,
-            label=f"{label} ({auc:.3f})",
+            label=f"{label} ({np.mean(task_aucs):.3f})",
         )
-    axes[0].plot([0, 1], [0, 1], linestyle="--", color=MUTED, linewidth=1)
+    axes[0].plot([0, 1], [0, 1], linestyle="--", color=INK, alpha=0.45, linewidth=0.9)
     axes[0].set(
         xlabel="False-positive rate",
         ylabel="True-positive rate",
-        title="(a) Hidden-target prediction",
+        title="(a) Within-program prediction",
         xlim=(0, 1),
         ylim=(0, 1),
     )
-    axes[0].legend(title="AUROC", frameon=False, fontsize=8, title_fontsize=8)
+    axes[0].legend(title="macro AUROC", frameon=False)
 
     x = np.arange(len(bands))
     rates = np.asarray([band["success_rate"] for band in bands])

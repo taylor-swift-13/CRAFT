@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Generate the reward-function ablation figure (RQ5).
 
-Budget grid: k in {1, 4, 8, 16, 32}, matching the cluster ablation runs
-(Zero-initialized Qwen3-8B on the curated pool); the untrained model is
-the matched base-probe curve, drawn dotted.
+Budget grid: k in {1, 4, 8, 16, 32}.  The top row reports Qwen3-8B reward
+ablations initialized from Bare; the bottom row reports their matched
+SFT-initialized counterparts.  Reference checkpoints before RL are dotted.
 """
 
 from pathlib import Path
@@ -56,21 +56,38 @@ UNTRAINED = {
     "combine": [37.86, 50.60, 54.21, 56.37, 57.81],
 }
 
+SFT_REFERENCE = {
+    "pass": [41.93, 56.82, 61.11, 64.68, 67.98],
+    "combine": [63.90, 73.80, 76.20, 77.30, 77.90],
+}
+
+SFT_VARIANTS = {
+    "Binary": {
+        "pass": [13.90, 16.40, 17.60, 18.60, 19.50],
+        "combine": [13.70, 16.10, 17.90, 18.80, 19.70],
+        "color": RUST,
+        "marker": "o",
+        "style": "-",
+    },
+    "Clause-decomposed": {
+        "pass": [31.93, 44.91, 49.57, 53.18, 56.04],
+        "combine": [67.43, 75.12, 77.64, 78.61, 78.73],
+        "color": TEAL,
+        "marker": "^",
+        "style": "-",
+    },
+    "Full (ours)": {
+        "pass": [30.78, 43.44, 47.47, 50.63, 53.47],
+        "combine": [69.23, 75.24, 76.80, 77.64, 78.37],
+        "color": GREEN,
+        "marker": "D",
+        "style": "-",
+    },
+}
+
 
 def configure() -> None:
-    use_paper_style(base_size=10.7)
-    plt.rcParams.update(
-        {
-            "axes.titlesize": 11.8,
-            "axes.labelsize": 10.8,
-            "legend.fontsize": 9.3,
-            "xtick.labelsize": 9.8,
-            "ytick.labelsize": 9.8,
-            "axes.linewidth": 0.7,
-            "axes.facecolor": "#F7FAF8",
-            "grid.color": "#D5E0D9",
-        }
-    )
+    use_paper_style()
 
 
 def style_axis(ax: plt.Axes) -> None:
@@ -84,11 +101,13 @@ def style_axis(ax: plt.Axes) -> None:
     ax.spines[["top", "right"]].set_visible(False)
 
 
-def plot_panel(ax: plt.Axes, metric: str) -> None:
+def plot_panel(
+    ax: plt.Axes, metric: str, reference: dict, variants: dict
+) -> None:
     ax.plot(
         K,
-        UNTRAINED[metric],
-        label="Zero (untrained)",
+        reference[metric],
+        label="Before RL",
         color=MUTED,
         marker="x",
         linestyle=":",
@@ -97,7 +116,7 @@ def plot_panel(ax: plt.Axes, metric: str) -> None:
         markeredgewidth=1.2,
         alpha=0.9,
     )
-    for label, values in VARIANTS.items():
+    for label, values in variants.items():
         ax.plot(
             K,
             values[metric],
@@ -113,21 +132,27 @@ def plot_panel(ax: plt.Axes, metric: str) -> None:
 
 
 def reward_ablation() -> None:
-    fig, axes = plt.subplots(1, 2, figsize=(9.2, 3.45))
-    plot_panel(axes[0], "combine")
-    plot_panel(axes[1], "pass")
-    style_axis(axes[0])
-    style_axis(axes[1])
-    axes[0].set_title("(a) compose@$k$: compositional coverage", pad=8)
-    axes[1].set_title("(b) pass@$k$: response-level coverage", pad=8)
-    axes[0].set_ylim(0, 80)
-    axes[1].set_ylim(0, 36)
-    for ax in axes:
+    fig, axes = plt.subplots(1, 2, figsize=(7.15, 2.55))
+    panels = [
+        (axes[0], "combine", UNTRAINED, VARIANTS,
+         "(a) Bare: compose@$k$", (0, 80)),
+        (axes[1], "pass", UNTRAINED, VARIANTS,
+         "(b) Bare: pass@$k$", (0, 36)),
+    ]
+    for panel_idx, (ax, metric, reference, variants, title, ylim) in enumerate(panels):
+        plot_panel(ax, metric, reference, variants)
+        style_axis(ax)
+        ax.set_xlabel("Responses, $k$")
+        if panel_idx:
+            ax.set_ylabel("")
+        ax.set_title(title, pad=7)
+        ax.set_ylim(*ylim)
         ax.set_xlim(0.85, 38)
+
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="upper center", ncol=5, frameon=False,
                handlelength=2.4, columnspacing=1.35, bbox_to_anchor=(0.5, 1.02))
-    fig.tight_layout(rect=(0, 0, 1, 0.88), w_pad=2.4)
+    fig.tight_layout(rect=(0, 0, 1, 0.84), w_pad=1.2)
     fig.savefig(OUT / "reward_ablation.pdf", bbox_inches="tight")
     plt.close(fig)
 

@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "claim": "Every one of the first four responses fails after independent target-hidden filtering, while their pooled composition verifies.",
+  "run": "results/gpt5nano_tools_no_reasoning_cap8192",
+  "model": "gpt-5-nano",
+  "protocol": "loopgym-gpt5nano-full832-no-reasoning-cap8192-v3",
+  "protocol_sha256": "cbc88a9de0f3df9aaabb105487b8ca0c6e3d850584d94a9c252df6a974d5430f",
+  "suite": "Loopy",
+  "case_id": "256",
+  "source": "src/input/Loopy/256.c",
+  "source_sha256": "deef32e5e61c1fe2dde350c2d7e349afe8e78c936404b9d10a969049a66e2abb",
+  "hidden_source_sha256": "ad2e13a1eb22c3494e94bd65e564fe210ae08277d4f00ac72905752fa5be1a67",
+  "archived_compose_record": {
+    "file": "results/gpt5nano_tools_no_reasoning_cap8192/grid_recompute.jsonl",
+    "key": {
+      "suite": "Loopy",
+      "case_id": "256",
+      "k": 4
+    },
+    "n_union": 29,
+    "n_survivors": 3,
+    "verified": true
+  },
+  "independent_replay": [
+    {
+      "response": 1,
+      "survivors": ["m <= x"],
+      "verified": false
+    },
+    {
+      "response": 2,
+      "survivors": ["x >= 1"],
+      "verified": false
+    },
+    {
+      "response": 3,
+      "survivors": [],
+      "verified": false
+    },
+    {
+      "response": 4,
+      "proposed_relevant_clause": "m >= 1",
+      "survivors": [],
+      "verified": false
+    }
+  ],
+  "pooled_replay": {
+    "survivors": ["m <= x", "x >= 1", "m >= 1"],
+    "verified": true
+  },
+  "cross_response_support": "Response 2 supplies x >= 1, which proves preservation of Response 4's m >= 1 across the nondeterministic update m = x."
+}

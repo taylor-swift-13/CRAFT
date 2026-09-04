@@ -341,7 +341,7 @@ SFT construction.  For RL, the explicit fallback below uses a binary survivor
 signal and never evaluates this ratio.
 
 For an RL group \(y_{1:g_{\mathrm{rl}}}\), first form the same globally
-de-duplicated pool used at inference, and then invoke the verifier filter once:
+deduplicated pool used at inference, and then invoke the verifier filter once:
 \begin{align}
   L_i&=\operatorname{parts}(y_i),
   &o_i&=\max(0,|L_i|-m_{\max}),\nonumber\\
@@ -367,8 +367,8 @@ it.  A reachable-state front end evaluates the globally pooled candidates on
 \end{equation}
 Here \(w_c\), \(w_g\), and \(w_o\) are the coverage, group-credit, and overflow
 weights.  The first term rewards each response by the negative coverage of
-its pooled survivors.  The second is the Shapley
-value of the fixed post-filter coverage game
+its pooled survivors.  The second is the response-level Shapley value of the
+fixed post-filter coverage game
 \(u(A)=|\bigcup_{i\in A}R_i|/|\mathcal N|\): repeated coverage is shared among
 its proposers, while unique coverage receives full credit.  A purely supporting
 clause may enable another clause to survive but receives no direct coverage

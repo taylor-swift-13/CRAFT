@@ -237,9 +237,9 @@ coverage repeated across the sampled group.  Both stages transfer gains from
 multi-response exploration to smaller inference budgets.  On 832 C programs, compositional inference
 raises bare Qwen3-8B from 6.43\% pass@1 to 37.86\% compose@1 without additional
 model calls.  SFT reaches 63.90\% compose@1, and subsequent RL raises it to
-69.23\%.  Across all \(k\), Shapley group credit adds 9.62--11.30 compose
-points over clause-level credit alone, whereas binary and whole-response
-credit substantially reduce composition.
+69.23\%.  Across all \(k\), response-level Shapley credit adds 9.62--11.30
+percentage points in compose@\(k\) over clause-decomposed credit alone, whereas
+binary and whole-response credit substantially reduce composition.
 \end{abstract}
 
 %% ============================================================
@@ -249,13 +249,14 @@ credit substantially reduce composition.
 \input{sections/method}
 \input{sections/experiments}
 \input{sections/conclusion}
-\input{sections/statements}
 
 %% ============================================================
 %% References
 %% ============================================================
 \bibliographystyle{iclr2027_conference}
 \bibliography{references}
+
+\input{sections/statements}
 
 %% ============================================================
 %% Appendix

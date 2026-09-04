@@ -2,7 +2,7 @@
 """Generate the base-checkpoint exploration and paired RL figures.
 
 Probe grid: k in {1, 2, 4, 8, 16, 32}.  Qwen3-8B uses a 128-response saved
-pool, Qwen3-30B-A3B and Llama 3.1 8B use 100, and the remaining base probes
+pool, Qwen3-30B-A3B and Llama 3.1-8B use 100, and the remaining base probes
 use 32.  The paired RL comparison uses k in {1, 4, 8, 16, 32}.
 """
 
@@ -57,7 +57,7 @@ OFFICIAL = {
         "marker": "D",
         "style": ":",
     },
-    "Llama 3.1 8B": {
+    "Llama 3.1-8B": {
         "direct": [0.61, 1.16, 2.16, 3.81, 6.30, 9.76],
         "combine": [27.88, 37.14, 46.03, 51.20, 51.68, 52.16],
         "color": "#75618f",
@@ -69,7 +69,7 @@ OFFICIAL = {
 # Matched Qwen3-8B runs on the same inference stack.  Each panel compares an
 # initialization with its full-reward RL checkpoint.
 RL_PAIRS = {
-    "(a) Zero initialization": {
+    "(a) Bare initialization": {
         "Before RL": [37.86, 50.60, 54.21, 56.37, 57.81],
         "After RL": [57.93, 66.95, 70.43, 72.60, 73.20],
     },

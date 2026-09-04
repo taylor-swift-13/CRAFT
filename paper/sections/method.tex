@@ -124,7 +124,7 @@ Let \(L_i=\operatorname{parts}(y_i)\),
 \(A_i=\operatorname{Admit}(y_i)\).  Thus
 \(\operatorname{First}_{m}(L)\) is the prefix containing at most \(m\) clauses,
 \(o_i\) counts clauses beyond the per-response cap, while \(A_i\) retains the
-admitted clauses and their provenance.  The clauses are then de-duplicated
+admitted clauses and their provenance.  The clauses are then deduplicated
 globally and filtered only after the full group has been pooled:
 \begin{align}
   P^*&=\operatorname{Unique}\!\left(A_1\Vert\cdots\Vert A_{g_{\mathrm{rl}}}\right),
@@ -141,8 +141,8 @@ checked in the same pooled context
 used at inference.  The cheap reachable-state check is an internal front-end
 of this single pooled filtering call; it does not filter responses separately.
 
-Coverage alone gives the same score to a unique discovery and a clause already
-supplied by every peer.  Let
+Coverage alone does not distinguish coverage unique to one response from
+coverage shared across responses.  Let
 \(f(\nu)=|\{j:\nu\in R_j\}|\).  We add the closed-form Shapley allocation of
 the fixed coverage game:
 \begin{equation}
@@ -158,8 +158,8 @@ The rollout reward is
 Here \(w_c\), \(w_g\), and \(w_o\) denote the coverage, group-credit, and
 overflow weights.  The first term rewards each response by the negative
 coverage of its pooled survivors; the
-second is a redundancy-adjusted allocation that divides repeated coverage
-among its proposers; the final term penalizes clauses emitted beyond the
+second is a response-level Shapley allocation that divides shared coverage
+among the responses providing it; the final term penalizes clauses emitted beyond the
 response cap.
 It is the Shapley value after filtering the full group, not the value of a game
 that reruns Houdini for every coalition.  A clause that only supports another

@@ -26,8 +26,8 @@ without expanding large-\(k\) coverage~\citep{yue2025rlcapacity}, potentially
 reducing the diversity that composition needs.  Our central claim is therefore
 that training feedback should reflect the result produced after decomposition,
 filtering, and composition.  SFT uses accepted compositions as targets, while
-RL distinguishes coverage contributed by a response from coverage repeated
-across a sampling group.
+RL distinguishes coverage unique to a response from coverage shared across a
+sampling group.
 
 We study this claim under \emph{target-hidden loop verification}.  The model
 sees the loop context but not the target assertions and postconditions \(\mathcal G\).
@@ -43,7 +43,8 @@ and composes the survivors before restoring \(\mathcal G\).  compose@\(k\)
 measures the verified rate of this composed result, preserving useful clauses
 that pass@\(k\) discards; compose@1 is our primary evaluation and reporting
 metric.  We use accepted offline compositions to supervise SFT, then optimize
-clause coverage and a redundancy-adjusted group allocation with RL.  This
+the coverage of each response's surviving clauses and a redundancy-adjusted
+response-level allocation with RL.  This
 sequence makes discoveries obtained from multiple responses available with
 fewer inference samples.  All supervision is self-generated: the program
 executor and verifier determine SFT acceptance and RL rewards, without an
@@ -60,16 +61,16 @@ This paper makes three contributions:
   response, clause filtering and composition raise verification from 6.43\%
   to 37.86\% without another model call.
   \item We align SFT targets and RL credit with compositional inference.  On
-  Qwen3-8B, SFT raises compose@1 to 63.90\%, and RL then reaches 69.23\% with
-  only 4,992 records.  RL remains effective after SFT, and the resulting 8B
-  model exceeds Claude Sonnet-4.6 at compose@1 by 12.26 points under the same
-  target-hidden protocol with reasoning disabled.
+  Qwen3-8B, SFT raises compose@1 to 63.90\%, and subsequent RL reaches 69.23\%
+  using 4,992 additional RL records.  RL remains effective after SFT, and the
+  resulting 8B model exceeds Claude Sonnet-4.6 at compose@1 by 12.26 points
+  under the same target-hidden protocol with reasoning disabled.
   \item Through controlled reward and sampler ablations, cross-model
   evaluation, and 832-program analysis, we demonstrate the importance of
   aligning training credit with the decomposed, pooled result used at
   inference.  Across all \(k\), full compositional credit improves over Binary
-  by 49.88--54.69 compose points and over Whole-rollout by 39.06--51.33
-  points; within the full reward, Shapley group credit adds 9.62--11.30 points
-  over clause-level credit alone.
+  by 49.88--54.69 percentage points in compose@\(k\) and over Whole-rollout by
+  39.06--51.33 points; within the full reward, response-level Shapley credit
+  adds 9.62--11.30 points over clause-decomposed credit alone.
 \end{itemize}
 \end{samepage}

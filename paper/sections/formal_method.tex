@@ -8,9 +8,9 @@ input-to-output specification.  Given a task with hidden goals, CRAFT masks
 those goals and applies the same rollout--decompose--pool--filter--compose
 operator at inference time and during target construction.  We first define
 the program semantics and verifier, then the exact and resource-bounded
-filters, and finally the inference, SFT, and RL procedures.  Theoretical
-properties are stated and proved separately in
-Appendix~\ref{app:composition-proofs}.
+filters, and finally the inference, SFT, and RL procedures.  Shapley credit and group reward collapse are formalized alongside RL scoring
+and policy updates; the remaining theoretical properties and proofs are
+collected in Appendix~\ref{app:composition-proofs} within this formalization.
 
 \subsection{Task Semantics, Loop Invariants, and Verification}
 \label{app:formal-loop-verification}
@@ -61,11 +61,22 @@ A complete task is \(\mathcal T=(\mathcal L,\mathcal G)\), where
 \(\mathcal G\) contains the assertions and postconditions at their original
 program locations.  For a body target, let
 \(S^{B}_{\ell}\subseteq\Sigma\times\Sigma\) be the path-sensitive prefix
-relation from body entry to \(\ell\).  For a target after the loop, let
-\(S^{E}_{\ell}\) be the suffix relation from loop exit to \(\ell\), with the
-identity relation used when the target is immediately after the loop.  Each
-relation is the union of its feasible paths and therefore includes their
-branch conditions.  Define
+relation from the loop head through guard evaluation to \(\ell\).
+For a target after the loop, let \(E_0\) be the guard-false exit relation
+and \(E_b\) the relation from a loop head through the body prefix to a
+\texttt{break} that exits this loop.  These relations include guard and
+branch conditions and all side effects.  Let \(F_{e,\ell}\) be the suffix
+from exit \(e\) to \(\ell\), the identity for an immediately following
+target.  Define the complete exit-to-target relation by
+\[
+ X_\ell(\sigma,\sigma')\iff
+ \bigvee_{e\in\{0\}\cup\mathcal B}
+ \exists\eta:\ E_e(\sigma,\eta)\land F_{e,\ell}(\eta,\sigma'),
+\]
+where \(\mathcal B\) indexes the loop's break exits.  For a side-effect-free
+guard, \(E_0(\sigma,\eta)\) is \(\neg B(\sigma)\land\eta=\sigma\).
+Unlike \(E_0\), a break exit may start with \(B(\sigma)\) true.
+Then define
 \begin{equation}
   \operatorname{VC}_{\mathcal L}(I,\ell,g)=
   \begin{cases}
@@ -74,14 +85,20 @@ branch conditions.  Define
     \Rightarrow g(\sigma'),
       & \ell\text{ is inside the body},\\
     \forall\sigma,\sigma':
-    I(\sigma)\land\neg B(\sigma)\land S^{E}_{\ell}(\sigma,\sigma')
+    I(\sigma)\land X_\ell(\sigma,\sigma')
     \Rightarrow g(\sigma'),
       & \ell\text{ is after the loop}.
   \end{cases}
   \label{eq:formal-target-vc}
 \end{equation}
-Postconditions are represented by the second case, with the suffix relation
-including assignments and return-value substitution.  The ideal logical verdict is
+Postconditions are represented by the second case, with suffix relations
+including assignments and return-value substitution.  A return or other
+abrupt exit inside the body, when admitted, requires its own exit relation
+and applicable target obligations in the same union; it does not contribute
+to the normally completing transition \(S\).  For example, with
+\texttt{while (1) \{ if (q) break; ... \}}, the guard-false branch is empty,
+but the break branch still yields a nonvacuous post-loop obligation.
+The ideal logical verdict is
 \begin{equation}
   \operatorname{TaskValid}_{\models}(\mathcal T,C)
   =\operatorname{Ind}_{\mathcal L}(I(C))\land
@@ -273,8 +290,8 @@ not required.
 
 For evaluation, compose@\(n\) is the percentage of tasks for which
 \(\operatorname{TaskVerify}(\mathcal T,C(y_{1:n}))\) succeeds on the first
-\(n\) saved responses.  Pass@\(n\) uses that same prefix and counts a task
-as solved when at least one response succeeds alone
+\(n\) saved responses.  Pass@\(n\) measures standalone success at the
+same nominal budget; archived results estimate it over subsets of the saved pool
 (Appendix~\ref{app:experimental-protocol}).
 
 \subsection{Complete SFT Target Construction}
@@ -325,8 +342,9 @@ evaluator is three-valued:
   \{\mathsf{true},\mathsf{false},\mathsf{unknown}\}.
   \label{eq:formal-state-eval}
 \end{equation}
-An unknown result neither rejects a negative trace nor removes a candidate in
-the reachable-state front end; syntax and induction are left to the verifier.
+An unknown result leaves the negative trace unrejected and the candidate out
+of the reachable-state front end's accepted set; the verifier handles syntax
+and induction.
 A trace counts as rejected only when at least one retained clause evaluates
 definitively to false at one of its states:
 \begin{equation}
@@ -346,8 +364,6 @@ signal and never evaluates this ratio.
 For an RL group \(y_{1:g_{\mathrm{rl}}}\), first form the same globally
 deduplicated pool used at inference, and then invoke the verifier filter once:
 \begin{align}
-  L_i&=\operatorname{parts}(y_i),
-  &o_i&=\max(0,|L_i|-m_{\max}),\nonumber\\
   A_i&=\operatorname{Admit}(y_i),
   &P^*&=\operatorname{Unique}\!\left(A_1\Vert\cdots\Vert A_{g_{\mathrm{rl}}}\right),
   \label{eq:formal-pooled-filter}\\
@@ -365,11 +381,10 @@ it.  A reachable-state front end evaluates the globally pooled candidates on
   r_i=w_c\frac{|R_i|}{|\mathcal N|}
       +w_g\left(
         \frac{1}{|\mathcal N|}\sum_{\nu\in R_i}\frac{1}{f(\nu)}
-      \right)-w_o o_i.
+      \right).
   \label{eq:formal-reward}
 \end{equation}
-Here \(w_c\), \(w_g\), and \(w_o\) are the coverage, group-credit, and overflow
-weights.  The first term rewards each response by the negative coverage of
+Here \(w_c=1.0\) and \(w_g=0.3\) weight coverage and group credit.  The first term rewards each response by the negative coverage of
 its pooled survivors.  The second is the response-level Shapley value of the
 fixed post-filter coverage game
 \(u(A)=|\bigcup_{i\in A}R_i|/|\mathcal N|\): repeated coverage is shared among
@@ -379,8 +394,8 @@ responses receive less credit per response than rare negatives rejected by
 few.  The negatives are nonuniformly weighted for each response, while their
 credits still sum to one unit per covered trace across the group.  A purely
 supporting clause may enable another clause to survive but receives no direct
-coverage credit.  The final term charges each clause beyond the per-response
-cap.
+coverage credit.  The per-response cap limits admission without penalizing
+excess output.
 
 \begin{algorithm}[H]
 \caption{CRAFT reward for one RL group}
@@ -388,8 +403,6 @@ cap.
 \begin{algorithmic}
 \alginput{masked loop \(\mathcal L\), responses \(y_{1:g_{\mathrm{rl}}}\), reachable states \(\mathcal E\), negative traces \(\mathcal N\)}
 \algoutput{response rewards \(r_{1:g_{\mathrm{rl}}}\)}
-\algline \(L_i\leftarrow\operatorname{parts}(y_i)\);
-  \quad \(o_i\leftarrow\max(0,|L_i|-m_{\max})\) for every \(i\)\\
 \algline \(A_i\leftarrow\operatorname{Admit}(y_i)\) for every \(i\)\\
 \algline \(P^*\leftarrow\operatorname{Unique}(A_1\Vert\cdots\Vert
   A_{g_{\mathrm{rl}}})\)\cmnt{pool globally}\\
@@ -404,7 +417,7 @@ cap.
 \algline \(R_i\leftarrow\operatorname{rej}_{\mathcal N}(V_i)\) for every \(i\)\\
 \algline \(f(\nu)\leftarrow|\{j:\nu\in R_j\}|\) for every \(\nu\in\mathcal N\)\\
 \algline \(r_i\leftarrow w_c|R_i|/|\mathcal N|+
-  w_g|\mathcal N|^{-1}\sum_{\nu\in R_i}f(\nu)^{-1}-w_o o_i\)
+  w_g|\mathcal N|^{-1}\sum_{\nu\in R_i}f(\nu)^{-1}\)
   for every \(i\)\\
 \algline \kw{return} \(r_{1:g_{\mathrm{rl}}}\)\\
 \end{algorithmic}
@@ -428,6 +441,84 @@ This relation includes semantic support, generated-goal dependencies, and
 resource effects.  Algorithm~\ref{alg:formal-rl-reward} can retain such a
 clause through joint filtering, but assigns it direct reward only if its
 projected response rejects a negative trace.
+
+\subsubsection{Shapley Credit: Definition and Equivalence}
+\label{app:formal-shapley}
+
+Fix the survivor bundles from one pooled filtering call and write
+\(R_i=\operatorname{rej}_{\mathcal N}(V_i)\) and
+\(f(\nu)=|\{j:\nu\in R_j\}|\).  For nonempty \(\mathcal N\),
+\begin{equation}
+  \begin{aligned}
+  r_i^{\text{Clause-decomposed}}&=\frac{|R_i|}{|\mathcal N|},
+  &\phi_i&=\frac{1}{|\mathcal N|}\sum_{\nu\in R_i}\frac{1}{f(\nu)},\\
+  r_i^{\mathrm{Full}}&=r_i^{\text{Clause-decomposed}}+0.3\phi_i.
+  \end{aligned}
+  \label{eq:shapley-credit}
+\end{equation}
+\paragraph{Equivalence to the standard Shapley value.}
+Equation~\eqref{eq:shapley-credit} gives a closed form for the standard
+response-level Shapley value. For response \(i\), let \(V_i\)
+be its projected bundle of clauses that survive filtering of the full response
+group, and let \(R_i=\operatorname{rej}_{\mathcal N}(V_i)\).  A coalition
+\(S\) contributes the projected bundles of its responses, whose rejected-trace
+set is \(\bigcup_{i\in S}R_i\).
+
+\begin{proposition}[Equivalence to standard Shapley]
+\label{prop:shapley-closed-form}
+Let \(G=\{1,\ldots,g\}\) index the responses above, and define their coverage
+game by
+\[
+  u(S)=\frac{1}{|\mathcal N|}\left|\bigcup_{j\in S}R_j\right|,
+  \qquad S\subseteq G.
+\]
+The standard Shapley value of response \(i\),
+\begin{equation}
+  \operatorname{Sh}_i(u)
+  =\sum_{S\subseteq G\setminus\{i\}}
+    \frac{|S|!\,(g-|S|-1)!}{g!}
+    \bigl(u(S\cup\{i\})-u(S)\bigr),
+  \label{eq:standard-shapley}
+\end{equation}
+is exactly
+\[
+  \operatorname{Sh}_i(u)
+  =\frac{1}{|\mathcal N|}
+    \sum_{\nu\in R_i}\frac{1}{f(\nu)}
+  =\phi_i,
+  \qquad
+  f(\nu)=|\{j:\nu\in R_j\}|.
+\]
+Consequently, \(\sum_{i\in G}\phi_i=u(G)\).
+\end{proposition}
+
+\begin{proof}
+The coefficient in Equation~\eqref{eq:standard-shapley} is the fraction of
+permutations of \(G\) in which exactly the members of \(S\) precede \(i\):
+there are \(|S|!\) orders before \(i\), \((g-|S|-1)!\) orders after it, and
+\(g!\) orders in total.  Hence the standard subset definition equals the
+expected marginal contribution of response \(i\) under a uniformly random
+permutation.
+
+For each trace \(\nu\), define
+\(Q_\nu=\{j\in G:\nu\in R_j\}\).  If \(Q_\nu=\varnothing\), the trace never
+contributes to the game.  Otherwise, it changes the coalition value exactly
+once in any permutation: when the first response from \(Q_\nu\) is added.
+By symmetry, each member of \(Q_\nu\) is first with probability
+\(1/|Q_\nu|=1/f(\nu)\).  Thus trace \(\nu\) contributes
+\(1/(|\mathcal N|f(\nu))\) to \(\operatorname{Sh}_i(u)\) when
+\(\nu\in R_i\), and zero otherwise.  Summing these contributions over traces
+gives Equation~\eqref{eq:shapley-credit}.  Finally, every trace covered by the
+grand coalition allocates a total of
+\(f(\nu)\cdot 1/(|\mathcal N|f(\nu))=1/|\mathcal N|\), proving efficiency.
+\end{proof}
+
+This equivalence is evaluated on the fixed response-level bundles
+\(V_1,\ldots,V_g\) projected from the globally filtered survivor set.  It
+therefore proves that the implemented allocation is the standard Shapley value
+of this response-level coverage game. It assigns credit to responses using
+fixed post-filter survivor bundles.
+
 
 \subsection{Group-Relative Policy Update}
 \label{app:grpo-details}
@@ -459,7 +550,7 @@ surrogate used by the implementation.  Its expectation equals
 \pi_{\mathrm{ref}}(\cdot\mid h_{i,u}))\) when the token is sampled from
 \(\pi_\theta(\cdot\mid h_{i,u})\).  During an update, however, the saved token
 comes from \(\pi_{\theta_{\mathrm{old}}}\), so \(k_{i,u}\) is used as a
-sampled penalty rather than claimed to be an unbiased off-policy estimate.
+sampled penalty under the saved old-policy tokens.
 The clipped group objective is
 \begin{equation}
   \mathcal J(\theta)=\mathbb E\!\left[
@@ -471,6 +562,43 @@ The clipped group objective is
   \label{eq:formal-grpo}
 \end{equation}
 After optimizing this objective, the updated policy samples the next group.
+
+\subsubsection{Group Reward Collapse and Shapley Tie-Breaking}
+\label{app:formal-reward-collapse}
+
+Here \emph{group reward collapse} means that all rewards in one sampled
+GRPO group are equal.  Equation~\eqref{eq:formal-advantage} then gives zero
+relative advantage to every response, so that group supplies no
+reward-driven policy-gradient signal; a separate KL term can still act.
+This condition concerns reward discrimination and does not require the
+responses themselves to be identical.
+
+If \(r_i^{\text{Clause-decomposed}}=c\) for every response in a group, then
+\[
+  r_i^{\mathrm{Full}}-\overline r^{\mathrm{Full}}
+  =0.3(\phi_i-\overline\phi),\qquad
+  \operatorname{Var}_i(r_i^{\mathrm{Full}})
+  =0.09\operatorname{Var}_i(\phi_i).
+\]
+Thus Full restores a nonzero relative signal whenever equal-coverage
+responses have different Shapley credits.  It can distinguish which
+responses contribute less redundant coverage after Clause-decomposed has lost that
+ranking signal.
+
+For an illustrative calculation, let \(\mathcal N=\{a,b,c\}\) and three
+responses reject \(R_1=\{a,b\}\), \(R_2=\{a,c\}\), and
+\(R_3=\{a,c\}\), respectively.  All three Clause-decomposed rewards equal \(2/3\),
+but the trace frequencies are \(f(a)=3\), \(f(b)=1\), and \(f(c)=2\).
+Their Shapley credits are \((4/9,5/18,5/18)\), giving Full rewards
+\((0.80,0.75,0.75)\).  Full therefore supplies positive relative credit to
+the response that uniquely rejects \(b\).  This is a worked example of
+the reward mechanism. It is illustrative and does not report a training outcome.
+
+Full does not guarantee a noncollapsed group.  If every response rejects
+the same trace set, both Clause-decomposed coverage and Shapley credit remain equal;
+all-zero coverage also remains uninformative.  The mechanism can resolve
+some coverage-score ties, but establishing a lower collapse frequency in
+training requires logged groups from the two policies.
 
 \subsection{Training--Inference Alignment}
 
@@ -526,7 +654,7 @@ For \emph{specification generation}, atoms can be precondition,
 postcondition, frame, or invariant clauses; composition is conjunction; and
 the filter checks syntax, consistency, and the corresponding proof
 obligations.  Separate responses can contribute complementary clauses to one
-verified contract.  For \emph{test-case generation}, atoms are executable
+verified contract.  For \emph{testcase generation}, atoms are executable
 tests; composition is set union; the filter removes invalid or duplicate
 tests; and structural or behavioral coverage supplies a target-independent
 signal.  Separate responses can cover disjoint behaviors even when no one
@@ -534,3 +662,183 @@ response forms an adequate suite.
 
 These domains share the formal interface and algorithms.  Each domain supplies
 its verifier and measurable training signal.
+
+\subsection{Theoretical Properties and Proofs}
+\label{app:composition-proofs}
+
+This subsection states and proves the properties of the algorithms defined
+above.  Write
+\(\mathcal L=(\mathsf{Init},B,S)\).
+
+\subsubsection{Conjunction of Valid Invariants}
+
+\begin{proposition}[Closure under conjunction]
+\label{prop:conjunctive-closure}
+If \(I_1,\ldots,I_m\) are valid invariants of the same loop, then
+\(\bigwedge_j I_j\) is valid and is at least as strong as every \(I_j\).
+\end{proposition}
+
+\begin{proof}[Proof of Proposition~\ref{prop:conjunctive-closure}]
+For each \(j\), validity gives \(\mathsf{Init}\Rightarrow I_j\); hence
+\(\mathsf{Init}\Rightarrow\bigwedge_j I_j=I\).  Suppose \(I\wedge B\) holds before one
+execution of \(S\).  Then \(I_j\wedge B\) holds for every \(j\), so preservation
+of \(I_j\) establishes every \(I_j\) afterward.  Therefore \(I\) is preserved
+and is a valid invariant.
+
+Because a conjunction implies each conjunct, \(I\) is at least as strong as
+every \(I_j\).
+\end{proof}
+
+\subsubsection{Mutual Support Among Arbitrarily Many Clauses}
+
+\begin{proposition}[Mutual support]
+\label{prop:mutual-support}
+For a finite clause set \(C\), \(I(C)\) is valid if
+\begin{equation}
+  \mathsf{Init}\Rightarrow I(C),
+  \qquad
+  \forall c\in C:\ \operatorname{Pres}_{\mathcal L,C}(c).
+  \label{eq:formal-mutual-support}
+\end{equation}
+No clause must be preserved in isolation.
+\end{proposition}
+
+\begin{proof}[Proof of Proposition~\ref{prop:mutual-support}]
+The first premise is exactly establishment of \(I(C)\).  For preservation,
+assume \(I(C)\wedge B\) before executing \(S\).  The second premise establishes
+each \(c_j\) afterward.  Since every conjunct then holds in the same successor
+state, their conjunction \(I(C)\) also holds.  Thus
+\(\{I(C)\wedge B\}S\{I(C)\}\), and \(I(C)\) is valid.
+
+No standalone preservation premise appears in this argument.  A clause may
+use all other conjuncts in the pre-state, so clauses that fail preservation
+separately may still be preserved jointly.  Establishment is different:
+\(\mathsf{Init}\Rightarrow I(C)\) implies \(\mathsf{Init}\Rightarrow c_j\) for every \(j\).  Hence a
+candidate false at some loop-entry state cannot be rescued by conjunction.
+\end{proof}
+
+\subsubsection{Greatest Jointly Inductive Candidate Subset}
+
+Let \(C_0=C\), and let \(C_{j+1}\subseteq C_j\) be the set remaining after one
+ideal Houdini deletion round in Equation~\eqref{eq:formal-houdini}.  Because \(C\) is
+finite, this descending sequence reaches the fixed point
+\(\mathsf H_{\mathcal L}(C)\).
+
+\begin{theorem}[Candidate-relative optimality]
+\label{thm:houdini-greatest}
+With exact logical decisions, the Houdini fixed point
+\(\mathsf H_{\mathcal L}(C)\) is jointly inductive and contains every jointly
+inductive subset of \(C\).  Its conjunction is therefore the strongest
+invariant obtainable by selecting clauses from this pool.
+\end{theorem}
+This candidate-relative property applies to ideal Houdini with the supplied
+candidate pool. Bounded
+filtering may discard a valid clause after timeout.  Joint checking permits
+mutual support in preservation, but cannot rescue a clause false at loop entry.
+
+\begin{proof}[Proof of Theorem~\ref{thm:houdini-greatest}]
+At the fixed point, every \(c\in\mathsf H_{\mathcal L}(C)\) satisfies
+establishment and preservation under the full conjunction
+\(I(\mathsf H_{\mathcal L}(C))\).  Applying
+Proposition~\ref{prop:mutual-support} shows that this conjunction is valid.
+
+It remains to prove greatestness.  Let \(C'\subseteq C\) be any jointly
+inductive subset.  We show by induction over deletion rounds that
+\(C'\subseteq C_j\).  The base case \(C'\subseteq C_0=C\) is immediate.  Assume
+\(C'\subseteq C_j\), and take any \(c\in C'\).  Joint establishment of \(C'\)
+gives \(\mathsf{Init}\Rightarrow c\), so \(c\) cannot be deleted for establishment.  Joint
+preservation gives
+
+\[
+  \{I(C')\wedge B\}\,S\,\{c\}.
+\]
+
+Since \(C'\subseteq C_j\), the antecedent \(I(C_j)\wedge B\) implies
+\(I(C')\wedge B\).  Strengthening a valid Hoare precondition preserves
+validity, so
+
+\[
+  \{I(C_j)\wedge B\}\,S\,\{c\}
+\]
+
+also holds.  Therefore no member of \(C'\) is deleted in round \(j\), proving
+\(C'\subseteq C_{j+1}\).  At termination,
+\(C'\subseteq\mathsf H_{\mathcal L}(C)\).  Because conjunction reverses set
+inclusion, \(I(\mathsf H_{\mathcal L}(C))\) implies \(I(C')\).
+\end{proof}
+
+\paragraph{Pooling before filtering.}
+Each separately filtered set \(\mathsf H_{\mathcal L}(A_i)\) is jointly
+inductive.  By closure under conjunction, their union is a jointly inductive
+subset of \(\bigcup_i A_i\).  Theorem~\ref{thm:houdini-greatest} therefore
+gives Equation~\eqref{eq:main-pooling-inclusion}.  The inclusion can be strict
+when a clause requires a supporting hypothesis from another response.
+This ideal property does not ensure empirical monotonicity under finite
+budgets: pooling changes proof obligations and may trigger timeouts
+(Appendix~\ref{app:houdini-order}).
+
+\subsubsection{Soundness of Resource-Bounded Houdini}
+
+\begin{proposition}[Bounded-filter soundness]
+\label{prop:bounded-houdini-sound}
+Assume \(\operatorname{LoopVerify}_{\mathcal L,\delta}\) is sound.  If
+\(\operatorname{Filter}_{\mathcal L}^{\delta,h_{\max}}(C)\) returns a proved
+fixed point \(D\), then \(D\subseteq C\) and \(I(D)\) is inductive.  Timeout,
+unknown, and exhaustion of the round budget cannot cause an unproved clause
+set to be returned.
+\end{proposition}
+
+\begin{proof}
+Every deletion round in Equation~\eqref{eq:formal-bounded-houdini-round}
+selects a subset of its input, so \(D\subseteq C\).  At a returned fixed point,
+every clause maps to \(\mathsf{valid}\) in that same family.  Verifier
+soundness in Equation~\eqref{eq:formal-loop-verify-soundness} therefore gives
+\(\operatorname{Ind}_{\mathcal L}(I(D))\).  A timeout or unknown removes the
+affected clause, and reaching \(h_{\max}\) returns the empty result rather
+than an intermediate set by Equation~\eqref{eq:formal-bounded-houdini}.
+\end{proof}
+
+\subsubsection{Supporting Clauses and Credit}
+
+\begin{proposition}[Coverage credit omits pure support]
+\label{prop:support-credit}
+Suppose response \(i\) contributes a retained clause \(c\) that supports
+another retained clause in the sense of Appendix~\ref{app:formal-method}, but
+\(\operatorname{rej}_{\mathcal N}(V_i)=\varnothing\).  Then the coverage
+term assigned to response \(i\) is zero, irrespective of whether removing
+\(c\) would prevent the other clause from surviving.
+\end{proposition}
+
+\begin{proof}
+The premise gives \(R_i=\varnothing\).  Therefore \(|R_i|=0\), so the
+coverage term in Equation~\eqref{eq:formal-reward} is zero.
+\end{proof}
+
+This formal edge case has a negligible aggregate effect in our evaluation.
+Post-filtering permits supporting clauses from different responses to survive
+jointly. Pre-filtering removes clauses that cannot survive within their own
+response. Under the longer verifier budget, their compose@\(k\)
+difference ranges from \(-0.2\) to \(+0.6\) percentage points across the
+reported budgets (Table~\ref{tab:prefilt-vs-postfilt}).  Thus, although the
+post-filter coverage score does not credit pure indirect support, such
+cross-response dependencies have negligible aggregate effect on verification
+in this benchmark.
+
+\subsubsection{Transfer to Verifiably Composable Problems}
+
+\begin{proposition}[Composable transfer]
+\label{prop:composable-transfer}
+For any instantiation satisfying Definition~\ref{def:vcg}, the pooled output
+\(O_x(y_{1:n})\) contains only atoms drawn from the responses and satisfies
+\(\operatorname{Valid}_x\) whenever filtering succeeds.  Moreover, its
+construction is independent of the hidden goals \(\mathcal G\).
+\end{proposition}
+
+\begin{proof}
+Decomposition and union draw atoms only from \(y_{1:n}\);
+\(\operatorname{Unique}_x\) removes candidates and the conservative filter
+returns a subset, establishing provenance to the responses.  Filter soundness
+gives \(\operatorname{Valid}_x(O_x(y_{1:n}))\).  Finally, every operator in
+Equation~\eqref{eq:formal-general-pipeline} is a function of \(x\) and the
+responses, not \(\mathcal G\), so hidden goals enter only the final check.
+\end{proof}

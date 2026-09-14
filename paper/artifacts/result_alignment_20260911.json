@@ -1,0 +1,89 @@
+{
+  "selected_final_checkpoint": {
+    "model": "Qwen3-8B + SFT + RL",
+    "reward": "Full",
+    "git_source": "27182bbf:paper_no_shapley/sections/appendix.tex (tab:rl-complete)",
+    "author_selection_date": "2026-09-11",
+    "pass": [
+      30.78,
+      43.44,
+      47.47,
+      50.63,
+      53.47
+    ],
+    "compose": [
+      69.23,
+      75.24,
+      76.8,
+      77.64,
+      78.37
+    ],
+    "strata": {
+      "Linear": {
+        "programs": 316,
+        "pass_percent": [
+          32.77,
+          46.39,
+          51.03,
+          54.65,
+          57.78
+        ],
+        "compose_percent": [
+          75.0,
+          79.75,
+          80.7,
+          80.7,
+          81.33
+        ]
+      },
+      "NLA": {
+        "programs": 50,
+        "pass_percent": [
+          2.78,
+          3.83,
+          3.99,
+          4.0,
+          4.0
+        ],
+        "compose_percent": [
+          14.0,
+          14.0,
+          14.0,
+          14.0,
+          14.0
+        ]
+      },
+      "Loopy": {
+        "programs": 466,
+        "pass_percent": [
+          32.43,
+          45.69,
+          49.72,
+          52.92,
+          55.85
+        ],
+        "compose_percent": [
+          71.24,
+          78.76,
+          80.9,
+          82.4,
+          83.26
+        ]
+      }
+    },
+    "reward_confirmation_date": "2026-09-12",
+    "reward_confirmation": "Author: 69.23 is Full; base is 67.91."
+  },
+  "sft_data_size": "Author confirms single and compose training sets have approximately equal example counts.",
+  "metric_audit": {
+    "historical_pass": "combinatorial pool estimator; see git 27182bbf and experiments/recompute_compose_grid.py:76",
+    "text_only_change": "8a6fdffb switched descriptions to matched prefixes without recomputing archived values",
+    "rounding": "Do not replace estimates with invented integer success counts."
+  },
+  "sampler_rl": {
+    "historical_source": "b00e548d:paper/sections/appendix.tex, tab:sampler-ablation",
+    "historical_reward": "includes Shapley group credit",
+    "current_clause_decomposed_pair": "not located; awaiting source from author",
+    "available_full_pair": "Preserved separately in Appendix K; distinct from step-282 and selected main checkpoints."
+  }
+}

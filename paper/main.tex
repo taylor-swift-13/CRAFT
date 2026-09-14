@@ -27,6 +27,12 @@
 \usepackage{multirow}
 \usepackage{float}
 \usepackage{wrapfig}
+% End a short wrapped discussion below the figure before starting another block.
+\newcommand{\finishfigurewrap}{%
+  \par\ifnum\value{WF@wrappedlines}>1
+    \vspace{\dimexpr\value{WF@wrappedlines}\baselineskip-\baselineskip\relax}%
+  \fi\WFclear}
+
 \usepackage{needspace}
 \usepackage{etoolbox}
 \usepackage{tikz}
@@ -61,20 +67,20 @@
 \newcommand{\alginput}[1]{\hspace{1.8em}\textbf{Input:} #1\\}
 \newcommand{\algoutput}[1]{\hspace{1.8em}\textbf{Output:} #1\\}
 
-%% Muted green/gray palette
-\definecolor{codeblue}{RGB}{45,112,83}
-\definecolor{codegray}{RGB}{92,110,101}
-\definecolor{codepurple}{RGB}{52,128,120}
-\definecolor{codered}{RGB}{157,91,73}
-\definecolor{codegreen}{RGB}{72,137,104}
-\definecolor{promptbg}{RGB}{247,250,248}
-\definecolor{promptframe}{RGB}{201,214,206}
-\definecolor{algobg}{RGB}{237,246,241}
-\definecolor{algoframe}{RGB}{129,174,150}
-\definecolor{paperink}{RGB}{31,49,40}
-\definecolor{wrongred}{RGB}{224,150,138}
-\definecolor{codeolive}{RGB}{184,122,44}
-\definecolor{codeslate}{RGB}{91,113,133}
+%% Shared figure/table palette (figures/paper_style.py).
+\definecolor{codeblue}{HTML}{2E7D5B}
+\definecolor{codegray}{HTML}{66786F}
+\definecolor{codepurple}{HTML}{347F78}
+\definecolor{codered}{HTML}{B85C47}
+\definecolor{codegreen}{HTML}{2E7D5B}
+\definecolor{promptbg}{HTML}{F7FAF8}
+\definecolor{promptframe}{HTML}{D8E2DC}
+\definecolor{algobg}{HTML}{E8F3EC}
+\definecolor{algoframe}{HTML}{81AE96}
+\definecolor{paperink}{HTML}{1F3128}
+\definecolor{wrongred}{HTML}{D99382}
+\definecolor{codeolive}{HTML}{B87A2C}
+\definecolor{codeslate}{HTML}{5B7185}
 
 %% Restrained green accents; structural typography comes from the ICLR style.
 \hypersetup{
@@ -86,16 +92,27 @@
 \arrayrulecolor{promptframe}
 \raggedbottom
 
-%% Keep every data table at one fixed font size.  Table width is handled by
-%% column spacing and line breaks, never by scaling the tabular contents.
-\AtBeginEnvironment{tabular}{\small}
-\AtBeginEnvironment{tabular*}{\small}
-\captionsetup[table]{font=small}
-\newcommand{\headercmidrules}[1]{%
-  \noalign{\global\aboverulesep=0pt\global\belowrulesep=0pt}%
-  #1%
-  \noalign{\global\aboverulesep=.4ex\global\belowrulesep=.65ex}%
+%% One table font, spacing, and rule system; no scaled table text.
+\newcommand{\papertablestyle}{%
+  \fontsize{9}{10.5}\selectfont
+  \setlength{\tabcolsep}{2.4pt}%
+  \renewcommand{\arraystretch}{1.0}%
+  \arrayrulecolor{codegray}%
+  \setlength{\heavyrulewidth}{0.6pt}%
+  \setlength{\lightrulewidth}{0.4pt}%
+  \setlength{\cmidrulewidth}{0.4pt}%
 }
+\AtBeginEnvironment{tabular}{\papertablestyle}
+\AtBeginEnvironment{tabular*}{\papertablestyle}
+\captionsetup[table]{font=small}
+% Shared native type and node scale for the full-width TikZ diagrams.
+\newcommand{\paperdiagramfont}{\fontsize{8.5}{9.8}\selectfont}
+\tikzset{paper state/.style={circle, minimum size=4.75pt, inner sep=0pt},
+  paper edge/.style={line width=0.75pt},
+  paper frame/.style={line width=0.6pt}}
+% Consecutive shaded header rows share one continuous background.
+% Partial booktabs rules reserve an unpainted band in the other columns.
+\newcommand{\headercmidrules}[1]{}
 
 %% Listings style for C / ACSL
 \lstdefinestyle{cstyle}{
@@ -228,29 +245,34 @@ for Target-Hidden Loop Verification}
 \maketitle
 
 \begin{abstract}
-Valid loop invariants are closed under conjunction: useful clauses from
-different responses can prove a target even when no response does so alone.
-Yet standard generation and training treat each response as an indivisible
-answer.  We study this mismatch under \emph{target-hidden loop verification},
-where target assertions and postconditions \(\mathcal G\) are withheld during
-generation and training.  CRAFT decomposes each response into clauses, pools
-and filters clauses across responses, and composes the survivors before
-restoring \(\mathcal G\).  This preserves valid parts of imperfect responses
-and combines complementary parts discovered separately.  Training uses the
-same filtered result: rejection-filtered SFT distills accepted compositions
-into single responses, while RL scores each response by its coverage of
-target-independent negative traces and uses Shapley allocation to weight them
-by group-local difficulty, discounting coverage repeated across the sampled
-group.  Both stages transfer gains from
-multi-response exploration to smaller inference budgets.  On 832 C programs, compositional inference
-raises bare Qwen3-8B from 6.43\% pass@1 to 37.86\% compose@1 without additional
-model calls.  SFT reaches 63.90\% compose@1.  Subsequent RL raises compose@1
-to 69.23\%, while compose@32 increases from 77.90\% to 78.37\%, with the
-additional gains concentrated at small sampling budgets.
-In Qwen3-8B ablations initialized from Bare, response-level
-Shapley credit adds 9.62--11.30
-percentage points in compose@\(k\) over clause-decomposed credit alone, whereas
-binary and whole-response credit substantially reduce composition.
+Loop invariants are essential to program verification, reducing unbounded
+loop executions to finite proof obligations.  Generating strong invariants is
+especially difficult when verification targets are hidden: inductive validity
+alone does not establish sufficient strength to prove the targets, while
+generation lacks target guidance and training lacks target-specific proof
+feedback.  Generated responses may contain incorrect clauses, and useful
+clauses needed for a proof may be scattered across responses.  Inference can
+exploit these responses through decomposition, filtering, and composition,
+but whole-response training feedback may discard useful partial contributions,
+creating a mismatch between training and inference.  We introduce CRAFT to
+align compositional inference, supervision targets, and reinforcement-learning
+rewards under \emph{target-hidden loop verification}.  At inference, CRAFT
+decomposes responses into clauses, pools and jointly filters them, and composes
+the survivors into a stronger invariant.  During training, target-independent
+negative-trace coverage supplies a strength signal beyond inductive validity:
+supervised fine-tuning (SFT) learns multi-response compositions accepted by
+verification and coverage screening, while reinforcement learning (RL) rewards
+each response for the individual and shared coverage contributions of its
+clauses retained by the same pooled filtering procedure.  Training feedback thus reflects the useful
+parts consumed at inference, without requiring each response to complete the
+proof independently.  Target assertions and postconditions remain hidden
+throughout generation and training and are restored only for final verification.
+On 832 C programs, SFT raises Qwen3-8B's compose@1---the verification rate
+after filtering a single response---from 37.86\% to 63.90\%, exceeding the
+untrained model's 57.81\% compose@32.  Subsequent RL raises compose@1 to
+69.23\%.  Reward ablations show that requiring whole-response correctness can
+improve standalone success while degrading composition, supporting training
+feedback aligned with the clauses retained and used by compositional inference.
 \end{abstract}
 
 %% ============================================================
@@ -264,6 +286,7 @@ binary and whole-response credit substantially reduce composition.
 %% ============================================================
 %% References
 %% ============================================================
+\clearpage
 \bibliographystyle{iclr2027_conference}
 \bibliography{references}
 

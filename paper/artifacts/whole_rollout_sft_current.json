@@ -1,0 +1,86 @@
+{
+  "run": "grpo_qwen3_8b_SFT_RL_wc_0907_20260907_1138",
+  "source": "User-provided evaluation summary",
+  "initialization": "SFT",
+  "variant": "Whole-rollout Strength",
+  "k": [
+    1,
+    4,
+    8,
+    16,
+    32
+  ],
+  "metric_mapping": {
+    "combine": "compose"
+  },
+  "results": {
+    "All": {
+      "n": 832,
+      "pass": [
+        38.82,
+        45.19,
+        48.68,
+        50.84,
+        53.73
+      ],
+      "compose": [
+        43.63,
+        50.12,
+        53.37,
+        56.01,
+        58.53
+      ]
+    },
+    "NLA_lipus": {
+      "n": 50,
+      "pass": [
+        4,
+        6,
+        8,
+        8,
+        8
+      ],
+      "compose": [
+        6,
+        8,
+        8,
+        8,
+        8
+      ]
+    },
+    "linear": {
+      "n": 316,
+      "pass": [
+        41.77,
+        48.73,
+        51.58,
+        53.8,
+        57.28
+      ],
+      "compose": [
+        46.2,
+        53.16,
+        56.01,
+        57.28,
+        59.81
+      ]
+    },
+    "Loopy": {
+      "n": 466,
+      "pass": [
+        40.56,
+        47,
+        51.07,
+        53.43,
+        56.22
+      ],
+      "compose": [
+        45.92,
+        52.58,
+        56.44,
+        60.3,
+        63.09
+      ]
+    }
+  }
+}

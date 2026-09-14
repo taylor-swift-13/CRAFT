@@ -1,0 +1,23 @@
+\begin{table}[H]
+\centering
+\small
+\caption{Additional Qwen3-8B Full evaluation from the paired reward-ablation report, after 2 RL epochs. It is distinct from the main evaluation in Table~\ref{tab:rl-complete}. All cells are percentages; bold marks column maxima, including ties.}
+\label{tab:full-paired}
+\begin{tabular}{lccccccccc}
+\toprule
+\rowcolor{algobg}
+& & \multicolumn{2}{c}{Linear / 316} & \multicolumn{2}{c}{NLA / 50}
+  & \multicolumn{2}{c}{Loopy / 466} & \multicolumn{2}{c}{All / 832} \\
+\headercmidrules{\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(lr){9-10}}
+\rowcolor{algobg}
+Model & \(k\) & pass & comp & pass & comp & pass & comp & pass & comp \\
+\midrule
+\multirow{5}{*}{\shortstack[l]{Qwen3-8B\\+ SFT\\+ RL (paired ablation)}}
+ & 1  & 40.82 & 73.10 & 4.00 & \textbf{12.00} & 37.55 & 71.46 & 36.78 & 68.51 \\
+ & 4  & 56.33 & 80.06 & 6.00 & \textbf{12.00} & 53.86 & 79.61 & 51.92 & 75.72 \\
+ & 8  & 59.49 & 81.33 & \textbf{8.00} & \textbf{12.00} & 59.66 & 81.97 & 56.49 & 77.52 \\
+ & 16 & 62.66 & \textbf{82.28} & \textbf{8.00} & \textbf{12.00} & 62.88 & 82.62 & 59.50 & 78.25 \\
+ & 32 & \textbf{65.19} & \textbf{82.28} & \textbf{8.00} & \textbf{12.00} & \textbf{64.81} & \textbf{82.83} & \textbf{61.54} & \textbf{78.37} \\
+\bottomrule
+\end{tabular}
+\end{table}

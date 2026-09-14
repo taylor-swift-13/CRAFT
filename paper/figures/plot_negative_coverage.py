@@ -13,7 +13,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from paper_style import FAINT, GREEN, GREEN_TINT, INK, MUTED, OCHRE, RUST, SLATE, use_paper_style
+from paper_style import FAINT, GREEN, GREEN_TINT, INK, MUTED, OCHRE, RUST, SLATE, panel_figure, panel_legend, save_panel_figure
 
 OUT = Path(__file__).resolve().parent
 
@@ -22,8 +22,7 @@ def main() -> None:
     artifacts = OUT.parent / "artifacts/v4"
     summary = json.loads((artifacts / "negative_coverage_predictiveness.json").read_text())
     geometry = json.loads((artifacts / "negative_coverage_plot_geometry.json").read_text())
-    use_paper_style()
-    fig, axes = plt.subplots(1, 2, figsize=(7.2, 3.5))
+    fig, axes = panel_figure(2)
     for name, suite, color, style in (
         ("All", None, GREEN, "-"),
         ("Linear", "linear", SLATE, "--"),
@@ -36,9 +35,10 @@ def main() -> None:
                      linewidth=1.4, label=f"{name} ({auc:.3f})")
     axes[0].plot([0, 1], [0, 1], color=MUTED, linestyle="--", linewidth=1, alpha=0.6)
     axes[0].set(xlabel="False-positive rate", ylabel="True-positive rate",
-                title="(a) Within-program ROC", xlim=(0, 1), ylim=(0, 1))
-    axes[0].legend(title="Macro AUROC", loc="lower right", fontsize=9.2,
-                   title_fontsize=9.4, labelspacing=0.35)
+                title="(a) ROC", xlim=(0, 1), ylim=(0, 1))
+    panel_legend(fig, axes[0], columns=2)
+    axes[0].set_xticks([0, 0.5, 1])
+    axes[0].set_yticks([0, 0.5, 1], ['0', '.5', '1'])
 
     bands = summary["coverage_bands"]
     x = np.arange(len(bands))
@@ -48,14 +48,14 @@ def main() -> None:
     axes[1].bar(x, rates, width=0.72, color=GREEN_TINT, edgecolor=GREEN, linewidth=1)
     axes[1].errorbar(x, rates, yerr=np.vstack([lower, upper]), fmt="none",
                      ecolor=INK, capsize=3.5, linewidth=1)
-    axes[1].set_xticks(x, [b["band"] for b in bands], rotation=35, ha="right")
-    axes[1].set(xlabel="Negative-coverage band", ylabel="Target verification rate",
-                title="(b) Verification by coverage", ylim=(0, 1))
+    axes[1].set_xticks(x, [b["band"].replace("0.", ".") for b in bands], rotation=55, ha="right")
+    axes[1].set(xlabel="", ylabel="Verified fraction",
+                title="(b) Coverage bands", ylim=(0, 1))
     for ax in axes:
         ax.grid(axis="y", color=FAINT, linewidth=0.55, alpha=0.8)
         ax.set_axisbelow(True)
-    fig.subplots_adjust(left=0.09, right=0.985, bottom=0.30, top=0.86, wspace=0.36)
-    fig.savefig(OUT / "negative_coverage_predictiveness.pdf", bbox_inches="tight")
+    axes[1].set_yticks([0, 0.5, 1], ['0', '.5', '1'])
+    save_panel_figure(fig, OUT, 'negative_coverage_predictiveness')
     plt.close(fig)
 
 

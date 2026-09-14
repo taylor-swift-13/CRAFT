@@ -1,0 +1,175 @@
+{
+  "schema_version": 2,
+  "inputs": {
+    "rl": {
+      "path": "traindata/craft_rl.parquet",
+      "sha256": "33af870f3d5c48de8ffb04a47205009824319557f2e08e6e11f370c83ede3978"
+    },
+    "sft": {
+      "path": "traindata/craft_sft.json",
+      "sha256": "b0bb3751cd9484e9c84e29fb146c284d22e7e3095fc0a3b3858a9a36baa18a31"
+    },
+    "evaluation_programs": 832,
+    "evaluation_corpus_sha256": "7fed607ef1916a5b89abec953516ff293889f021219b108a6afcc237770d0ec4"
+  },
+  "definition": {
+    "instance_levels": [
+      "exact target-hidden tokens",
+      "alpha-renamed identifiers",
+      "alpha-renamed identifiers with nontrivial integer constants abstracted"
+    ],
+    "canonicalization": "program_fingerprint.fingerprint: target hiding and break-idiom canonicalization",
+    "structural_cell": [
+      "coarse control-flow profile",
+      "guard kind",
+      "nonlinearity",
+      "nondeterminism",
+      "variable-count band"
+    ],
+    "distribution_weighting": "training records versus evaluation programs",
+    "source_identity": "exact visible source string from each training prompt"
+  },
+  "audit_scope": {
+    "note": "Instance matching does not establish semantic disjointness or evaluation-independent selection. Aggregate target-hidden evaluation complexity informed the RL selection policy."
+  },
+  "evaluation": {
+    "programs": 832,
+    "structural_cells": 122,
+    "marginals": {
+      "guard_kind": {
+        "constant": 205,
+        "single_var": 261,
+        "var_vs_var": 310,
+        "compound": 56
+      },
+      "nonlinear": {
+        "false": 811,
+        "true": 21
+      },
+      "nondeterministic": {
+        "false": 594,
+        "true": 238
+      },
+      "variable_band": {
+        "v<=2": 292,
+        "v3-4": 282,
+        "v5+": 258
+      }
+    }
+  },
+  "rl": {
+    "records": 9024,
+    "distinct_program_sources": 9024,
+    "evaluation_matches": {
+      "exact": 0,
+      "alpha": 0,
+      "alpha_const": 0
+    },
+    "train_structural_cells": 145,
+    "shared_evaluation_cells": 38,
+    "evaluation_programs_in_shared_cells": 524,
+    "evaluation_programs_in_shared_cells_rate": 0.6298076923076923,
+    "training_records_in_evaluation_supported_cells": 5056,
+    "training_records_in_evaluation_supported_cells_rate": 0.5602836879432624,
+    "tv_distance": 0.6876,
+    "marginals": {
+      "guard_kind": {
+        "var_vs_var": 4460,
+        "single_var": 3498,
+        "constant": 933,
+        "compound": 133
+      },
+      "nonlinear": {
+        "false": 7733,
+        "true": 1291
+      },
+      "nondeterministic": {
+        "true": 3748,
+        "false": 5276
+      },
+      "variable_band": {
+        "v5+": 5621,
+        "v3-4": 2082,
+        "v<=2": 1321
+      }
+    }
+  },
+  "sft": {
+    "records": 33346,
+    "distinct_program_sources": 31865,
+    "evaluation_matches": {
+      "exact": 0,
+      "alpha": 0,
+      "alpha_const": 0
+    },
+    "train_structural_cells": 157,
+    "shared_evaluation_cells": 41,
+    "evaluation_programs_in_shared_cells": 529,
+    "evaluation_programs_in_shared_cells_rate": 0.6358173076923077,
+    "training_records_in_evaluation_supported_cells": 27275,
+    "training_records_in_evaluation_supported_cells_rate": 0.817939183110418,
+    "tv_distance": 0.6505,
+    "marginals": {
+      "guard_kind": {
+        "single_var": 14661,
+        "var_vs_var": 16873,
+        "constant": 1550,
+        "compound": 262
+      },
+      "nonlinear": {
+        "false": 29758,
+        "true": 3588
+      },
+      "nondeterministic": {
+        "false": 28383,
+        "true": 4963
+      },
+      "variable_band": {
+        "v<=2": 15409,
+        "v3-4": 3995,
+        "v5+": 13942
+      }
+    }
+  },
+  "union": {
+    "records": 42370,
+    "distinct_program_sources": 33479,
+    "evaluation_matches": {
+      "exact": 0,
+      "alpha": 0,
+      "alpha_const": 0
+    },
+    "train_structural_cells": 160,
+    "shared_evaluation_cells": 41,
+    "evaluation_programs_in_shared_cells": 529,
+    "evaluation_programs_in_shared_cells_rate": 0.6358173076923077,
+    "training_records_in_evaluation_supported_cells": 32331,
+    "training_records_in_evaluation_supported_cells_rate": 0.7630634883172056,
+    "tv_distance": 0.633,
+    "marginals": {
+      "guard_kind": {
+        "var_vs_var": 21333,
+        "single_var": 18159,
+        "constant": 2483,
+        "compound": 395
+      },
+      "nonlinear": {
+        "false": 37491,
+        "true": 4879
+      },
+      "nondeterministic": {
+        "true": 8711,
+        "false": 33659
+      },
+      "variable_band": {
+        "v5+": 19563,
+        "v3-4": 6077,
+        "v<=2": 16730
+      }
+    }
+  },
+  "rl_sft_exact_source_overlap": 7410,
+  "rl_distinct_loop_shapes": 1794,
+  "rl_source_families_retaining_constants": 6760,
+  "rl_source_families_abstracting_constants": 4196
+}

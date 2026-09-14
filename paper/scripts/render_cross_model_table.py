@@ -65,6 +65,30 @@ def block(name: str, summary: dict, best: dict) -> str:
     return "\n".join(lines)
 
 
+
+def emphasize_column_maxima(body: str) -> str:
+    """Bold one displayed maximum per metric column, first occurrence on ties."""
+    body = re.sub(r"\\textbf\{(\\acc\{[^{}]*\}\{[^{}]*\})\}", r"\1", body)
+    chunks = re.split(r"(\\\\(?=\s*(?:\n|$)))", body)
+    rows = []
+    for i in range(0, len(chunks), 2):
+        cells = chunks[i].split('&')
+        if len(cells) != 10:
+            continue
+        values = [float(re.search(r"\\acc\{[^{}]*\}\{([^{}]*)\}", c).group(1))
+                  for c in cells[2:]]
+        rows.append((i, cells, values))
+    assert rows, 'No cross-model data rows found'
+    winners = [max(range(len(rows)), key=lambda r: rows[r][2][j]) for j in range(8)]
+    for r, (i, cells, _) in enumerate(rows):
+        for j, winner in enumerate(winners):
+            if r == winner:
+                cells[j+2] = re.sub(r"(\\acc\{[^{}]*\}\{[^{}]*\})",
+                                     lambda m: r"\textbf{" + m.group(1) + "}", cells[j+2])
+        chunks[i] = '&'.join(cells)
+    return ''.join(chunks)
+
+
 def main() -> None:
     loaded = []
     for name, run in MODELS:
@@ -85,6 +109,8 @@ def main() -> None:
     }
     blocks = [block(name, summary, best) for name, summary in loaded]
     body = "\n\\cmidrule(l{3pt}r{3pt}){1-10}\n".join(blocks)
+
+    body = emphasize_column_maxima(body)
 
     tex = ROOT / "paper" / "sections" / "appendix.tex"
     s = tex.read_text()

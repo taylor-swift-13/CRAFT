@@ -4,30 +4,23 @@
 \begin{figure}[t]
 \centering
 % Figure-local palette and type scale; leave the rest of the paper unchanged.
-\definecolor{paperink}{HTML}{1F3128}
-\definecolor{codegray}{HTML}{66786F}
-\definecolor{codegreen}{HTML}{2E7D5B}
-\definecolor{codered}{HTML}{B85C47}
-\definecolor{wrongred}{HTML}{D99382}
-\definecolor{promptframe}{HTML}{D8E2DC}
-\definecolor{algobg}{HTML}{F2F6F3}
-\renewcommand{\tiny}{\fontsize{7.1}{8.2}\selectfont}
-\renewcommand{\scriptsize}{\fontsize{8.6}{9.8}\selectfont}
+\renewcommand{\tiny}{\paperdiagramfont}
+\renewcommand{\scriptsize}{\paperdiagramfont}
 \resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[
   font=\sffamily\scriptsize,
   >=Stealth,
-  flow/.style={-{Stealth[length=1.7mm]}, draw=paperink!70,
-    line width=0.7pt},
-  bus/.style={draw=paperink!55, line width=0.65pt},
-  dataflow/.style={-{Stealth[length=1.45mm,width=1.0mm]}, draw=paperink!70,
-    line width=0.65pt},
-  trainflow/.style={-{Stealth[length=1.45mm,width=1.0mm]}, draw=paperink!70,
-    line width=0.65pt},
+  flow/.style={-{Stealth[length=1.6mm,width=1.0mm]}, draw=paperink!70,
+    line width=0.75pt},
+  bus/.style={draw=paperink!55, line width=0.75pt},
+  dataflow/.style={-{Stealth[length=1.6mm,width=1.0mm]}, draw=paperink!70,
+    line width=0.75pt},
+  trainflow/.style={-{Stealth[length=1.6mm,width=1.0mm]}, draw=paperink!70,
+    line width=0.75pt},
   rewardflow/.style={-{Stealth[length=1.0mm,width=0.8mm]},
     draw=paperink!62, line width=0.55pt},
   panel/.style={draw=promptframe, fill=white, rounded corners=2pt,
-    line width=0.65pt},
+    line width=0.75pt},
   card/.style={draw=promptframe, fill=white, rounded corners=1.5pt,
     line width=0.45pt, align=center, inner xsep=5pt, inner ysep=4pt,
     outer sep=1pt},
@@ -42,7 +35,7 @@
     line width=0.45pt},
   poolbound/.style={rounded corners=1.5pt, draw=paperink!40, fill=white,
     line width=0.55pt, dash pattern=on 2pt off 1.5pt},
-  scoreflow/.style={{Stealth[length=1.6mm]}-{Stealth[length=1.6mm]},
+  scoreflow/.style={{Stealth[length=1.6mm,width=1.0mm]}-{Stealth[length=1.6mm,width=1.0mm]},
     draw=paperink!55, line width=0.6pt, dash pattern=on 2.6pt off 1.8pt}
 ]
 
@@ -62,7 +55,7 @@
 \end{scope}
 
 %% masked program card
-\node[card, text width=1.95cm]
+\node[card, text width=2.03cm]
   (masked) at (1.32,5.20)
   {{Masked loop}\\[3pt]
    {\tiny\mbox{\(\mathcal L=(\mathrm{Init},B,S)\)}}\\[2pt]
@@ -163,37 +156,32 @@
 \node[font=\sffamily\scriptsize\bfseries, text=paperink, anchor=west] at (0.40,2.78)
   {(b)\; SFT};
 \node[font=\sffamily\tiny, text=codegray, anchor=east] at (4.10,2.78)
-  {distill exploration};
+  {compose \(\to\) target};
 \draw[promptframe, line width=0.4pt] (0.40,2.56) -- (4.10,2.56);
 
 \node[card, text width=3.0cm]
   (composed) at (2.35,2.12)
-  {{Composed set \(C_{\mathcal L}^{(t)}\)}\\[-1pt]
-   {\tiny \(g_{\mathrm{sft}}\) rollouts \(\cup\) pool \(\to\) filter}};
+  {Composed set \(C_{\mathcal L}^{(t)}\)};
 \node[card, text width=2.9cm,
   inner ysep=2.5pt] (accept) at (2.35,0.90)
-  {{Accept?}\\[1pt] coverage \(\ge\tau\)};
+  {Coverage \(\ge\tau\)?};
 \draw[dataflow] (composed.south) -- (accept.north);
 \draw[dataflow, rounded corners=2pt]
   (accept.west) -- (0.50,0.90) -- (0.50,2.12) -- (composed.west);
-\node[font=\sffamily\tiny, text=codegray, anchor=west, align=left] at (0.66,1.50)
-  {resample\\[-1pt] \(\le t_{\mathrm{sft}}\)};
-\node[card, text width=3.5cm,
-  inner ysep=2.5pt] (sfttarget) at (2.35,0.10)
-  {{SFT target}: accepted set};
+\node[font=\sffamily\tiny, text=codegray, anchor=west, align=left] at (0.66,1.40)
+  {resample};
+\node[tag, fill=codegreen] (sfttarget) at (2.35,-0.20)
+  {SFT targets};
 \draw[dataflow] (accept.south) -- (sfttarget.north);
 \node[font=\sffamily\tiny, text=codegray, anchor=west] at (2.47,0.48)
   {yes};
-\node[tag, fill=codegreen] (sftcorpus) at (2.35,-0.68)
-  {SFT corpus \(\mathcal D_{\mathrm{SFT}}\)};
-\draw[dataflow] (sfttarget.south) -- (2.35,-0.44);
 \node[card, text width=3.3cm,
   inner ysep=2.5pt] (sftmodel) at (2.35,-1.50)
-  {{fine-tune}};
-\draw[dataflow] (sftcorpus.south) -- (sftmodel.north);
+  {Fine-tune};
+\draw[dataflow] (sfttarget.south) -- (sftmodel.north);
 %% shared reward link: the composed set is scored, the verdict returns
 \draw[scoreflow, rounded corners=2pt]
-  (accept.east) -- (4.46,0.90) -- (4.46,0.59) -- (4.82,0.59);
+  (accept.east) -- (4.65,0.90) -- (4.65,0.59) -- (4.99,0.59);
 
 %% =================================================================
 %% CENTER --- one target-independent scorer shared by SFT and RL
@@ -226,15 +214,15 @@
 \draw[draw=none, fill=codegreen!55] (7.10,0.44) rectangle (8.10,0.74);
 \node[font=\sffamily\tiny, text=codegray, anchor=west] at (9.00,0.59)
   {\(\operatorname{cov}_i\)};
-\node[font=\sffamily\tiny, text=codegray, anchor=west] at (9.00,0.34)
-  {rejected negatives};
+\node[font=\sffamily\tiny, text=codegray, anchor=west] at (9.00,0.24)
+  {coverage};
 \draw[rewardflow] (7.95,0.30) -- (7.95,0.10);
 
 %% Shapley split of shared rejections
 \node[heading, anchor=west, align=left] at (5.25,-0.40) {Shapley\\allocation};
 \foreach \y/\lab/\marks/\phiv in {
-  -0.38/y_1/{2,1,1,0,0}/{\(\phi_1\)},
-  -0.68/y_2/{2,2,1,0,1}/{\(\phi_2\)},
+  -0.38/y_1/{1,1,1,0,0}/{\(\phi_1\)},
+  -0.68/y_2/{1,1,1,0,1}/{\(\phi_2\)},
   -0.98/y_3/{0,0,1,2,1}/{\(\phi_3\)}}{
   \node[font=\sffamily\tiny, text=codegray, anchor=east] at (7.15,\y) {\(\lab\)};
   \foreach \s [count=\i from 0] in \marks {
@@ -260,18 +248,18 @@
   inner sep=0pt] at (7.27,-0.02) {};
 \node[font=\sffamily\tiny, text=codegray, anchor=west] at (7.41,-0.02) {unique};
 \node[circle, draw=codegreen!60, fill=codegreen!32, minimum size=0.20cm,
-  inner sep=0pt] at (8.41,-0.02) {};
+  inner sep=0pt] at (8.75,-0.02) {};
 \draw[codegreen!90, line width=0.45pt]
-  (8.34,-0.09) -- (8.48,0.05) (8.34,0.05) -- (8.48,-0.09);
-\node[font=\sffamily\tiny, text=codegray, anchor=west] at (8.55,-0.02) {shared};
+  (8.68,-0.09) -- (8.82,0.05) (8.68,0.05) -- (8.82,-0.09);
+\node[font=\sffamily\tiny, text=codegray, anchor=west] at (8.89,-0.02) {shared};
 \end{scope}
 \draw[rewardflow] (7.95,-1.48) -- (7.95,-1.68);
 
 %% the per-rollout reward
 \node[card, draw=codegreen!30, fill=codegreen!4, text width=4.9cm,
   inner ysep=3pt] (rewardformula) at (7.95,-2.04)
-  {{Reward per rollout}\\[-1pt]
-   \(r_i=w_c\operatorname{cov}_i+w_g\phi_i-w_o o_i\)};
+  {{Full reward per rollout}\\[-1pt]
+   \(r_i=\operatorname{cov}(V_i)+0.3\phi_i\)};
 
 %% =================================================================
 %% RIGHT --- RL: survivors credited to proposer rollouts, then GRPO
@@ -336,7 +324,8 @@ leaves the response's other clauses intact; clauses are pooled, filtered once
 per group (syntax, deduplication, Houdini), and composed into one invariant
 (top).  SFT distills an accepted multi-response pool into one response
 (left).  The shared target-free scorer combines execution-derived negative
-coverage with Shapley allocation (center); RL credits each pooled survivor to
+coverage with Shapley allocation to form Full rewards: shared rejections
+are split among the responses that cover them (center). RL credits each pooled survivor to
 its proposer rollouts and optimizes the resulting rewards with GRPO (right).
 The hidden target \(\mathcal G\) is restored only for final verification.}
 \label{fig:overview}

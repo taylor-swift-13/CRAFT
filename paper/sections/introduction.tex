@@ -2,79 +2,62 @@
 \section{Introduction}\label{sec:intro}
 %% ============================================================
 
-Loop invariants turn unbounded executions into finite proofs, but a generated
-response need not be wholly correct or wholly useless.  One incorrect clause
-can invalidate the complete response even when its other clauses are valid and
-useful.  CRAFT separates these two cases by decomposing each response into
-clauses and verifying them jointly after pooling.  It can then compose
-complementary valid clauses across responses, so even two responses that fail
-individually may yield a correct invariant together.
+Loop invariants are properties that hold at loop entry and are preserved by
+iteration.  By summarizing states reachable after arbitrarily many iterations,
+they reduce unbounded execution to finite proof obligations and are central
+to verifying program safety and functional correctness.  Yet generating
+sufficiently strong invariants remains difficult: a response may mix useful
+clauses with incorrect ones, or lack complementary constraints found in
+another response.  A failed response can therefore contain useful proof
+material.  Emitting more candidate clauses may lower whole-response success
+(pass) while expanding the candidates available for filtering and composition
+(compose).  Our objective is the success of the filtered composition, without
+requiring each response to succeed independently.
 
-This creates an inherent tension between pass and compose.  Emitting more
-candidate clauses increases the chance that one erroneous clause invalidates
-a complete response, but also enlarges the set of discoveries available to
-filtering and cross-response composition.  CRAFT therefore does not require
-each raw response to succeed independently; its primary objective is the
-success of the filtered composition.
+We study \emph{target-hidden loop verification}: the model sees the loop
+context, while target assertions and postconditions \(\mathcal G\) are withheld.
+This prevents target copying and removes target-specific proof feedback from
+generation and training.  Inductive validity alone is insufficient: a valid
+but weak invariant may fail to prove the hidden targets.  Training therefore
+needs a target-independent strength signal beyond validity.
 
-Whole-response training is mismatched to this inference procedure.  A failed
-clause can obscure useful clauses from the same response, while response-level
-rewards do not distinguish a complementary constraint from one repeated by
-every peer.  More generally,
-response-level RLVR can sharpen probability on already-supported answers
-without expanding large-\(k\) coverage~\citep{yue2025rlcapacity}, potentially
-reducing the diversity that composition needs.  Our central claim is therefore
-that training feedback should reflect the result produced after decomposition,
-filtering, and composition.  SFT uses accepted compositions as targets, while
-RL distinguishes coverage unique to a response from coverage shared across a
-sampling group.
+We introduce \sam{} to align compositional inference, supervision targets,
+and RL rewards.  At inference, it decomposes responses into clauses, pools
+and jointly filters them, and composes the survivors.  During training,
+execution-derived negative-trace coverage supplies a target-independent
+strength signal.  SFT learns multi-response compositions accepted by
+verification and coverage screening; RL rewards the coverage of clauses
+retained by the same filtering procedure, with Shapley credit allocating
+shared coverage among contributing responses.  Useful parts can thus receive
+credit even when the complete response fails.  The two stages aim to make
+multi-response discoveries accessible with fewer samples.  All supervision
+comes from the model's own generations, program execution, and verification,
+without an external teacher or reward model.
 
-We study this claim under \emph{target-hidden loop verification}.  The model
-sees the loop context but not the target assertions and postconditions \(\mathcal G\).
-After the invariant set is fixed, the untouched source is restored and the
-verifier checks both induction and every original target.  Hiding \(\mathcal G\)
-prevents target copying and target-specific proof feedback, so generation and
-training require a graded, target-independent strength signal.
-
-At inference, \sam{} implements
-\emph{rollout--decompose--pool--filter--compose}: given \(k\) responses, it
-extracts their clauses, pools and filters them with syntax checks and Houdini,
-and composes the survivors before restoring \(\mathcal G\).  compose@\(k\)
-measures the verified rate of this composed result, preserving useful clauses
-that pass@\(k\) discards; compose@1 is our primary evaluation and reporting
-metric.  We use accepted offline compositions to supervise SFT, then optimize
-the coverage of each response's surviving clauses and a redundancy-adjusted
-response-level allocation with RL.  This
-sequence makes discoveries obtained from multiple responses available with
-fewer inference samples.  All supervision is self-generated: the program
-executor and verifier determine SFT acceptance and RL rewards, without an
-external teacher or reward model.
+Evaluation on 832 C programs shows that compositional inference substantially
+improves bare-model verification and that aligned training yields further
+gains.  We use compose@1, the verification rate after filtering one response,
+as our primary metric.
 
 \input{sections/fig_overview}
 
 \begin{samepage}
 \tightparagraph{Contributions.}
-This paper makes three contributions:
 \begin{itemize}
-  \item We introduce a rollout--decompose--pool--filter--compose inference
-  framework for target-hidden invariant generation.  By pooling clauses
-  before Houdini filtering, the framework preserves useful parts of imperfect
-  responses and combines complementary clauses across responses.  At a
-  one-response inference budget, bare Qwen3-8B achieves 37.86\% compose@1,
-  compared with 6.43\% pass@1.
+  \item We introduce a compositional inference framework for target-hidden
+  invariant generation.  Pooling clauses before Houdini filtering preserves
+  useful parts of imperfect responses and combines complementary constraints.
+  With one response, bare Qwen3-8B reaches 37.86\% compose@1 versus
+  6.43\% pass@1.
   \item We align SFT targets and RL credit with compositional inference.
-  SFT distills accepted compositions from multi-response search into
-  single-response supervision, raising Qwen3-8B compose@1 from 37.86\% to
-  63.90\%.  Our RL uses decompositional clause-level credit, rewarding
-  each rollout for the negative coverage of its clauses that survive pooled
-  filtering, even when the complete response fails.  It further improves the
-  SFT checkpoint to 69.23\% compose@1, with additional gains concentrated at
-  small sampling budgets.
-  \item Through controlled reward ablations, cross-model evaluation, and
-  analysis on 832 programs, we demonstrate the importance of aligning
-  training credit with the decomposed, pooled result used at inference.
-  These experiments assess the benefits of compositional inference and
-  training, together with their limitations under finite sampling and
-  verifier budgets.
+  SFT distills accepted multi-response compositions into single-response
+  supervision, raising Qwen3-8B compose@1 to 63.90\%.  RL rewards surviving
+  clauses' coverage and group contributions even when the complete response
+  fails, further raising compose@1 to 69.23\%.
+  \item Our experiments reveal that whole-response success and compositional
+  verification can diverge.  SFT broadens verification coverage and compresses
+  the sampling budget; after substantial SFT, RL mainly improves sampling
+  efficiency at small budgets, with little change in coverage at the largest
+  tested budget.
 \end{itemize}
 \end{samepage}

@@ -1,232 +1,149 @@
 #!/usr/bin/env python3
-"""Generate the base-checkpoint exploration and paired RL figures.
+"""Plot current raw-results appendix probe curves and the RQ3 four-stage comparison.
 
-Probe grid: k in {1, 2, 4, 8, 16, 32}.  Qwen3-8B uses a 128-response saved
-pool, Qwen3-30B-A3B and Llama 3.1-8B use 100, and the remaining base probes
-use 32.  The paired RL comparison uses k in {1, 4, 8, 16, 32}.
+Refresh the input with paper/scripts/prepare_experiment_results.py first.
 """
-
+import json
 from pathlib import Path
-
 import matplotlib
-
-matplotlib.use("Agg")
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-
-from paper_style import GREEN, RUST, SLATE, use_paper_style
-
+from paper_style import GREEN, RUST, SLATE, OCHRE, AXES_HEIGHT, PANEL_CELL_WIDTH, panel_figure, panel_legend, save_panel_figure
 
 OUT = Path(__file__).resolve().parent
 
-RQ1_K = [1, 2, 4, 8, 16, 32]
-RL_K = [1, 4, 8, 16, 32]
 
-OFFICIAL = {
-    "Qwen3-1.7B": {
-        "direct": [7.74, 11.22, 15.02, 18.77, 22.41, 25.99],
-        "combine": [19.47, 23.68, 28.97, 33.05, 35.34, 37.86],
-        "color": "#b47a5f",
-        "marker": "P",
-        "style": "-",
-    },
-    "Qwen3-4B": {
-        "direct": [6.42, 9.02, 11.66, 14.05, 16.49, 19.12],
-        "combine": [32.93, 38.94, 44.11, 47.60, 50.72, 52.76],
-        "color": "#9d6652",
-        "marker": "o",
-        "style": "-",
-    },
-    "Qwen3-8B": {
-        "direct": [6.43, 9.54, 13.24, 17.33, 21.62, 25.96],
-        "combine": [37.86, 45.07, 50.60, 54.21, 56.37, 57.81],
-        "color": "#4f8a6b",
-        "marker": "s",
-        "style": "--",
-    },
-    "Qwen3-14B": {
-        "direct": [7.67, 10.74, 14.17, 17.97, 22.04, 26.13],
-        "combine": [43.51, 51.20, 58.29, 61.54, 63.70, 64.54],
-        "color": "#2d7053",
-        "marker": "^",
-        "style": "-.",
-    },
-    "Qwen3-30B-A3B": {
-        "direct": [1.40, 2.57, 4.53, 7.65, 12.15, 17.53],
-        "combine": [17.43, 23.92, 30.65, 36.54, 42.31, 43.87],
-        "color": "#5b7185",
-        "marker": "D",
-        "style": ":",
-    },
-    "Llama 3.1-8B": {
-        "direct": [0.61, 1.16, 2.16, 3.81, 6.30, 9.76],
-        "combine": [27.88, 37.14, 46.03, 51.20, 51.68, 52.16],
-        "color": "#75618f",
-        "marker": "v",
-        "style": "-",
-    },
-}
-
-# Matched Qwen3-8B runs on the same inference stack.  Each panel compares an
-# initialization with its full-reward RL checkpoint.
-RL_PAIRS = {
-    "(a) Bare initialization": {
-        "Before RL": [37.86, 50.60, 54.21, 56.37, 57.81],
-        "After RL": [57.93, 66.95, 70.43, 72.60, 73.20],
-    },
-    "(b) SFT initialization": {
-        "Before RL": [63.90, 73.80, 76.20, 77.30, 77.90],
-        "After RL": [69.23, 75.24, 76.80, 77.64, 78.37],
-    },
-}
-
-
-def require_complete(data: dict, name: str, ks: list[int]) -> None:
-    """SystemExit on placeholder data so stale plots are never rendered."""
-    missing = [
-        f"{label}.{metric}"
-        for label, values in data.items()
-        for metric in ("direct", "combine")
-        if values[metric] is None or any(v is None for v in values[metric])
-    ]
-    if missing:
-        raise SystemExit(
-            f"plot_qwen_probes ({name}): placeholder data on the k={ks} "
-            "grid; fill from the new-grid recomputation first: "
-            + ", ".join(missing)
-        )
-
-
-def configure() -> None:
-    use_paper_style()
-
-
-def style_axis(ax: plt.Axes, display_ticks: list[int]) -> None:
-    ax.set_xscale("log", base=2)
+def style(ax, k):
+    ax.set_xscale('log', base=2)
     ax.minorticks_off()
-    ax.set_xticks(display_ticks)
-    ax.set_xticklabels([str(k) for k in display_ticks])
-    ax.set_xlabel("Responses, $k$")
-    ax.set_ylabel("Verification rate (%)")
-    ax.grid(axis="y", alpha=0.8)
-    ax.spines[["top", "right"]].set_visible(False)
+    ax.set_xticks(k, [str(x) for x in k])
+    ax.set_xlim(.85, 38)
+    ax.grid(axis='y', alpha=.8)
+    ax.set_xlabel('Responses, k')
+    ax.set_ylabel('Verified (%)')
 
 
-def plot_lines(ax: plt.Axes, data: dict, metric: str, ks: list[int]) -> None:
-    for label, values in data.items():
-        ax.plot(
-            ks,
-            values[metric],
-            label=label,
-            color=values["color"],
-            marker=values["marker"],
-            linestyle=values["style"],
-            linewidth=1.4,
-            markersize=4.7,
-            markeredgewidth=0.5,
-            markeredgecolor="white",
-        )
-
-
-def official_probe() -> None:
-    require_complete(OFFICIAL, "official_probe", RQ1_K)
-    fig, axes = plt.subplots(1, 4, figsize=(7.2, 2.25), sharex=True, sharey=True)
-    panel_names = ["(a)", "(b)", "(c)", "(d)"]
-    # Additional small and MoE backbones remain in the appendix tables.
-    main_models = ("Qwen3-4B", "Qwen3-8B", "Qwen3-14B", "Llama 3.1-8B")
-    for panel, model in enumerate(main_models):
-        values = OFFICIAL[model]
-        ax = axes.flat[panel]
-        ax.plot(
-            RQ1_K,
-            values["direct"],
-            label="pass@$k$",
-            color=RUST,
-            marker="o",
-            linestyle="-",
-            linewidth=1.4,
-            markersize=4.1,
-            markeredgewidth=0.5,
-            markeredgecolor="white",
-        )
-        ax.plot(
-            RQ1_K,
-            values["combine"],
-            label="compose@$k$",
-            color=GREEN,
-            marker="s",
-            linestyle="--",
-            linewidth=1.4,
-            markersize=4.1,
-            markeredgewidth=0.5,
-            markeredgecolor="white",
-        )
-        ax.set_xscale("log", base=2)
-        ax.minorticks_off()
-        ax.set_xlim(0.85, 38)
-        ax.set_xticks(RQ1_K)
-        ax.set_xticklabels([str(k) for k in RQ1_K])
-        ax.set_xlabel("Responses, $k$")
-        ax.set_ylabel("Verification rate (%)")
-        ax.grid(axis="y", alpha=0.8)
-        ax.spines[["top", "right"]].set_visible(False)
-        ax.set_title(f"{panel_names[panel]} {model}", fontsize=9.2, pad=7)
-        ax.tick_params(labelsize=8.2)
-        ax.set_ylim(0, 72)
+def official_probe(data):
+    models = ['Qwen3-1.7B', 'Qwen3-4B', 'Qwen3-8B',
+              'Qwen3-14B', 'Qwen3-30B-A3B', 'Llama 3.1-8B']
+    fig, axes = panel_figure(6)
+    width, height = 3 * PANEL_CELL_WIDTH, 3.60
+    fig.set_size_inches(width, height)
+    for i, (ax, model) in enumerate(zip(axes, models)):
+        pos = ax.get_position()
+        ax.set_position([((i % 3) * PANEL_CELL_WIDTH + .355) / width,
+                         (2.05 if i < 3 else .40) / height,
+                         pos.width * 2, AXES_HEIGHT / height])
+        r = data['stages']['Bare'][model]
+        for metric, color, marker, ls in [('pass', RUST, 'o', '-'), ('compose', GREEN, 's', '--')]:
+            ax.plot(data['k'], r[metric], label=metric+'@k', color=color,
+                    marker=marker, linestyle=ls, markersize=3.8)
+        style(ax, data['k'])
+        ax.set(ylim=(0, 72))
         ax.set_yticks([0, 20, 40, 60])
-
-    # Shared axis labels leave room for readable titles and ticks.
-    for ax in axes.flat:
-        ax.set_xlabel("")
-        ax.set_ylabel("")
-    fig.supxlabel("Responses, $k$", y=0.01, fontsize=10)
-    fig.supylabel("Verified (%)", x=0.01, fontsize=10)
-    handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper center", ncol=2,
-               bbox_to_anchor=(0.54, 1.0), columnspacing=2.5)
-    fig.subplots_adjust(left=0.07, right=0.985, bottom=0.27, top=0.72,
-                        wspace=0.22)
-    fig.savefig(OUT / "base_model_probe.pdf", bbox_inches="tight")
+        ax.set_title(model, fontsize=8.8)
+    panel_legend(fig, axes[0], columns=2)
+    save_panel_figure(fig, OUT, 'base_model_probe_all')
     plt.close(fig)
 
 
-def rl_comparison_probe() -> None:
-    use_paper_style(base_size=8.2)
-    fig, axes = plt.subplots(1, 2, figsize=(3.65, 2.7), sharey=True)
-    styles = {
-        "Before RL": (GREEN, "D", "-"),
-        "After RL": (RUST, "^", "--"),
-    }
-    for ax, (title, pair) in zip(axes, RL_PAIRS.items()):
-        for label, values in pair.items():
-            color, marker, linestyle = styles[label]
-            ax.plot(
-                RL_K,
-                values,
-                label=label,
-                color=color,
-                marker=marker,
-                linestyle=linestyle,
-                linewidth=1.4,
-                markersize=4.7,
-                markeredgewidth=0.5,
-                markeredgecolor="white",
-            )
-        style_axis(ax, RL_K)
-        ax.set_title(title.replace(" initialization", ""), fontsize=8.5)
-        ax.set_ylabel("Verified (%)")
-        ax.set_ylim(34, 82)
-        ax.set_xlim(0.85, 38)
-    axes[1].set_ylabel("")
-    handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper center", ncol=2, frameon=False,
-               bbox_to_anchor=(0.54, 0.88))
-    fig.subplots_adjust(left=0.13, right=0.985, bottom=0.20, top=0.65,
-                        wspace=0.23)
-    fig.savefig(OUT / "qwen_rlzero_probe.pdf", bbox_inches=None)
+def training_stages(data, *, row_layout=False, stem="training_stages"):
+    import numpy as np
+    from scipy.interpolate import PchipInterpolator, CubicHermiteSpline
+    from matplotlib.lines import Line2D
+
+    fig, axes = panel_figure(2)
+    height = 2.10 if row_layout else 1.78
+    bottom = .32 if row_layout else .29
+    fig.set_size_inches(fig.get_size_inches()[0], height)
+    for i, ax in enumerate(axes):
+        pos = ax.get_position()
+        # Reduce the seam while preserving each panel's physical dimensions.
+        ax.set_position([pos.x0 + .01, bottom/height,
+                         pos.width, AXES_HEIGHT/height])
+    k = np.asarray(data['k'])
+    for ax, title in zip(axes, ['(a) Bare → RL', '(b) SFT → RL']):
+        style(ax, k)
+        ax.set_ylim(35, 83)
+        ax.set_yticks([40, 60, 80])
+        ax.set_ylabel('compose@k (%)')
+        ax.set_xlabel('Responses, k', labelpad=0)
+        ax.set_title(title, pad=3)
+    # Keep a compact seam while preserving the common y scale and measured values.
+    transform = fig.transFigure.inverted()
+    start = transform.transform(axes[0].transData.transform((1, 40)))[0]
+    end = transform.transform(axes[0].transData.transform((32, 40)))[0]
+    next_start = transform.transform(axes[1].transData.transform((1, 40)))[0]
+    seam = .31*(end-start)
+    pos = axes[1].get_position()
+    axes[1].set_position([pos.x0-(next_start-end-seam), pos.y0, pos.width, pos.height])
+    axes[1].set_ylabel('')
+    axes[1].spines['left'].set_visible(False)
+    axes[1].tick_params(axis='y', left=False, labelleft=False)
+
+    # Each solid curve passes through every observation in its own panel.
+    # Dashed tangent bridges join interior curve segments, not the k=32/1
+    # endpoints.  They illustrate the intervention and are not measurements.
+    to_fig = fig.transFigure.inverted()
+    handles = []
+    for stages, label, color, marker in [
+            (('Bare', 'SFT'), 'Before RL', SLATE, 'o'),
+            (('RL', 'SFT+RL'), 'After RL', GREEN, 'D')]:
+        panel_points, curves = [], []
+        for ax, stage in zip(axes, stages):
+            y = data['stages'][stage]['Qwen3-8B']['compose']
+            points = to_fig.transform(ax.transData.transform(np.column_stack([k, y])))
+            curve = PchipInterpolator(points[:, 0], points[:, 1])
+            np.testing.assert_allclose(curve(points[:, 0]), points[:, 1], atol=1e-12)
+            x = np.unique(np.r_[np.linspace(points[0, 0], points[-1, 0], 160), points[:, 0]])
+            fig.add_artist(Line2D(x, curve(x), transform=fig.transFigure,
+                                 color=color, linewidth=1.4, solid_capstyle='round', zorder=3))
+            ax.plot(k, y, linestyle='none', marker=marker, markersize=3.8,
+                    color=color, zorder=4)
+            panel_points.append(points)
+            curves.append(curve)
+
+        # Join the left curve at k=4 to the right curve at k=8.  The bridge
+        # matches both tangents and has a decreasing slope throughout, making
+        # one smooth concave outline with the adjoining solid segments.
+        left = panel_points[0][1]
+        right = panel_points[1][2]
+        derivatives = [curves[0].derivative()(left[0]), curves[1].derivative()(right[0])]
+        bridge = CubicHermiteSpline([left[0], right[0]], [left[1], right[1]], derivatives)
+        x = np.linspace(left[0], right[0], 240)
+        assert np.all(bridge.derivative()(x) > 0)
+        assert np.all(bridge.derivative(2)(x) <= 1e-10), 'Bridge must remain concave.'
+        fig.add_artist(Line2D(x, bridge(x), transform=fig.transFigure,
+                             color=color, linewidth=1.4, linestyle=(0, (2.4, 1.8)),
+                             dash_capstyle='round', zorder=2))
+        handles.append(Line2D([], [], color=color, marker=marker,
+                              markersize=3.8, lw=1.4, label=label))
+
+    # Two schematic intervention arrows, rather than numerical delta labels.
+    # RL: upper-left pull toward useful candidates at a smaller sample budget.
+    axes[0].annotate('', xy=(2.5, 53), xytext=(9, 43),
+                     arrowprops=dict(arrowstyle='-|>', color=GREEN, lw=1.35,
+                                     mutation_scale=10, connectionstyle='arc3,rad=-.12'))
+    axes[0].text(6.3, 46, 'RL', fontsize=8.8, color=GREEN,
+                 ha='left', va='bottom')
+    # SFT: compress the response budget from large k to small k.
+    axes[1].annotate('', xy=(1.5, 51), xytext=(25, 51),
+                     arrowprops=dict(arrowstyle='-|>', color=SLATE, lw=1.35,
+                                     mutation_scale=10))
+    axes[1].text(6, 53.4, 'SFT', fontsize=8.8, color=SLATE,
+                 ha='center', va='bottom')
+    fig.legend(handles=handles, loc='upper center', ncol=2,
+               bbox_to_anchor=(.55, 1.0 if row_layout else 1.015), borderaxespad=0,
+               columnspacing=1.0, handletextpad=.5)
+    save_panel_figure(fig, OUT, stem)
     plt.close(fig)
 
 
-if __name__ == "__main__":
-    configure()
-    official_probe()
-    rl_comparison_probe()
+def main():
+    data = json.loads((OUT.parent/'artifacts/experiment_results_current.json').read_text())
+    official_probe(data)
+    training_stages(data)
+
+
+if __name__ == '__main__':
+    main()

@@ -4,31 +4,23 @@
 \begin{figure}[H]
 \centering
 % Match the overview and data figures without changing the document palette.
-\definecolor{paperink}{HTML}{1F3128}
-\definecolor{codegray}{HTML}{66786F}
-\definecolor{codegreen}{HTML}{2E7D5B}
-\definecolor{codered}{HTML}{B85C47}
-\definecolor{wrongred}{HTML}{D99382}
-\definecolor{promptframe}{HTML}{D8E2DC}
-\definecolor{algobg}{HTML}{F2F6F3}
-\renewcommand{\tiny}{\fontsize{7.2}{8.4}\selectfont}
-\renewcommand{\scriptsize}{\fontsize{8.6}{9.8}\selectfont}
+\renewcommand{\tiny}{\paperdiagramfont}
+\renewcommand{\scriptsize}{\paperdiagramfont}
 \resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[
-  font=\sffamily\footnotesize,
+  font=\sffamily\scriptsize,
   >=Stealth,
-  flow/.style={-{Stealth[length=2.2mm]}, draw=paperink!58, line width=1.1pt},
+  flow/.style={-{Stealth[length=1.6mm,width=1.0mm]}, draw=paperink!58, line width=0.75pt},
   panel/.style={rounded corners=3pt, fill=algobg, draw=promptframe, line width=0.55pt},
   subcard/.style={rounded corners=3.5pt, fill=white, draw=none},
   stage/.style={font=\sffamily\scriptsize\bfseries, text=paperink},
   ttl/.style={font=\sffamily\scriptsize\bfseries, text=paperink, anchor=west},
   ann/.style={font=\sffamily\tiny, text=codegray, align=center},
-  pdot/.style={circle, fill=codegreen, inner sep=1.55pt},
-  neg/.style={circle, draw=codered, fill=wrongred!35, line width=0.8pt,
-    inner sep=1.35pt},
-  pedge/.style={-{Stealth[length=1.5mm]}, draw=codegreen!75, line width=0.75pt},
-  nedge/.style={-{Stealth[length=1.5mm]}, draw=codered!80, line width=0.75pt},
-  perturb/.style={-{Stealth[length=1.6mm]}, draw=codered!80, line width=0.8pt,
+  pdot/.style={paper state, fill=codegreen},
+  neg/.style={paper state, draw=codered, fill=wrongred!35, line width=0.6pt},
+  pedge/.style={-{Stealth[length=1.6mm,width=1.0mm]}, draw=codegreen!75, line width=0.75pt},
+  nedge/.style={-{Stealth[length=1.6mm,width=1.0mm]}, draw=codered!80, line width=0.75pt},
+  perturb/.style={-{Stealth[length=1.6mm,width=1.0mm]}, draw=codered!80, line width=0.75pt,
     dashed}
 ]
 
@@ -75,7 +67,7 @@
 \node[pdot] (p3) at (5.75,-1.10) {};
 \draw[pedge] (p1) -- (p2);
 \draw[pedge] (p2) -- (p3);
-\draw[dashed, draw=codegray!85, line width=0.7pt] (6.15,-1.50) -- (6.15,-0.62);
+\draw[dashed, draw=codegray!85, line width=0.75pt] (6.15,-1.50) -- (6.15,-0.62);
 \node[ann] at (6.15,-0.42) {exit};
 \node[neg] (q1) at (6.60,-1.10) {};
 \node[neg] (q2) at (7.40,-1.10) {};
@@ -107,14 +99,16 @@
 \node[circle, fill=wrongred!25,
   inner sep=0pt, minimum size=1.18cm] (out) at (14.95,0)
   {\(\mathcal N\)};
-\node[ann] at (14.95,-0.98) {negative traces\\[-1pt]for the RL reward};
+\node[ann] at (14.95,-0.98) {candidate traces\\[-1pt]for coverage};
 
 \end{tikzpicture}
 }%
-\caption{\textbf{Construction of target-hidden negative traces.}
+\caption{\textbf{Construction of target-hidden candidate negative traces.}
 Concrete executions provide observed reachable states.  Two transformations
 probe relational structure and behavior past a genuine exit.  Conservative
-cleaning and per-family budgets produce \(\mathcal N\), which is used only
-for RL reward computation and never exposes \(\mathcal G\).}
+cleaning and per-family budgets select these two structured families;
+random perturbations fill unused capacity (not shown).
+The resulting \(\mathcal N\) supplies coverage for SFT acceptance and RL
+rewards without exposing \(\mathcal G\); it does not certify unreachability.}
 \label{fig:negative-sampling}
 \end{figure}

@@ -5,10 +5,9 @@
 Useful invariant clauses need not occur in one successful response.
 Cross-response filtering substantially improves bare-model verification,
 while SFT and RL make these gains available at smaller sampling budgets.
-Reward ablations show that higher pass need not imply better composition:
-credit aligned with the inference algebra preserves gains lost under
-whole-response credit.  Both metrics use one saved response prefix per task
-and budget, so sampling variance can affect measured gaps and saturation
-trends.  Future work should quantify this uncertainty with repeated matched
-sampling and test transfer to other tasks with independently verifiable
-components (Appendix~\ref{app:limitations}).
+Reward ablations show that whole-response credit can improve pass while
+reducing compositional verification.  Projected pass estimates and prefix composition
+results use different aggregation at the same nominal budget, so sampling
+variance can affect measured gaps and saturation trends.  We leave extending
+CRAFT beyond loop verification—to testcase generation and function contract
+generation—for future study (Appendix~\ref{app:limitations}).

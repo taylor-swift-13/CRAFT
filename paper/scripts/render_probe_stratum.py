@@ -2,7 +2,8 @@
 """Validate the archived per-stratum base-probe artifact.
 
 The current whole-workload Bare curves live in
-paper/artifacts/v4/bare_probe_aggregate.json.  This script no longer rewrites
+results/05_appendix_audits/data_and_protocol/bare_probe_aggregate.json.
+This script no longer rewrites
 the manuscript because the archived stratum grid predates those aggregates.
 """
 

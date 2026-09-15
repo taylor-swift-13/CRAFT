@@ -175,7 +175,8 @@ negative score when its sample hash or positive/negative counts do not match
 the frozen sample. Archived schema-v1 samples remain readable after the
 schema-v2 writer change; new sample generation still writes schema v2.
 
-Outputs default to `results/gpt5nano_full832/`. JSONL files are append-only and
+Outputs default to `results/02_rq2_tool_comparison/gpt5nano_full832/`.
+JSONL files are append-only and
 resumable; `latest.jsonl` and summary tables are deterministic materializations
 of the newest row for every task key.
 

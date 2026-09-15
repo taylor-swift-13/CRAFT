@@ -54,8 +54,8 @@ DEFAULT_CHECKPOINT = (
     ROOT / "paper" / "artifacts" / "sft_expansion_stage12_checkpoint.jsonl"
 )
 DEFAULT_ARTIFACT_GLOBS = (
-    "paper/artifacts/sft_stage1[2-9]_*.json",
-    "paper/artifacts/sft_stage2[0-1]_*.json",
+    "results/03_rq3_training_stages/intermediate/sft_stage1[2-9]_*.json",
+    "results/03_rq3_training_stages/intermediate/sft_stage2[0-1]_*.json",
 )
 MAX_CLAUSES = 20
 

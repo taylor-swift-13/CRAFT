@@ -140,7 +140,7 @@ def training_stages(data, *, row_layout=False, stem="training_stages"):
 
 
 def main():
-    data = json.loads((OUT.parent/'artifacts/experiment_results_current.json').read_text())
+    data = json.loads((OUT.parent.parent/'results/01_rq1_main_verification/paper_summaries/experiment_results_current.json').read_text())
     official_probe(data)
     training_stages(data)
 

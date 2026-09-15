@@ -2,7 +2,8 @@
 """Aggregate the v4 curation/synthesis reports into one JSON for the paper.
 
 Every number quoted in the data sections of the paper should come from this
-file (``paper/artifacts/v4/paper_data_summary.json``), never be typed by hand.
+file (``results/05_appendix_audits/data_and_protocol/paper_data_summary.json``),
+never be typed by hand.
 """
 
 from __future__ import annotations

@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 from paper_style import GREEN, OCHRE, RUST, SLATE, panel_figure, panel_legend, save_panel_figure
 
 OUT = Path(__file__).resolve().parent
-SOURCE = OUT.parent / 'artifacts/reward_curves_step1-282.csv'
+SOURCE = OUT.parent.parent / 'results/04_rq4_ablations/paper_summaries/reward_curves_step1-282.csv'
 WINDOW = 15
 SERIES = (
     ('binary', 'Binary', RUST, ':'),
@@ -71,7 +71,7 @@ def main():
     panel_legend(fig, axes[0], columns=2)
     save_panel_figure(fig, OUT, 'reward_training_curves', normalize_linewidth=False)
     plt.close(fig)
-    (OUT.parent / 'artifacts/reward_training_curves_summary.json').write_text(json.dumps(summary, indent=2)+'\n')
+    (OUT.parent.parent / 'results/04_rq4_ablations/paper_summaries/reward_training_curves_summary.json').write_text(json.dumps(summary, indent=2)+'\n')
     print('Plotted eight curves: 564 rows, 2,256 reward observations; all steps 1–282 present.')
 
 

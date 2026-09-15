@@ -1,7 +1,7 @@
 # Full-832 final comparison (R5-H replaces R4-H)
 
 AutoSpec uses the strict exact-usage rerun in
-`results/autospec_strict_usage_v2/autospec_strict_statistics.json`.
+`results/02_rq2_tool_comparison/autospec_strict_usage_v2/autospec_strict_statistics.json`.
 
 | Tool / configuration | Correct / 832 | Mean generation time | Mean total tokens | Negative micro | Negative macro |
 |---|---:|---:|---:|---:|---:|

@@ -20,7 +20,7 @@ STYLES = (
 
 
 def main():
-    data = json.loads((OUT.parent / "artifacts/sft_composition_qwen3_8b.json").read_text())
+    data = json.loads((OUT.parent.parent / "results/03_rq3_training_stages/paper_summaries/sft_composition_qwen3_8b.json").read_text())
     for metric in ("compose", "pass"):
         fig, (ax,) = panel_figure(1)
         for name, label, color, marker, linestyle in STYLES:

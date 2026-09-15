@@ -11,7 +11,7 @@ OUT = Path(__file__).resolve().parent
 
 
 def main():
-    data = json.loads((OUT.parent/'artifacts/experiment_results_current.json').read_text())
+    data = json.loads((OUT.parent.parent/'results/01_rq1_main_verification/paper_summaries/experiment_results_current.json').read_text())
     rewards = data['rewards']['Bare']
     default = data['default_reward']
     colors = {'Binary': RUST, 'Whole-rollout': OCHRE, 'Clause-decomposed': SLATE, 'Full': GREEN}

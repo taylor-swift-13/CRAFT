@@ -76,7 +76,7 @@ def main():
     assert seen==set(SCHEMAS),(seen,set(SCHEMAS)-seen)
     assert source.read_text()==text,'Concurrent edit detected'
     source.write_text(updated)
-    out=ROOT/'artifacts/pass_count_projection.json'
+    out=ROOT.parent/'results/01_rq1_main_verification/paper_summaries/pass_count_projection.json'
     if not out.exists():
         out.write_text(json.dumps({
             'operation':'nearest integer-count projection of reported pass percentages',

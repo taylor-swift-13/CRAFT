@@ -17,7 +17,8 @@ Timing note: mean generation time is the arithmetic mean of recorded per-task du
 Token note: averages use the displayed exact or estimated row count. API-reported and estimated usage are never combined; unknown usage is not imputed.
 
 AutoSpec is sourced from the strict rerun in
-`results/autospec_strict_usage_v2/autospec_strict_statistics.json`; its
+`results/02_rq2_tool_comparison/autospec_strict_usage_v2/autospec_strict_statistics.json`;
+its
 negative-rejection columns are blank because that diagnostic was not rerun.
 
 Artifacts:

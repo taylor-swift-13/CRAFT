@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Generate new training programs for evaluation structural cells the pool lacks.
 
-Input: ``paper/artifacts/v4/eval_cell_specs.json`` (per evaluation cell: how
+Input: ``results/05_appendix_audits/data_and_protocol/eval_cell_specs.json``
+(per evaluation cell: how
 many evaluation programs it holds, how many training programs the pool has,
 and a *structural spec* -- guard kind, variable counts, branch counts,
 nondeterminism, update kinds).  For every cell whose supply is below its
@@ -158,7 +159,7 @@ class Acceptor:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--specs", type=Path, default=ROOT / "paper/artifacts/v4/eval_cell_specs.json")
+    parser.add_argument("--specs", type=Path, default=ROOT / "results/05_appendix_audits/data_and_protocol/eval_cell_specs.json")
     parser.add_argument("--pool", type=Path, default=ROOT / "traindata/craft_rl_canonical.parquet",
                         help="training pool for few-shot style examples")
     parser.add_argument("--output", type=Path, required=True)

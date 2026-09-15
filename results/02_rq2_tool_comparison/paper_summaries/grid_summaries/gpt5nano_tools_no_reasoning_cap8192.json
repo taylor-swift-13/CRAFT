@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "run": "gpt5nano_tools_no_reasoning_cap8192",
+  "ks": [
+    1,
+    4,
+    8
+  ],
+  "compose": {
+    "1": {
+      "linear": 110,
+      "all": 282,
+      "scored_linear": 316,
+      "scored": 832,
+      "NLA_lipus": 11,
+      "scored_NLA_lipus": 50,
+      "Loopy": 161,
+      "scored_Loopy": 466
+    },
+    "4": {
+      "linear": 152,
+      "all": 408,
+      "scored_linear": 316,
+      "scored": 832,
+      "NLA_lipus": 15,
+      "scored_NLA_lipus": 50,
+      "Loopy": 241,
+      "scored_Loopy": 466
+    },
+    "8": {
+      "linear": 175,
+      "all": 462,
+      "scored_linear": 316,
+      "scored": 832,
+      "NLA_lipus": 22,
+      "scored_NLA_lipus": 50,
+      "Loopy": 265,
+      "scored_Loopy": 466
+    }
+  },
+  "pass_estimate": {
+    "1": {
+      "all": 29.8,
+      "linear": 11.9,
+      "NLA_lipus": 0.2,
+      "Loopy": 17.7
+    },
+    "4": {
+      "all": 88.4,
+      "linear": 34.1,
+      "NLA_lipus": 0.8,
+      "Loopy": 53.5
+    },
+    "8": {
+      "all": 133.56,
+      "linear": 50.04,
+      "NLA_lipus": 1.6,
+      "Loopy": 81.91
+    }
+  },
+  "pass_rows": 832,
+  "policy": "compose@k = union of the FIRST k archived rollouts -> inference filter chain -> target judge; pass@k = unbiased estimator over the archived per-rollout verdicts"
+}

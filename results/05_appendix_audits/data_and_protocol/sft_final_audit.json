@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "final_sft": "traindata/craft_sft_final.json",
+  "sha256": "96788b1e12d6851f43f94b41e1ffc1c321cefa249bccc5b7e459125fc5530b0f",
+  "rows": 3096,
+  "unique_sources": 3096,
+  "unique_source_answer_pairs": 3096,
+  "clauses": 32334,
+  "distinct_clauses_per_answer": {
+    "mean": 10.443798449612403,
+    "median": 10,
+    "minimum": 1,
+    "maximum": 20
+  },
+  "baseline": {
+    "path": "traindata/craft_sft_negative_complete_curated_stage11.json",
+    "clauses": 24790,
+    "mean_distinct_clauses_per_answer": 8.007105943152455
+  },
+  "expansion": {
+    "rows_expanded_before_negative_filter": 2668,
+    "clauses_added_before_negative_filter": 7632,
+    "clauses_added_in_final_sft": 7544,
+    "verification": "Frama-C/WP, 5 seconds per obligation",
+    "original_clause_policy": "all original clauses must survive before additions are accepted",
+    "maximum_clauses_per_answer": 20
+  },
+  "negative_filter": {
+    "input_rows": 3200,
+    "output_rows": 3096,
+    "policy": "retain iff scorable and n_negative_traces > 0",
+    "report": "paper/artifacts/sft_final_negative_filter.json"
+  },
+  "checks": {
+    "empty_answers": 0,
+    "answers_with_normalized_duplicates": 0,
+    "answers_above_20_clauses": 0,
+    "interface_dropped_clauses": 0,
+    "noncanonical_answers": 0,
+    "canonical_prompt_mismatches": 0,
+    "visible_targets": 0,
+    "visible_noncontract_comments": 0,
+    "forbidden_helper_or_operator_answers": 0,
+    "regression_tests_passed": 103
+  }
+}

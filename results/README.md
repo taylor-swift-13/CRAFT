@@ -1,30 +1,19 @@
-# Final GPT-5-nano results
+# CRAFT experimental results
 
-Only the final 832-task evaluation is retained:
+`results/` is the single source of truth for manuscript experiments. Data are
+grouped by the research questions in `paper/sections/experiments.tex`; paper
+figures read their inputs directly from these directories.
 
-- `gpt5nano_full832/final_report.md`: readable seven-method comparison.
-- `gpt5nano_full832/summary.csv`: method and suite aggregates.
-- `gpt5nano_full832/final_results.csv`: compact 5,824-row result table.
-- `gpt5nano_full832/efficiency_reaudit.md`: corrected wall-time and token table.
-- `gpt5nano_full832/efficiency_batches.csv`: batch/session timing evidence.
-- `gpt5nano_full832/methods/`: one final directory per method.
+| Directory | Paper scope | Contents |
+| --- | --- | --- |
+| `01_rq1_main_verification/` | RQ1 | Local/API model evaluations, probe pools, main-table data |
+| `02_rq2_tool_comparison/` | RQ2 | AutoSpec, SESpec, Clause2Inv, Loopy, Daikon, and CRAFT tool runs |
+| `03_rq3_training_stages/` | RQ3 | SFT synthesis, RL data, and stage-comparison summaries |
+| `04_rq4_ablations/` | RQ4 | Reward, sampler, coverage, clause-cap, and target-visibility experiments |
+| `05_appendix_audits/` | Appendix | Data/protocol audits and formal case-study artifacts |
 
-## Per-method results
+Each section contains a local README. `paper_summaries/` stores compact,
+paper-facing tables and plotting inputs; model/run directories retain raw
+outputs and manifests. Historical files remain recoverable through Git.
 
-Each directory contains `results.jsonl`, `results.csv`, `summary.csv`, and
-`summary.json`:
-
-- `gpt5nano_full832/methods/autospec/`
-- `gpt5nano_full832/methods/clause2inv/`
-- `gpt5nano_full832/methods/sespec/`
-- `gpt5nano_full832/methods/naive/`
-- `gpt5nano_full832/methods/loopgym_r1_no_houdini/`
-- `gpt5nano_full832/methods/loopgym_r1_houdini/`
-- `gpt5nano_full832/methods/loopgym_r4_houdini/`
-
-Where raw generated artifacts are available, the method directory contains an
-`artifacts` link into the canonical artifact tree.
-
-The fixed samples, raw event streams, and protocol manifests remain inside
-`gpt5nano_full832/` because they are required to reproduce the final scores.
-Legacy, target-leaking, and superseded intermediate batches have been removed.
+The former `paper/artifacts/` directory has been merged here and removed.

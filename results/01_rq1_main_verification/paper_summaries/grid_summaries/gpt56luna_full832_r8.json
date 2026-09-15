@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "run": "gpt56luna_full832_r8",
+  "ks": [
+    1,
+    4,
+    8
+  ],
+  "compose": {
+    "1": {
+      "Loopy": 401,
+      "all": 708,
+      "scored_Loopy": 466,
+      "scored": 832,
+      "NLA_lipus": 41,
+      "scored_NLA_lipus": 50,
+      "linear": 266,
+      "scored_linear": 316
+    },
+    "4": {
+      "Loopy": 428,
+      "all": 756,
+      "scored_Loopy": 466,
+      "scored": 832,
+      "NLA_lipus": 45,
+      "scored_NLA_lipus": 50,
+      "linear": 283,
+      "scored_linear": 316
+    },
+    "8": {
+      "Loopy": 434,
+      "all": 764,
+      "scored_Loopy": 466,
+      "scored": 832,
+      "NLA_lipus": 45,
+      "scored_NLA_lipus": 50,
+      "linear": 285,
+      "scored_linear": 316
+    }
+  },
+  "pass_estimate": {
+    "1": {
+      "all": 676.62,
+      "linear": 256.12,
+      "NLA_lipus": 36.5,
+      "Loopy": 384.0
+    },
+    "4": {
+      "all": 744.47,
+      "linear": 281.53,
+      "NLA_lipus": 42.97,
+      "Loopy": 419.97
+    },
+    "8": {
+      "all": 756.0,
+      "linear": 284.0,
+      "NLA_lipus": 45.0,
+      "Loopy": 427.0
+    }
+  },
+  "pass_rows": 832,
+  "policy": "compose@k = union of the FIRST k archived rollouts -> inference filter chain -> target judge; pass@k = unbiased estimator over the archived per-rollout verdicts"
+}

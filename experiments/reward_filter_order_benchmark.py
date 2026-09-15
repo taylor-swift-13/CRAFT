@@ -378,7 +378,7 @@ def main() -> int:
     parser.add_argument(
         "--results-root",
         type=Path,
-        default=Path("results/gpt5_full832_r10_no_reasoning"),
+        default=Path("results/01_rq1_main_verification/gpt5_full832_r10_no_reasoning"),
     )
     parser.add_argument("--output", type=Path)
     parser.add_argument("--per-suite", type=int, default=10)

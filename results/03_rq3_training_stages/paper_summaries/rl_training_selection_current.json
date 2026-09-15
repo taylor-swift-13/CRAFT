@@ -1,0 +1,81 @@
+{
+  "pool": "traindata/craft_raw.parquet",
+  "pool_sha256": "8bb2a017035f2d0cb95fa3e8fb8987ebe88c9e74ca6910e75e882c4ad0c00caf",
+  "output": "traindata/craft_rl.parquet",
+  "rows": 9024,
+  "requested": 10000,
+  "batch_multiple": 64,
+  "batches": 141,
+  "output_sha256": "33af870f3d5c48de8ffb04a47205009824319557f2e08e6e11f370c83ede3978",
+  "seed": 20260906,
+  "sampler_schema": 9,
+  "policy": "unchanged pool rows; unique source; alpha family cap 3; constant-abstract family cap 8; easy <=1000; challenging <=750 (for requested 10k); >=12 current negative groups; no abnormal runs; sampler audit timeout 15s",
+  "evaluation_informed": true,
+  "evaluation_use": "832 target-hidden static complexity distributions inspected to refine difficulty proxies and reduce challenging-task quota; no verification labels, target assertions, per-test matching, or SFT answers used in selection",
+  "difficulty_rules": {
+    "easy": "active variables <=2, updates <=1, non-exit decisions <=1, no variable multiplication",
+    "challenging": "active variables >6 or non-exit decisions >2 or updates >7 or statements >15",
+    "medium": "remaining eligible sources"
+  },
+  "difficulty_limit": "Static proxy only; not measured against the trained policy.",
+  "levels": {
+    "medium": 7745,
+    "challenging": 750,
+    "easy": 529
+  },
+  "families": 6760,
+  "broad_families": 4196,
+  "static_exclusions": {
+    "complex_control_or_array": 13,
+    "duplicate_source": 1642,
+    "no_loop_updates": 2,
+    "extreme_static_complexity": 478
+  },
+  "audited": 9103,
+  "audit_rejections": {
+    "sampler_cost_over_15s": 1,
+    "sampler_error": 13
+  },
+  "exact_pool_row_equality_verified": true,
+  "provenance_manifest": "results/rl_data_archive_20260906_D5w99L/craft_rl_10k.parquet.manifest.json",
+  "comparison": {
+    "new": {
+      "rows": 9024,
+      "broad_families": 4196,
+      "max_family_rows": 8,
+      "top10_family_share": 0.008865248226950355,
+      "effective_family_count": 2349.468436237738,
+      "static_eligible": 9024,
+      "difficulty_counts": {
+        "medium": 7745,
+        "challenging": 750,
+        "easy": 529
+      },
+      "eligible_feature_medians": {
+        "active_variables": 4.0,
+        "decisions": 1.0,
+        "assignments": 3.0
+      }
+    },
+    "evaluation_832": {
+      "rows": 832,
+      "broad_families": 609,
+      "max_family_rows": 9,
+      "top10_family_share": 0.06490384615384616,
+      "effective_family_count": 449.4961038961039,
+      "static_eligible": 791,
+      "difficulty_counts": {
+        "medium": 534,
+        "easy": 136,
+        "challenging": 121
+      },
+      "eligible_feature_medians": {
+        "active_variables": 2,
+        "decisions": 0,
+        "assignments": 2
+      }
+    },
+    "evaluation_exact_source_matches": 0,
+    "evaluation_alpha_matches": 0
+  }
+}

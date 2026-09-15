@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "inputs": {
+    "rl": {
+      "path": "traindata/craft_rl.parquet",
+      "sha256": "b22beb17a6d2eac509228c00a876522c4aa65fe91f005b256d50db568cefd6cf"
+    },
+    "sft": {
+      "path": "traindata/craft_sft.json",
+      "sha256": "b0bb3751cd9484e9c84e29fb146c284d22e7e3095fc0a3b3858a9a36baa18a31"
+    },
+    "evaluation_programs": 832
+  },
+  "definition": {
+    "instance_levels": [
+      "exact target-hidden tokens",
+      "alpha-renamed identifiers",
+      "alpha-renamed identifiers with integer constants abstracted"
+    ],
+    "structural_cell": [
+      "coarse control-flow profile",
+      "guard kind",
+      "nonlinearity",
+      "nondeterminism",
+      "variable-count band"
+    ],
+    "distribution_weighting": "training records versus evaluation programs"
+  },
+  "audit_scope": {
+    "supported_claim": "no evidence of instance-level training-evaluation leakage under the three audited representations",
+    "not_ruled_out": [
+      "semantic equivalence between syntactically different programs",
+      "public benchmark exposure during foundation-model pretraining or synthetic-data generation",
+      "test-set influence through checkpoint or hyperparameter selection"
+    ],
+    "note": "structural-cell overlap and total-variation distance describe domain similarity; they are not leakage tests"
+  },
+  "evaluation": {
+    "programs": 832,
+    "structural_cells": 122,
+    "marginals": {
+      "guard_kind": {"constant": 205, "single_var": 261, "var_vs_var": 310, "compound": 56},
+      "nonlinear": {"false": 811, "true": 21},
+      "nondeterministic": {"false": 594, "true": 238},
+      "variable_band": {"v<=2": 292, "v3-4": 282, "v5+": 258}
+    }
+  },
+  "rl": {
+    "records": 4992,
+    "distinct_program_sources": 4992,
+    "evaluation_matches": {"exact": 0, "alpha": 0, "alpha_const": 0},
+    "train_structural_cells": 88,
+    "shared_evaluation_cells": 88,
+    "evaluation_programs_in_shared_cells": 702,
+    "evaluation_programs_in_shared_cells_rate": 0.8438,
+    "training_records_in_evaluation_supported_cells": 4992,
+    "training_records_in_evaluation_supported_cells_rate": 1.0,
+    "tv_distance": 0.4221,
+    "marginals": {
+      "guard_kind": {"constant": 375, "single_var": 1575, "var_vs_var": 2858, "compound": 184},
+      "nonlinear": {"false": 4865, "true": 127},
+      "nondeterministic": {"false": 3477, "true": 1515},
+      "variable_band": {"v<=2": 1059, "v3-4": 1580, "v5+": 2353}
+    }
+  },
+  "sft": {
+    "records": 33346,
+    "distinct_program_sources": 31865,
+    "evaluation_matches": {"exact": 0, "alpha": 0, "alpha_const": 0},
+    "train_structural_cells": 157,
+    "shared_evaluation_cells": 41,
+    "evaluation_programs_in_shared_cells": 529,
+    "evaluation_programs_in_shared_cells_rate": 0.6358,
+    "training_records_in_evaluation_supported_cells": 27275,
+    "training_records_in_evaluation_supported_cells_rate": 0.8179,
+    "tv_distance": 0.6505,
+    "marginals": {
+      "guard_kind": {"constant": 1550, "single_var": 14661, "var_vs_var": 16873, "compound": 262},
+      "nonlinear": {"false": 29758, "true": 3588},
+      "nondeterministic": {"false": 28383, "true": 4963},
+      "variable_band": {"v<=2": 15409, "v3-4": 3995, "v5+": 13942}
+    }
+  },
+  "union": {
+    "records": 38338,
+    "distinct_program_sources": 35170,
+    "evaluation_matches": {"exact": 0, "alpha": 0, "alpha_const": 0},
+    "train_structural_cells": 208,
+    "shared_evaluation_cells": 92,
+    "evaluation_programs_in_shared_cells": 754,
+    "evaluation_programs_in_shared_cells_rate": 0.9062,
+    "training_records_in_evaluation_supported_cells": 32267,
+    "training_records_in_evaluation_supported_cells_rate": 0.8416,
+    "tv_distance": 0.5955
+  }
+}

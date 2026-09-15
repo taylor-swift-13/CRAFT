@@ -124,19 +124,19 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--non-reasoning-root", type=Path,
-        default=Path("results/gpt5nano_tools_no_reasoning_cap8192"),
+        default=Path("results/02_rq2_tool_comparison/gpt5nano_tools_no_reasoning_cap8192"),
     )
     parser.add_argument(
         "--paired-root", type=Path,
-        default=Path("results/gpt5nano_full832_no_reasoning_cap8192"),
+        default=Path("results/01_rq1_main_verification/gpt5nano_full832_no_reasoning_cap8192"),
     )
     parser.add_argument(
         "--medium-root", type=Path,
-        default=Path("results/gpt5nano_loopy_reasoning_medium_cap8192"),
+        default=Path("results/02_rq2_tool_comparison/gpt5nano_loopy_reasoning_medium_cap8192"),
     )
     parser.add_argument(
         "--output", type=Path,
-        default=Path("paper/artifacts/tool_comparison_final_audit.json"),
+        default=Path("results/02_rq2_tool_comparison/paper_summaries/tool_comparison_final_audit.json"),
     )
     args = parser.parse_args()
 

@@ -12,5 +12,5 @@ from plot_qwen_probes import training_stages
 
 if __name__ == "__main__":
     root = Path(__file__).resolve().parent.parent
-    data = json.loads((root / "artifacts/experiment_results_current.json").read_text())
+    data = json.loads((root.parent / "results/01_rq1_main_verification/paper_summaries/experiment_results_current.json").read_text())
     training_stages(data)

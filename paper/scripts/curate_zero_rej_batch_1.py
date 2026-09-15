@@ -23,8 +23,8 @@ from rl_pipeline.sampler.example_sampler import ExampleSampler
 
 ROWS = [82,285,386,534,845,892,1013,1141,1179,1212,1347,1611,1687,1847,1969,1987,2120,2303,636,136,749,1593,1490,2199,391,299,1084,1376,2056,297,868,284,1832,1032,645,1377,1271,2118,1129,1479,2203,2207,2271,2274,2290,2292,2296,2300,2889,2897,2910,1419,1512]
 SFT = ROOT / "traindata/craft_sft_clean.json"
-LEDGER = ROOT / "paper/artifacts/sft_negative_rejection.jsonl"
-OUT = ROOT / "paper/artifacts/curation_zero_rej_batch_1.json"
+LEDGER = ROOT / "results/03_rq3_training_stages/intermediate/sft_negative_rejection.jsonl"
+OUT = ROOT / "results/03_rq3_training_stages/intermediate/curation_zero_rej_batch_1.json"
 
 def invs(*xs):
     return list(xs)

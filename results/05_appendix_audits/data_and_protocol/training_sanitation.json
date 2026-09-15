@@ -1,0 +1,172 @@
+{
+  "schema_version": 4,
+  "mode": "write",
+  "frama_c_verified_sft": true,
+  "frama_c_verified_rl_syntax": false,
+  "inputs": {
+    "rl": {
+      "path": "traindata/craft_rl_clean.parquet",
+      "sha256": "9d1455d34b38f61898aeb3ef7bf7306979378e4f728dc12af81585863caa873e"
+    },
+    "sft": {
+      "path": "traindata/craft_sft_clean.json",
+      "sha256": "6664896e76b1fcbffc8dfd49f1860b8207a426698c2b32c02c34b1397a24998a"
+    }
+  },
+  "canonical_prompt_sha256": "bc031fdd5190bddaecc403b82ba7ef47961aace102060234d5ed193de36cb335",
+  "rl": {
+    "input_rows": 37481,
+    "output_rows": 37481,
+    "modified_prompts": 37481,
+    "reconstructed_from_archival_source": 0,
+    "dropped_programs": {},
+    "output_prompts_with_target": 0,
+    "output_prompt_mismatches": 0,
+    "frama_c_syntax_checked_unique_programs": 0,
+    "frama_c_syntax_invalid_unique_programs": 0,
+    "dropped_syntax_rows": 0,
+    "syntax_failures": []
+  },
+  "sft": {
+    "input_rows": 3200,
+    "output_rows": 3200,
+    "modified_prompts": 3200,
+    "modified_answers": 838,
+    "dropped_programs": {},
+    "dropped_empty_answers": 0,
+    "frama_c_errors": 0,
+    "clauses_before": 24736,
+    "clauses_after": 24090,
+    "removed_clauses": {
+      "duplicate": 546,
+      "guarded_copy": 7,
+      "tautology": 93
+    },
+    "transformations": {
+      "loopentry_initializer_inlined": 3753,
+      "loopentry_required_retained": 2173,
+      "loopentry_rewritten": 4214,
+      "loopentry_to_pre": 461
+    },
+    "output_prompts_with_target": 0,
+    "output_prompt_mismatches": 0,
+    "output_answer_violations": 0,
+    "power_audit_rows": 0
+  },
+  "outputs": {
+    "rl": {
+      "path": "traindata/craft_rl_clean.parquet",
+      "sha256": "50b3e6a12f8b8395f36f3851fd18939f278efc4f75bc488453dc0b5f6d42a314"
+    },
+    "sft": {
+      "path": "traindata/craft_sft_clean.json",
+      "sha256": "6b8a7989b3665732c8823731a47cc8ca717408c495dcd4cd1d9d9f41774e2f80"
+    }
+  },
+  "final_release": {
+    "authoritative": true,
+    "rl": {
+      "path": "traindata/craft_rl_clean.parquet",
+      "sha256": "50b3e6a12f8b8395f36f3851fd18939f278efc4f75bc488453dc0b5f6d42a314",
+      "rows": 37481
+    },
+    "sft": {
+      "path": "traindata/craft_sft_clean.json",
+      "sha256": "7c76bf11cd2413305ca2228e617ce65ab038d2346e63367b34d11fa4126a4bdf",
+      "rows": 3200,
+      "clauses": 23913,
+      "empty_answers": 0,
+      "helper_call_answers": 0,
+      "max_clauses_per_answer": 20
+    },
+    "quality_cleanup": {
+      "guarded_copies_removed": 1000,
+      "reducible_power_candidates_rejected": 67,
+      "post_cleanup_frama_c_rejected": 6,
+      "frama_c_errors": 0,
+      "wp_timeout_per_obligation_seconds": 5,
+      "loopentry_policy": "only locals whose final pre-loop assignment is directly unknown*()",
+      "loopentry_answers": 349,
+      "loopentry_clauses": 1807,
+      "loopentry_references": 2137,
+      "interface_violations": 0
+    },
+    "power_rewrite_summary": {
+      "audited_rows": 554,
+      "rows_present_in_final_sft": 554,
+      "fixed_power_calls_expanded": 65,
+      "fixed_expansion_clauses_final": 14,
+      "rows_with_fixed_expansion_final": 14,
+      "derived_power_free_candidates": 201,
+      "derived_power_free_relations_final": 70,
+      "rows_with_derived_relation_final": 68,
+      "remaining_symbolic_power_clauses_removed": 2083,
+      "reducible_product_candidates": 67,
+      "reducible_product_relations_final": 0
+    },
+    "fixed_point": {
+      "rl_modified_prompts": 0,
+      "sft_modified_prompts": 0,
+      "sft_modified_answers": 0,
+      "sft_removed_clauses": {}
+    },
+    "sft_enhancement": {
+      "input_clauses": 24090,
+      "static_output_clauses": 23921,
+      "final_verified_clauses": 23913,
+      "modified_answers": 160,
+      "removed_clauses": {
+        "duplicate": 68,
+        "interface_comparison_sort_mismatch": 2,
+        "interface_logical_operator_on_integer": 2,
+        "interface_not_on_integer": 1,
+        "interface_parse_error": 2,
+        "interface_type_cast": 1,
+        "interface_unsupported_arithmetic_operator": 2,
+        "tautology": 98
+      },
+      "transformations": {
+        "integer_cast_removed": 123,
+        "loopentry_required_retained": 2137,
+        "synchronous_relations_proposed": 7,
+        "unicode_operator_normalized": 2
+      },
+      "frama_c_rejected_candidates": 6,
+      "synchronous_relations_retained": 1,
+      "post_wp_removal_only_cleanup": {
+        "modified_answers": 2,
+        "removed_clauses": {
+          "tautology": 2
+        }
+      }
+    },
+    "note": "The top-level sanitation statistics record the precursor archive-to-clean pass. This final_release object is authoritative for the tracked artifacts."
+  },
+  "loopentry_policy_audit": {
+    "policy": "retain \\at(v,LoopEntry) only when v is a local whose final pre-loop assignment is directly unknown*()",
+    "references_before": 6387,
+    "references_rewritten": 4214,
+    "references_after": 2137,
+    "clauses_after": 1807,
+    "answers_after": 348,
+    "violations_after": 0,
+    "remaining_loopentry_tautologies": 0,
+    "independent_audit": true
+  },
+  "prompt_revision": {
+    "system_prompt_sha256": "bc031fdd5190bddaecc403b82ba7ef47961aace102060234d5ed193de36cb335",
+    "rl_prompts_rebuilt": 37481,
+    "sft_prompts_rebuilt": 3200,
+    "prompt_mismatches": 0,
+    "sft_answers_changed_by_prompt_rebuild": 0,
+    "bitshift_runtime_and_dedup_supported": true
+  },
+  "release_history": [
+    {
+      "sft_sha256": "6b8a7989b3665732c8823731a47cc8ca717408c495dcd4cd1d9d9f41774e2f80",
+      "sft_rows": 3200,
+      "sft_clauses": 24090,
+      "reason": "pre-interface-alignment SFT release"
+    }
+  ]
+}

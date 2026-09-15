@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "dataset": "sft",
+  "input": "traindata/craft_sft_final.json",
+  "output": "traindata/craft_sft_canonical.json",
+  "rows": 3096,
+  "status": {
+    "rewritten": 1442,
+    "unchanged": 1654
+  },
+  "policy": "rewrite `while (1) { if (COND) break; REST }` to `while (!COND) { REST }` when REST has no other break and no else is attached to the exit test; keep the record unchanged when the rewrite does not parse or raw_code would desync"
+}

@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-AUDIT = ROOT / "paper/artifacts/tool_comparison_final_audit.json"
+AUDIT = ROOT / "results/02_rq2_tool_comparison/paper_summaries/tool_comparison_final_audit.json"
 
 
 def cell(n: int, denominator: int) -> str:

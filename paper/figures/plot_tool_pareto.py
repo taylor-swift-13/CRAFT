@@ -23,7 +23,8 @@ BASELINES = {
 NAIVE = (225.95, 16.47, 2.98)
 DAIKON = (0, 20.91, 4.89)
 # GPT-5-nano CRAFT times combine archived generation latency with measured
-# prefix filtering and verification; see artifacts/v4/tool_compose_cost.json.
+# prefix filtering and verification; see
+# results/02_rq2_tool_comparison/paper_summaries/tool_compose_cost.json.
 OURS = {
     "@1": (1136.82, 33.89, 24.52),
     "@4": (1905.10, 49.04, 46.40),

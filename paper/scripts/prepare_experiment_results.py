@@ -154,7 +154,8 @@ def main():
     assert data["stages"]["SFT+RL"]["Qwen3-8B"]["compose"][0] == 69.23
     assert data["rewards"]["SFT"]["Clause-decomposed"]["compose"][0] == 67.91
     assert data["reward_comparison_current"]["SFT"]["Full"]["compose"][0] == 69.23
-    (root / "artifacts/experiment_results_current.json").write_text(json.dumps(data, indent=2) + "\n")
+    output = root.parent / "results/01_rq1_main_verification/paper_summaries/experiment_results_current.json"
+    output.write_text(json.dumps(data, indent=2) + "\n")
     (root / "sections/main_results_table.tex").write_text(render_main_table(data))
     print(root.name, "exported 16 local model rows, 4 API rows, and current reward curves")
 

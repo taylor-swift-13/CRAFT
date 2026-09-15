@@ -1,0 +1,33 @@
+{
+  "population": "All 832 programs",
+  "backbone": "Qwen3-14B",
+  "training": "SFT+RL",
+  "checkpoint": "rft_full step282",
+  "k": [
+    1,
+    4,
+    8,
+    16,
+    32
+  ],
+  "unit": "percent",
+  "source": "Author-provided evaluation results",
+  "subsets": {
+    "linear": {
+      "pass": [40.51, 53.16, 57.91, 60.44, 62.34],
+      "compose": [72.78, 77.85, 79.75, 81.01, 81.01]
+    },
+    "NLA_lipus": {
+      "pass": [2.0, 8.0, 8.0, 8.0, 8.0],
+      "compose": [12.0, 14.0, 14.0, 14.0, 14.0]
+    },
+    "Loopy": {
+      "pass": [36.27, 50.21, 54.51, 57.3, 60.52],
+      "compose": [73.18, 79.83, 80.9, 82.19, 83.26]
+    },
+    "All": {
+      "pass": [35.82, 48.8, 53.0, 55.53, 58.05],
+      "compose": [69.35, 75.12, 76.44, 77.64, 78.25]
+    }
+  }
+}

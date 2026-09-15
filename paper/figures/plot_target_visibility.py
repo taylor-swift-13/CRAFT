@@ -14,7 +14,7 @@ from paper_style import GREEN, RUST, panel_figure, panel_legend, save_panel_figu
 
 def main() -> None:
     output = Path(__file__).resolve().parent
-    data = json.loads((output.parent / "artifacts/target_visibility.json").read_text())
+    data = json.loads((output.parent.parent / "results/04_rq4_ablations/paper_summaries/target_visibility.json").read_text())
     k = data["k"]
     hidden = data["target_hidden"]
     visible = data["target_visible"]

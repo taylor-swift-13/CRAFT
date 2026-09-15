@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit current RL/SFT sources and refresh both papers' distribution artifact.
+"""Audit current RL/SFT sources and refresh the manuscript distribution artifact.
 
 Reads the canonical datasets without changing them. Uses the established
 fingerprints, including break-idiom canonicalization, for instance matching
@@ -93,8 +93,8 @@ def main():
         "rl_source_families_abstracting_constants": len({family(s, True) for s in rl}),
     }
     rendered = json.dumps(result, indent=2) + "\n"
-    for version in ("paper", "paper_no_shapley"):
-        (ROOT / version / "artifacts/train_eval_distribution_current.json").write_text(rendered)
+    output = ROOT / "results/05_appendix_audits/data_and_protocol/train_eval_distribution_current.json"
+    output.write_text(rendered)
     print(json.dumps({k:v for k,v in result.items() if k not in ("inputs", "definition", "audit_scope")}, indent=2))
 
 

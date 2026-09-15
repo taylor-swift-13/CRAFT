@@ -1,0 +1,28 @@
+{
+  "input": "traindata/craft_rft_sft_pool.json",
+  "output": "traindata/craft_rft_sft_clean.json",
+  "rows_in": 33346,
+  "rows_out": 33344,
+  "rows_out_multiple_of_64": 521,
+  "clauses_in": 790622,
+  "clauses_out": 574009,
+  "dropped_by_rule": {
+    "duplicate": 8581,
+    "covered_by_atoms": 29129,
+    "disjunct_known": 71951,
+    "implication_consequent_known": 103578,
+    "tautology": 3374
+  },
+  "empty_answers_dropped": 0,
+  "duplicate_rows_dropped": 2,
+  "clauses_per_answer": {
+    "mean_in": 23.71,
+    "mean_out": 17.214,
+    "median_in": 17.0,
+    "median_out": 12.0,
+    "over_20_in": 14711,
+    "over_20_out": 12006,
+    "max_out": 74
+  },
+  "policy": "syntactic only: normalized duplicates (invariant_dedup_key + commutative ||/&&), tautologies (e op e, constant-true, A ==> taut, A ==> A), unconditional clauses whose atoms are all covered by other unconditional atomic clauses (atoms kept, conjunctions/chains dropped), implications whose consequent is covered, disjunctions with a covered disjunct; no truncation to 20, no rewriting"
+}

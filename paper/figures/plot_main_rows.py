@@ -30,7 +30,7 @@ def main():
     parser.add_argument('paper', type=Path)
     root = parser.parse_args().paper.resolve()
     output = root / 'figures'
-    data = json.loads((root / 'artifacts/experiment_results_current.json').read_text())
+    data = json.loads((root.parent / 'results/01_rq1_main_verification/paper_summaries/experiment_results_current.json').read_text())
     for module in (probes, rewards, composition, tools):
         module.OUT = output
 

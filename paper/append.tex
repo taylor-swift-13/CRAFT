@@ -21,12 +21,14 @@
 \maketitle
 
 \noindent
-This supplement reports analyses that are useful for assessing robustness and
-systems cost but are not required for the main argument.  Appendix~A tests
-whether duplicate instances within the evaluation benchmark change the
-conclusions of the Qwen3-8B training experiments.  Appendix~B characterizes the computational profile of the
-evaluation used for Qwen3-8B and all of its training variants.  All
-verification rates are percentages.
+This supplement reports analyses that are useful for assessing robustness,
+systems cost, and design sensitivity but are not required for the main
+argument.  Appendix~A tests whether duplicate instances within the evaluation
+benchmark change the conclusions of the Qwen3-8B training experiments.
+Appendix~B characterizes the computational profile of the evaluation used for
+Qwen3-8B and all of its training variants.  Appendix~C isolates the effect of
+negative-trace sampling under the Full reward.  All verification rates are
+percentages.
 
 \appendix
 \section{Robustness to Benchmark Deduplication}
@@ -227,7 +229,159 @@ standalone answers, whereas clause-level credit preserves useful partial
 content for later composition.  The within-benchmark deduplication control
 retains this contrast.
 
-\subsection{Negative-trace sampling ablation}
+\section{Cost and Systems Profile}
+\label{app:supp-resources}
+
+\subsection{Measurement scope}
+
+We profile the common evaluation configuration used for the Qwen3-8B base
+model and all of its training variants.  Each checkpoint is evaluated on all
+832 programs with eight rollouts per task.  The reported totals are therefore
+the cost of one complete checkpoint evaluation, not the sum across all
+variants.  The measurement boundary includes prompt processing, response
+generation, candidate extraction and pooling, Houdini filtering, and final
+Frama-C/WP verification.  Token totals, verifier timings, and memory
+measurements are recorded quantities.  Multi-GPU generation time and the
+80-worker wall-clock decomposition use the measured throughput and aggregate
+work, and therefore describe this serving configuration rather than a
+hardware-independent latency guarantee.
+
+\subsection{Generation workload}
+
+\begin{table}[H]
+\centering
+\small
+\caption{Token consumption for one Qwen3-8B checkpoint or training-variant
+evaluation over 832 programs.  Each task uses eight rollouts; per-task values
+are rounded to the nearest token.}
+\label{tab:supp-resource-tokens}
+\begin{tabular}{lrr}
+\toprule
+\rowcolor{headerbg}
+Component & Mean per task & Total over 832 tasks \\
+\midrule
+Prompt tokens              & 1,113  & 925,635 \\
+Output tokens (8 rollouts) & 11,057 & 9,199,244 \\
+Total tokens               & 12,169 & 10,124,879 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Each rollout produces 1,382 output tokens on average and yields approximately
+19.6 parsed clauses.  Pooling and deduplicating the first eight rollouts leaves
+58.8 candidate invariants per task on average, with a maximum of 106.  Thus,
+candidate deduplication removes substantial textual repetition before formal
+verification: eight responses yield roughly 157 parsed clauses in total, but
+only 58.8 distinct candidates enter the pooled set on average.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Measured vLLM output throughput and derived generation time.}
+\label{tab:supp-resource-generation}
+\begin{tabular}{lr}
+\toprule
+\rowcolor{headerbg}
+Configuration & Throughput or time \\
+\midrule
+A800-80G throughput & 5,833 output tokens/s/GPU \\
+One-GPU generation & 26.3 min \\
+Four-GPU generation & 6.6 min \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The one-GPU time follows from the 9,199,244 generated tokens and measured
+output-token throughput.  The four-GPU value assumes even task allocation at
+the same per-GPU throughput.  Generation is therefore inexpensive relative to
+the subsequent proof workload once multiple GPUs are available.
+
+\subsection{Formal verification dominates compute}
+
+\begin{table}[H]
+\centering
+\small
+\caption{Frama-C/Houdini verification cost overall and by benchmark subset.}
+\label{tab:supp-resource-verification}
+\begin{tabular}{lrrrrrr}
+\toprule
+\rowcolor{headerbg}
+Subset & \(N\) & Mean & Median & P95 & CPU time & Round budget hits \\
+\midrule
+All    & 832 & 123.4 s & 25.5 s  & 551.1 s & 28.5 h & 55 (6.6\%) \\
+Linear & 316 & 112.7 s & 24.6 s  & 530.7 s & 9.9 h  & -- \\
+NLA    & 50  & 292.0 s & 252.6 s & 866.8 s & 4.1 h  & -- \\
+Loopy  & 466 & 112.6 s & 22.3 s  & 564.5 s & 14.6 h & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Per-task verification time accumulates work across Houdini rounds, whereas
+the 300-second budget applies to each individual round.  Total task time can
+therefore exceed 300 seconds.  The distribution is strongly right-skewed: the
+overall median is 25.5 seconds, the P95 is 551.1 seconds, and 55 tasks have at
+least one round that reaches the budget.  NLA is the most expensive subset per
+task.  Although it contains only 50 programs, it consumes 4.1 CPU-hours and
+averages 292.0 seconds (4.9 minutes) per program.  Loopy consumes the most
+aggregate CPU time because it is the largest subset, not because its per-task
+mean exceeds Linear.
+
+\subsection{Memory and parallel execution}
+
+\begin{table}[H]
+\centering
+\small
+\caption{Memory footprint and verifier concurrency.}
+\label{tab:supp-resource-memory}
+\begin{tabular}{ll}
+\toprule
+\rowcolor{headerbg}
+Component & Memory or concurrency \\
+\midrule
+GPU model weights          & 15.27 GiB \\
+GPU KV cache               & 55.43 GiB (capacity: approximately 403K tokens) \\
+Total per GPU              & approximately 73.6/80 GiB \\
+CPU per Frama-C worker     & approximately 200--500 MB \\
+Concurrent CPU workers     & 60--100 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The 80-GiB GPU is close to capacity, but most allocated memory is the KV cache
+rather than model weights.  On the verifier side, 80 concurrent workers imply
+approximately 16--40 GB of worker memory from the observed per-process range,
+excluding the operating system and orchestration overhead.  The pipeline is
+therefore GPU-memory-bound during serving and CPU-parallelism-bound during
+formal verification.
+
+\subsection{End-to-end bottleneck}
+
+\begin{table}[H]
+\centering
+\small
+\caption{End-to-end wall-clock decomposition with four GPUs and 80 CPU
+verification workers.}
+\label{tab:supp-resource-wallclock}
+\begin{tabular}{lrr}
+\toprule
+\rowcolor{headerbg}
+Stage & Wall-clock time & Share \\
+\midrule
+LLM generation       & 6.6 min  & 23\% \\
+Frama-C verification & 21.4 min & 77\% \\
+Total                & approximately 28 min & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The systems result mirrors the CPU accounting: proof is the bottleneck.
+Verification occupies 77\% of the estimated end-to-end wall-clock time.  Additional
+generation throughput alone would therefore have limited impact; reducing
+proof obligations, avoiding repeated verifier work, or improving verifier
+load balancing targets the dominant cost.
+
+\section{Negative-Trace Sampling Ablation}
+\label{app:supp-sampler}
 
 We next isolate negative-trace sampling while holding the Full reward fixed.
 Structure uses the target-hidden negative-trace construction defined in the
@@ -365,155 +519,5 @@ also separates negative-trace sampling from the
 larger reward-design effects above: the qualitative advantage of clause-level
 credit under composition cannot be attributed to the sampling strategy.
 
-\section{Cost and Systems Profile of Qwen3-8B and Its Training Variants}
-\label{app:supp-resources}
-
-\subsection{Measurement scope}
-
-We profile the common evaluation configuration used for the Qwen3-8B base
-model and all of its training variants.  Each checkpoint is evaluated on all
-832 programs with eight rollouts per task.  The reported totals are therefore
-the cost of one complete checkpoint evaluation, not the sum across all
-variants.  The measurement boundary includes prompt processing, response
-generation, candidate extraction and pooling, Houdini filtering, and final
-Frama-C/WP verification.  Token totals, verifier timings, and memory
-measurements are recorded quantities.  Multi-GPU generation time and the
-80-worker wall-clock decomposition use the measured throughput and aggregate
-work, and therefore describe this serving configuration rather than a
-hardware-independent latency guarantee.
-
-\subsection{Generation workload}
-
-\begin{table}[H]
-\centering
-\small
-\caption{Token consumption for one Qwen3-8B checkpoint or training-variant
-evaluation over 832 programs.  Each task uses eight rollouts; per-task values
-are rounded to the nearest token.}
-\label{tab:supp-resource-tokens}
-\begin{tabular}{lrr}
-\toprule
-\rowcolor{headerbg}
-Component & Mean per task & Total over 832 tasks \\
-\midrule
-Prompt tokens              & 1,113  & 925,635 \\
-Output tokens (8 rollouts) & 11,057 & 9,199,244 \\
-Total tokens               & 12,169 & 10,124,879 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Each rollout produces 1,382 output tokens on average and yields approximately
-19.6 parsed clauses.  Pooling and deduplicating the first eight rollouts leaves
-58.8 candidate invariants per task on average, with a maximum of 106.  Thus,
-candidate deduplication removes substantial textual repetition before formal
-verification: eight responses yield roughly 157 parsed clauses in total, but
-only 58.8 distinct candidates enter the pooled set on average.
-
-\begin{table}[H]
-\centering
-\small
-\caption{Measured vLLM output throughput and derived generation time.}
-\label{tab:supp-resource-generation}
-\begin{tabular}{lr}
-\toprule
-\rowcolor{headerbg}
-Configuration & Throughput or time \\
-\midrule
-A800-80G throughput & 5,833 output tokens/s/GPU \\
-One-GPU generation & 26.3 min \\
-Four-GPU generation & 6.6 min \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The one-GPU time follows from the 9,199,244 generated tokens and measured
-output-token throughput.  The four-GPU value assumes even task allocation at
-the same per-GPU throughput.  Generation is therefore inexpensive relative to
-the subsequent proof workload once multiple GPUs are available.
-
-\subsection{Formal verification dominates compute}
-
-\begin{table}[H]
-\centering
-\small
-\caption{Frama-C/Houdini verification cost overall and by benchmark subset.}
-\label{tab:supp-resource-verification}
-\begin{tabular}{lrrrrrr}
-\toprule
-\rowcolor{headerbg}
-Subset & \(N\) & Mean & Median & P95 & CPU time & Budget hits \\
-\midrule
-All    & 832 & 123.4 s & 25.5 s  & 551.1 s & 28.5 h & 55 (6.6\%) \\
-Linear & 316 & 112.7 s & 24.6 s  & 530.7 s & 9.9 h  & -- \\
-NLA    & 50  & 292.0 s & 252.6 s & 866.8 s & 4.1 h  & -- \\
-Loopy  & 466 & 112.6 s & 22.3 s  & 564.5 s & 14.6 h & -- \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Verification time is strongly right-skewed: the overall median is 25.5
-seconds, while the P95 is 551.1 seconds and 55 tasks hit the 300-second proof
-budget.  NLA is the most expensive subset per task.  Although it contains only
-50 programs, it consumes 4.1 CPU-hours and averages 292.0 seconds (4.9
-minutes) per program.  Loopy consumes the most aggregate CPU time because it
-is the largest subset, not because its per-task mean exceeds Linear.
-
-\subsection{Memory and parallel execution}
-
-\begin{table}[H]
-\centering
-\small
-\caption{Memory footprint and verifier concurrency.}
-\label{tab:supp-resource-memory}
-\begin{tabular}{ll}
-\toprule
-\rowcolor{headerbg}
-Component & Memory or concurrency \\
-\midrule
-GPU model weights          & 15.27 GiB \\
-GPU KV cache               & 55.43 GiB (capacity: approximately 403K tokens) \\
-Total per GPU              & approximately 73.6/80 GiB \\
-CPU per Frama-C worker     & approximately 200--500 MB \\
-Concurrent CPU workers     & 60--100 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The 80-GiB GPU is close to capacity, but most allocated memory is the KV cache
-rather than model weights.  On the verifier side, 80 concurrent workers imply
-approximately 16--40 GB of worker memory from the observed per-process range,
-excluding the operating system and orchestration overhead.  The pipeline is
-therefore GPU-memory-bound during serving and CPU-parallelism-bound during
-formal verification.
-
-\subsection{End-to-end bottleneck}
-
-\begin{table}[H]
-\centering
-\small
-\caption{End-to-end wall-clock decomposition with four GPUs and 80 CPU
-verification workers.}
-\label{tab:supp-resource-wallclock}
-\begin{tabular}{lrr}
-\toprule
-\rowcolor{headerbg}
-Stage & Wall-clock time & Share \\
-\midrule
-LLM generation       & 6.6 min  & 23\% \\
-Frama-C verification & 21.4 min & 77\% \\
-Total                & approximately 28 min & -- \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The systems result mirrors the CPU accounting: proof is the bottleneck.
-Before parallelization, generation contributes only 1.5\% of the summed stage
-times (1,577 seconds of generation versus 102,675 CPU-seconds of
-verification).  Parallel execution narrows this imbalance, but verification
-still occupies 77\% of the estimated end-to-end wall-clock time.  Additional
-generation throughput alone would therefore have limited impact; reducing
-proof obligations, avoiding repeated verifier work, or improving verifier
-load balancing targets the dominant cost.
 
 \end{document}

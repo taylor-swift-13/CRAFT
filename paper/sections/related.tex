@@ -12,14 +12,19 @@ policies or combine generation with solver feedback, static analysis,
 filtering, and repair
 ~\citep{si2018learning,si2020code2inv,ryan2020cln2inv,yao2020gcln,
 yu2023lipus,kamath2023finding,chakraborty2023ranking,cao2025clause2inv,
-wu2024lam4inv,liu2024acinv,wen2024enchanting,ma2024specgen,yang2026sespec,
+wu2024lam4inv,li2026loris,liu2024acinv,wen2024enchanting,ma2024specgen,yang2026sespec,
 wu2024lemur,first2023baldur}.  Clause2Inv reuses clauses from previous guesses
 and adaptively combines them using SMT counterexamples, including
-postcondition-derived feedback~\citep{cao2025clause2inv}.  CRAFT pools clauses
-across independent responses before target-independent joint Houdini
-filtering.  It couples this composition with training: accepted compositions
-become SFT targets, and surviving clauses determine credit for their
-proposing responses.
+postcondition-derived feedback~\citep{cao2025clause2inv}; LaM4Inv couples
+generation to bounded-model-checking counterexamples, and LORIS repairs local
+reasoning errors for failed verification conditions~\citep{wu2024lam4inv,li2026loris}.
+Their native workflows expose the target/postcondition or feedback derived
+from it.  Our direct comparison therefore adapts all three to the same
+target-hidden setting; it should not be read as a reproduction of their
+target-visible headline results.  CRAFT pools clauses across independent
+responses before target-independent joint Houdini filtering.  It couples this
+composition with training: accepted compositions become SFT targets, and
+surviving clauses determine credit for their proposing responses.
 
 \tightparagraph{Training from formal and behavioral feedback.}
 Verified data and execution or prover feedback have been used to train

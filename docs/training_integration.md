@@ -79,7 +79,8 @@ local initializers are recursively inlined; a clause is rejected if a remaining
 entry value cannot be represented under this rule. Each answer is capped at 20
 clauses. The 5-second setting is
 per WP proof obligation, not per training record. Per-problem power rewrite
-decisions are saved in `paper/artifacts/power_rewrite_audit.json`. Train only
+decisions are saved in
+`results/05_appendix_audits/data_and_protocol/power_rewrite_audit.json`. Train only
 from these clean outputs.
 
 ## 0b. Curate the pool: test-related, de-duplicated, gradient-bearing
@@ -100,33 +101,33 @@ eval "$(opam env --switch=frama-c.27.1 --set-switch)"   # Frama-C for stages 3-4
 # 1. canonicalize the break idiom (semantics-preserving; restores a real guard)
 python paper/scripts/canonicalize_training_pool.py rl \
   --input traindata/craft_rl_pool.parquet --output traindata/craft_rl_canonical.parquet \
-  --report paper/artifacts/v4/rl_canonicalization.json
+  --report results/05_appendix_audits/data_and_protocol/rl_canonicalization.json
 python paper/scripts/canonicalize_training_pool.py sft \
   --input traindata/craft_sft_pool.json --output traindata/craft_sft_canonical.json \
-  --report paper/artifacts/v4/sft_canonicalization.json
+  --report results/05_appendix_audits/data_and_protocol/sft_canonicalization.json
 
 # 2. schema-current negative ledger (gcc only; ~1 h with 6 workers)
 python paper/scripts/audit_training_negative_coverage.py rl \
   --input traindata/craft_rl_canonical.parquet \
-  --ledger paper/artifacts/v4/rl_negative_coverage.jsonl \
-  --manifest paper/artifacts/v4/rl_negative_coverage_manifest.json --jobs 6
+  --ledger results/04_rq4_ablations/paper_summaries/negative_coverage/v4/rl_negative_coverage.jsonl \
+  --manifest results/04_rq4_ablations/paper_summaries/negative_coverage/v4/rl_negative_coverage_manifest.json --jobs 6
 #   (use --start/--stop slices on small machines; the pool is memory-hungry)
 
 # 3. static gates + near-duplicate removal + test relatedness + shape cap
 python paper/scripts/curate_training_pool.py rl \
   --input traindata/craft_rl_canonical.parquet \
-  --ledger paper/artifacts/v4/rl_negative_coverage.jsonl \
-  --output traindata/craft_rl_train.parquet --report paper/artifacts/v4/rl_curation_report.json
+  --ledger results/04_rq4_ablations/paper_summaries/negative_coverage/v4/rl_negative_coverage.jsonl \
+  --output traindata/craft_rl_train.parquet --report results/05_appendix_audits/data_and_protocol/rl_curation_report.json
 python paper/scripts/curate_training_pool.py sft \
   --input traindata/craft_sft_canonical.json \
-  --ledger paper/artifacts/v4/rl_negative_coverage.jsonl \
-  --output traindata/craft_sft_curated.json --report paper/artifacts/v4/sft_curation_report.json \
+  --ledger results/04_rq4_ablations/paper_summaries/negative_coverage/v4/rl_negative_coverage.jsonl \
+  --output traindata/craft_sft_curated.json --report results/05_appendix_audits/data_and_protocol/sft_curation_report.json \
   --per-shape-cap 32
 
 # 4. (cluster, vLLM) policy frontier: keep programs whose G-rollout group has reward variance
 python experiments/measure_policy_frontier.py --input traindata/craft_rl_train.parquet \
-  --ledger paper/artifacts/v4/rl_frontier.jsonl --policy <sft-checkpoint> --group 8 \
-  --apply --output traindata/craft_rl_frontier.parquet --report paper/artifacts/v4/rl_frontier_report.json
+  --ledger results/04_rq4_ablations/paper_summaries/negative_coverage/v4/rl_frontier.jsonl --policy <sft-checkpoint> --group 8 \
+  --apply --output traindata/craft_rl_frontier.parquet --report results/05_appendix_audits/data_and_protocol/rl_frontier_report.json
 
 ```
 

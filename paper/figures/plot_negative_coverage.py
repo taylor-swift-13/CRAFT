@@ -19,7 +19,7 @@ OUT = Path(__file__).resolve().parent
 
 
 def main() -> None:
-    artifacts = OUT.parent / "artifacts/v4"
+    artifacts = OUT.parent.parent / "results/04_rq4_ablations/paper_summaries"
     summary = json.loads((artifacts / "negative_coverage_predictiveness.json").read_text())
     geometry = json.loads((artifacts / "negative_coverage_plot_geometry.json").read_text())
     fig, axes = panel_figure(2)
@@ -32,8 +32,8 @@ def main() -> None:
         points = np.asarray(geometry["curves"][name])
         auc = (summary if suite is None else summary["by_suite"][suite])["macro_within_program_auroc"]
         axes[0].plot(points[:, 0], points[:, 1], color=color, linestyle=style,
-                     linewidth=1.4, label=f"{name} ({auc:.3f})")
-    axes[0].plot([0, 1], [0, 1], color=MUTED, linestyle="--", linewidth=1, alpha=0.6)
+                     linewidth=0.9, label=f"{name} ({auc:.3f})")
+    axes[0].plot([0, 1], [0, 1], color=MUTED, linestyle="--", linewidth=0.65, alpha=0.6)
     axes[0].set(xlabel="False-positive rate", ylabel="True-positive rate",
                 title="(a) ROC", xlim=(0, 1), ylim=(0, 1))
     panel_legend(fig, axes[0], columns=2)

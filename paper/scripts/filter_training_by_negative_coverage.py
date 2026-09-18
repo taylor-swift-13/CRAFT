@@ -109,15 +109,15 @@ def main() -> None:
     sft.add_argument(
         "--ledger",
         type=Path,
-        default=ROOT / "paper/artifacts/rl_negative_coverage.jsonl",
+        default=ROOT / "results/04_rq4_ablations/paper_summaries/negative_coverage/legacy/rl_negative_coverage.jsonl",
     )
     sft.add_argument("--output", type=Path, default=ROOT / "traindata/craft_sft_negative_complete.json")
-    sft.add_argument("--report", type=Path, default=ROOT / "paper/artifacts/sft_negative_filter.json")
+    sft.add_argument("--report", type=Path, default=ROOT / "results/05_appendix_audits/data_and_protocol/sft_negative_filter.json")
     rl = subparsers.add_parser("rl")
     rl.add_argument("--input", type=Path, default=ROOT / "traindata/craft_rl_clean.parquet")
-    rl.add_argument("--ledger", type=Path, default=ROOT / "paper/artifacts/rl_negative_coverage.jsonl")
+    rl.add_argument("--ledger", type=Path, default=ROOT / "results/04_rq4_ablations/paper_summaries/negative_coverage/legacy/rl_negative_coverage.jsonl")
     rl.add_argument("--output", type=Path, default=ROOT / "traindata/craft_rl_negative_complete.parquet")
-    rl.add_argument("--report", type=Path, default=ROOT / "paper/artifacts/rl_negative_filter.json")
+    rl.add_argument("--report", type=Path, default=ROOT / "results/04_rq4_ablations/paper_summaries/negative_coverage/legacy/rl_negative_filter.json")
     args = parser.parse_args()
 
     latest = _latest_by_digest(args.ledger)

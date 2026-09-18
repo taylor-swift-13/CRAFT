@@ -2,17 +2,14 @@
 \section{Introduction}\label{sec:intro}
 %% ============================================================
 
-Loop invariants are properties that hold at loop entry and are preserved by
-iteration.  By summarizing states reachable after arbitrarily many iterations,
-they reduce unbounded execution to finite proof obligations and are central
-to verifying program safety and functional correctness.  Yet generating
-sufficiently strong invariants remains difficult: a response may mix useful
-clauses with incorrect ones, or lack complementary constraints found in
-another response.  A failed response can therefore contain useful proof
-material.  Emitting more candidate clauses may lower whole-response success
-(pass) while expanding the candidates available for filtering and composition
-(compose).  Our objective is the success of the filtered composition, without
-requiring each response to succeed independently.
+Loop invariants reduce unbounded executions to finite proof obligations, but
+generating invariants strong enough to complete a proof remains difficult.
+LLM generation introduces a particular mismatch: a response may fail because
+of one incorrect clause while still containing clauses useful for a proof, and
+complementary clauses may be scattered across different responses.  Treating
+each response as an indivisible prediction therefore discards proof-relevant
+information.  This motivates decomposing responses into clauses and composing
+verified clauses across responses.
 
 We study \emph{target-hidden loop verification}: the model sees the loop
 context, while target assertions and postconditions \(\mathcal G\) are withheld.

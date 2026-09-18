@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PAIRED = ['probe-complete','sft-probe-complete','latest-sft-filter',
           'rlzero-additional','rl-complete','latest-rl-bare','latest-rl-sft',
           'latest-rl-other','target-visible-strata','cross-model-main']
-MATRIX = ['reward-ablation','sampler-ablation','full-credit-comparison']
+MATRIX = ['reward-ablation','full-credit-comparison']
 SCHEMAS = {f'tab:{label}': (10, {2:316,4:50,6:466,8:832}) for label in PAIRED}
 SCHEMAS.update({f'tab:{label}': (11, {i:832 for i in range(1,6)}) for label in MATRIX})
 SCHEMAS['tab:clause-cap-ablation']=(10,{1:832,2:832,3:832})

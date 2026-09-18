@@ -67,6 +67,12 @@ def _summarize(rows: list[dict], *, verified_field: str = "verified") -> dict:
         int(row["total_tokens"])
         for row in rows if row.get("total_tokens") is not None
     ]
+    exact_token_values = [
+        int(row["total_tokens"])
+        for row in rows
+        if row.get("total_tokens") is not None
+        and row.get("token_accounting") == "exact"
+    ]
     time_values = [
         float(row["generation_seconds"])
         for row in rows if row.get("generation_seconds") is not None
@@ -79,6 +85,10 @@ def _summarize(rows: list[dict], *, verified_field: str = "verified") -> dict:
         "verified": sum(by_suite.values()),
         "mean_total_tokens": mean(token_values) if token_values else None,
         "token_rows": len(token_values),
+        "mean_exact_total_tokens": (
+            mean(exact_token_values) if exact_token_values else None
+        ),
+        "exact_token_rows": len(exact_token_values),
         "mean_generation_seconds": mean(time_values) if time_values else None,
         "time_rows": len(time_values),
     }

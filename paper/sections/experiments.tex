@@ -93,7 +93,10 @@ the inference framework and aligned training.
 \vspace{0pt}
 \includegraphics[width=\linewidth]{figures/tool_pareto_row.pdf}
 \captionsetup{font=small,margin={0pt,7pt}}
-\caption{Verification versus tokens. LLM runs use GPT-5-nano except the local CRAFT cost run.}
+\caption{Verification versus tokens on each method's full supported set.
+Direct GPT-5-nano results use 832 tasks, except Clause2Inv (316 Linear) and
+LaM4Inv (366 Linear+NLA). The dashed trained-CRAFT reference uses all 832.
+Squares mark the new LORIS and LaM4Inv adaptations.}
 \label{fig:tool-pareto}
 \end{minipage}%
 \begin{minipage}[t]{0.666667\textwidth}
@@ -104,26 +107,34 @@ the inference framework and aligned training.
 \label{fig:rl-panels}
 \end{minipage}
 \end{figure}
-We compare \sam{} with AutoSpec, SESpec, Clause2Inv, Loopy, and
-Daikon~\citep{wen2024enchanting,yang2026sespec,cao2025clause2inv,
-kamath2023finding,daikon}, using the same 832-program benchmark and judge.
-LLM-based tool comparisons hold GPT-5-nano and target hiding fixed.
+We compare \sam{} with AutoSpec, SESpec, Clause2Inv, LORIS, LaM4Inv, Loopy,
+and Daikon~\citep{wen2024enchanting,yang2026sespec,cao2025clause2inv,
+li2026loris,wu2024lam4inv,kamath2023finding,daikon}.  LLM-based comparisons
+hold GPT-5-nano, disabled reasoning, target hiding, and the final judge fixed.
+Each method is evaluated on its full supported set. LORIS and the other
+applicable baselines use all 832 programs. LaM4Inv uses 316 Linear and 50 NLA
+programs because its required Loopy CFG/SMT artifacts are unavailable;
+Clause2Inv uses the 316 Linear programs supported by its released VC
+interface. Omitted categories are not counted as failures.
+Appendix~\ref{app:tools-comparison} reports matched-subset CRAFT comparisons
+and explains why Quokka/InvBench is not directly comparable.
 
 \tightparagraph{Clause reuse improves the verification--cost frontier.}
 With GPT-5-nano fixed, all three \sam{} budgets lie on the verification--token
-Pareto frontier (Figure~\ref{fig:tool-pareto}).  Four responses verify
-\textbf{49.04\%} of programs using \textbf{1,905 tokens per task}, exceeding
-all compared tools in verification rate while costing less than three of
-the four LLM-based baselines.  Eight responses raise verification to
-55.53\% at 2,929 tokens.  The locally served trained model reaches 70.31\%
-at compose@1; detailed results appear in Appendix~\ref{app:tools-comparison}.
+Pareto frontier (Figure~\ref{fig:tool-pareto}). On all 832 tasks, four
+responses verify \textbf{49.04\%} using \textbf{1,905 tokens per task},
+exceeding AutoSpec (42.19\%, 2,216 tokens) and LORIS (42.55\%, 47,816 tokens).
+Eight responses raise verification to 55.53\% at 2,929 tokens. On their
+smaller supported subsets, LaM4Inv reaches 19.40\% and Clause2Inv reaches
+20.89\%; matched CRAFT rates appear in Appendix~\ref{app:tools-comparison}.
 
 \begin{insightbox}
 \textbf{Finding.}
 For invariant generation with hidden verification targets and limited
 informative feedback, reusable clauses improve the verification--token
-trade-off.  Compared with SESpec's iterative repair pipeline, parallel
-sampling and composition verify more programs with fewer tokens.
+trade-off. Under the uniform target-hidden adaptation, compose@4 outperforms
+LORIS, LaM4Inv, and Clause2Inv on their respective matched supported sets,
+while using substantially fewer tokens than LORIS.
 \end{insightbox}
 
 % ---------------------------------------------------------------------------
@@ -218,7 +229,7 @@ from 66.35\% to 70.67\%; after SFT, the selected Full model reaches
 
 \label{sec:exp:probe}
 Appendix~\ref{app:independent-experiments} reports the complete ablations,
-including inference, clause cap, negative sampling, filtering order,
+including inference, clause cap, filtering order,
 and target visibility.
 
 \begin{insightbox}

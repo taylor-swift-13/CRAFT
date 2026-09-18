@@ -190,11 +190,11 @@ proposing rollouts before computing credit
 \(r_{\mathrm{exec}}\) & 12 & requested input executions; doubled for oracle-driven bodies \\
 \(\mathcal X_{\mathrm{tier}}\) & \(20;\ [-64,64]\) & fixed near-input schedule and clamping interval \\
 \(q_{\mathrm{far}}\) & 3, plus 2 ordered multi-parameter probes & deterministic far probes with magnitude at most 512 \\
-\(\Delta_{\mathrm{rel}}\) & dense: \(\pm\{1,2\}\); terminal: \(\pm\{1,2,3,5,8\}\) & local relational perturbations \\
-\(h_{\mathrm{dense}}\) & 3 & successor window used to establish a relation base \\
-\(b_{\mathrm{rel}}\) & 96 & cap on relation bases stratified across positives \\
+\(\Delta_{\mathrm{off}}\) & dense: \(\pm\{1,2\}\); terminal: \(\pm\{1,2,3,5,8\}\) & off-trajectory perturbations \\
+\(h_{\mathrm{dense}}\) & 3 & successor window used to establish an eligible perturbation base \\
+\(b_{\mathrm{off}}\) & 96 & cap on perturbation bases stratified across positives \\
 \(h_{\mathrm{exit}}\) & 24 & continuation horizon after a witnessed exit \\
-\(b^-_{\mathrm{rel}},b^-_{\mathrm{exit}}\) & 48, 12 & relational and post-exit negative-trace budgets \\
+\(b^-_{\mathrm{off}},b^-_{\mathrm{exit}}\) & 48, 12 & off-trajectory and post-exit negative-trace budgets \\
 \(u_{\max}\) & \(2\times10^6\) & execution-iteration safety cap \\
 \midrule
 \(w_c,w_g\) & \(1.0,0.3\) & coverage and group-credit weights \\
@@ -246,10 +246,11 @@ deletion round.
 \subsection{Negative-Trace Sampling}
 \label{app:negative-sampling}
 
-Algorithm~\ref{alg:negative-sampling} specifies the structured sampler's
-selection order.  The routines below define its execution, proposal, cleaning,
-and budget rules. These candidate negatives provide target-independent
-behavioral probes. Generation and cleaning depend only on visible program information.
+Algorithm~\ref{alg:negative-sampling} specifies the negative-trace construction
+used in our experiments.  The routines below define its execution, proposal,
+cleaning, and budget rules.  These candidate negatives provide target-independent
+behavioral probes.  Generation and cleaning depend only on visible program
+information.
 
 \begin{algorithm}[H]
 \caption{Target-hidden candidate-negative sampling}
@@ -267,7 +268,7 @@ behavioral probes. Generation and cleaning depend only on visible program inform
   \(Q\leftarrow\operatorname{StratifiedBases}(\mathcal E,96)\)\\
 \algline \(b\leftarrow\operatorname{PerturbationBlocked}(\mathcal L)\)\\
 \algline \kw{if} \(\neg b\) \kw{then}\\
-\algline \algind \(C\leftarrow\operatorname{RelationProposals}(Q,T,M,a)\)\\
+\algline \algind \(C\leftarrow\operatorname{OffTrajectoryProposals}(Q,T,M,a)\)\\
 \algline \algind \(C\leftarrow\operatorname{Clean}(C,\mathcal E,Z)\)\\
 \algline \algind \(R\leftarrow\operatorname{RoundRobinNearest}(C,48)\)\\
 \algline \algind append \(\langle s\rangle\) for each \(s\in R\) to \(\mathcal N\);
@@ -279,7 +280,7 @@ behavioral probes. Generation and cleaning depend only on visible program inform
   add its keys to \(Z\), and increment \(e\)\\
 \algline \kw{if} \(\neg b\) \kw{then}
   \(\mathcal N\leftarrow\mathcal N\Vert
-  \operatorname{RandomFill}(Q,M,60-|\mathcal N|,\mathcal E,Z)\)\\
+  \operatorname{LocalFill}(Q,M,60-|\mathcal N|,\mathcal E,Z)\)\\
 \algline \kw{return} \((\mathcal E,\mathcal N)\)\\
 \end{algorithmic}
 \end{algorithm}
@@ -305,13 +306,14 @@ observed states remain, sampling reports failure.
 the implementation falls back to tracked non-parameter variables, or all
 tracked variables if that set is also empty.  Untracked persistent assignments,
 unsupported body calls, or unsupported local pointer/array declarations block
-both relational and random perturbations, but do not by themselves discard
-executed post-exit traces.  Ordinary block-local scalar temporaries are not
+both off-trajectory proposals and local-perturbation fill, but do not by
+themselves discard executed post-exit traces.  Ordinary block-local scalar
+temporaries are not
 treated as persistent state.  \(Q\) allocates at most 96 bases round-robin
 across runs and entry contexts, keeping dense prefixes, endpoints, and evenly
 spaced positions where quotas permit.
 
-\paragraph{Relation proposals.}
+\paragraph{Off-trajectory proposals.}
 A base must have the next three head positions recorded, or be an observed
 terminal with a guard-true predecessor and guard-false current state.
 Terminal bases are added even if omitted from \(Q\), but are disabled when
@@ -322,9 +324,10 @@ Retain a proposal only if every coordinate stays within its context's sampled
 minimum/maximum envelope and the guard has the same known truth value.
 Reject changes that are an integer multiple of the observed forward step
 (or the predecessor step if no successor is recorded).  This tangent test
-avoids obvious movements along witnessed dynamics. It provides a local
-screen for reachability. Envelope checks prevent simple sampled marginal bounds from
-separating this family, but do not constrain post-exit or random candidates.
+avoids obvious movements along witnessed dynamics.  It provides a local
+screen for reachability.  Envelope checks prevent simple sampled marginal
+bounds from separating this family, but do not constrain post-exit or fill
+candidates.
 
 \paragraph{Cleaning and its limits.}
 \(\operatorname{Clean}\) removes keys in \(\mathcal E\), previously selected
@@ -347,25 +350,24 @@ can nevertheless dilute coverage and affect relative rewards or SFT
 acceptance.  The final proof guarantee is supplied by the verifier, not by
 the sampler's labels.
 
-\paragraph{Selection, random fill, and scoring units.}
-Relation candidates are bucketed by interior/terminal status, changed axes,
+\paragraph{Selection, local fill, and scoring units.}
+Off-trajectory candidates are bucketed by interior/terminal status, changed axes,
 and change signs.  Stable round-robin selection takes up to 48 candidates,
 preferring smaller \(\ell_1\) changes within each bucket.  Only selected keys
 are committed to \(Z\).  Next, up to 12 nonempty post-exit groups are selected
-in run order.  Thus cross-family deduplication gives priority to relation,
-then post-exit, then random fill.
+in run order.  Thus cross-family deduplication gives priority to off-trajectory
+perturbations, then post-exit continuations, then local fill.
 
-\(\operatorname{RandomFill}\) draws a base uniformly from \(Q\), chooses
+\(\operatorname{LocalFill}\) draws a base uniformly from \(Q\), chooses
 one or two axes uniformly (one if only one is available), and samples a
 nonzero integer offset independently per axis.  It first uses magnitudes
 1--34, then 35--128 if needed, with seed \(\mathit{seed}\mathbin{\mathrm{xor}}
 \mathtt{0x4C4F4F50}\).  Each stage permits at most
 \(\max(1024,100q)\) attempts for the requested remaining capacity \(q\).
 Candidates use the same observed-state, entry, and duplicate checks, but not
-the relation-specific envelope, guard, or tangent constraints.  Accepted
-states immediately enter \(Z\) and each forms a singleton trace.  The random
-baseline uses this routine alone with \(q=60\).  Neither mode is guaranteed
-to fill all 60 slots when admissible candidates are scarce.
+the off-trajectory envelope, guard, or tangent constraints.  Accepted states
+immediately enter \(Z\) and each forms a singleton trace.  The construction
+may return fewer than 60 traces when admissible candidates are scarce.
 
 Every selected singleton or cleaned continuation contributes one coverage
 unit, rejected if any retained clause is definitely false at any witness.
@@ -504,10 +506,9 @@ or explanations.
 The training service is packaged as a self-contained, CPU-only container with
 gcc, the verifier, Why3, and its prover backend.  It accepts program source,
 an array of model responses, one of the four reward variants defined below,
-and either random or structured negative sampling.  The reward and sampler
-choices are independent.  The response reports each rollout's
-reward together with its coverage.  Responses may be raw LLM text, invariant lists, or annotated
-code.
+and the negative-trace construction specified above.  The response reports each
+rollout's reward together with its coverage.  Responses may be raw LLM text,
+invariant lists, or annotated code.
 
 \section{Do Training and Evaluation Share Programs or Only Structural Patterns?}
 \label{app:data-leakage}
@@ -1332,8 +1333,7 @@ diagnostics are discussed in Appendix~\ref{app:full-credit-analysis}.
 Qwen3-8B reward variants are reported in
 Tables~\ref{tab:latest-rl-bare} and~\ref{tab:latest-rl-sft}; additional
 Whole-rollout controls are in Table~\ref{tab:latest-rl-other}, and the
-other-backbone Full results are in Table~\ref{tab:rl-complete}.
-Dashes indicate unavailable Qwen3-14B Clause-decomposed measurements.}
+other-backbone Full results are in Table~\ref{tab:rl-complete}.}
 \label{tab:reward-ablation}
 \begin{tabular}{lrrrrrrrrrr}
 \toprule
@@ -1361,7 +1361,6 @@ Full (default) & 35.10 & 47.12 & 53.25 & 58.17 & 62.74 & 67.55 & 75.60 & 78.00 &
 \midrule
 \multicolumn{11}{l}{\textit{Qwen3-14B, RL after SFT}} \\
 Whole-rollout & 41.95 & 50.60 & 54.69 & 57.45 & 59.62 & 56.49 & 63.22 & 67.91 & 70.19 & 72.12 \\
-Clause-decomposed & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
 Full (default) & 35.82 & 48.80 & 53.00 & 55.53 & 58.05 & 69.35 & 75.12 & 76.44 & 77.64 & 78.25 \\
 \midrule
 \multicolumn{11}{l}{\textit{Llama 3.1-8B, RL after SFT}} \\
@@ -1525,47 +1524,8 @@ candidates becoming easier to obtain at a small sampling budget.  This
 comparison does not support an increase in cross-response diversity;
 clause counts alone also do not measure logical strength or necessity.
 
-\subsection{Do Structured Negatives Make Coverage More Informative?}
-\label{app:negative-sampler-analysis}
-
-\paragraph{Does structured sampling improve trained-model verification?}
-
-
-The negative-sampler ablation uses matched Qwen3-8B runs from the Bare
-initialization under the Full reward that differ only in the sampler.  These archived
-runs form a separate experiment; their Structured evaluation differs from
-the main Full evaluation.  Structured is the sampler of
-Section~\ref{sec:method:sampler} (relation and post-exit families); Random
-draws uniform local perturbations under the same trace budget.
-
-\begin{table}[H]
-\centering
-\small
-\caption{Negative-sampler ablation on Qwen3-8B, trained from the Bare
-  initialization under the full reward (\%).  Bold marks the better
-  sampler per column.}
-\label{tab:sampler-ablation}
-\begin{tabular}{lrrrrrrrrrr}
-\toprule
-\rowcolor{algobg}
-& \multicolumn{5}{c}{pass@\(k\)} & \multicolumn{5}{c}{compose@\(k\)} \\
-\headercmidrules{\cmidrule(lr){2-6}\cmidrule(lr){7-11}}
-\rowcolor{algobg}
-Negative sampler & 1 & 4 & 8 & 16 & 32 & 1 & 4 & 8 & 16 & 32 \\
-\midrule
-Random & \textbf{7.21} & 11.78 & 13.82 & 15.87 & 18.03 & 46.88 & 55.41 & 58.77 & 60.82 & 62.26 \\
-Structured (default) & 7.09 & \textbf{12.86} & \textbf{15.63} & \textbf{18.39} & 20.79 & \textbf{48.92} & \textbf{59.62} & \textbf{63.34} & \textbf{66.11} & \textbf{67.31} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Structured sampling improves compose@\(k\) by 2.0--5.3 points at every
-budget. Pass@\(k\) stays within \(-0.1\) to \(2.8\) points of Random.
-
-
-
 \Needspace{22\baselineskip}
-\subsubsection{Can a Target-Hidden Score Predict Target Verification?}
+\subsection{Does Negative Coverage Align with Final Verification?}
 
 \label{app:coverage-predictiveness}
 
@@ -1574,49 +1534,45 @@ budget. Pass@\(k\) stays within \(-0.1\) to \(2.8\) points of Random.
 \centering
 \includegraphics[width=\linewidth]{figures/negative_coverage_predictiveness.pdf}
 \captionsetup{font=small}
-\caption{Structured coverage on 5,711 candidate sets. (a) Macro ROC and AUROC. (b) Verification by coverage band, with Wilson 95\% intervals.}
+\caption{Negative coverage on 5,711 candidate sets. (a) Macro ROC and AUROC. (b) Verification by coverage band, with Wilson 95\% intervals.}
 \label{fig:coverage-predictiveness}
 \end{wrapfigure}
 
 
-This diagnostic compares the two scores on fixed candidates, separately
-from the RL ablation above.  The population contains 5,711 candidate sets
+This diagnostic evaluates negative coverage on fixed candidates.  The
+population contains 5,711 candidate sets
 from 691 benchmark programs with both accepted and rejected sets, including
 archived target-hidden GPT-5-nano tool outputs and one verified reference
 set per program.  The remaining 141 programs lack both classes for
 within-program ranking.
 
-Both samplers score exactly the same candidates, frozen Houdini survivors,
-positive states, and final verification labels.  They use the target-hidden
-program, seed 0, and a budget of 60 negative traces; all 691 programs yield
-random negatives.  Hidden targets supply only final Frama-C/WP labels,
-never scores.  AUROC is computed within each program and macro-averaged.
-Confidence intervals use 5,000 paired bootstrap resamples over programs.
+Coverage is computed from frozen Houdini survivors and positive states using
+the target-hidden program, seed 0, and a budget of 60 negative traces.  Hidden
+targets supply only final Frama-C/WP labels, never scores.  AUROC is computed
+within each program and macro-averaged.  Confidence intervals use 5,000
+bootstrap resamples over programs.
 
 \begin{center}
 \small
-\begin{tabular}{lrrrr}
+\begin{tabular}{lrrr}
 \toprule
 \rowcolor{algobg}
-Population & Programs & Candidates & \shortstack{Structured AUROC\\(default)} & Random AUROC \\
+Population & Programs & Candidates & Coverage AUROC \\
 \midrule
-Linear & 248 & 2,173 & 0.881 & 0.849 \\
-NLA & 49 & 439 & 0.830 & 0.798 \\
-Loopy & 394 & 3,099 & 0.819 & 0.791 \\
-All & 691 & 5,711 & 0.842 & 0.812 \\
+Linear & 248 & 2,173 & 0.881 \\
+NLA & 49 & 439 & 0.830 \\
+Loopy & 394 & 3,099 & 0.819 \\
+All & 691 & 5,711 & 0.842 \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-Structured coverage achieves a macro AUROC of 0.842 (program-level bootstrap
-95\% CI: \([0.826,0.858]\)), compared with 0.812 for Random
-(\([0.797,0.828]\)).  The paired Structured-minus-Random difference is
-0.030, with a 95\% bootstrap CI of \([0.019,0.041]\).
-Structured coverage has higher macro AUROC in all three categories.
-Both scores show alignment with final verification, and structured sampling
-improves the ranking of sufficient versus insufficient invariant sets on this
-fixed population. Coverage is an empirical diagnostic; final verification
-and generation determine whether a sufficient invariant is found.
+Negative coverage achieves a macro AUROC of 0.842 (program-level bootstrap
+95\% CI: \([0.826,0.858]\)), with consistent alignment across Linear, NLA,
+and Loopy.  This diagnostic evaluates ranking on fixed candidates; it does not
+measure the causal effect of negative-trace construction on RL training.
+Coverage is an empirical diagnostic; final verification and generation
+determine whether a sufficient invariant is found.
 
 This population consists of archived tool outputs and verified references.
 Training-time response groups require separate evidence of informative
@@ -1838,29 +1794,36 @@ compose uses saved prefixes (Appendix~\ref{app:experimental-protocol}).
 \centering
 \includegraphics[width=\linewidth]{figures/tool_pareto_time.pdf}
 \captionsetup{font=small}
-\caption{Verification versus time under native serving setups.
-Daikon uses no model tokens.}
+\caption{Verification versus time under native serving setups, using each
+method's full supported set. Direct GPT-5-nano results use 832 tasks except
+Clause2Inv (316) and LaM4Inv (366); the dashed trained-CRAFT reference uses all
+832. Daikon uses no model tokens.}
 \label{fig:tool-pareto-time}
 \end{wrapfigure}
 
-With GPT-5-nano and target hiding fixed, CRAFT compose@4 verifies 49.04\%
-of programs using 1,905.10 tokens per task, compared with AutoSpec's 42.19\%
-and 2,181.72 tokens.  AutoSpec itself pools eight parallel proposals, so
+On all 832 tasks, with GPT-5-nano and target hiding fixed, CRAFT compose@4
+verifies 49.04\% of programs using 1,905.10 tokens per task, compared with
+AutoSpec's 42.19\% and 2,216.11 tokens. AutoSpec itself pools
+eight parallel proposals, so
 this comparison evaluates the complete clause-processing pipelines.
 
 SESpec iteratively repairs a running candidate and verifies 29.69\% using
 22,081.61 tokens per task. CRAFT compose@1 verifies 33.89\% with 1,136.82
-tokens, about 19.4 times fewer. This comparison
+tokens. LORIS verifies 42.55\% but uses 47,816.27 tokens per task; LaM4Inv
+verifies 19.40\% using 1,470.80 tokens on its supported 366 tasks. This comparison
 supports clause reuse under limited target feedback; the native pipelines
 also differ in extraction and repair, so it does not isolate orchestration
 as the only cause.
 
 Figure~\ref{fig:tool-pareto-time} adds measured end-to-end time to the token
-comparison.  A separate local cost-run model reaches 70.31\%, 75.60\%,
-and 77.28\% at compose@1, @4, and @8 in 28.2, 33.5, and 40.9 seconds per
-task.  At @4 and @8 it verifies more programs in less recorded time than
-GPT-5-nano CRAFT (46.40 and 69.99 seconds).  This model differs from
-the selected main result. Times reflect each method's native serving setup;
+comparison.  Table~\ref{tab:trained-cost-run} reports the selected trained
+model separately on all 832 tasks: it reaches 69.23\%, 75.24\%, and 76.80\% at compose@1,
+@4, and @8 in 28.22, 33.53, and 40.90 seconds per task.  At @4 and @8 it
+uses less recorded time than the corresponding GPT-5-nano CRAFT runs
+(46.40 and 69.99 seconds), but it is not part of the fixed-model direct
+comparison.  Verification rates follow the
+selected Qwen3-8B + SFT + RL result; costs are the recorded local cost-run
+measurements. Times reflect each method's native serving setup;
 GPT-5-nano CRAFT combines archived request
 latency with measured filtering and final verification.
 
@@ -1873,71 +1836,77 @@ limitations are discussed immediately below the tables.
 \begin{table}[H]
 \centering
 \small
-\caption{Complete target-hidden tool comparison underlying
-Figure~\ref{fig:tool-pareto}: the reasoning-disabled rows alongside the archived
-medium-reasoning rerun; Daikon makes no model call and is listed once.  Each
-cell reports the verification rate for Linear,
-NLA, Loopy, or all 832 programs.  Medium-effort results are available only
-for the single-response measurements.  The reasoning-disabled compose@1,
-compose@4, and compose@8 rows are prefix compositions of the same archived
-ten-rollout pool.}
-\label{tab:tools-complete}
+\caption{Verification and inference cost of the selected trained CRAFT model.
+Verification rates are from Qwen3-8B + SFT + RL; token and time values are
+the recorded local cost-run measurements.}
+\label{tab:trained-cost-run}
 \begin{tabular}{llrrrrrr}
 \toprule
 \rowcolor{algobg}
 Method & Reason. & Linear & NLA & Loopy & All & Tokens/task & Time/task \\
 \midrule
+\sam{} (compose@1) & none & \acc{237}{75.00\%} & \acc{7}{14.00\%}
+  & \acc{332}{71.24\%} & \acc{576}{69.23\%} & 1,348.23 & 28.22\,s \\
+\sam{} (compose@4) & none & \acc{252}{79.75\%} & \acc{7}{14.00\%}
+  & \acc{367}{78.76\%} & \acc{626}{75.24\%} & 2,053.71 & 33.53\,s \\
+\sam{} (compose@8) & none & \acc{255}{80.70\%} & \acc{7}{14.00\%}
+  & \acc{377}{80.90\%} & \acc{639}{76.80\%} & 2,993.44 & 40.90\,s \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\small
+\caption{Complete reasoning-disabled, target-hidden comparison underlying
+Figure~\ref{fig:tool-pareto}. Supported Total uses each method's full supported
+set: 832 tasks where applicable, 366 for LaM4Inv, and 316 for Clause2Inv.
+An em dash denotes a category that was not evaluated and is not counted as
+failed; the reasons are summarized below the table.
+The CRAFT compose rows are prefix compositions of the same archived
+ten-rollout pool.}
+\label{tab:tools-complete}
+\begin{tabular}{llrrrrrr}
+\toprule
+\rowcolor{algobg}
+Method & Reason. & Linear & NLA & Loopy & Supported Total & Tokens/task & Time/task \\
+\midrule
 AutoSpec & none & \acc{151}{47.78\%} & \acc{3}{6.00\%} & \acc{197}{42.27\%}
-  & \acc{351}{42.19\%}
-  & 2,181.72 & 27.34\,s \\
-AutoSpec & medium & \acc{208}{65.82\%} & \acc{4}{8.00\%} & \acc{302}{64.81\%}
-  & \acc{514}{61.78\%}
-  & 25,154.54 & 54.77\,s \\
+  & \acc{351/832}{42.19\%}
+  & 2,216.11 & 27.34\,s \\
 SESpec & none & \acc{91}{28.80\%} & \acc{2}{4.00\%} & \acc{154}{33.05\%}
-  & \acc{247}{29.69\%}
+  & \acc{247/832}{29.69\%}
   & 22,081.61 & 68.50\,s \\
-SESpec & medium & \acc{180}{56.96\%} & \acc{3}{6.00\%} & \acc{231}{49.57\%}
-  & \acc{414}{49.76\%}
-  & 44,807.05 & 117.31\,s \\
-Clause2Inv & none & \acc{66}{20.89\%} & \acc{0}{0.00\%} & \acc{0}{0.00\%}
-  & \acc{66}{7.93\%}
-  & 1,056.25 & 8.41\,s \\
-Clause2Inv & medium & \acc{63}{19.94\%} & \acc{1}{2.00\%} & \acc{0}{0.00\%}
-  & \acc{64}{7.69\%}
-  & 385.80 & 29.04\,s \\
+Clause2Inv & none & \acc{66}{20.89\%} & --- & ---
+  & \acc{66/316}{20.89\%}
+  & 1,461.80 & 18.37\,s \\
+LORIS & none & \acc{133}{42.09\%} & \acc{11}{22.00\%} & \acc{210}{45.06\%}
+  & \acc{354/832}{42.55\%}
+  & 47,816.27 & 138.17\,s \\
+LaM4Inv & none & \acc{70}{22.15\%} & \acc{1}{2.00\%} & ---
+  & \acc{71/366}{19.40\%}
+  & 1,470.80 & 14.70\,s \\
 Daikon & --- & \acc{73}{23.10\%} & \acc{0}{0.00\%} & \acc{101}{21.67\%}
-  & \acc{174}{20.91\%}
+  & \acc{174/832}{20.91\%}
   & 0 & 4.89\,s \\
 Loopy & none & \acc{64}{20.25\%} & \acc{0}{0.00\%} & \acc{92}{19.74\%}
-  & \acc{156}{18.75\%}
+  & \acc{156/832}{18.75\%}
   & 14,513.37 & 147.16\,s \\
-Loopy & medium & \acc{230}{72.78\%} & \acc{6}{12.00\%} & \acc{330}{70.82\%}
-  & \acc{566}{68.03\%}
-  & 111,973.15 & 381.01\,s \\
 \midrule
 Naive & none & \acc{48}{15.19\%} & \acc{1}{2.00\%} & \acc{88}{18.88\%}
-  & \acc{137}{16.47\%}
+  & \acc{137/832}{16.47\%}
   & 225.95 & 2.98\,s \\
-Naive & medium & \acc{154}{48.73\%} & \acc{4}{8.00\%} & \acc{221}{47.42\%}
-  & \acc{379}{45.55\%}
-  & 4,493.37 & 28.87\,s \\
 \sam{} (pass@1) & none & \acc{8/316}{2.53\%} & \acc{0/50}{0.00\%} & \acc{22/466}{4.72\%}
   & \acc{30/832}{3.61\%}
-  & 1,135.83 & 7.86\,s \\
-\sam{} (pass@1) & medium & \acc{193/316}{61.08\%} & \acc{7/50}{14.00\%} & \acc{252/466}{54.08\%}
-  & \acc{452/832}{54.33\%}
-  & 6,928.30 & 53.52\,s \\
+  & 1,136.82 & 7.86\,s \\
 \sam{} (compose@1) & none & \acc{110}{34.81\%} & \acc{11}{22.00\%} & \acc{161}{34.55\%}
-  & \acc{282}{33.89\%}
+  & \acc{282/832}{33.89\%}
   & 1,136.82 & 24.52\,s \\
-\sam{} (compose@1) & medium & \acc{203}{64.24\%} & \acc{7}{14.00\%} & \acc{294}{63.09\%}
-  & \acc{504}{60.58\%}
-  & 6,928.30 & 66.60\,s \\
 \sam{} (compose@4) & none & \acc{152}{48.10\%} & \acc{15}{30.00\%} & \acc{241}{51.72\%}
-  & \acc{408}{49.04\%}
+  & \acc{408/832}{49.04\%}
   & 1,905.10 & 46.40\,s \\
 \sam{} (compose@8) & none & \acc{175}{55.38\%} & \acc{22}{44.00\%} & \acc{265}{56.87\%}
-  & \acc{462}{55.53\%}
+  & \acc{462/832}{55.53\%}
   & 2,929.47 & 69.99\,s \\
 \bottomrule
 \end{tabular}
@@ -1955,6 +1924,8 @@ Method & Sampling budget / task & Temperature / top-\(p\) & Completion cap & Rea
 AutoSpec & 8 & 1.0 / 1.0 & 8,192 & none \\
 SESpec & 1 initial + up to 3 refinements per phase & 1.0 / 1.0 & 8,192 & none \\
 Clause2Inv & adaptive; 1 per call & 1.0 / 1.0 & 8,192 & none \\
+LORIS & 1 initial + adaptive local-proof repairs & 1.0 / 1.0 & 8,192 & none \\
+LaM4Inv & 5 initial + adaptive VC repairs & 1.0 / 1.0 & 8,192 & none \\
 Daikon & no model call & -- & -- & -- \\
 Naive & 1 & 1.0 / 1.0 & 8,192 & none \\
 \sam{} & 1, 4, or 8 & 1.0 / 1.0 & 8,192 & none \\
@@ -1963,20 +1934,51 @@ Loopy & 15 initial + up to 7 repairs & 0.7 / 1.0 & 8,192 & none \\
 \end{tabular}
 \end{table}
 
-Token means cover tasks with at least one model call; verification rates
-always retain all 832 tasks.  AutoSpec's token count is the native estimate
-for one request returning eight proposals, averaged over the 828 tasks with
-records; four failed tasks have no token record.
+For the direct-comparison rows, token and time means use each method's full
+supported set. Verification denominators likewise retain every supported task.
+Token means use exact provider usage where available. AutoSpec's token mean is
+over its 674 exact-usage tasks; 154 legacy rows with tokenizer estimates and
+four rows with unavailable usage are excluded. AutoSpec issues one request
+with (n=8), so provider usage counts the prompt once and aggregates
+completion tokens across all eight choices. Four LORIS runs that reached the
+native time limit have unavailable final usage records and remain failures in
+the verification denominator. The trained-model table is a separate all-832
+reference.
+
+For matched comparisons, CRAFT compose@4 reaches 49.04\% on the 832 tasks
+used by LORIS (versus 42.55\%), 45.63\% on the 366 tasks used by LaM4Inv
+(versus 19.40\%), and 48.10\% on the 316 Linear tasks used by Clause2Inv
+(versus 20.89\%).
 
 \subsubsection{Which Interface and Feedback Conditions Explain Tool Differences?}
 
 \paragraph{Applicability affects the benchmark denominator.}
 Clause2Inv normally derives false-state counterexamples from the
-postcondition, which is unavailable under target hiding.  Its transition
-verification conditions are also unavailable for the 466 Loopy programs;
-these remain failures in the common denominator.  Its low aggregate rate
-therefore reflects both applicability limits and candidate-generation
-performance.
+postcondition, which is unavailable under target hiding.  LaM4Inv likewise
+uses postcondition verification conditions in its native refinement loop, and
+LORIS asks the model to repair reasoning for failed target-facing verification
+conditions~\citep{cao2025clause2inv,wu2024lam4inv,li2026loris}.  For the direct
+comparison, we remove target/postcondition feedback from all three systems,
+retain only target-independent initiation and preservation feedback, fix
+GPT-5-nano with reasoning disabled, and apply the same restored-target final
+judge.  Results therefore characterize uniform target-hidden adaptations,
+not the systems' native target-visible configurations.
+
+The released Clause2Inv VC pipeline has no compatible native interface for
+NLA or Loopy, so neither category is evaluated. LaM4Inv's required CFG/SMT
+intermediate artifacts are unavailable for Loopy, so it is not evaluated
+there either. LORIS has no such restriction and is evaluated on all 466 Loopy
+tasks. None of the omitted Clause2Inv/LaM4Inv categories is counted as failed.
+
+\paragraph{Why Quokka is not added to the experimental plot.}
+Quokka (formerly introduced with the InvBench benchmark) evaluates 866
+SV-COMP instances, fine-tunes on 3,589 separate training instances, and
+directly tests whether a generated invariant helps prove the visible target
+assertion~\citep{wei2025invbench}.  Its benchmark scope, supervised data,
+target visibility, backend, and acceleration-oriented outcome therefore do
+not match the target-hidden, common-Frama-C evaluation here.  We discuss it as
+related evidence, but do not treat its published number as a directly
+comparable experimental point.
 
 \paragraph{Extraction can prevent generated annotations from reaching verification.}
 Loopy's initial responses contain invariant annotations in 98.8\% of cases,
@@ -1984,14 +1986,11 @@ but its native extractor passes only 1.75\% of initial responses to Houdini.
 These interface measurements help explain why generating annotations does
 not necessarily produce verifier-consumable candidates.
 
-\paragraph{Reasoning settings can change the ranking.}
-In the archived medium-reasoning runs, AutoSpec rises from 42.19\% to
-61.78\% and Loopy from 18.75\% to 68.03\%, reversing their ranking.
-CRAFT compose@1 rises from 33.89\% to 60.58\%, while Clause2Inv changes
-from 7.93\% to 7.69\%.  These runs use each system's reported reasoning
-condition and different token costs; they do not hold the token budget
-fixed.  Tool comparisons should therefore identify the generator, reasoning
-setting, applicability, and extraction pipeline alongside the final rate.
+\paragraph{Configuration is part of the comparison.}
+The direct rows deliberately hold the generator, disabled-reasoning setting,
+target boundary, supported tasks, and final verifier fixed.  Results from
+native target-visible workflows or different reasoning settings are therefore
+reported only as contextual evidence, not mixed into the supported-set rates.
 
 \subsection{Shapley Analysis: Does Group Credit Help Exploration?}
 \label{app:full-credit-analysis}
@@ -2004,7 +2003,7 @@ responses, encouraging complementary effective coverage.  The allocation
 and its Shapley equivalence are defined in Appendix~\ref{app:formal-shapley}.
 
 Table~\ref{tab:full-credit-comparison} compares Clause-decomposed and Full on
-Qwen3-8B after 2 RL epochs, with structured negative sampling and 9,024
+Qwen3-8B after 2 RL epochs, with target-hidden negative-trace construction and 9,024
 training programs. Full after SFT uses the main evaluation at 69.23\%
 compose@1, consistently with Tables~\ref{tab:rl-complete}
 and~\ref{tab:reward-ablation}.
@@ -2113,8 +2112,8 @@ permit uncertainty estimates for paired differences.
 \paragraph{Program scope.}
 Our implementation targets numerical programs with one scalar-integer loop.
 The evaluation excludes nested loops and invariants over arrays, heaps, or
-recursively defined predicates.  The negative sampler covers scalar arithmetic
-relations and exit boundaries~\citep{liu2024towards}.
+recursively defined predicates. The negative-trace construction probes scalar
+arithmetic relations and exit boundaries~\citep{liu2024towards}.
 
 \paragraph{Inference engine.}
 Local base and trained models are served with vLLM.  In preliminary

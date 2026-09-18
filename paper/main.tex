@@ -1,5 +1,5 @@
 %%
-%% CRAFT: Compositional Reward Alignment for Target-Hidden Loop Verification
+%% Clause-Compositional Inference and Aligned Training for Target-Hidden Loop Verification
 %% ICLR 2027 submission format
 %%
 \documentclass{article}
@@ -231,7 +231,7 @@
 \newcommand{\tightparagraph}[1]{\par\addvspace{2pt}\noindent\textbf{#1}\hspace{0.45em}}
 
 %% Meta
-\title{\sam{}: Compositional Reward Alignment\\
+\title{Clause-Compositional Inference and Aligned Training\\
 for Target-Hidden Loop Verification}
 
 \author{
@@ -245,34 +245,29 @@ for Target-Hidden Loop Verification}
 \maketitle
 
 \begin{abstract}
-Loop invariants are essential to program verification, reducing unbounded
-loop executions to finite proof obligations.  Generating strong invariants is
-especially difficult when verification targets are hidden: inductive validity
-alone does not establish sufficient strength to prove the targets, while
-generation lacks target guidance and training lacks target-specific proof
-feedback.  Generated responses may contain incorrect clauses, and useful
-clauses needed for a proof may be scattered across responses.  Inference can
-exploit these responses through decomposition, filtering, and composition,
-but whole-response training feedback may discard useful partial contributions,
-creating a mismatch between training and inference.  We introduce CRAFT to
-align compositional inference, supervision targets, and reinforcement-learning
-rewards under \emph{target-hidden loop verification}.  At inference, CRAFT
-decomposes responses into clauses, pools and jointly filters them, and composes
-the survivors into a stronger invariant.  During training, target-independent
-negative-trace coverage supplies a strength signal beyond inductive validity:
-supervised fine-tuning (SFT) learns multi-response compositions accepted by
-verification and coverage screening, while reinforcement learning (RL) rewards
-each response for the individual and shared coverage contributions of its
-clauses retained by the same pooled filtering procedure.  Training feedback thus reflects the useful
-parts consumed at inference, without requiring each response to complete the
-proof independently.  Target assertions and postconditions remain hidden
-throughout generation and training and are restored only for final verification.
-On 832 C programs, SFT raises Qwen3-8B's compose@1---the verification rate
-after filtering a single response---from 37.86\% to 63.90\%, exceeding the
-untrained model's 57.81\% compose@32.  Subsequent RL raises compose@1 to
-69.23\%.  Reward ablations show that requiring whole-response correctness can
-improve standalone success while degrading composition, supporting training
-feedback aligned with the clauses retained and used by compositional inference.
+Loop invariants reduce unbounded executions to finite proof obligations, but
+LLM-generated invariants often fail as complete responses even when they
+contain useful clauses.  Complementary clauses may also be scattered across
+different responses.  We introduce CRAFT, a decompose-and-compose framework
+for target-hidden loop verification.  At inference, CRAFT decomposes responses
+into clauses, pools and jointly filters clauses across responses, and composes
+the survivors into an invariant.  This recovers useful proof material without
+requiring any response to prove the hidden target independently.
+
+To make training support the same inference process, CRAFT aligns supervision
+targets and RL credit with filtered compositions.  Because target assertions
+and postconditions remain hidden throughout generation and training,
+execution-derived negative-trace coverage provides a target-independent
+strength signal.  Supervised fine-tuning (SFT) distills accepted multi-response
+compositions into single-response targets, while reinforcement learning (RL)
+credits coverage contributed by retained clauses even when their original
+responses fail as wholes.  On 832 C programs, SFT raises Qwen3-8B's
+compose@1---the verification rate after filtering and composing one
+response---from 37.86\% to 63.90\%, exceeding the untrained model's 57.81\%
+compose@32.  Subsequent RL raises compose@1 to 69.23\%.  Reward ablations show
+that whole-response credit can improve standalone success while degrading
+compositional verification, whereas clause-level credit preserves useful
+contributions from failed responses.
 \end{abstract}
 
 %% ============================================================

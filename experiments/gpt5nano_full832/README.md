@@ -26,6 +26,17 @@ remain available for provenance and call reuse, but R4-H is intentionally
 excluded from the current final table and is replaced by the clean no-reroll
 R5-H configuration.
 
+LORIS and LaM4Inv are evaluated by the target-hidden near-neighbor extension
+on their full supported sets: all 832 tasks for LORIS and 316 Linear + 50 NLA
+for LaM4Inv. Both use
+`gpt-5-nano`, omit model reasoning, and send their returned invariants to the
+same restored-target Frama-C/WP judge.  Target/postcondition checks are removed
+from their generation-time feedback; initiation and preservation feedback is
+retained.  The released LaM4Inv pipeline cannot be run on the 466 Loopy tasks
+because those tasks do not provide its required CFG/SMT intermediate
+artifacts. Loopy is therefore shown with an em dash for LaM4Inv and is not
+counted as failed.
+
 The authoritative settings are in `protocol.json`. `protocol_sha256` is stored
 in every result row, so results from different prompts, budgets, or target
 boundaries cannot be silently mixed.
@@ -100,16 +111,34 @@ The existing SESpec “strict2” batch is retained as audit evidence but is als
 ineligible: its wrapper edited `SESPEC_INPUT_ROOT`, while `main.py` read the
 separate `SESpec/src/input` tree that still contained the assertion.
 
-Native Clause2Inv needs a Code2Inv SMT transition-VC file for each input.
-Compatible VCs exist for the 316 linear and 50 nonlinear programs, so those
-target-hidden generations are run through Clause2Inv's native checker. Loopy
-has no such VCs; the runner writes
-an explicit `unsupported` row with zero API calls instead of silently changing
-Clause2Inv into a different method or spending tokens on unverifiable output.
+Native Clause2Inv needs a compatible Code2Inv SMT transition-VC interface for
+each input. The direct comparison reports its released pipeline on the 316
+Linear tasks; NLA and Loopy are shown with an em dash and are not counted as
+failed.
 Fresh runs persist provider-reported prompt, completion, reasoning, and total
 token counts for every native API call.
 
 ## Commands
+
+Run or resume the near-neighbor comparison (832 tasks for LORIS and 366 for
+LaM4Inv):
+
+```bash
+python3 -m experiments.gpt5nano_full832.near_neighbor_adapter all \
+  --method loris --workers 4 --score-workers 8 \
+  --results-root results/02_rq2_tool_comparison/gpt5nano_full832
+python3 -m experiments.gpt5nano_full832.near_neighbor_adapter all \
+  --method lam4inv --workers 4 --score-workers 8 \
+  --results-root results/02_rq2_tool_comparison/gpt5nano_full832
+python3 -m experiments.gpt5nano_full832.near_neighbor_adapter summarize \
+  --results-root results/02_rq2_tool_comparison/gpt5nano_full832
+```
+
+The extension writes append-only `events/{loris,lam4inv}.jsonl` files and
+per-task artifacts under `artifacts/{loris,lam4inv}/`.  LORIS uses its released
+local-reasoning verifier with the installed Alt-Ergo/Z3 provers.  LaM4Inv uses
+the released five-proposal organization and the compatible target-free
+initiation/transition VCs available for the 366 supported inputs.
 
 Run or resume the Loopy extension (start with a one-task smoke test):
 

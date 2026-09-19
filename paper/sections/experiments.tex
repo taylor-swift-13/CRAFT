@@ -56,7 +56,8 @@ sampling variance.
 
 Table~\ref{tab:rcf-paired} compares four local backbones across training
 stages, with four API models as references, reporting pass and compose
-at one- and eight-response budgets.
+at one- and eight-response budgets. RL denotes training from Bare;
+SFT+RL starts from SFT. API models receive no additional training.
 
 \input{sections/main_results_table}
 
@@ -93,17 +94,14 @@ composition.
 \vspace{0pt}
 \includegraphics[width=\linewidth]{figures/tool_pareto_row.pdf}
 \captionsetup{font=small,margin={0pt,7pt}}
-\caption{Verification versus tokens on each method's full supported set.
-Direct GPT-5-nano results use 832 tasks, except Clause2Inv (316 Linear) and
-LaM4Inv (366 Linear+NLA). The dashed trained-CRAFT reference uses all 832.
-Squares mark the new LORIS and LaM4Inv adaptations.}
+\caption{Verification versus token use. Dashed: trained CRAFT reference.}
 \label{fig:tool-pareto}
 \end{minipage}%
 \begin{minipage}[t]{0.666667\textwidth}
 \vspace{0pt}
 \includegraphics[width=\linewidth]{figures/training_stages_row.pdf}
 \captionsetup{font=small,margin={7pt,0pt}}
-\caption{Qwen3-8B: RL from (a) Bare and (b) SFT. Solid curves pass through measurements; dashed guides connect interior segments. Arrows illustrate SFT budget compression and RL gains at small \(k\).}
+\caption{Qwen3-8B verification across sampling budgets, with RL initialized from (a) Bare and (b) SFT.}
 \label{fig:rl-panels}
 \end{minipage}
 \end{figure}
@@ -111,24 +109,17 @@ We compare \sam{} with AutoSpec, SESpec, Clause2Inv, LORIS, LaM4Inv, Loopy,
 and Daikon~\citep{wen2024enchanting,yang2026sespec,cao2025clause2inv,
 li2026loris,wu2024lam4inv,kamath2023finding,daikon}.  LLM-based comparisons
 hold GPT-5-nano, disabled reasoning, target hiding, and the final judge fixed.
-For LaM4Inv, Clause2Inv, and LORIS, these are target-hidden adaptations,
-not reproductions of their native target-visible configurations.
-Each method is evaluated on its full supported set. LORIS and the other
-applicable baselines use all 832 programs. LaM4Inv uses 316 Linear and 50 NLA
-programs because its required Loopy CFG/SMT artifacts are unavailable;
-Clause2Inv uses the 316 Linear programs supported by its released VC
-interface. Omitted categories are not counted as failures.
-Appendix~\ref{app:tools-comparison} reports matched-subset CRAFT comparisons
-and explains why Quokka/InvBench is not directly comparable.
+Comparison protocols, supported subsets, and matched-subset results are
+reported in Appendix~\ref{app:tools-comparison}.
 
 \tightparagraph{Clause reuse improves the verification--cost frontier.}
 With GPT-5-nano fixed, all three \sam{} budgets lie on the verification--token
 Pareto frontier (Figure~\ref{fig:tool-pareto}). On all 832 tasks, four
 responses verify \textbf{49.04\%} using \textbf{1,905 tokens per task},
-exceeding AutoSpec (42.19\%, 2,216 tokens) and LORIS (42.55\%, 47,816 tokens).
-Eight responses raise verification to 55.53\% at 2,929 tokens. On their
-smaller supported subsets, LaM4Inv reaches 19.40\% and Clause2Inv reaches
-20.89\%; matched CRAFT rates appear in Appendix~\ref{app:tools-comparison}.
+exceeding all compared tools in verification rate while costing less than four of
+the six LLM-based baselines.
+Eight responses raise verification to 55.53\% at 2,929 tokens.
+The trained model further improves the verification--token trade-off.
 
 \begin{insightbox}
 \textbf{Finding.}
@@ -187,14 +178,14 @@ useful candidates available earlier even after substantial supervised training.
 \vspace{0pt}
 \includegraphics[width=\linewidth]{figures/sft_composition_compose_row.pdf}
 \captionsetup{font=small,margin={0pt,7pt}}
-\caption{Qwen3-8B SFT targets and compose@\(k\). Labels mark @1 and @32.}
+\caption{Effect of SFT target construction on Qwen3-8B compose@\(k\).}
 \label{fig:sft-composition-compose}
 \end{minipage}%
 \begin{minipage}[t]{0.666667\textwidth}
 \vspace{0pt}
 \includegraphics[width=\linewidth]{figures/reward_ablation_row.pdf}
 \captionsetup{font=small,margin={7pt,0pt}}
-\caption{Qwen3-8B rewards from Bare: (a) pass@\(k\); (b) compose@\(k\). Panels use different y-axis ranges; parentheses mark the default.}
+\caption{Qwen3-8B reward ablation from Bare: (a) pass@\(k\); (b) compose@\(k\). Vertical scales differ.}
 \label{fig:reward-ablation}
 \end{minipage}
 \end{figure}
@@ -214,7 +205,7 @@ can exploit with a single response.
 
 \tightparagraph{One rejected clause should not erase the others' credit.}
 With verification targets hidden, RL uses inductiveness and negative coverage
-(Figure~\ref{fig:reward-ablation}).  Binary alone reaches only 4.55\%
+(Figure~\ref{fig:reward-ablation}).  Binary alone reaches only 4.45\%
 compose@32.  Whole-rollout adds coverage but gates credit on the entire
 response: pass@1 improves to 15.50\%, yet compose@32 falls to 23.32\%,
 below Bare's 57.81\%.  One rejected clause therefore withholds credit from

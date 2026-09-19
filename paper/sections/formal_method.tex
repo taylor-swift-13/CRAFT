@@ -392,9 +392,8 @@ its proposers, while unique coverage receives full credit.  Thus
 \(1/f(\nu)\) is a group-local difficulty weight: negatives rejected by many
 responses receive less credit per response than rare negatives rejected by
 few.  The negatives are nonuniformly weighted for each response, while their
-credits still sum to one unit per covered trace across the group.  A purely
-supporting clause may enable another clause to survive but receives no direct
-coverage credit.  The per-response cap limits admission without penalizing
+credits still sum to one unit per covered trace across the group.
+The per-response cap limits admission without penalizing
 excess output.
 
 \begin{algorithm}[H]
@@ -439,8 +438,7 @@ implemented verifier exposes the broader, resource-dependent relation
 \end{equation}
 This relation includes semantic support, generated-goal dependencies, and
 resource effects.  Algorithm~\ref{alg:formal-rl-reward} can retain such a
-clause through joint filtering, but assigns it direct reward only if its
-projected response rejects a negative trace.
+clause through joint filtering.
 
 \subsubsection{Shapley Credit: Definition and Equivalence}
 \label{app:formal-shapley}

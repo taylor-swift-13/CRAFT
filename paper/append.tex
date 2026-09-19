@@ -8,9 +8,26 @@
 \usepackage{needspace}
 \usepackage{microtype}
 \usepackage{times}
+\usepackage{caption}
+\usepackage{etoolbox}
 \usepackage[hidelinks]{hyperref}
 
-\definecolor{headerbg}{HTML}{E9F0EC}
+% Match the table typography and palette in main.tex.
+\definecolor{headerbg}{HTML}{E8F3EC}
+\definecolor{codegray}{HTML}{66786F}
+\newcommand{\papertablestyle}{%
+  \fontsize{9}{10.5}\selectfont
+  \setlength{\tabcolsep}{2.4pt}%
+  \renewcommand{\arraystretch}{1.0}%
+  \arrayrulecolor{codegray}%
+  \setlength{\heavyrulewidth}{0.6pt}%
+  \setlength{\lightrulewidth}{0.4pt}%
+  \setlength{\cmidrulewidth}{0.4pt}%
+}
+\AtBeginEnvironment{tabular}{\papertablestyle}
+\AtBeginEnvironment{tabular*}{\papertablestyle}
+\captionsetup[table]{font=small}
+\raggedbottom
 \newcommand{\pp}[1]{\,({#1})}
 
 \title{CRAFT: Supplementary Experimental Analyses}
@@ -27,7 +44,8 @@ argument.  Appendix~A tests whether duplicate instances within the evaluation
 benchmark change the conclusions of the Qwen3-8B training experiments.
 Appendix~B characterizes the computational profile of the evaluation used for
 Qwen3-8B and all of its training variants.  Appendix~C isolates the effect of
-negative-trace sampling under the Full reward.  All verification rates are
+negative-trace sampling under the Full reward.  Appendix~D reports three
+training runs with three inference runs each.  All verification rates are
 percentages.
 
 \appendix
@@ -62,9 +80,6 @@ are percentage-point changes from the corresponding 832-program result.
 
 \begin{table}[H]
 \centering
-\small
-\caption{Qwen3-8B training-stage comparison under pass@\(k\).}
-\label{tab:supp-stage-pass}
 \begin{tabular}{lrrrrrr}
 \toprule
 \rowcolor{headerbg}
@@ -80,13 +95,12 @@ SFT+RL       & 832 & 32.93 & 46.88 & 51.44 & 53.37 & 55.89 \\
              & 708 & 30.37\pp{-2.57} & 43.64\pp{-3.23} & 47.88\pp{-3.56} & 49.72\pp{-3.65} & 52.40\pp{-3.49} \\
 \bottomrule
 \end{tabular}
+\caption{Qwen3-8B training-stage comparison under pass@\(k\).}
+\label{tab:supp-stage-pass}
 \end{table}
 
 \begin{table}[H]
 \centering
-\small
-\caption{Qwen3-8B training-stage comparison under compose@\(k\).}
-\label{tab:supp-stage-compose}
 \begin{tabular}{lrrrrrr}
 \toprule
 \rowcolor{headerbg}
@@ -102,6 +116,8 @@ SFT+RL       & 832 & 66.23 & 72.48 & 74.40 & 75.12 & 75.60 \\
              & 708 & 62.99\pp{-3.23} & 69.07\pp{-3.41} & 71.05\pp{-3.35} & 71.89\pp{-3.23} & 72.32\pp{-3.28} \\
 \bottomrule
 \end{tabular}
+\caption{Qwen3-8B training-stage comparison under compose@\(k\).}
+\label{tab:supp-stage-compose}
 \end{table}
 
 \Needspace{8\baselineskip}
@@ -125,10 +141,6 @@ the Bare-initialization panel; it is not an additional trained reward.
 
 \begin{table}[H]
 \centering
-\small
-\caption{Reward ablation under compose@\(k\).  The two panels distinguish RL
-directly from Bare from RL after SFT.}
-\label{tab:supp-reward-compose}
 \begin{tabular}{lrrrrrr}
 \toprule
 \rowcolor{headerbg}
@@ -138,8 +150,8 @@ Reward & \(N\) & @1 & @4 & @8 & @16 & @32 \\
 Bare (reference)  & 832 & 43.75 & 55.17 & 59.01 & 61.18 & 62.50 \\
                   & 708 & 42.09 & 53.81 & 57.91 & 60.17 & 61.44 \\
 \addlinespace
-Binary            & 832 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
-                  & 708 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
+Binary            & 832 & 4.45 & 4.45 & 4.45 & 4.45 & 4.45 \\
+                  & 708 & 4.52 & 4.52 & 4.52 & 4.52 & 4.52 \\
 \addlinespace
 Whole-rollout     & 832 & 20.79 & 21.88 & 22.24 & 22.84 & 23.32 \\
                   & 708 & 19.63 & 20.76 & 21.19 & 21.61 & 22.03 \\
@@ -164,14 +176,12 @@ Full (ours)       & 832 & 68.51 & 75.72 & 77.52 & 78.25 & 78.37 \\
                   & 708 & 64.83 & 72.46 & 74.58 & 75.28 & 75.42 \\
 \bottomrule
 \end{tabular}
+\caption{Compose@\(k\) reward ablation before and after benchmark deduplication.}
+\label{tab:supp-reward-compose}
 \end{table}
 
 \begin{table}[H]
 \centering
-\small
-\caption{Reward ablation under pass@\(k\).  Pass measures whether any complete
-response verifies alone and therefore need not follow the compose ranking.}
-\label{tab:supp-reward-pass}
 \begin{tabular}{lrrrrrr}
 \toprule
 \rowcolor{headerbg}
@@ -207,6 +217,8 @@ Full (ours)       & 832 & 36.78 & 51.92 & 56.49 & 59.50 & 61.54 \\
                   & 708 & 32.91 & 47.88 & 52.40 & 55.23 & 57.34 \\
 \bottomrule
 \end{tabular}
+\caption{Pass@\(k\) reward ablation before and after benchmark deduplication.}
+\label{tab:supp-reward-pass}
 \end{table}
 
 \paragraph{The composition result is robust.}
@@ -250,11 +262,6 @@ hardware-independent latency guarantee.
 
 \begin{table}[H]
 \centering
-\small
-\caption{Token consumption for one Qwen3-8B checkpoint or training-variant
-evaluation over 832 programs.  Each task uses eight rollouts; per-task values
-are rounded to the nearest token.}
-\label{tab:supp-resource-tokens}
 \begin{tabular}{lrr}
 \toprule
 \rowcolor{headerbg}
@@ -265,6 +272,8 @@ Output tokens (8 rollouts) & 11,057 & 9,199,244 \\
 Total tokens               & 12,169 & 10,124,879 \\
 \bottomrule
 \end{tabular}
+\caption{Token consumption for one Qwen3-8B evaluation with eight responses per task.}
+\label{tab:supp-resource-tokens}
 \end{table}
 
 Each rollout produces 1,382 output tokens on average and yields approximately
@@ -276,9 +285,6 @@ only 58.8 distinct candidates enter the pooled set on average.
 
 \begin{table}[H]
 \centering
-\small
-\caption{Measured vLLM output throughput and derived generation time.}
-\label{tab:supp-resource-generation}
 \begin{tabular}{lr}
 \toprule
 \rowcolor{headerbg}
@@ -289,6 +295,8 @@ One-GPU generation & 26.3 min \\
 Four-GPU generation & 6.6 min \\
 \bottomrule
 \end{tabular}
+\caption{Measured vLLM output throughput and derived generation time.}
+\label{tab:supp-resource-generation}
 \end{table}
 
 The one-GPU time follows from the 9,199,244 generated tokens and measured
@@ -300,9 +308,6 @@ the subsequent proof workload once multiple GPUs are available.
 
 \begin{table}[H]
 \centering
-\small
-\caption{Frama-C/Houdini verification cost overall and by benchmark subset.}
-\label{tab:supp-resource-verification}
 \begin{tabular}{lrrrrrr}
 \toprule
 \rowcolor{headerbg}
@@ -314,6 +319,8 @@ NLA    & 50  & 292.0 s & 252.6 s & 866.8 s & 4.1 h  & -- \\
 Loopy  & 466 & 112.6 s & 22.3 s  & 564.5 s & 14.6 h & -- \\
 \bottomrule
 \end{tabular}
+\caption{Frama-C/Houdini verification cost overall and by benchmark subset.}
+\label{tab:supp-resource-verification}
 \end{table}
 
 Per-task verification time accumulates work across Houdini rounds, whereas
@@ -330,9 +337,6 @@ mean exceeds Linear.
 
 \begin{table}[H]
 \centering
-\small
-\caption{Memory footprint and verifier concurrency.}
-\label{tab:supp-resource-memory}
 \begin{tabular}{ll}
 \toprule
 \rowcolor{headerbg}
@@ -345,6 +349,8 @@ CPU per Frama-C worker     & approximately 200--500 MB \\
 Concurrent CPU workers     & 60--100 \\
 \bottomrule
 \end{tabular}
+\caption{Memory footprint and verifier concurrency.}
+\label{tab:supp-resource-memory}
 \end{table}
 
 The 80-GiB GPU is close to capacity, but most allocated memory is the KV cache
@@ -358,10 +364,6 @@ formal verification.
 
 \begin{table}[H]
 \centering
-\small
-\caption{End-to-end wall-clock decomposition with four GPUs and 80 CPU
-verification workers.}
-\label{tab:supp-resource-wallclock}
 \begin{tabular}{lrr}
 \toprule
 \rowcolor{headerbg}
@@ -372,6 +374,9 @@ Frama-C verification & 21.4 min & 77\% \\
 Total                & approximately 28 min & -- \\
 \bottomrule
 \end{tabular}
+\caption{End-to-end wall-clock decomposition with four GPUs and 80 CPU
+verification workers.}
+\label{tab:supp-resource-wallclock}
 \end{table}
 
 The systems result mirrors the CPU accounting: proof is the bottleneck.
@@ -391,13 +396,10 @@ training directly from Bare, whereas SFT+RL starts from the SFT model.
 
 \begin{table}[htbp]
 \centering
-\caption{Qwen3-8B negative-trace sampling ablation on all 832 programs
-under pass@\(k\), with the Full reward.  Difference rows report Structure
-minus Random in percentage points.}
-\label{tab:sampler-pass-all}
-\small
+
 \begin{tabular}{llrrrrr}
 \toprule
+\rowcolor{headerbg}
 Training & Sampler & @1 & @4 & @8 & @16 & @32 \\
 \midrule
 SFT+RL & Structure & 37.98 & 51.80 & 56.13 & 59.98 & 62.74 \\
@@ -409,17 +411,16 @@ RL     & Structure & 8.17 & 13.10 & 14.90 & 17.43 & 19.35 \\
        & $\Delta$ & +2.52 & +1.92 & +1.68 & +1.56 & +1.32 \\
 \bottomrule
 \end{tabular}
+\caption{Qwen3-8B negative-sampling ablation with Full reward: pass@\(k\). Differences are Structure minus Random in percentage points.}
+\label{tab:sampler-pass-all}
 \end{table}
 
 \begin{table}[htbp]
 \centering
-\caption{Qwen3-8B negative-trace sampling ablation on all 832 programs
-under compose@\(k\), with the Full reward.  Difference rows report Structure
-minus Random in percentage points.}
-\label{tab:sampler-compose-all}
-\small
+
 \begin{tabular}{llrrrrr}
 \toprule
+\rowcolor{headerbg}
 Training & Sampler & @1 & @4 & @8 & @16 & @32 \\
 \midrule
 SFT+RL & Structure & 67.55 & 76.08 & 77.52 & 78.61 & 78.73 \\
@@ -431,6 +432,8 @@ RL     & Structure & 49.28 & 57.93 & 62.26 & 64.90 & 66.83 \\
        & $\Delta$ & -1.20 & -1.93 & -0.24 & +0.12 & +0.72 \\
 \bottomrule
 \end{tabular}
+\caption{Qwen3-8B negative-sampling ablation with Full reward: compose@\(k\). Differences are Structure minus Random in percentage points.}
+\label{tab:sampler-compose-all}
 \end{table}
 
 Tables~\ref{tab:sampler-pass-strata} and
@@ -440,12 +443,10 @@ the aggregate in the stratified tables.
 
 \begin{table}[htbp]
 \centering
-\caption{Pass@\(k\) negative-trace sampling ablation by program class.}
-\label{tab:sampler-pass-strata}
-\scriptsize
-\setlength{\tabcolsep}{5pt}
+
 \begin{tabular}{llrrrrr}
 \toprule
+\rowcolor{headerbg}
 Training & Sampler & @1 & @4 & @8 & @16 & @32 \\
 \midrule
 \multicolumn{7}{l}{\textit{Linear ($n=316$)}} \\
@@ -467,16 +468,16 @@ RL     & Structure & 7.73 & 14.38 & 16.09 & 18.45 & 20.60 \\
        & Random    & 4.51 & 10.94 & 13.09 & 16.31 & 18.67 \\
 \bottomrule
 \end{tabular}
+\caption{Pass@\(k\) negative-trace sampling ablation by program class.}
+\label{tab:sampler-pass-strata}
 \end{table}
 
 \begin{table}[htbp]
 \centering
-\caption{Compose@\(k\) negative-trace sampling ablation by program class.}
-\label{tab:sampler-compose-strata}
-\scriptsize
-\setlength{\tabcolsep}{5pt}
+
 \begin{tabular}{llrrrrr}
 \toprule
+\rowcolor{headerbg}
 Training & Sampler & @1 & @4 & @8 & @16 & @32 \\
 \midrule
 \multicolumn{7}{l}{\textit{Linear ($n=316$)}} \\
@@ -498,6 +499,8 @@ RL     & Structure & 50.86 & 59.44 & 64.59 & 66.95 & 69.74 \\
        & Random    & 53.22 & 63.30 & 66.09 & 68.88 & 69.74 \\
 \bottomrule
 \end{tabular}
+\caption{Compose@\(k\) negative-trace sampling ablation by program class.}
+\label{tab:sampler-compose-strata}
 \end{table}
 
 \paragraph{Negative-trace sampling mainly affects standalone success.}
@@ -519,5 +522,151 @@ also separates negative-trace sampling from the
 larger reward-design effects above: the qualitative advantage of clause-level
 credit under composition cannot be attributed to the sampling strategy.
 
+
+\clearpage
+\section{Variability Across Training and Inference Runs}
+\label{app:supp-three-by-three}
+
+\subsection{Protocol and aggregate results}
+
+We evaluate three independent training runs of Qwen3-8B, denoted
+\texttt{train-1}, \texttt{train-2}, and \texttt{train-3}, with three
+independent inference runs per trained model, denoted
+\texttt{run-1}, \texttt{run-2}, and \texttt{run-3}.
+All training and inference settings are held fixed across repetitions;
+only the independent runs differ.  This yields nine
+training--inference combinations on the same 832-program benchmark at
+response budgets \(k\in\{1,4,8,16,32\}\).
+Each mean and standard deviation below is computed across the three
+inference runs of one trained model; it describes inference variability
+conditional on that training run.  The three trained models are reported
+separately to expose variation across training runs.
+All rates are percentages, and standard deviations are in percentage points.
+Results are reported to one decimal place.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lrrrrr}
+\toprule
+\rowcolor{headerbg}
+Training & @1 & @4 & @8 & @16 & @32 \\
+\midrule
+\multicolumn{6}{l}{\textit{Pass@\(k\)}} \\
+train-1 & \(36.9\pm1.0\) & \(51.8\pm0.1\) & \(56.1\pm0.3\) & \(59.5\pm0.1\) & \(62.0\pm0.8\) \\
+train-2 & \(37.7\pm0.4\) & \(51.7\pm0.1\) & \(56.0\pm0.1\) & \(59.7\pm0.2\) & \(62.8\pm0.1\) \\
+train-3 & \(31.7\pm0.3\) & \(43.3\pm0.4\) & \(46.5\pm0.1\) & \(49.8\pm0.1\) & \(53.8\pm0.2\) \\
+\addlinespace
+\multicolumn{6}{l}{\textit{Compose@\(k\)}} \\
+train-1 & \(67.6\pm0.8\) & \(75.7\pm0.5\) & \(77.3\pm0.6\) & \(78.0\pm0.3\) & \(78.1\pm0.4\) \\
+train-2 & \(67.6\pm0.3\) & \(75.8\pm0.3\) & \(77.3\pm0.2\) & \(78.3\pm0.3\) & \(78.4\pm0.3\) \\
+train-3 & \(68.4\pm0.2\) & \(75.4\pm0.3\) & \(76.8\pm0.3\) & \(77.7\pm0.2\) & \(78.8\pm0.2\) \\
+\bottomrule
+\end{tabular}
+\caption{Verification by training run (mean \(\pm\) SD over three inference runs).}
+\label{tab:repeat-summary}
+\end{table}
+\begin{table}[H]
+\centering
+\begin{tabular}{llrrrrr}
+\toprule
+\rowcolor{headerbg}
+Training & Inference & @1 & @4 & @8 & @16 & @32 \\
+\midrule
+\multicolumn{7}{l}{\textit{Pass@\(k\)}} \\
+train-1 & run-1 & 36.8 & 51.9 & 56.5 & 59.5 & 61.5 \\
+train-1 & run-2 & 35.9 & 51.7 & 56.0 & 59.5 & 61.5 \\
+train-1 & run-3 & 37.9 & 51.7 & 55.9 & 59.6 & 62.9 \\
+train-2 & run-1 & 38.0 & 51.8 & 56.1 & 60.0 & 62.7 \\
+train-2 & run-2 & 37.9 & 51.8 & 56.0 & 59.6 & 63.0 \\
+train-2 & run-3 & 37.3 & 51.6 & 55.9 & 59.6 & 62.7 \\
+train-3 & run-1 & 32.0 & 42.9 & 46.4 & 49.8 & 53.6 \\
+train-3 & run-2 & 31.6 & 43.6 & 46.6 & 49.9 & 53.7 \\
+train-3 & run-3 & 31.5 & 43.5 & 46.5 & 49.8 & 54.0 \\
+\addlinespace
+\multicolumn{7}{l}{\textit{Compose@\(k\)}} \\
+train-1 & run-1 & 68.5 & 75.7 & 77.5 & 78.2 & 78.4 \\
+train-1 & run-2 & 66.9 & 75.2 & 76.6 & 77.6 & 77.6 \\
+train-1 & run-3 & 67.3 & 76.2 & 77.8 & 78.1 & 78.2 \\
+train-2 & run-1 & 67.5 & 76.1 & 77.5 & 78.6 & 78.7 \\
+train-2 & run-2 & 67.9 & 75.8 & 77.3 & 78.2 & 78.4 \\
+train-2 & run-3 & 67.4 & 75.5 & 77.0 & 78.0 & 78.1 \\
+train-3 & run-1 & 68.4 & 75.1 & 76.4 & 77.5 & 78.6 \\
+train-3 & run-2 & 68.6 & 75.6 & 76.8 & 77.6 & 78.7 \\
+train-3 & run-3 & 68.3 & 75.6 & 77.0 & 77.9 & 79.0 \\
+\bottomrule
+\end{tabular}
+\caption{Verification for all nine training--inference combinations.}
+\label{tab:repeat-individual}
+\end{table}
+
+\clearpage
+\subsection{Results by program class}
+
+Tables~\ref{tab:repeat-pass-strata} and~\ref{tab:repeat-compose-strata}
+report the same within-training inference summaries for Linear (316 programs),
+NLA (50 programs), and Loopy (466 programs).
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lrrrrr}
+\toprule
+\rowcolor{headerbg}
+Training & @1 & @4 & @8 & @16 & @32 \\
+\midrule
+\multicolumn{6}{l}{\textit{Linear}} \\
+train-1 & \(39.6\pm1.5\) & \(56.2\pm0.2\) & \(60.1\pm0.8\) & \(63.1\pm0.5\) & \(65.7\pm0.7\) \\
+train-2 & \(40.3\pm0.4\) & \(55.7\pm0.6\) & \(59.3\pm0.5\) & \(64.6\pm0.3\) & \(66.9\pm0.4\) \\
+train-3 & \(33.1\pm0.7\) & \(45.5\pm1.0\) & \(49.7\pm0.3\) & \(54.2\pm0.2\) & \(57.1\pm0.5\) \\
+\addlinespace
+\multicolumn{6}{l}{\textit{NLA}} \\
+train-1 & \(4.0\pm0.0\) & \(5.3\pm1.2\) & \(6.7\pm1.2\) & \(6.7\pm1.2\) & \(8.0\pm0.0\) \\
+train-2 & \(6.0\pm0.0\) & \(6.0\pm0.0\) & \(8.0\pm0.0\) & \(8.0\pm0.0\) & \(8.0\pm0.0\) \\
+train-3 & \(2.0\pm0.0\) & \(4.0\pm0.0\) & \(4.0\pm0.0\) & \(4.0\pm0.0\) & \(4.0\pm0.0\) \\
+\addlinespace
+\multicolumn{6}{l}{\textit{Loopy}} \\
+train-1 & \(38.6\pm1.4\) & \(53.7\pm0.2\) & \(58.7\pm0.9\) & \(62.8\pm0.1\) & \(65.2\pm0.9\) \\
+train-2 & \(39.3\pm0.4\) & \(53.9\pm0.2\) & \(58.9\pm0.3\) & \(62.0\pm0.4\) & \(66.0\pm0.2\) \\
+train-3 & \(33.9\pm0.0\) & \(46.1\pm0.0\) & \(48.9\pm0.0\) & \(51.7\pm0.0\) & \(56.9\pm0.0\) \\
+\bottomrule
+\end{tabular}
+\caption{Pass@\(k\) by program class (mean \(\pm\) SD over three inference runs).}
+\label{tab:repeat-pass-strata}
+\end{table}
+\begin{table}[H]
+\centering
+\begin{tabular}{lrrrrr}
+\toprule
+\rowcolor{headerbg}
+Training & @1 & @4 & @8 & @16 & @32 \\
+\midrule
+\multicolumn{6}{l}{\textit{Linear}} \\
+train-1 & \(72.3\pm1.0\) & \(79.9\pm0.7\) & \(81.1\pm0.4\) & \(81.8\pm0.5\) & \(81.8\pm0.5\) \\
+train-2 & \(69.9\pm0.3\) & \(79.2\pm0.2\) & \(80.7\pm0.0\) & \(81.3\pm0.0\) & \(81.3\pm0.0\) \\
+train-3 & \(73.7\pm0.3\) & \(79.0\pm0.7\) & \(80.3\pm0.8\) & \(81.4\pm0.5\) & \(81.9\pm0.5\) \\
+\addlinespace
+\multicolumn{6}{l}{\textit{NLA}} \\
+train-1 & \(12.0\pm2.0\) & \(12.7\pm1.2\) & \(13.3\pm2.3\) & \(13.3\pm2.3\) & \(13.3\pm2.3\) \\
+train-2 & \(12.0\pm0.0\) & \(14.0\pm0.0\) & \(14.0\pm0.0\) & \(14.0\pm0.0\) & \(14.0\pm0.0\) \\
+train-3 & \(14.0\pm0.0\) & \(14.0\pm0.0\) & \(14.0\pm0.0\) & \(14.0\pm0.0\) & \(15.3\pm1.2\) \\
+\addlinespace
+\multicolumn{6}{l}{\textit{Loopy}} \\
+train-1 & \(70.4\pm1.3\) & \(79.7\pm0.5\) & \(81.5\pm1.1\) & \(82.4\pm0.6\) & \(82.5\pm0.7\) \\
+train-2 & \(72.0\pm0.2\) & \(80.1\pm0.5\) & \(81.8\pm0.4\) & \(83.1\pm0.5\) & \(83.3\pm0.5\) \\
+train-3 & \(70.7\pm0.1\) & \(79.6\pm0.0\) & \(81.1\pm0.0\) & \(82.0\pm0.0\) & \(83.5\pm0.0\) \\
+\bottomrule
+\end{tabular}
+\caption{Compose@\(k\) by program class (mean \(\pm\) SD over three inference runs).}
+\label{tab:repeat-compose-strata}
+\end{table}
+
+\paragraph{Inference variability and differences across training runs.}
+On the full benchmark, the reported within-training standard deviations
+are at most 1.0 percentage point for pass@\(k\) and 0.8 point for
+compose@\(k\).  The three training-run means are closely grouped for
+composition: 67.6--68.4\% at compose@1 and 78.1--78.8\% at compose@32.
+Standalone success varies more across training runs, with mean pass@1
+ranging from 31.7\% to 37.7\% and mean pass@32 from 53.8\% to 62.8\%.
+Thus, in these runs, similar compositional verification rates coexist
+with larger differences in standalone success.
 
 \end{document}

@@ -8,7 +8,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from paper_style import FAINT, GREEN, INK, MUTED, RUST, SLATE, panel_figure, panel_legend, save_panel_figure
+from paper_style import FAINT, GREEN, INK, MUTED, RUST, panel_figure, panel_legend, save_panel_figure
 
 OUT = Path(__file__).resolve().parent
 
@@ -21,8 +21,6 @@ BASELINES = {
     "SESpec": (22081.61, 29.69, 68.50),
     "Clause2Inv": (1461.80, 20.89, 18.37),
     "Loopy": (14513.37, 18.75, 147.16),
-}
-NEIGHBORS = {
     "LORIS": (47816.27, 42.55, 138.17),
     "LaM4Inv": (1470.80, 19.40, 14.70),
 }
@@ -48,10 +46,12 @@ TRAINED = {
 def plot_panel(ax: plt.Axes, cost_index: int) -> None:
     is_time = cost_index == 2
     baseline_labels = {
-        "AutoSpec": ((-5, 5), "right") if is_time else ((7, -12), "left"),
+        "AutoSpec": ((-5, 5), "right") if is_time else ((14, 0), "left"),
         "SESpec": ((-2, 6), "left") if is_time else ((-3, -5), "right"),
-        "Clause2Inv": ((-3, 17), "right") if is_time else ((0, -11), "center"),
+        "Clause2Inv": ((-3, 17), "right") if is_time else ((0, -15), "center"),
         "Loopy": ((-2, -10), "center") if is_time else ((-2, -12), "center"),
+        "LORIS": ((0, -13), "center") if is_time else ((-2, 6), "right"),
+        "LaM4Inv": ((0, -15), "center") if is_time else ((-3, 6), "right"),
     }
     for name, value in BASELINES.items():
         point = (value[cost_index], value[1])
@@ -61,24 +61,13 @@ def plot_panel(ax: plt.Axes, cost_index: int) -> None:
         ax.annotate(name, point, xytext=offset, ha=alignment,
                     textcoords="offset points", color=INK, fontsize=8.2)
 
-    neighbor_labels = {
-        "LORIS": ((0, -13), "center") if is_time else ((-2, 6), "right"),
-        "LaM4Inv": ((0, -15), "center") if is_time else ((-3, 6), "right"),
-    }
-    for name, value in NEIGHBORS.items():
-        point = (value[cost_index], value[1])
-        ax.scatter(*point, s=18, marker="s", color=SLATE,
-                   edgecolor="white", linewidth=0.5, zorder=4)
-        offset, alignment = neighbor_labels[name]
-        ax.annotate(name, point, xytext=offset, ha=alignment,
-                    textcoords="offset points", color=SLATE, fontsize=8.2,
-                    fontweight="bold")
-
     for name, value in [("Naive", NAIVE), *([("Daikon", DAIKON)] if is_time else [])]:
         point = (value[cost_index], value[1])
         ax.scatter(*point, s=14, marker="o", color=MUTED,
                    edgecolor="white", linewidth=0.5, zorder=3)
         point_offset = (4, 3) if is_time and name == "Naive" else (5, 6)
+        if not is_time:
+            point_offset = (3, -3)
         if is_time and name == "Daikon":
             point_offset = (-3, 7)
         ax.annotate(name, point, xytext=point_offset,
@@ -88,7 +77,7 @@ def plot_panel(ax: plt.Axes, cost_index: int) -> None:
 
     for data, label, color, marker, style in (
         (OURS, "CRAFT (GPT-5-nano)", GREEN, "D", "-"),
-        (TRAINED, "CRAFT (trained; 832)", RUST, "^", "--"),
+        (TRAINED, "CRAFT (trained)", RUST, "^", "--"),
     ):
         xs = [value[cost_index] for value in data.values()]
         ys = [value[1] for value in data.values()]
@@ -97,6 +86,8 @@ def plot_panel(ax: plt.Axes, cost_index: int) -> None:
                 linewidth=1.4, linestyle=style, label=label, zorder=4)
         for budget, value in data.items():
             offset, alignment = (5, -3), "left"
+            if not is_time and data is OURS and budget == "@1":
+                offset, alignment = (-5, 0), "right"
             if is_time and budget == "@4":
                 offset, alignment = (0, 11), "center"
             if data is TRAINED:

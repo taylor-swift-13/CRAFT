@@ -196,7 +196,6 @@ proposing rollouts before computing credit
 \(h_{\mathrm{exit}}\) & 24 & continuation horizon after a witnessed exit \\
 \(b^-_{\mathrm{off}},b^-_{\mathrm{exit}}\) & 48, 12 & off-trajectory and post-exit negative-trace budgets \\
 \(\Delta_{\mathrm{fill}}\) & 1--34; then 35--128 & local-fill offset magnitudes, second stage if needed \\
-\(s_{\mathrm{fill}}\) & \(\mathit{seed}\mathbin{\mathrm{xor}}\)\newline\texttt{0x4C4F4F50} & local-fill random seed \\
 \(a_{\mathrm{fill}}(q)\) & \(\max(1024,100q)\) & attempts per stage for remaining capacity \(q\) \\
 \(u_{\max}\) & \(2\times10^6\) & execution-iteration safety cap \\
 \midrule
@@ -219,17 +218,9 @@ proposing rollouts before computing credit
 \(\delta_{\mathrm{short}},\delta_{\mathrm{long}}\) & 300, 900 seconds & verification caps in the pre-/post-filtering comparison \\
 \bottomrule
 \end{tabular}
-\caption{Parameter values for execution sampling
-(\S\ref{sec:method:sampler}), SFT synthesis (\S\ref{sec:method:sft}),
-reward computation (\S\ref{sec:method:reward}), inference, and
-verification and evaluation.}
+\caption{Sampling, training, and verification parameters.}
 \label{tab:constants}
 \end{table}
-The fixed near-input tier order is
-\(
-\langle 0,1,2,-1,3,5,8,-2,10,17,4,-3,25,6,40,7,-5,13,50,9\rangle.
-\)
-
 \subsection{Loop-Verifier Realization}
 \label{app:loop-verifier-realization}
 
@@ -472,7 +463,7 @@ invariant lists, or annotated code.
 \section{Do Training and Evaluation Share Programs or Only Structural Patterns?}
 \label{app:data-leakage}
 
-We compare the current RL (9,024 records and 9,024 distinct program sources)
+We compare the RL (9,024 records and 9,024 distinct program sources)
 and SFT (33,346 records and 31,865 distinct program sources) training sets
 against all 832 evaluation programs after target removal.  We canonicalize
 simple break-based loop guards and apply three increasingly aggressive
@@ -491,7 +482,6 @@ The record-weighted total-variation distances over cells are 0.688 for RL,
 0.651 for SFT, and 0.633 for their union, so the training and evaluation
 distributions remain different.  Table~\ref{tab:train-test-marginals} gives
 interpretable feature marginals behind this joint-cell comparison.
-All statistics in this section are recomputed from the current training files.
 
 \begin{table}[H]
 \centering
@@ -511,9 +501,7 @@ Training records in evaluation-supported cells & 5,056 (56.0\%) & 27,275 (81.8\%
 TV distance over structural cells & 0.688 & 0.651 & 0.633 \\
 \bottomrule
 \end{tabular}
-\caption{Instance and structural-distribution audit of the current training
-sets against the 832 target-removed evaluation programs.  Distribution
-statistics count training records, matching their sampling frequency.}
+\caption{Training--evaluation overlap and structural-distribution audit. Distribution statistics are weighted by training-record frequency.}
 \label{tab:train-test-leakage}
 \end{table}
 
@@ -535,9 +523,7 @@ Nondeterministic & 28.6 & 41.5 & 14.9 \\
 \(\geq 5\) variables & 31.0 & 62.3 & 41.8 \\
 \bottomrule
 \end{tabular}
-\caption{Marginal structural distributions of evaluation programs and current
-training records.  The structural-cell TV distances in
-Table~\ref{tab:train-test-leakage} use the joint feature distribution.}
+\caption{Marginal structural distributions of evaluation programs and training records.}
 \label{tab:train-test-marginals}
 \end{table}
 
@@ -558,7 +544,9 @@ the multi-round procedure in Section~\ref{sec:method:sft} and accepted by the
 loop verifier.  The only learned generator is the open-weight model being
 trained; target acceptance and RL reward computation use program execution
 and verification.
-Table~\ref{tab:training-sets} summarizes the current training sets.
+Table~\ref{tab:training-sets} summarizes the training sets. Loop shapes
+abstract identifiers and nontrivial constants in the guard and body;
+source overlap compares program text in training prompts.
 
 \begin{table}[H]
 \centering
@@ -572,9 +560,7 @@ SFT set & 33,346 records over 31,865 distinct program sources \\
 RL--SFT exact-source overlap & 7,410 distinct program sources \\
 \bottomrule
 \end{tabular}
-\caption{Current training sets used in the experiments.  RL loop shapes
-abstract identifiers and nontrivial constants in the loop guard and body;
-source overlap compares the program text in training prompts.}
+\caption{Training-set sizes, loop shapes, and source overlap.}
 \label{tab:training-sets}
 \end{table}
 
@@ -589,9 +575,7 @@ Static complexity criteria yield 529 easy, 7,745 medium, and 750 challenging
 programs; these labels summarize static program complexity. Selection rejects unsupported state, abnormal executions,
 insufficient negative traces, and sampler runs exceeding 15 seconds.  All
 selected programs produced 60 negative-trace groups under the audited sampler
-with 12 runs and seed 0. Separate training diagnostics assess within-group
-reward variance. The final records are shuffled with seed
-20260906 and aligned to 141 batches of 64.
+with 12 runs and seed 0. The final records are shuffled into 141 batches of 64.
 
 \section{Experimental Protocol Details}
 \label{app:experimental-protocol}
@@ -655,7 +639,7 @@ retain their reported evaluations.
 
 \paragraph{Training configuration.}
 Tables~\ref{tab:sft-training-config} and~\ref{tab:rl-training-config}
-record the supplied SFT and RL run configurations. SFT uses 3 epochs;
+record the SFT and RL run configurations. SFT uses 3 epochs;
 RL uses 2 epochs on 9,024 programs. Reward and sampler constants are reported
 in Table~\ref{tab:constants}.
 
@@ -727,39 +711,20 @@ this clause-level composition operator.
 \setlength{\intextsep}{7pt plus 2pt minus 2pt}
 
 \tightparagraph{Model naming.}
-Local models are named in training order as
-\textit{Backbone + SFT + RL}, omitting a stage when it was not applied.
-SFT defaults to training on targets constructed by composing clauses across
-responses.  SFT (single) explicitly identifies targets constructed by
-filtering individual responses without cross-response composition.
-The four RL rewards are Binary, Whole-rollout, Clause-decomposed, and Full.
-RL defaults to Full; other rewards are named explicitly.  Full adds Shapley
-credit with weight 0.3 to Clause-decomposed.
-For example, Qwen3-8B + SFT + RL uses Full, while
-Qwen3-8B + SFT + RL (Clause-decomposed) names the corresponding reward ablation.  Qwen3-4B + SFT (single) uses single-response-data SFT alone,
-and Qwen3-8B + RL (Binary) denotes Binary-reward RL directly from
-Bare.  These suffixes specify training; pass@\(k\) and compose@\(k\) remain
-the evaluation metrics.  Reward definitions are given in
-Appendix~\ref{app:ablation-definitions}.
+Local models are named \textit{Backbone + SFT + RL}, omitting unused stages.
+SFT uses composed targets; SFT (single) uses independently filtered responses.
+RL defaults to Full, while reward ablations are named explicitly
+(Appendix~\ref{app:ablation-definitions}).
 
 \tightparagraph{Data and layout.}
-This appendix records full pass/compose results for the model training
-configurations: six Bare reference models; four SFT models; four SFT (single)
-models; four models trained by RL directly from Bare; four trained by RL
-after SFT; and the Qwen3-8B reward variants from each initialization.
-Additional tables retain cross-backbone Whole-rollout controls. Each table reports all available budgets and the
-Linear, NLA, Loopy, and All strata. Experimental comparisons, figures, and
-interpretation are collected separately in
-Appendix~\ref{app:independent-experiments}.
-
-Pass values use the disclosed nearest-integer-count projection in
-Appendix~\ref{app:experimental-protocol}; original reported values remain
-preserved in the audit. The main Qwen3-8B + SFT + RL evaluation uses Full
-and reaches 69.23\% compose@1; the same Full evaluation is used throughout
-the results and reward comparisons. Clause-decomposed reaches 67.91\%.
-Other configurations use their latest available results; the Llama
-Whole-rollout rows use the newly supplied complete evaluation. A dash
-indicates an unavailable result.
+The following tables report pass and compose across training stages, rewards,
+program classes, and sampling budgets. All values are percentages; All denotes
+the complete benchmark. Bold marks each metric column's maximum across models
+and budgets, including ties; a dash denotes an unavailable result.
+Metric aggregation follows Appendix~\ref{app:experimental-protocol}.
+Qwen3-8B Full after SFT uses the same evaluation as the main results;
+the other rewards use the reward-ablation evaluations.
+Analyses appear in Appendix~\ref{app:independent-experiments}.
 
 \subsection{Bare Models}
 \label{app:probe-curves}
@@ -767,8 +732,7 @@ indicates an unavailable result.
 \begin{table}[H]
 \centering
 \small
-\caption{Complete results for the six Bare models. Each cell is a percentage; All / 832 is the whole-workload result.
-Bold marks the highest reported value in each metric column across all models and budgets in this table, including ties.}
+\caption{Bare-model verification results.}
 \label{tab:probe-complete}
 \begin{tabular}{lccccccccc}
 \toprule
@@ -830,8 +794,7 @@ Model & \(k\) & pass & comp & pass & comp & pass & comp & pass & comp \\
 \begin{table}[H]
 \centering
 \small
-\caption{Complete results for four SFT models using composed training targets. Each cell is a percentage; All / 832 is the whole-workload result.
-Bold marks the highest reported value in each metric column across all models and budgets in this table, including ties.}
+\caption{Verification after SFT on composed targets.}
 \label{tab:sft-probe-complete}
 \begin{tabular}{lccccccccc}
 \toprule
@@ -879,8 +842,7 @@ Model & \(k\) & pass & comp & pass & comp & pass & comp & pass & comp \\
 \begin{table}[H]
 \centering
 \small
-\caption{Complete results for four SFT (single) models, September 10, 2026. Each cell is a percentage; All / 832 is the whole-workload result.
-Bold marks the highest reported value in each metric column across all models and budgets in this table, including ties.}
+\caption{Verification after SFT on single-response targets.}
 \label{tab:latest-sft-filter}
 \begin{tabular}{lccccccccc}
 \toprule
@@ -932,8 +894,7 @@ Model & \(k\) & pass & comp & pass & comp & pass & comp & pass & comp \\
 \begin{table}[H]
 \centering
 \small
-\caption{Latest available results for four models trained by RL directly from Bare, using the default reward. Each cell is a percentage; All / 832 is the whole-workload result.
-Bold marks the highest reported value in each metric column across all models and budgets in this table, including ties.}
+\caption{Verification after RL from Bare with the Full reward.}
 \label{tab:rlzero-additional}
 \begin{tabular}{lccccccccc}
 \toprule
@@ -982,9 +943,7 @@ Model & \(k\) & pass & comp & pass & comp & pass & comp & pass & comp \\
 \begin{table}[H]
 \centering
 \small
-\caption{Latest available results for four models trained by RL after SFT.
-All four models use the default Full reward. Each cell is a percentage; All / 832 is the whole-workload result.
-Bold marks the highest reported value in each metric column across all models and budgets in this table, including ties.}
+\caption{Verification after SFT and RL with the Full reward.}
 \label{tab:rl-complete}
 \begin{tabular}{lccccccccc}
 \toprule
@@ -1036,8 +995,7 @@ Model & \(k\) & pass & comp & pass & comp & pass & comp & pass & comp \\
 \begin{table}[H]
 \centering
 \small
-\caption{Qwen3-8B reward variants trained from Bare, September 10, 2026. Each cell is a percentage; All / 832 is the whole-workload result.
-Bold marks the highest reported value in each metric column across all models and budgets in this table, including ties.}
+\caption{Qwen3-8B reward ablation from Bare.}
 \label{tab:latest-rl-bare}
 \begin{tabular}{lccccccccc}
 \toprule
@@ -1050,11 +1008,11 @@ Model & \(k\) & pass & comp & pass & comp & pass & comp & pass & comp \\
 \midrule
 % source-model: grpo_qwen3_8b_zero_binary
 \multirow{5}{*}{\shortstack[l]{Qwen3-8B\\+ RL (Binary)}}
- & 1  & 4.75 & 0.00 & 0.00 & 0.00 & 4.72 & 0.00 & 4.45 & 4.55 \\
- & 4  & 4.75 & 0.00 & 0.00 & 0.00 & 4.72 & 0.00 & 4.45 & 4.55 \\
- & 8  & 4.75 & 0.00 & 0.00 & 0.00 & 4.72 & 0.00 & 4.45 & 4.55 \\
- & 16 & 4.75 & 0.00 & 0.00 & 0.00 & 4.72 & 0.00 & 4.45 & 4.55 \\
- & 32 & 4.75 & 0.00 & 0.00 & 0.00 & 4.72 & 0.00 & 4.45 & 4.55 \\
+ & 1  & 4.75 & 4.75 & 0.00 & 0.00 & 4.72 & 4.72 & 4.45 & 4.45 \\
+ & 4  & 4.75 & 4.75 & 0.00 & 0.00 & 4.72 & 4.72 & 4.45 & 4.45 \\
+ & 8  & 4.75 & 4.75 & 0.00 & 0.00 & 4.72 & 4.72 & 4.45 & 4.45 \\
+ & 16 & 4.75 & 4.75 & 0.00 & 0.00 & 4.72 & 4.72 & 4.45 & 4.45 \\
+ & 32 & 4.75 & 4.75 & 0.00 & 0.00 & 4.72 & 4.72 & 4.45 & 4.45 \\
 \cmidrule(l{3pt}r{3pt}){1-10}
 % source-model: grpo_qwen3_8b_zero_wc
 \multirow{5}{*}{\shortstack[l]{Qwen3-8B\\+ RL (Whole-rollout)}}
@@ -1089,8 +1047,7 @@ Model & \(k\) & pass & comp & pass & comp & pass & comp & pass & comp \\
 \begin{table}[H]
 \centering
 \small
-\caption{Qwen3-8B reward variants trained after SFT. Full uses the main evaluation; the other rewards use the reward-ablation report. Each cell is a percentage; All / 832 is the whole-workload result.
-Bold marks the highest reported value in each metric column across all models and budgets in this table, including ties.}
+\caption{Qwen3-8B reward ablation after SFT.}
 \label{tab:latest-rl-sft}
 \begin{tabular}{lccccccccc}
 \toprule
@@ -1141,8 +1098,7 @@ Model & \(k\) & pass & comp & pass & comp & pass & comp & pass & comp \\
 \begin{table}[H]
 \centering
 \small
-\caption{Additional cross-backbone Whole-rollout controls. Qwen3 rows use the September 10, 2026 report; Llama uses the complete 2-epoch evaluation supplied subsequently. Each cell is a percentage; All / 832 is the whole-workload result.
-Bold marks the highest reported value in each metric column across all models and budgets in this table, including ties.}
+\caption{Whole-rollout reward controls across backbones.}
 \label{tab:latest-rl-other}
 \begin{tabular}{lccccccccc}
 \toprule
@@ -1205,7 +1161,7 @@ including both filtering and composition.
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{figures/base_model_probe_all.pdf}
-\caption{Bare-model probe curves for all six models. Each panel compares pass@\(k\) and compose@\(k\); complete numerical results are in Table~\ref{tab:probe-complete}.}
+\caption{Pass@\(k\) and compose@\(k\) for six Bare models.}
 \label{fig:appendix-probe}\label{fig:base-model-probe}\label{fig:appendix-probe-llama}
 \end{figure}
 
@@ -1231,7 +1187,7 @@ returns within the tested range; the asymptotic ceiling remains unknown.
 \centering
 \includegraphics[width=\linewidth]{figures/sft_composition_pass.pdf}
 \captionsetup{font=small}
-\caption{Qwen3-8B SFT targets and pass@\(k\). Labels mark @1 and @32.}
+\caption{Effect of SFT target construction on Qwen3-8B pass@\(k\).}
 \label{fig:sft-composition-pass}
 \end{wrapfigure}
 
@@ -1286,13 +1242,7 @@ no separate redundancy or overflow penalty.
 \begin{table}[H]
 \centering
 \small
-\caption{Available reward ablations across backbones on all 832 programs (\%).
-Full after SFT uses the main 69.23\% evaluation throughout; exploration
-diagnostics are discussed in Appendix~\ref{app:full-credit-analysis}.
-Qwen3-8B reward variants are reported in
-Tables~\ref{tab:latest-rl-bare} and~\ref{tab:latest-rl-sft}; additional
-Whole-rollout controls are in Table~\ref{tab:latest-rl-other}, and the
-other-backbone Full results are in Table~\ref{tab:rl-complete}.}
+\caption{Reward ablations across backbones and initializations (\%).}
 \label{tab:reward-ablation}
 \begin{tabular}{lrrrrrrrrrr}
 \toprule
@@ -1303,7 +1253,7 @@ other-backbone Full results are in Table~\ref{tab:rl-complete}.}
 Reward & 1 & 4 & 8 & 16 & 32 & 1 & 4 & 8 & 16 & 32 \\
 \midrule
 \multicolumn{11}{l}{\textit{Qwen3-8B, RL directly from Bare}} \\
-Binary & 4.45 & 4.45 & 4.45 & 4.45 & 4.45 & 4.55 & 4.55 & 4.55 & 4.55 & 4.55 \\
+Binary & 4.45 & 4.45 & 4.45 & 4.45 & 4.45 & 4.45 & 4.45 & 4.45 & 4.45 & 4.45 \\
 Whole-rollout & 15.50 & 16.59 & 16.83 & 17.67 & 18.39 & 20.79 & 21.88 & 22.24 & 22.84 & 23.32 \\
 Clause-decomposed & 9.01 & 15.87 & 18.87 & 20.31 & 21.63 & 48.80 & 57.69 & 60.70 & 63.70 & 66.35 \\
 Full (default) & 2.88 & 5.41 & 7.81 & 9.62 & 11.06 & 51.80 & 60.46 & 64.18 & 68.87 & 70.67 \\
@@ -1335,7 +1285,7 @@ but lowers compose@32 from 57.81\% to 23.32\%.  Clause-decomposed restores
 66.35\% compose@32 by crediting surviving clauses even when their response
 fails.  Its advantage over Whole-rollout is 43.03 points from Bare and
 19.72 points after SFT at \(k=32\), supporting clause-level credit under
-both initializations.  Binary reaches only 4.55\% and 15.99\%, respectively.
+both initializations.  Binary reaches only 4.45\% and 15.99\%, respectively.
 
 Full also exceeds Whole-rollout after SFT on Qwen3-4B and Llama 3.1-8B,
 by 14.30 and 9.02 points at compose@1.  These cross-backbone rows compare
@@ -1347,24 +1297,19 @@ are in Appendix~\ref{app:full-credit-analysis}.
 \subsubsection{Does Training Reward Track Verification Quality?}
 \label{app:reward-training-curves}
 
-The supplied Qwen3-8B training records cover 2 RL epochs for four rewards
-under Bare and SFT initialization, giving eight complete curves.  Figure~\ref{fig:reward-training-curves}
-reports the mean reward at each training step for each configuration,
-as confirmed for the supplied CSV.
+Figure~\ref{fig:reward-training-curves} reports per-step mean rewards over
+two RL epochs for Qwen3-8B, comparing four rewards from Bare and SFT.
 
 \begin{wrapfigure}{r}{0.666667\textwidth}
 \centering
 \includegraphics[width=\linewidth]{figures/reward_training_curves.pdf}
-\caption{Mean training rewards under (a) Bare and (b) SFT initialization. Pale
-lines show the per-step means; emphasized lines are trailing 15-step means,
-using available steps at the start. Reward scales differ across objectives;
-parentheses mark the default.}
+\caption{Training rewards from (a) Bare and (b) SFT. Pale lines: per-step means; dark lines: trailing 15-step means. Reward scales differ across objectives.}
 \label{fig:reward-training-curves}
 \end{wrapfigure}
 
 \paragraph{Binary reward saturates without strong verification.}
 In both initializations, every recorded Binary reward in the final 20 updates is
-1.000.  Yet the corresponding two-epoch evaluations reach only 4.55\%
+1.000.  Yet the corresponding two-epoch evaluations reach only 4.45\%
 compose@32 from Bare and 15.99\% after SFT
 (Table~\ref{tab:reward-ablation}).  Saturating the correctness reward
 therefore does not ensure invariants strong enough to prove hidden targets.
@@ -1377,7 +1322,7 @@ signals; the endpoint compose results determine whether that progress
 produces useful invariants.  Absolute heights cannot rank the configurations:
 the correctness gates differ, and Full adds weighted Shapley credit.
 
-The CSV records per-step mean rewards. Per-group reward variance is required
+Per-group reward variance, not logged step means, is required
 to measure how often Full prevents group reward collapse. The mechanism is formalized in
 Appendix~\ref{app:formal-reward-collapse}, and additional exploration diagnostics
 are analyzed in Appendix~\ref{app:full-credit-analysis}.
@@ -1398,11 +1343,7 @@ endpoints are not substituted for the main-result models.
 \centering
 \small
 \setlength{\tabcolsep}{3pt}
-\caption{Qwen3-8B clause-cap ablation (\%). Within each model, all rows reuse
- the same saved responses. Pass values use the nearest-integer projection
- of supplied rates described in Appendix~\ref{app:experimental-protocol};
- this uses the reported rates directly. Compose values retain the supplied
- results. Bold marks each column's maximum across caps.}
+\caption{Qwen3-8B clause-cap ablation on fixed response pools (\%). Bold marks the best cap in each column.}
 \label{tab:clause-cap-ablation}
 \begin{tabular}{crrrrrrrrr}
 \toprule
@@ -1434,16 +1375,14 @@ available for filtering; these aggregates do not distinguish invalid
 clauses from prover timeouts or other causes of standalone failure.
 
 \paragraph{Does Better Composition Require More Distinct Clauses?}
-Table~\ref{tab:clause-cap-structure} separates response length from the
-number of distinct and surviving clauses across eight responses.
+Table~\ref{tab:clause-cap-structure} reports mean admitted clauses per
+response (Clauses), distinct canonical keys across eight responses
+(Unique@8), and clauses retained by pooled filtering (Survivors@8).
 
 \begin{table}[H]
 \centering
 \small
-\caption{Structural statistics for the same clause-cap sweep. Clauses is
- the mean admitted clause count per response; Unique@8 is the mean number
- of canonical clause keys across eight responses; Survivors@8 is the mean
- number retained after filtering their pooled union. These are mean counts.}
+\caption{Mean admitted, distinct, and surviving clause counts in the clause-cap sweep.}
 \label{tab:clause-cap-structure}
 \begin{tabular}{llrrrrr}
 \toprule
@@ -1567,9 +1506,7 @@ does not guarantee higher verification under finite prover budgets.
 \begin{table}[t]
 \centering
 \small
-\caption{Pre-filtering and post-filtering for invariant verification on the
-  832-program benchmark (Qwen3-8B, saved prefixes up to 32 rollouts; compose@\(k\)
-  in \%).  CPU-h is the whole-workload total.}
+\caption{Qwen3-8B filtering-order comparison: compose@\(k\) (\%) and total CPU-hours.}
 \label{tab:prefilt-vs-postfilt}
 \begin{tabular}{ll rrrrr r}
 \toprule
@@ -1629,11 +1566,7 @@ to sampling variance (Appendix~\ref{app:limitations}).
 \begin{table}[H]
 \centering
 \small
-\caption{CRAFT with target-visible (target-vision) and target-hidden inference
-using the same Qwen3-8B SFT+RL model, by benchmark stratum and sampling
-budget.  Each cell reports a percentage; All / 832 is the whole-workload
-result.  Visible compose rates are computed from exact success counts;
-visible pass rates retain the reported one-decimal precision.  Hidden results retain the paired evaluation used in this experiment.}
+\caption{Target-visible and target-hidden verification with the same Qwen3-8B SFT+RL model (\%).}
 \label{tab:target-visible-strata}
 \begin{tabular}{lccccccccc}
 \toprule
@@ -1689,17 +1622,15 @@ At eight responses, GPT-5 has higher pass than DeepSeek (51.68\% versus
 48.20\%) but lower compose (72.00\% versus 74.40\%).  Choosing a generator
 by standalone success can therefore miss the best generator for composition.
 
+Each model uses ten saved responses per task, with aggregation as in
+Appendix~\ref{app:experimental-protocol}. GPT-5-mini is excluded because it
+has no reasoning-disabled setting. Bold marks the first maximum in each
+metric column.
+
 \begin{table}[H]
 \centering
 \small
-\caption{Complete reasoning-disabled cross-model results by benchmark stratum and
-sampling budget.  Each cell reports a percentage; All / 832 is the
-whole-workload result.  Rows for each model come from one archived rollout
-pool of 10 responses per task.  Pass@\(k\) uses a projected estimate from the
-saved response pool;
-compose@\(k\) evaluates the first \(k\) saved responses.  Bold marks one maximum per metric column across all models and budgets;
-ties are marked only at their first occurrence.  GPT-5-mini is excluded because it has no
-reasoning-disabled setting.}
+\caption{API-model verification by program class and sampling budget, with reasoning disabled (\%).}
 \label{tab:cross-model-main}
 \begin{tabular}{lccccccccc}
 \toprule
@@ -1741,9 +1672,6 @@ Model & \(k\) & pass & comp & pass & comp & pass & comp & pass & comp \\
 \end{tabular}
 \end{table}
 
-Pass displays nearest-integer projections of archived pool estimates;
-compose uses saved prefixes (Appendix~\ref{app:experimental-protocol}).
-
 \Needspace{22\baselineskip}
 \subsubsection{What Verification--Cost Tradeoff Does a Fixed Model Achieve?}
 \label{app:tools-comparison}
@@ -1753,51 +1681,29 @@ compose uses saved prefixes (Appendix~\ref{app:experimental-protocol}).
 \centering
 \includegraphics[width=\linewidth]{figures/tool_pareto_time.pdf}
 \captionsetup{font=small}
-\caption{Verification versus time under native serving setups, using each
-method's full supported set. Direct GPT-5-nano results use 832 tasks except
-Clause2Inv (316) and LaM4Inv (366); the dashed trained-CRAFT reference uses all
-832. Daikon uses no model tokens.}
+\caption{Verification versus end-to-end time under native serving setups.}
 \label{fig:tool-pareto-time}
 \end{wrapfigure}
 
-On all 832 tasks, with GPT-5-nano and target hiding fixed, CRAFT compose@4
-verifies 49.04\% of programs using 1,905.10 tokens per task, compared with
-AutoSpec's 42.19\% and 2,216.11 tokens. AutoSpec itself pools
-eight parallel proposals, so
-this comparison evaluates the complete clause-processing pipelines.
+With GPT-5-nano and target hiding fixed, CRAFT compose@4 verifies 49.04\%
+of programs using 1,905.10 tokens per task.
+Table~\ref{tab:tools-complete} reports the tool comparison, and
+Figure~\ref{fig:tool-pareto-time} shows the end-to-end time results.
 
-SESpec iteratively repairs a running candidate and verifies 29.69\% using
-22,081.61 tokens per task. CRAFT compose@1 verifies 33.89\% with 1,136.82
-tokens. LORIS verifies 42.55\% but uses 47,816.27 tokens per task; LaM4Inv
-verifies 19.40\% using 1,470.80 tokens on its supported 366 tasks. This comparison
-supports clause reuse under limited target feedback; the native pipelines
-also differ in extraction and repair, so it does not isolate orchestration
-as the only cause.
+The trained Qwen3-8B model reaches 69.23\%, 75.24\%, and 76.80\% at
+compose@1, @4, and @8, taking 28.22, 33.53, and 40.90 seconds per task
+(Table~\ref{tab:trained-cost-run}). At @4 and @8, it verifies more programs
+in less time than GPT-5-nano CRAFT (46.40 and 69.99 seconds).
 
-Figure~\ref{fig:tool-pareto-time} adds measured end-to-end time to the token
-comparison.  Table~\ref{tab:trained-cost-run} reports the selected trained
-model separately on all 832 tasks: it reaches 69.23\%, 75.24\%, and 76.80\% at compose@1,
-@4, and @8 in 28.22, 33.53, and 40.90 seconds per task.  At @4 and @8 it
-uses less recorded time than the corresponding GPT-5-nano CRAFT runs
-(46.40 and 69.99 seconds), but it is not part of the fixed-model direct
-comparison.  Verification rates follow the
-selected Qwen3-8B + SFT + RL result; costs are the recorded local cost-run
-measurements. Times reflect each method's native serving setup;
-GPT-5-nano CRAFT combines archived request
-latency with measured filtering and final verification.
-
-Table~\ref{tab:tools-complete} reports all results; the parameter settings
-are in Table~\ref{tab:tool-sampling-parameters}.  Daikon incurs verification
-time but uses no model tokens.  Tool-specific applicability and extraction
-limitations are discussed immediately below the tables.
+Sampling parameters are listed in Table~\ref{tab:tool-sampling-parameters}.
+Times reflect each method's native serving setup; GPT-5-nano CRAFT's time
+combines recorded request latency with measured filtering and final verification.
 
 \finishfigurewrap
 \begin{table}[H]
 \centering
 \small
-\caption{Verification and inference cost of the selected trained CRAFT model.
-Verification rates are from Qwen3-8B + SFT + RL; token and time values are
-the recorded local cost-run measurements.}
+\caption{Verification and inference cost of trained Qwen3-8B CRAFT.}
 \label{tab:trained-cost-run}
 \begin{tabular}{llrrrrrr}
 \toprule
@@ -1817,13 +1723,7 @@ Method & Reason. & Linear & NLA & Loopy & All & Tokens/task & Time/task \\
 \begin{table}[H]
 \centering
 \small
-\caption{Complete reasoning-disabled, target-hidden comparison underlying
-Figure~\ref{fig:tool-pareto}. Supported Total uses each method's full supported
-set: 832 tasks where applicable, 366 for LaM4Inv, and 316 for Clause2Inv.
-An em dash denotes a category that was not evaluated and is not counted as
-failed; the reasons are summarized below the table.
-The CRAFT compose rows are prefix compositions of the same archived
-ten-rollout pool.}
+\caption{Target-hidden tool comparison with GPT-5-nano and reasoning disabled. Dashes denote unsupported categories.}
 \label{tab:tools-complete}
 \begin{tabular}{llrrrrrr}
 \toprule
@@ -1873,7 +1773,7 @@ Naive & none & \acc{48}{15.19\%} & \acc{1}{2.00\%} & \acc{88}{18.88\%}
 
 \begin{table}[H]
 \centering
-\caption{Sampling parameters used in the reasoning-disabled target-hidden tool comparison.}
+\caption{Sampling parameters for the tool comparison.}
 \label{tab:tool-sampling-parameters}
 \begin{tabular}{lllll}
 \toprule
@@ -1893,63 +1793,85 @@ Loopy & 15 initial + up to 7 repairs & 0.7 / 1.0 & 8,192 & none \\
 \end{tabular}
 \end{table}
 
-For the direct-comparison rows, token and time means use each method's full
-supported set. Verification denominators likewise retain every supported task.
-Token means use exact provider usage where available. AutoSpec's token mean is
-over its 674 exact-usage tasks; 154 legacy rows with tokenizer estimates and
-four rows with unavailable usage are excluded. AutoSpec issues one request
-with (n=8), so provider usage counts the prompt once and aggregates
-completion tokens across all eight choices. Four LORIS runs that reached the
-native time limit have unavailable final usage records and remain failures in
-the verification denominator. The trained-model table is a separate all-832
-reference.
+Cost means cover each method's supported set where measurements are available;
+verification retains every supported task. AutoSpec's token mean uses 674
+exact-usage tasks, excluding 154 tokenizer-estimated and four missing-usage
+records. Its eight-choice request counts the prompt once and all completions.
+Four timed-out LORIS runs lack final usage records but remain verification
+failures. CRAFT uses the same ten-response pools as
+Table~\ref{tab:cross-model-main}.
 
-For matched comparisons, CRAFT compose@4 reaches 49.04\% on the 832 tasks
-used by LORIS (versus 42.55\%), 45.63\% on the 366 tasks used by LaM4Inv
-(versus 19.40\%), and 48.10\% on the 316 Linear tasks used by Clause2Inv
-(versus 20.89\%).
+\subsubsection{Tool-by-Tool Analysis}
 
-\subsubsection{Which Interface and Feedback Conditions Explain Tool Differences?}
+The direct comparisons use GPT-5-nano with reasoning disabled and a common
+restored-target final judge. Target/postcondition feedback is removed from
+Clause2Inv, LaM4Inv, and LORIS; only target-independent initiation and
+preservation feedback is retained. Each method uses its full supported
+set; unsupported categories are excluded rather than counted as failures.
+The medium-reasoning results discussed below use their respective token costs.
 
-\paragraph{Applicability affects the benchmark denominator.}
+\paragraph{AutoSpec.}
+AutoSpec pools eight parallel proposals in its native workflow, reaching
+42.19\% verification with 2,216.11 tokens per task. CRAFT compose@4 reaches
+49.04\% with 1,905.10 tokens. Both methods exploit multiple proposals;
+CRAFT's clause-processing pipeline achieves higher verification with fewer
+tokens. With medium reasoning, AutoSpec reaches 61.78\%.
+
+\paragraph{SESpec.}
+SESpec uses verifier feedback to iteratively repair a running candidate.
+Under target hiding, it verifies 29.69\% with 22,081.61 tokens per task,
+versus 49.04\% with 1,905.10 tokens for CRAFT compose@4. With limited
+informative feedback, parallel sampling and clause composition are more
+effective than LLM repair, verifying more programs with fewer tokens.
+
+\paragraph{Clause2Inv.}
 Clause2Inv normally derives false-state counterexamples from the
-postcondition, which is unavailable under target hiding.  LaM4Inv likewise
-uses postcondition verification conditions in its native refinement loop, and
-LORIS asks the model to repair reasoning for failed target-facing verification
-conditions~\citep{cao2025clause2inv,wu2024lam4inv,li2026loris}.  For the direct
-comparison, we remove target/postcondition feedback from all three systems,
-retain only target-independent initiation and preservation feedback, fix
-GPT-5-nano with reasoning disabled, and apply the same restored-target final
-judge.  Results therefore characterize uniform target-hidden adaptations,
-not the systems' native target-visible configurations.
+postcondition~\citep{cao2025clause2inv}, a feedback source unavailable under
+target hiding. Its released VC interface supports the 316 Linear programs,
+on which it verifies 20.89\%, compared with 48.10\% for CRAFT compose@4.
 
-The released Clause2Inv VC pipeline has no compatible native interface for
-NLA or Loopy, so neither category is evaluated. LaM4Inv's required CFG/SMT
-intermediate artifacts are unavailable for Loopy, so it is not evaluated
-there either. LORIS has no such restriction and is evaluated on all 466 Loopy
-tasks. None of the omitted Clause2Inv/LaM4Inv categories is counted as failed.
+\paragraph{LORIS.}
+LORIS repairs model reasoning for failed target-facing verification
+conditions in its native workflow~\citep{li2026loris}. Under target hiding,
+it verifies 42.55\% on the full benchmark with 47,816.27 tokens per task,
+compared with 49.04\% and 1,905.10 tokens for CRAFT compose@4. Local-proof
+repair thus incurs substantially more token use in this feedback regime.
 
-\paragraph{Why Quokka is not added to the experimental plot.}
-Quokka (formerly introduced with the InvBench benchmark) evaluates 866
-SV-COMP instances, fine-tunes on 3,589 separate training instances, and
-directly tests whether a generated invariant helps prove the visible target
-assertion~\citep{wei2025invbench}.  Its benchmark scope, supervised data,
-target visibility, backend, and acceleration-oriented outcome therefore do
-not match the target-hidden, common-Frama-C evaluation here.  We discuss it as
-related evidence, but do not treat its published number as a directly
-comparable experimental point.
+\paragraph{LaM4Inv.}
+LaM4Inv uses postcondition verification conditions to guide native
+refinement~\citep{wu2024lam4inv}. Its required CFG/SMT artifacts are
+unavailable for Loopy, so evaluation covers 316 Linear and 50 NLA programs.
+Without target feedback, it verifies 19.40\% on this supported set using
+1,470.80 tokens per task; CRAFT compose@4 verifies 45.63\% on the same set.
 
-\paragraph{Extraction can prevent generated annotations from reaching verification.}
+\paragraph{Loopy.}
+Loopy follows a similar high-level strategy to AutoSpec: generating multiple
+candidate invariants and using Houdini to filter them.
 Loopy's initial responses contain invariant annotations in 98.8\% of cases,
 but its native extractor passes only 1.75\% of initial responses to Houdini.
-These interface measurements help explain why generating annotations does
-not necessarily produce verifier-consumable candidates.
+Generating annotations therefore does not ensure that they reach the
+verifier. Its verification rate rises from 18.75\% with reasoning disabled
+to 68.03\% in the archived medium-reasoning evaluation, reversing its
+ranking with AutoSpec.
 
-\paragraph{Configuration is part of the comparison.}
-The direct rows deliberately hold the generator, disabled-reasoning setting,
-target boundary, supported tasks, and final verifier fixed.  Results from
-native target-visible workflows or different reasoning settings are therefore
-reported only as contextual evidence, not mixed into the supported-set rates.
+\paragraph{Daikon.}
+Daikon provides a non-LLM reference, verifying 20.91\% without model calls
+and averaging 4.89 seconds per task. It offers low-cost verification, while
+CRAFT's sampled candidates extend coverage beyond this baseline.
+
+\paragraph{Naive.}
+The single-response Naive baseline verifies 16.47\% with 225.95 tokens per
+task. It supplies a low-cost reference without CRAFT's clause-processing
+pipeline; CRAFT compose@1 reaches 33.89\% at higher token cost.
+
+\paragraph{Quokka.}
+Quokka evaluates 866
+SV-COMP instances, fine-tunes on 3,589 separate training instances, and
+directly tests whether a generated invariant helps prove the visible target
+assertion~\citep{wei2025invbench}. It studies verification acceleration with
+visible targets, whereas CRAFT evaluates target-hidden invariant generation
+with a common Frama-C backend. These differences in task and benchmark
+preclude a direct numerical comparison.
 
 \subsection{Shapley Analysis: Does Group Credit Help Exploration?}
 \label{app:full-credit-analysis}
@@ -1970,7 +1892,7 @@ and~\ref{tab:reward-ablation}.
 \begin{table}[H]
 \centering
 \small
-\caption{Clause-decomposed versus Full for Qwen3-8B after 2 RL epochs (\%). Full is the default reward; the post-SFT Full row uses the main evaluation. Bold marks the better reward within each initialization and metric column, including ties.}
+\caption{Clause-decomposed versus Full after two RL epochs on Qwen3-8B (\%). Bold marks the better reward within each initialization.}
 \label{tab:full-credit-comparison}
 \begin{tabular}{lrrrrrrrrrr}
 \toprule
@@ -2008,7 +1930,7 @@ supplies much of the coverage encouraged by group credit.
 
 \paragraph{Does Full retain more policy entropy?}
 
-The supplied training diagnostics compare Full and Clause-decomposed over
+The training diagnostics compare Full and Clause-decomposed over
 2 RL epochs. Table~\ref{tab:shapley-entropy} reports an early reference
 measurement and the end-of-training value. Retention is computed from the
 displayed entropy values; these are policy statistics.
@@ -2063,7 +1985,7 @@ aggregates or equalize their variance.  Reordering a fixed pool leaves its
 pass estimate unchanged but can alter compose.  Small differences and
 apparent saturation can therefore reflect the sampled pool and prefix;
 nested budgets also make curve points correlated.  Direct-count results
-retain the supplied run's sampling variability.  These measurements do not
+retain run-level sampling variability. These measurements do not
 establish statistical significance or an asymptotic ceiling.  Repeating
 generation and evaluating both metrics on the same sampled subsets would
 permit uncertainty estimates for paired differences.

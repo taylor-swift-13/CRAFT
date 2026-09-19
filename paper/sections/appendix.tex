@@ -195,6 +195,9 @@ proposing rollouts before computing credit
 \(b_{\mathrm{off}}\) & 96 & cap on perturbation bases stratified across positives \\
 \(h_{\mathrm{exit}}\) & 24 & continuation horizon after a witnessed exit \\
 \(b^-_{\mathrm{off}},b^-_{\mathrm{exit}}\) & 48, 12 & off-trajectory and post-exit negative-trace budgets \\
+\(\Delta_{\mathrm{fill}}\) & 1--34; then 35--128 & local-fill offset magnitudes, second stage if needed \\
+\(s_{\mathrm{fill}}\) & \(\mathit{seed}\mathbin{\mathrm{xor}}\)\newline\texttt{0x4C4F4F50} & local-fill random seed \\
+\(a_{\mathrm{fill}}(q)\) & \(\max(1024,100q)\) & attempts per stage for remaining capacity \(q\) \\
 \(u_{\max}\) & \(2\times10^6\) & execution-iteration safety cap \\
 \midrule
 \(w_c,w_g\) & \(1.0,0.3\) & coverage and group-credit weights \\
@@ -246,135 +249,91 @@ deletion round.
 \subsection{Negative-Trace Sampling}
 \label{app:negative-sampling}
 
-Algorithm~\ref{alg:negative-sampling} specifies the negative-trace construction
-used in our experiments.  The routines below define its execution, proposal,
-cleaning, and budget rules.  These candidate negatives provide target-independent
-behavioral probes.  Generation and cleaning depend only on visible program
-information.
+Algorithm~\ref{alg:negative-sampling} constructs candidate negative traces
+using only visible program information.  Budgets and perturbation parameters
+are listed in Table~\ref{tab:constants}.
 
 \begin{algorithm}[H]
 \caption{Target-hidden candidate-negative sampling}
 \label{alg:negative-sampling}
 \begin{algorithmic}
+\hspace{1.8em}\=\hspace{1.2em}\=\hspace{1.2em}\=\kill
 \alginput{masked loop \(\mathcal L\), input schedule \(U\), configuration \(\Theta\)}
 \algoutput{observed states \(\mathcal E\), candidate traces \(\mathcal N\)}
 \algline \(\widetilde{\mathcal L}\leftarrow\operatorname{Determinize}(\mathcal L)\)
   \cmnt{execution only}\\
-\algline \((T,O,a)\leftarrow\operatorname{Trace}(\widetilde{\mathcal L},U,\Theta)\)
-  \cmnt{\(a\): any run capped}\\
-\algline \(\mathcal E\leftarrow\operatorname{UniqueHeads}(T)\);
-  \(Z\leftarrow\varnothing\); \(\mathcal N\leftarrow\langle\rangle\)\\
-\algline \(M\leftarrow\operatorname{Movable}(\mathcal L)\);
-  \(Q\leftarrow\operatorname{StratifiedBases}(\mathcal E,96)\)\\
-\algline \(b\leftarrow\operatorname{PerturbationBlocked}(\mathcal L)\)\\
-\algline \kw{if} \(\neg b\) \kw{then}\\
-\algline \algind \(C\leftarrow\operatorname{OffTrajectoryProposals}(Q,T,M,a)\)\\
-\algline \algind \(C\leftarrow\operatorname{Clean}(C,\mathcal E,Z)\)\\
-\algline \algind \(R\leftarrow\operatorname{RoundRobinNearest}(C,48)\)\\
-\algline \algind append \(\langle s\rangle\) for each \(s\in R\) to \(\mathcal N\);
-  add their keys to \(Z\)\\
-\algline \(e\leftarrow0\)\\
-\algline \kw{for each} run \(u\) in increasing order with \(e<12\) \kw{do}\\
-\algline \algind \(\nu\leftarrow\operatorname{Clean}(O_u,\mathcal E,Z)\)\\
-\algline \algind \kw{if} \(\nu\ne\varnothing\) \kw{then} append \(\nu\) to \(\mathcal N\),
-  add its keys to \(Z\), and increment \(e\)\\
-\algline \kw{if} \(\neg b\) \kw{then}
-  \(\mathcal N\leftarrow\mathcal N\Vert
-  \operatorname{LocalFill}(Q,M,60-|\mathcal N|,\mathcal E,Z)\)\\
-\algline \kw{return} \((\mathcal E,\mathcal N)\)\\
+\algline \(T\leftarrow\operatorname{Execute}(\widetilde{\mathcal L},U,\Theta)\);
+  \(\mathcal E\leftarrow\operatorname{UniqueHeads}(T)\)\\
+\algline \(C_{\mathrm{off}}\leftarrow\varnothing\); \(C_{\mathrm{exit}}\leftarrow\langle\rangle\)\\
+\algline \kw{for each} eligible base \(s\) in \(T\) \kw{do}
+  \cmnt{off-trajectory perturbations}\\
+\algline \algind \kw{for each} allowed offset \(\delta\) on one or two tracked variables \kw{do}\\
+\algline \algind \algind \(s^-\leftarrow s+\delta\)
+  \cmnt{preserve entry snapshots}\\
+\algline \algind \algind \kw{if} sampled ranges and guard truth are preserved,\\
+\algline \algind \algind \quad and \(\delta\) is not an integer multiple of the observed local step \kw{then}\\
+\algline \algind \algind \quad add singleton trace \(\langle s^-\rangle\) to \(C_{\mathrm{off}}\)\\
+\algline \kw{for each} eligible uncapped guard-false exit \(s_{\mathrm{exit}}\) in \(T\) \kw{do}
+  \cmnt{post-exit continuations}\\
+\algline \algind \(s\leftarrow s_{\mathrm{exit}}\); \(\nu\leftarrow\langle\rangle\)\\
+\algline \algind \kw{repeat} up to \(h_{\mathrm{exit}}\) times\\
+\algline \algind \algind \(s\leftarrow\operatorname{ExecuteBody}(\widetilde{\mathcal L},s)\)
+  \cmnt{ignore the original guard}\\
+\algline \algind \algind append \(s\) to \(\nu\)\\
+\algline \algind append \(\nu\) to \(C_{\mathrm{exit}}\)
+  \cmnt{one continuation per exit}\\
+\algline \(\mathcal N\leftarrow\operatorname{CleanSelect}(C_{\mathrm{off}},C_{\mathrm{exit}},\mathcal E,\Theta)\)\\
+\algline \(\mathcal N\leftarrow\operatorname{LocalFill}(\mathcal L,T,\mathcal E,\mathcal N,\Theta)\)
+  \cmnt{unused budget}\\
+\algline \kw{return} \((\mathcal E,\mathcal N)\)
 \end{algorithmic}
 \end{algorithm}
 
-\paragraph{Execution and state identity.}
-\(\operatorname{Determinize}\) replaces each supported zero-argument oracle
-call site with a fresh sampled integer parameter, fixed throughout a run.
-This explores a restricted set of oracle behaviors; the original program is
-still used for generation and proof.  A state key includes its current
-valuation and both function-entry and loop-entry snapshots.  Perturbations
-preserve these snapshots, so states from different contexts are not conflated.
-The requested run count is 12, doubled for oracle-driven bodies; the input
-schedule and execution cap are in Table~\ref{tab:constants}.
-\(T\) records entry, sampled heads, and exits with run/iteration coordinates.
-After an uncapped exit, the instrumented executor replays the body for at most
-24 steps without the original guard to form \(O_u\).  Bodies containing
-\texttt{return}, \texttt{goto}, or labels disable this replay.  Capped runs
-contribute no post-exit states; detected abnormal runs are skipped.  If no
-observed states remain, sampling reports failure.
+\paragraph{Execution and state representation.}
+We execute the target-hidden loop and collect loop-head states with their
+function-entry and loop-entry snapshots.  Perturbations preserve these
+snapshots to distinguish execution contexts.  Supported nondeterministic
+calls are replaced by sampled parameters fixed within each run for execution;
+generation and verification still use the original program.
 
-\paragraph{Perturbation eligibility and bases.}
-\(M\) contains tracked variables assigned by the body.  If none are found,
-the implementation falls back to tracked non-parameter variables, or all
-tracked variables if that set is also empty.  Untracked persistent assignments,
-unsupported body calls, or unsupported local pointer/array declarations block
-both off-trajectory proposals and local-perturbation fill, but do not by
-themselves discard executed post-exit traces.  Ordinary block-local scalar
-temporaries are not
-treated as persistent state.  \(Q\) allocates at most 96 bases round-robin
-across runs and entry contexts, keeping dense prefixes, endpoints, and evenly
-spaced positions where quotas permit.
+\paragraph{Off-trajectory perturbations.}
+We select eligible base states across observed executions and perturb one or
+two tracked variables by small integer offsets, preserving the entry snapshots.
+Single-variable changes use an offset \(d\); paired changes use \((d,d)\) or
+\((d,-d)\), with magnitudes specified in Table~\ref{tab:constants}.
+Candidates must remain within their context's sampled coordinate ranges and
+preserve the guard's known truth value.  We discard perturbation vectors that
+are integer multiples of the observed local execution step, avoiding obvious
+movements along the trajectory.  Each state retained after cleaning forms a
+singleton candidate negative trace.  These perturbations probe relations
+among variables that simple marginal bounds may fail to capture.
 
-\paragraph{Off-trajectory proposals.}
-A base must have the next three head positions recorded, or be an observed
-terminal with a guard-true predecessor and guard-false current state.
-Terminal bases are added even if omitted from \(Q\), but are disabled when
-any run was capped.  For each base, perturb one axis by \(d\), or a pair by
-\((d,d)\) or \((d,-d)\).  Interior offsets are \(d\in\pm\{1,2\}\);
-terminal offsets are \(d\in\pm\{1,2,3,5,8\}\).
-Retain a proposal only if every coordinate stays within its context's sampled
-minimum/maximum envelope and the guard has the same known truth value.
-Reject changes that are an integer multiple of the observed forward step
-(or the predecessor step if no successor is recorded).  This tangent test
-avoids obvious movements along witnessed dynamics.  It provides a local
-screen for reachability.  Envelope checks prevent simple sampled marginal
-bounds from separating this family, but do not constrain post-exit or fill
-candidates.
+\paragraph{Post-exit continuations.}
+Starting from a witnessed guard-false exit of an uncapped execution, we ignore
+the original guard and continue executing the same loop body for a bounded
+number of steps.  Unlike off-trajectory perturbations, this construction uses
+body updates to generate a sequence of states beyond the observed exit,
+probing boundary constraints.  Cleaning removes observed and duplicate states
+while preserving the order of the remainder; each nonempty continuation forms
+one candidate negative trace.  The continuation horizon is specified in
+Table~\ref{tab:constants}; capped runs and bodies unsupported for replay do not
+supply this family.
 
-\paragraph{Cleaning and its limits.}
-\(\operatorname{Clean}\) removes keys in \(\mathcal E\), previously selected
-keys \(Z\), and duplicates within its input.  It also drops a state if the
-entry screen succeeds: parameter values agree with their function-entry
-values, every retained local-initialization equality evaluates to true, and
-the precondition does not evaluate to false.  An unknown initialization
-equality makes this screen fail; an unknown precondition does not.
-Consequently the screen provides a conservative initialization check.
-For a post-exit group, cleaning removes individual states while preserving
-the order of the remainder; an empty group is discarded.
+\paragraph{Cleaning and selection.}
+Cleaning removes observed states, duplicates, and states passing a conservative
+entry-feasibility screen.  Off-trajectory candidates are selected across
+perturbation strata, followed by nonempty cleaned post-exit groups; local
+random perturbations fill unused capacity under the same cleaning rules.
+For a deterministic execution from a fixed complete initial state, candidates
+outside a fully recorded loop-head trace through termination are unreachable
+in that entry context.  Sparse recording and other limitations are discussed
+in Appendix~\ref{app:limitations}.
 
-Exclusion from \(\mathcal E\), failure of the entry screen, and departure
-from a local tangent do not prove unreachability.  Likewise, overriding an
-exit creates a counterfactual execution, but its states may occur on another
-legal execution.  No general unreachability solver is called.  Under sound
-inductive verification and consistent state-evaluation semantics, a truly
-reachable state cannot be rejected by a valid invariant.  Such contamination
-can nevertheless dilute coverage and affect relative rewards or SFT
-acceptance.  The final proof guarantee is supplied by the verifier, not by
-the sampler's labels.
-
-\paragraph{Selection, local fill, and scoring units.}
-Off-trajectory candidates are bucketed by interior/terminal status, changed axes,
-and change signs.  Stable round-robin selection takes up to 48 candidates,
-preferring smaller \(\ell_1\) changes within each bucket.  Only selected keys
-are committed to \(Z\).  Next, up to 12 nonempty post-exit groups are selected
-in run order.  Thus cross-family deduplication gives priority to off-trajectory
-perturbations, then post-exit continuations, then local fill.
-
-\(\operatorname{LocalFill}\) draws a base uniformly from \(Q\), chooses
-one or two axes uniformly (one if only one is available), and samples a
-nonzero integer offset independently per axis.  It first uses magnitudes
-1--34, then 35--128 if needed, with seed \(\mathit{seed}\mathbin{\mathrm{xor}}
-\mathtt{0x4C4F4F50}\).  Each stage permits at most
-\(\max(1024,100q)\) attempts for the requested remaining capacity \(q\).
-Candidates use the same observed-state, entry, and duplicate checks, but not
-the off-trajectory envelope, guard, or tangent constraints.  Accepted states
-immediately enter \(Z\) and each forms a singleton trace.  The construction
-may return fewer than 60 traces when admissible candidates are scarce.
-
-Every selected singleton or cleaned continuation contributes one coverage
-unit, rejected if any retained clause is definitely false at any witness.
-This avoids counting a long continuation repeatedly, although longer traces
-still offer more rejection opportunities.  Unknown evaluations do not reject
-a trace.  Empty-negative handling is specified in
-Algorithm~\ref{alg:formal-rl-reward} and Section~\ref{sec:method:sft}.
+\paragraph{Coverage units.}
+Each perturbed state forms a singleton trace, while each cleaned post-exit
+continuation remains one trace.  A trace is rejected if any retained clause
+is definitely false at any of its states.  Each trace contributes one coverage
+unit regardless of length.
 
 \subsection{Clause Normalization and Optimization Settings}
 
@@ -2114,6 +2073,14 @@ Our implementation targets numerical programs with one scalar-integer loop.
 The evaluation excludes nested loops and invariants over arrays, heaps, or
 recursively defined predicates. The negative-trace construction probes scalar
 arithmetic relations and exit boundaries~\citep{liu2024towards}.
+
+\paragraph{Conditional reachability of negative traces.}
+Nondeterminism, truncated or sparsely recorded traces, and unrecorded state
+affecting execution can prevent cleaning from establishing unreachability.
+The sampler uses sparse recording for long runs and calls no general
+unreachability solver.  Coverage is therefore an empirical strength signal;
+\textsf{unknown} evaluations count as non-rejection and may underestimate it.
+Final soundness is established independently by Frama-C/WP.
 
 \paragraph{Inference engine.}
 Local base and trained models are served with vLLM.  In preliminary

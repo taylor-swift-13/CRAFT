@@ -4,12 +4,24 @@ BIBTEX = bibtex
 
 all: $(MAIN).pdf
 
-$(MAIN).pdf: $(MAIN).tex sections/*.tex figures/*.pdf references.bib \
+$(MAIN).pdf: $(MAIN).tex sections/*.tex figures/*.tex figures/*.pdf references.bib \
 	iclr2027_conference.sty iclr2027_conference.bst
 	$(LATEX) $(MAIN)
 	$(BIBTEX) $(MAIN)
 	$(LATEX) $(MAIN)
 	$(LATEX) $(MAIN)
+
+# Figure 1 uses the same TikZ source in the paper and standalone preview.
+overview: figures/overview.pdf figures/overview.png
+
+figures/overview.pdf: figures/overview.tex figures/overview_diagram.tex
+	mkdir -p build/overview
+	cd figures && $(LATEX) -halt-on-error -output-directory=../build/overview overview.tex
+	pdfcrop --margins 4 build/overview/overview.pdf figures/overview.pdf
+
+figures/overview.png: figures/overview.pdf
+	gs -q -dSAFER -dBATCH -dNOPAUSE -sDEVICE=png16m -r240 \
+		-dTextAlphaBits=4 -dGraphicsAlphaBits=4 -sOutputFile=$@ $<
 
 clean:
 	rm -f *.aux *.bbl *.blg *.log *.out *.toc *.fdb_latexmk *.fls *.synctex.gz
@@ -18,4 +30,4 @@ clean:
 distclean: clean
 	rm -f $(MAIN).pdf
 
-.PHONY: all clean distclean
+.PHONY: all overview clean distclean

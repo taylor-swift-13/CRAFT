@@ -1,0 +1,271 @@
+% Shared vector artwork for Figure 1 and its standalone preview.
+% Coordinate units follow the manuscript width; text is never scaled.
+\begingroup
+\definecolor{ovInk}{HTML}{25392F}
+\definecolor{ovMuted}{HTML}{52635B}
+\definecolor{ovBorder}{HTML}{D4DDD8}
+\definecolor{ovGreen}{HTML}{2E7D5B}
+\definecolor{ovRed}{HTML}{B85C47}
+\definecolor{ovPaper}{HTML}{F7F9F8}
+\pgfmathsetlengthmacro{\ovunit}{\textwidth/16}
+% Helvetica is scaled by 0.92 in the manuscript: these yield 8/8.5 pt text.
+\def\ovbody{\sffamily\fontsize{8.7}{10.2}\selectfont}
+\def\ovtitle{\sffamily\fontsize{9.2}{10.8}\selectfont\bfseries}
+\begin{tikzpicture}[
+  x=\ovunit, y=.94*\ovunit, font=\ovbody, text=ovInk,
+  >=Stealth,
+  flow/.style={-{Stealth[length=1.35mm,width=.9mm]},
+    draw=ovMuted, line width=.65pt},
+  feedback/.style={-{Stealth[length=1.35mm,width=.9mm]},
+    draw=ovGreen!85!black, line width=.65pt,
+    dash pattern=on 2pt off 1.4pt, rounded corners=1.5pt},
+  credit/.style={-{Stealth[length=.95mm,width=.65mm]},
+    draw=ovMuted!72, line width=.45pt, dash pattern=on 1.4pt off 1pt},
+  panel/.style={draw=ovBorder, fill=white, rounded corners=2pt,
+    line width=.6pt},
+  card/.style={draw=ovBorder, fill=white, rounded corners=1.5pt,
+    line width=.5pt, align=center, inner xsep=3pt, inner ysep=4pt,
+    outer sep=0pt},
+  heading/.style={font=\ovtitle, text=ovInk, align=center},
+  note/.style={font=\ovbody, text=ovMuted, align=center},
+  chip/.style={rounded corners=.6pt, inner sep=0pt,
+    minimum width=.30*\ovunit, minimum height=.30*\ovunit,
+    line width=.4pt, font=\ovbody},
+  a/.style={chip, fill=ovGreen!88, draw=ovGreen!88, text=white},
+  b/.style={chip, fill=ovGreen!20, draw=ovGreen!40, text=ovInk},
+  c/.style={a}, d/.style={b}, e/.style={a}, f/.style={b},
+  u/.style={chip, fill=ovRed!22, draw=ovRed!55, text=ovRed!85!black},
+  v/.style={u},
+  pool/.style={rounded corners=1.5pt, draw=ovMuted!65, fill=white,
+    line width=.55pt, dash pattern=on 2.3pt off 1.5pt},
+  state/.style={circle, draw=ovGreen, fill=ovGreen,
+    minimum size=.18*\ovunit, inner sep=0pt},
+  candidate/.style={circle, draw=ovRed, fill=ovRed!16,
+    line width=.65pt, minimum size=.20*\ovunit, inner sep=0pt}
+]
+
+% (a) Preserve the five-stage decompose--compose design.
+\begin{scope}[shift={(0,4)}]
+\draw[panel] (.10,3.72) rectangle (15.90,7.05);
+\node[heading, anchor=west] at (.38,6.75)
+  {(a)\; Decompose \(\rightleftarrows\) compose};
+\draw[flow] (7.00,6.78)--(7.45,6.78);
+\node[note, anchor=west] at (7.58,6.78) {data flow};
+\draw[feedback] (9.65,6.78)--(10.10,6.78);
+\node[note, anchor=west] at (10.23,6.78) {score / credit};
+\draw[ovBorder, line width=.4pt] (.40,6.48)--(15.60,6.48);
+\node[u] at (14.06,6.78) {\(u\)};
+\node[note, anchor=west] at (14.31,6.78) {rejected};
+
+\node[card, text width=2.30*\ovunit] (masked) at (1.45,5.12)
+  {Masked loop\\[2pt]\(\mathcal L\! =\! (\mathrm{Init},B,S)\)\\[2pt]
+   \textcolor{ovRed}{\(\mathcal G\) hidden}};
+\draw[flow] (masked.east)--(2.77,5.12);
+
+\fill[ovPaper, rounded corners=2pt] (2.86,3.96) rectangle (8.21,6.32);
+\node[note, anchor=west] at (3.04,6.12) {within a rollout};
+\node[heading] at (4.31,5.75) {1\; Rollout};
+\node[heading] at (6.96,5.75) {2\; Decompose};
+\foreach \y/\lab/\clauses in {
+  5.38/1/{a,b,c,a,b},
+  4.94/2/{c,u,d,e,c},
+  4.50/3/{v,d,u,e,f}}{
+  \node[card, minimum width=2.38*\ovunit,
+    minimum height=.39*\ovunit, inner sep=0pt] at (4.32,\y) {};
+  \node[note] at (3.40,\y) {\(y_{\lab}\)};
+  \foreach \letter [count=\i from 0] in \clauses {
+    \node[\letter] at (3.78+\i*.33,\y) {\(\letter\)};
+    \node[\letter] at (6.55+\i*.34,\y) {\(\letter\)};
+  }
+  \node[note, anchor=east] at (6.24,\y) {\(A_{\lab}\)};
+}
+\draw[ovGreen, line width=.8pt]
+  (5.29,5.38)--(5.34,5.32)--(5.44,5.47);
+\foreach \y in {4.94,4.50}{
+  \draw[ovRed, line width=.8pt]
+    (5.29,\y-.07)--(5.43,\y+.07)
+    (5.29,\y+.07)--(5.43,\y-.07);
+}
+\draw[flow] (5.56,4.94)--(5.75,4.94);
+\draw[flow] (8.25,4.94)--(8.58,4.94);
+
+\fill[ovPaper, rounded corners=2pt] (8.66,3.96) rectangle (15.60,6.32);
+\node[note, anchor=west] at (8.87,6.12) {across rollouts};
+\node[heading] at (9.68,5.75) {3\; Pool};
+\node[heading] at (11.32,5.75) {4\; Filter};
+\node[heading] at (13.29,5.75) {5\; Compose};
+\node[pool, minimum width=1.53*\ovunit,
+  minimum height=1.17*\ovunit] at (9.68,4.94) {};
+\foreach \dx/\dy/\letter in {
+  -.44/.39/a,0/.39/b,.44/.39/u,
+  -.44/0/c,0/0/d,.44/0/v,
+  -.22/-.39/e,.22/-.39/f}{
+  \node[\letter] at (9.68+\dx,4.94+\dy) {\(\letter\)};
+}
+\draw[flow] (10.50,4.94)--(11.17,4.94);
+\draw[ovMuted, line width=1.2pt] (11.23,4.56)--(11.23,5.32);
+\draw[ovMuted!45, line width=.65pt] (11.35,4.56)--(11.35,5.32);
+\draw[flow] (11.45,4.94)--(12.31,4.94);
+\foreach \dx/\dy/\letter in {
+  -.38/.21/a,0/.21/b,.38/.21/c,
+  -.38/-.21/d,0/-.21/e,.38/-.21/f}{
+  \node[\letter] at (12.98+\dx,4.94+\dy) {\(\letter\)};
+}
+\node[card, draw=ovGreen!40, fill=ovGreen!5,
+  text width=1.25*\ovunit] (survivors) at (14.64,4.94)
+  {Output\\[1pt]\(C^{\mathrm{surv}}\)};
+\draw[flow] (13.57,4.94)--(survivors.west);
+\end{scope}
+
+% Shared output and original SFT/RL branches.
+\draw[ovMuted, line width=.65pt]
+  (survivors.south)--(14.64,7.39)--(2.12,7.39);
+\foreach \x in {2.12,13.70}{
+  \fill[ovMuted] (\x,7.39) circle (1.2pt);
+  \draw[flow] (\x,7.39)--(\x,7.08);
+}
+\node[note, anchor=west] at (2.29,7.19) {composed set};
+\node[note, anchor=west] at (13.87,7.19) {rollout group};
+
+% (b) SFT: original acceptance, resampling, targets, and fine-tuning.
+\draw[panel] (.10,.10) rectangle (3.96,7.05);
+\node[heading, anchor=west] at (.38,6.76) {(b)\; SFT};
+\node[note] at (2.03,6.17) {compose \(\to\) target};
+\draw[ovBorder, line width=.4pt] (.38,6.48)--(3.68,6.48);
+\node[card, text width=2.82*\ovunit] (composed) at (2.12,5.14)
+  {Composed set\\[1pt]\(C_{\mathcal L}^{(t)}\)};
+\node[card, text width=2.62*\ovunit] (accept) at (2.12,3.49)
+  {Coverage \(\ge\tau\)?};
+\draw[flow] (composed.south)--(accept.north);
+\draw[flow, rounded corners=2pt]
+  (accept.west)--(.43,3.49)--(.43,5.14)--(composed.west);
+\node[note, anchor=west] at (.55,4.20) {resample};
+\node[card, fill=ovGreen, draw=ovGreen, text=white,
+  font=\ovtitle, inner xsep=6pt] (sfttarget) at (2.12,2.02) {SFT targets};
+\draw[flow] (accept.south)--(sfttarget.north);
+\node[note, anchor=west] at (2.24,2.77) {yes};
+\node[card, text width=2.82*\ovunit] (sftmodel) at (2.12,.74) {Fine-tune};
+\draw[flow] (sfttarget.south)--(sftmodel.north);
+
+% (c) Shared scorer. Binary is a reference, not a sampler input.
+\draw[panel] (4.30,.10) rectangle (11.16,7.05);
+\node[heading, anchor=west] at (4.58,6.76) {(c)\; Target-free scorer};
+\draw[ovBorder, line width=.4pt] (4.58,6.48)--(10.88,6.48);
+\node[note] at (7.73,6.12)
+  {\textbf{Binary}\quad valid set \(\mapsto\{0,1\}\)};
+
+% A small, separate inset shows the two candidate-negative mechanisms.
+\fill[ovPaper, rounded corners=2pt] (4.52,3.90) rectangle (10.93,5.90);
+\node[heading, anchor=west] at (4.68,5.63) {Candidate negatives};
+\node[note, anchor=west] at (4.68,4.95) {off-trajectory};
+\node[note, anchor=west] at (4.68,4.16) {post-exit};
+\foreach \x [count=\i] in {7.09,7.66,8.23}{
+  \node[state] (off\i) at (\x,4.86) {};
+}
+\draw[flow, draw=ovGreen] (off1)--(off2);
+\draw[flow, draw=ovGreen] (off2)--(off3);
+\node[candidate] (offneg) at (8.24,5.31) {};
+\draw[flow, draw=ovRed, dashed] (off2)--(offneg);
+\node[state] (post1) at (7.09,4.12) {};
+\node[state] (post2) at (7.66,4.12) {};
+\draw[flow, draw=ovGreen] (post1)--(post2);
+\draw[ovMuted, line width=.55pt, dashed] (8.03,3.98)--(8.03,4.37);
+\node[note] at (8.03,4.50) {exit};
+\node[candidate] (post3) at (8.41,4.12) {};
+\node[candidate] (post4) at (9.01,4.12) {};
+\draw[flow, draw=ovRed] (post2)--(post3);
+\draw[flow, draw=ovRed] (post3)--(post4);
+\node[circle, draw=ovRed!65, fill=white,
+  minimum size=.49*\ovunit, inner sep=0pt] (negset) at (10.29,4.79)
+  {\(\mathcal N\)};
+\draw[flow, draw=ovRed!80, rounded corners=2pt]
+  (offneg.east)--(9.35,5.31)--(negset.north west);
+\draw[flow, draw=ovRed!80] (post4.east)--(negset.south west);
+\draw[flow, rounded corners=2pt]
+  (negset.south)--(10.29,3.77)--(8.03,3.77)--(8.03,3.66);
+
+% Coverage retained at the same level as the SFT acceptance gate.
+\node[heading, anchor=west] (coverageheading) at (4.58,3.49) {Coverage};
+\draw[ovMuted!65, fill=white, line width=.55pt]
+  (7.02,3.33) rectangle (9.02,3.64);
+\fill[ovGreen!60] (7.02,3.33) rectangle (8.28,3.64);
+\node[note, anchor=west] at (9.21,3.49) {\(\operatorname{cov}(V_i)\)};
+\draw[feedback] (coverageheading.west)--(accept.east);
+\draw[flow] (8.03,3.23)--(8.03,3.06);
+
+% Original Shapley matrix, with more space for shared and unique coverage.
+\node[heading, anchor=west, align=left] at (4.58,2.40) {Shapley\\allocation};
+\foreach \y/\lab/\marks in {
+  2.89/1/{1,1,1,0,0},
+  2.47/2/{1,1,1,0,1},
+  2.05/3/{0,0,1,2,1}}{
+  \node[note, anchor=east] at (7.03,\y) {\(y_{\lab}\)};
+  \foreach \mark [count=\i from 0] in \marks {
+    \pgfmathsetmacro{\cx}{7.29+\i*.37}
+    \ifcase\mark
+      \node[circle, draw=ovBorder, fill=white, minimum size=.25*\ovunit,
+        inner sep=0pt] at (\cx,\y) {};
+    \or
+      \node[circle, draw=ovGreen!65, fill=ovGreen!18,
+        minimum size=.25*\ovunit, inner sep=0pt] at (\cx,\y) {};
+      \draw[ovGreen, line width=.45pt]
+        (\cx-.075,\y-.075)--(\cx+.075,\y+.075)
+        (\cx-.075,\y+.075)--(\cx+.075,\y-.075);
+    \or
+      \node[circle, draw=ovGreen, fill=ovGreen!85,
+        minimum size=.25*\ovunit, inner sep=0pt] at (\cx,\y) {};
+    \fi
+  }
+  \node[note, anchor=west] at (9.19,\y) {\(\phi_{\lab}\)};
+}
+\node[circle, draw=ovGreen, fill=ovGreen!85,
+  minimum size=.23*\ovunit, inner sep=0pt] at (7.08,1.62) {};
+\node[note, anchor=west] at (7.27,1.62) {unique};
+\node[circle, draw=ovGreen!65, fill=ovGreen!18,
+  minimum size=.23*\ovunit, inner sep=0pt] at (8.73,1.62) {};
+\draw[ovGreen, line width=.45pt]
+  (8.66,1.55)--(8.80,1.69) (8.66,1.69)--(8.80,1.55);
+\node[note, anchor=west] at (8.92,1.62) {shared};
+\node[card, draw=ovGreen!40, fill=ovGreen!5,
+  text width=5.54*\ovunit, inner ysep=2.5pt] (rewardformula) at (7.73,.74)
+  {\textbf{Full reward per rollout}\\[1pt]
+   \(r_i=\operatorname{cov}(V_i)+0.3\phi_i\)};
+
+% (d) Preserve pooled survivor ownership and the many-to-many credit graph.
+\draw[panel] (11.50,.10) rectangle (15.90,7.05);
+\node[heading, anchor=west] at (11.78,6.76) {(d)\; RL};
+\node[note] at (13.70,6.17) {attribute exploration};
+\draw[ovBorder, line width=.4pt] (11.78,6.48)--(15.62,6.48);
+\foreach \y/\lab/\clauses in {
+  5.73/1/{a,b,c,a,b},
+  5.27/2/{c,u,d,e,c},
+  4.81/3/{v,d,u,e,f}}{
+  \node[note, anchor=east] at (12.48,\y) {\(y_{\lab}\)};
+  \foreach \letter [count=\i from 0] in \clauses {
+    \node[\letter] at (12.77+\i*.41,\y) {\(\letter\)};
+  }
+}
+\draw[flow] (13.60,4.59)--(13.60,4.40);
+\draw[pool] (12.24,3.61) rectangle (15.07,4.39);
+\foreach \letter [count=\i from 0] in {a,b,c,d,e,f}{
+  \node[\letter] (owner\letter) at (12.54+\i*.44,3.84) {\(\letter\)};
+}
+\node[note] at (13.67,4.20) {pool, filtered once};
+\node[note, text=ovInk] (r1) at (12.71,2.70) {\(r_1\)};
+\node[note, text=ovInk] (r2) at (13.70,2.70) {\(r_2\)};
+\node[note, text=ovInk] (r3) at (14.69,2.70) {\(r_3\)};
+\foreach \letter/\target in {a/1,b/1,c/1,c/2,d/2,d/3,e/2,e/3,f/3}{
+  \draw[credit] (owner\letter.south)--(r\target.north);
+}
+\draw[ovMuted, line width=.6pt]
+  (r1.south)--(12.71,2.39)--(14.69,2.39)--(r3.south);
+\draw[ovMuted, line width=.6pt] (r2.south)--(13.70,2.39);
+\node[card, text width=3.65*\ovunit, inner ysep=3pt] (grpo) at (13.70,1.18)
+  {\textbf{GRPO}\\[1pt]group-normalized\\advantage\\[1pt]
+   \(\to\) policy update};
+\draw[flow] (13.70,2.39)--(grpo.north);
+\draw[feedback]
+  (rewardformula.east)--(11.33,.74)--(11.33,2.70)--(r1.west);
+
+\end{tikzpicture}%
+\endgroup

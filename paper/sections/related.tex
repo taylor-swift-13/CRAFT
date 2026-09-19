@@ -3,35 +3,44 @@
 %% ============================================================
 
 \tightparagraph{Invariant generation and verified filtering.}
-Classical invariant synthesis uses abstract interpretation, affine relations,
-templates, interpolation, syntax-guided search, or counterexamples
-~\citep{cousot1977abstract,karr1976affine,mcmillan2003interpolation,
-alur2013sygus,garg2014ice}; Houdini retains an inductive subset of proposed
+Classical invariant synthesis uses abstract interpretation, algebraic relations,
+constraint solving, interpolation, recurrences, syntax-guided search, or
+counterexamples~\citep{cousot1977abstract,cousot1978automatic,karr1976affine,
+colon2003linear,sankaranarayanan2004non,gulwani2008program,gupta2009invgen,
+mcmillan2003interpolation,kincaid2017compositional,alur2013sygus,garg2014ice};
+dynamic approaches mine likely invariants from executions~\citep{daikon}.
+Verified filtering retains an inductive subset of proposed
 clauses~\citep{flanagan2001houdini}.  Neural and LLM systems learn construction
 policies or combine generation with solver feedback, static analysis,
 filtering, and repair
 ~\citep{si2018learning,si2020code2inv,ryan2020cln2inv,yao2020gcln,
-yu2023lipus,kamath2023finding,chakraborty2023ranking,cao2025clause2inv,
-wu2024lam4inv,li2026loris,liu2024acinv,wen2024enchanting,ma2024specgen,yang2026sespec,
-wu2024lemur,first2023baldur}.  Clause2Inv reuses clauses from previous guesses
-and adaptively combines them using SMT counterexamples, including
-postcondition-derived feedback~\citep{cao2025clause2inv}; LaM4Inv couples
-generation to bounded-model-checking counterexamples, and LORIS repairs local
-reasoning errors for failed verification conditions~\citep{wu2024lam4inv,li2026loris}.
-Their native workflows expose the target/postcondition or feedback derived
-from it.  Our direct comparison therefore adapts all three to the same
-target-hidden setting; it should not be read as a reproduction of their
-target-visible headline results.  CRAFT pools clauses across independent
-responses before target-independent joint Houdini filtering.  It couples this
-composition with training: accepted compositions become SFT targets, and
-surviving clauses determine credit for their proposing responses.
+yu2023lipus,kamath2023finding,chakraborty2023ranking,
+liu2024acinv,
+wu2024lemur,first2023baldur}.  LaM4Inv conjoins BMC-filtered predicates
+from candidate invariants~\citep{wu2024lam4inv}; Clause2Inv searches
+conjunctions and disjunctions of clauses~\citep{cao2025clause2inv}.
+Both iteratively refine candidates using verification feedback; LORIS repairs
+local reasoning errors~\citep{li2026loris}.  InvBench/Quokka uses UAutomizer
+to evaluate invariant correctness and verification speedups
+~\citep{wei2025invbench}.  These workflows rely on visible targets or
+target-derived feedback unavailable under target hiding.
+CRAFT samples independent responses in one generation round and pools their
+clauses before joint Houdini filtering, without feeding verification results
+back to the generator.  It further aligns SFT supervision and RL credit with
+this cross-response composition.
+
+Broader specification-generation frameworks also synthesize loop invariants
+by combining LLM generation with
+program analysis or symbolic verification
+~\citep{wen2024enchanting,yang2026sespec,ma2024specgen}.
 
 \tightparagraph{Training from formal and behavioral feedback.}
 Verified data and execution or prover feedback have been used to train
 invariant, code, and proof models
 ~\citep{wei2025invbench,pinto2026notall,le2022coderl,yan2025reform}.
-Wonda curates invariant supervision from verifier output through
-normalization and semantic rewriting~\citep{pinto2026notall}.
+Wonda curates verifier-generated invariants through AST normalization,
+LLM-driven semantic rewriting, and augmentation to train small language
+models~\citep{pinto2026notall}.
 COINS and SpecRL further use positive and negative behaviors to distinguish
 weak valid specifications from stronger ones
 ~\citep{yang2026coins,huang2026specrl}; SpecRL rewards verified candidates
@@ -42,7 +51,9 @@ surviving parts even when the complete response fails.  Its behavioral
 evidence comes from target-hidden executions and is applied only after
 clauses survive pooled verification.
 
-\tightparagraph{Set-level credit in verifiable-reward RL.}
+\tightparagraph{Credit assignment in RLVR.}
+Related RLVR and RLHF methods study group-relative advantages and
+fine-grained credit~\citep{shao2024deepseekmath,li2026ssvpo,cao2025scar}.
 Per-response RL can improve pass@1 without expanding large-\(k\) coverage
 ~\citep{yue2025rlcapacity,he2025unlikeliness}.  Recent objectives directly
 optimize pass@\(k\) or up-weight rare correct responses
@@ -50,7 +61,6 @@ optimize pass@\(k\) or up-weight rare correct responses
 Pass@\(k\) objectives seek at least one successful complete response. CRAFT
 constructs successful invariants from clauses distributed across responses,
 even when no individual response independently proves the target.
-It decomposes responses before assigning each response the coverage
-of its surviving clauses.
-Credit is computed from clauses, while the policy update uses a
-response-level advantage.
+CRAFT rewards the negative-trace coverage of jointly retained clauses and uses
+Shapley allocation to divide shared coverage credit among contributing responses.
+The resulting credit enters a response-level advantage for policy updates.

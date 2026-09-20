@@ -23,12 +23,13 @@ guard-false exits and a side-effect-free guard, this reduces to
 \tightparagraph{Targets at different locations.}
 Let \(\Sigma\) be the state space and \(S\subseteq\Sigma\times\Sigma\)
 the relation for one normally completing loop step.  Write
-\(S^B_\ell\) for the path-sensitive body prefix reaching location \(\ell\),
+\(S^B_\ell\) for the path-sensitive prefix from the loop head through
+guard evaluation to body location \(\ell\),
 and \(X_\ell\) for paths from a loop head through an exit to that location,
 including guard-false and \texttt{break} exits.  Target
 sufficiency requires the corresponding obligation for every \((\ell,g)\in\mathcal G\):
 \begin{align}
- I(\sigma)\land B(\sigma)\land S^B_\ell(\sigma,\sigma')
+ I(\sigma)\land S^B_\ell(\sigma,\sigma')
    &\Rightarrow g(\sigma') &&\text{(body target)},\nonumber\\
  I(\sigma)\land X_\ell(\sigma,\sigma')
    &\Rightarrow g(\sigma') &&\text{(post-loop target)}.

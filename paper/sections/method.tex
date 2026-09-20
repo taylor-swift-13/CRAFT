@@ -133,11 +133,12 @@ surviving clauses back to their proposing responses:
 \begin{align}
   P^*&=\operatorname{Unique}\!\left(A_1\Vert\cdots\Vert A_{g_{\mathrm{rl}}}\right),
   &C^*&=\operatorname{Filter}_{\mathcal L}(P^*),\\
-  V_i&=\{c\in A_i:\operatorname{key}(c)\in\operatorname{keys}(C^*)\},
+  V_i&=\langle c\in A_i\mid\operatorname{key}(c)\in\operatorname{keys}(C^*)\rangle,
   &R_i&=\operatorname{rej}(V_i).
   \label{eq:method-credit-pool}
 \end{align}
-Canonical keys identify which clauses each response proposed.  Thus \(V_i\)
+Canonical keys identify which clauses each response proposed;
+\(V_i\) preserves their order in \(A_i\). Thus \(V_i\)
 retains its surviving contributions even when other clauses fail, with
 mutually supporting clauses checked in the pooled context used at inference.
 

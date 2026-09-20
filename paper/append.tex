@@ -38,9 +38,8 @@
 \maketitle
 
 \noindent
-This supplement reports analyses that are useful for assessing robustness,
-systems cost, and design sensitivity but are not required for the main
-argument.  Appendix~A tests whether duplicate instances within the evaluation
+This supplement examines robustness, systems cost, and design sensitivity.
+Appendix~A tests whether duplicate instances within the evaluation
 benchmark change the conclusions of the Qwen3-8B training experiments.
 Appendix~B characterizes the computational profile of the evaluation used for
 Qwen3-8B and all of its training variants.  Appendix~C isolates the effect of
@@ -56,21 +55,16 @@ percentages.
 
 The full benchmark contains 832 programs.  A separate audit identifies 124
 evaluation instances as duplicates of other instances within this benchmark;
-removing those redundant instances leaves 708 programs.  This is an
-evaluation-set deduplication analysis, distinct from the training--evaluation
-overlap audit reported in the main paper.  We use the reduced set as a
-sensitivity analysis rather than as a replacement benchmark.  The model
+removing those redundant instances leaves 708 programs. We evaluate
+sensitivity to these within-benchmark duplicates while keeping the model
 checkpoints, saved response order, sampling budgets
-\(k\in\{1,4,8,16,32\}\), composition procedure, and verifier are unchanged.
-Thus, differences below reflect the changed evaluation population, not
-retraining or resampling.
+\(k\in\{1,4,8,16,32\}\), composition procedure, and verifier unchanged.
 
 We report two complementary comparisons.  The \emph{training-stage
 comparison} follows representative Bare, RL-from-Bare, and SFT+RL
 checkpoints.  The \emph{matched reward ablation} separately compares Binary,
 Whole-rollout, Clause-decomposed, and Full reward runs within a common
-initialization.  These are distinct evaluation groups and should not be
-cross-compared as if they were the same checkpoint.
+initialization. The two comparisons use separate checkpoint groups.
 
 \subsection{Training-stage comparison}
 
@@ -248,15 +242,13 @@ retains this contrast.
 
 We profile the common evaluation configuration used for the Qwen3-8B base
 model and all of its training variants.  Each checkpoint is evaluated on all
-832 programs with eight rollouts per task.  The reported totals are therefore
-the cost of one complete checkpoint evaluation, not the sum across all
-variants.  The measurement boundary includes prompt processing, response
+832 programs with eight rollouts per task. Totals report the cost of one
+complete checkpoint evaluation. The measurement boundary includes prompt processing, response
 generation, candidate extraction and pooling, Houdini filtering, and final
 Frama-C/WP verification.  Token totals, verifier timings, and memory
-measurements are recorded quantities.  Multi-GPU generation time and the
-80-worker wall-clock decomposition use the measured throughput and aggregate
-work, and therefore describe this serving configuration rather than a
-hardware-independent latency guarantee.
+measurements are recorded quantities. Multi-GPU generation time and the
+80-worker wall-clock decomposition are estimated from measured throughput
+and aggregate work for this serving configuration.
 
 \subsection{Generation workload}
 
@@ -533,8 +525,7 @@ We evaluate three independent training runs of Qwen3-8B, denoted
 \texttt{train-1}, \texttt{train-2}, and \texttt{train-3}, with three
 independent inference runs per trained model, denoted
 \texttt{run-1}, \texttt{run-2}, and \texttt{run-3}.
-All training and inference settings are held fixed across repetitions;
-only the independent runs differ.  This yields nine
+All training and inference settings are held fixed across the nine
 training--inference combinations on the same 832-program benchmark at
 response budgets \(k\in\{1,4,8,16,32\}\).
 Each mean and standard deviation below is computed across the three

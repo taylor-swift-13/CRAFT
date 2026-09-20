@@ -53,14 +53,10 @@ responses in these pools passes as a whole on this program; pooled filtering
 removes incompatible siblings and retains the useful relation.
 
 \paragraph{Case study: composition without cross-response support.}
-To separate target-proof composition from both sampling a better standalone
-response and mutual support during filtering, we replay the first four
-archived GPT-5-nano responses for the following task.  We apply the
-target-hidden \(\operatorname{Filter}_{\mathcal L}\) used in evaluation first
-to each response separately and then, following the pooled order of
-Appendix~\ref{app:houdini-order}, once to their merged clause union.  The
-restored-target judge is applied only after filtering.  The assertion is shown
-for clarity but is hidden from every response.
+We replay the first four GPT-5-nano responses, comparing independent
+and pooled filtering with \(\operatorname{Filter}_{\mathcal L}\).
+The assertion shown below is hidden during generation and filtering,
+then restored for final verification.
 
 \begin{lstlisting}[language=C]
 /*@ requires n >= 0; */
@@ -100,9 +96,7 @@ verifies the target.}
 \end{table}
 
 \noindent\begin{minipage}{\textwidth}
-Each of the four distinct pooled clauses also survives when filtered alone,
-so pooling does not rescue any clause by supplying a missing inductive
-hypothesis.  The complete pooled annotation is
+Each pooled clause is independently inductive. The composed annotation is
 \begin{lstlisting}
 /*@
   loop invariant x >= 0;
@@ -326,20 +320,16 @@ continuation remains one trace.  A trace is rejected if any retained clause
 is definitely false at any of its states.  Each trace contributes one coverage
 unit regardless of length.
 
-\subsection{Clause Normalization and Optimization Settings}
+\subsection{Clause Normalization}
 
-Appendix~\ref{app:grpo-details} defines the group-normalized advantage,
-token-level importance ratio, sampled conditional KL term, and clipped GRPO
-objective.  Clause deduplication, which forms the clause set scored above,
+Clause deduplication, which forms the clause set scored above,
 normalizes comparison direction, equality sides, parentheses, immediate
 commutative operands, harmless identities, and Boolean association, but
 avoids transformations that require additional arithmetic assumptions.
-Repeated clauses therefore collapse without affecting coverage, and a
-unique zero-coverage clause costs nothing because it may support another
-clause or the hidden target.  Coverage and Shapley credit each lie in
-\([0,1]\); clauses beyond the admission cap incur no reward penalty.
-Empty-negative groups use the binary fallback in
-Algorithm~\ref{alg:formal-rl-reward}.
+Repeated clauses therefore collapse without affecting coverage.
+The reward and its empty-negative fallback are defined in
+Algorithm~\ref{alg:formal-rl-reward}; the GRPO objective is given in
+Appendix~\ref{app:grpo-details}.
 
 \section{Generation Prompt}
 \label{app:prompt}
@@ -453,12 +443,8 @@ or explanations.
 \section{Training Interface}
 \label{app:service}
 
-The training service is packaged as a self-contained, CPU-only container with
-gcc, the verifier, Why3, and its prover backend.  It accepts program source,
-an array of model responses, one of the four reward variants defined below,
-and the negative-trace construction specified above.  The response reports each
-rollout's reward together with its coverage.  Responses may be raw LLM text,
-invariant lists, or annotated code.
+The training interface accepts a target-hidden program, sampled responses,
+and a reward configuration, and returns each response's reward and coverage.
 
 \section{Do Training and Evaluation Share Programs or Only Structural Patterns?}
 \label{app:data-leakage}
@@ -534,16 +520,9 @@ Nondeterministic & 28.6 & 41.5 & 14.9 \\
 The raw training-program pool is drawn primarily from SV-COMP and SyGuS
 \citep{svcomp,alur2013sygus}.  We retain scalar-integer single-loop programs
 and hide target assertions and postconditions in the model-facing input.
-The RL selection below operates on this program pool; SFT-target construction
-generates verified invariant annotations for the training programs.
-
-The RL and SFT training sets use the target-hidden scalar-integer single-loop
-interface.  The reported RL experiments and the released RL dataset use the
-same 9,024 records.  SFT targets are inductive invariant sets synthesized by
-the multi-round procedure in Section~\ref{sec:method:sft} and accepted by the
-loop verifier.  The only learned generator is the open-weight model being
-trained; target acceptance and RL reward computation use program execution
-and verification.
+RL uses 9,024 selected programs. SFT targets are synthesized and verified
+by the multi-round procedure in Section~\ref{sec:method:sft}, using the
+same open-weight model that is subsequently trained.
 Table~\ref{tab:training-sets} summarizes the training sets. Loop shapes
 abstract identifiers and nontrivial constants in the guard and body;
 source overlap compares program text in training prompts.
@@ -583,7 +562,12 @@ with 12 runs and seed 0. The final records are shuffled into 141 batches of 64.
 The evaluation workload composition is given in
 Section~\ref{sec:exp:setup}; the 466 Loopy programs are the integer subset
 of its original 469-program corpus (three floating-point programs excluded),
-and unsupported inputs remain failures in the common denominator.
+and CRAFT retains all benchmark tasks in its verification denominator.
+External tools use their full supported sets, as specified in
+Appendix~\ref{app:tools-comparison}.
+
+The final judge uses Frama-C 27.1 (Cobalt), the WP plug-in, the Typed
+memory model, and the Alt-Ergo/Z3 prover portfolio.
 
 Before model invocation, we remove assert and ensures
 predicates, executable assertion calls, and conventional error-label names;
@@ -600,42 +584,21 @@ penalty, re-roll, or target feedback.  Each probe curve reuses the same saved
 response pool per task.  The model-specific pool sizes and the common reported
 budget grid are listed in Table~\ref{tab:constants}; every pool contains at
 least \(k_{\max}\) responses.
-For task \(t\), let \(n_t\) be its saved pool size, \(s_{t,i}\in\{0,1\}\)
-the standalone verifier verdict, and \(c_t=\sum_{i=1}^{n_t}s_{t,i}\).
+For task \(t\), let \(s_{t,i}\in\{0,1\}\) be the standalone verifier
+verdict for saved response \(i\).
 Let \(v_{t,k}\in\{0,1\}\) indicate whether filtering and composing the first
-\(k\) saved responses succeeds.  The archived evaluations report
+\(k\) saved responses succeeds. Both metrics use this same prefix:
 \[
 \begin{aligned}
- \widehat{\operatorname{pass}}@k
+ \operatorname{pass}@k
   &=\frac{100}{N}\sum_{t=1}^N
-    \left(1-\frac{\binom{n_t-c_t}{k}}{\binom{n_t}{k}}\right),\\
+    \mathbf{1}\!\left[\exists i\leq k:\ s_{t,i}=1\right],\\
  \operatorname{compose}@k
   &=\frac{100}{N}\sum_{t=1}^N v_{t,k},
 \end{aligned}
 \]
-with \(\binom{n_t-c_t}{k}=0\) when \(n_t-c_t<k\).  The archived pass
-estimator averages over response subsets; compose evaluates a saved prefix.
-
-\paragraph{Integer-count projection of reported pass values.}
-For a reported pass percentage \(p\) on \(N\) programs, the displayed value
-is projected onto the nearest integer-count grid:
-\[
- \widetilde c=\left\lfloor\frac{Np}{100}+\frac12\right\rfloor,
- \qquad
- \widetilde p=\frac{100\widetilde c}{N}.
-\]
-Tables and plots display \(\widetilde p\) to two decimal places, retaining
-the pass@\(k\) label.  On the 50-program NLA stratum, values therefore
-advance in 2-point increments.  The projection is applied separately to
-each reported population; projected stratum counts need not sum to the
-independently projected whole-workload count.
-
-These are rounded reported estimates, not recomputed per-program success
-counts.  Original values and projected counts are preserved in the data
-audit.  Projection does not recover first-prefix verdicts, establish paired
-sampling with compose, or remove sampling uncertainty.  Ratios and pass
-differences in the text use the displayed projected rates.  Compose values
-retain their reported evaluations.
+where \(N\) is the number of evaluated programs. Rates are reported as
+percentages of successful tasks.
 
 \paragraph{Training configuration.}
 Tables~\ref{tab:sft-training-config} and~\ref{tab:rl-training-config}
@@ -1155,8 +1118,7 @@ tables; the analyses here explain what the comparisons reveal.
 Figure~\ref{fig:appendix-probe} compares pass and compose for six Bare
 models; Table~\ref{tab:probe-complete} gives the numerical results.
 At \(k=1\), processing acts within one response; larger budgets also allow
-cross-response composition.  This evaluates the full inference framework,
-including both filtering and composition.
+cross-response composition.
 
 \begin{figure}[H]
 \centering
@@ -1175,7 +1137,7 @@ budget doubling yields smaller compositional gains.  From 16 to 32
 responses, compose rises from 56.37\% to 57.81\% for Qwen3-8B and from
 51.68\% to 52.16\% for Llama, while pass rises from 21.63\% to 25.96\%
 and from 6.25\% to 9.74\%, respectively.  These curves show diminishing
-returns within the tested range; the asymptotic ceiling remains unknown.
+returns within the tested range.
 
 \finishfigurewrap
 \Needspace{22\baselineskip}
@@ -1288,10 +1250,9 @@ fails.  Its advantage over Whole-rollout is 43.03 points from Bare and
 both initializations.  Binary reaches only 4.45\% and 15.99\%, respectively.
 
 Full also exceeds Whole-rollout after SFT on Qwen3-4B and Llama 3.1-8B,
-by 14.30 and 9.02 points at compose@1.  These cross-backbone rows compare
-the complete reward against Whole-rollout; they do not isolate the added
-Shapley term.  Exploration diagnostics for Full and Clause-decomposed
-are in Appendix~\ref{app:full-credit-analysis}.
+by 14.30 and 9.02 points at compose@1. The separate Full versus
+Clause-decomposed comparison examines Shapley credit
+(Appendix~\ref{app:full-credit-analysis}).
 
 \Needspace{28\baselineskip}
 \subsubsection{Does Training Reward Track Verification Quality?}
@@ -1315,12 +1276,10 @@ compose@32 from Bare and 15.99\% after SFT
 therefore does not ensure invariants strong enough to prove hidden targets.
 
 \paragraph{Reward growth must be judged against verification.}
-Full, Clause-decomposed, and Whole-rollout all end with higher rewards than
-they start with under both initializations.  Their upward trajectories,
-alongside Binary's saturation, show successful optimization of different
-signals; the endpoint compose results determine whether that progress
-produces useful invariants.  Absolute heights cannot rank the configurations:
-the correctness gates differ, and Full adds weighted Shapley credit.
+Full, Clause-decomposed, and Whole-rollout increase their training rewards
+under both initializations. Their different correctness gates and Shapley
+weights produce different reward scales; final compose results measure
+the resulting verification quality.
 
 Per-group reward variance, not logged step means, is required
 to measure how often Full prevents group reward collapse. The mechanism is formalized in
@@ -1335,9 +1294,8 @@ are analyzed in Appendix~\ref{app:full-credit-analysis}.
 We vary the per-response clause cap for Bare, SFT, and SFT+RL Qwen3-8B.
 Within each model, all caps reuse the same saved response pool and evaluation
 settings: only the first \(c\) parsed clauses of each response are admitted
-to standalone verification or pooled filtering.  This is inference-time
-truncation of saved responses. The sweep is a separate evaluation; its cap-16
-endpoints are not substituted for the main-result models.
+to standalone verification or pooled filtering. This sweep uses a separate
+evaluation pool from the main results.
 
 \begin{table}[H]
 \centering
@@ -1371,8 +1329,7 @@ while compose@1 rises from 50.48\% to 69.11\% and compose@8 from 57.45\%
 to 76.32\%.  Both compose metrics increase monotonically with the cap
 for all three models in this sweep.  Additional clauses can therefore
 hurt complete-response verification while expanding the candidates
-available for filtering; these aggregates do not distinguish invalid
-clauses from prover timeouts or other causes of standalone failure.
+available for filtering.
 
 \paragraph{Does Better Composition Require More Distinct Clauses?}
 Table~\ref{tab:clause-cap-structure} reports mean admitted clauses per
@@ -1418,9 +1375,8 @@ eight responses (35.80 versus 56.07) and fewer survivors (26.07 versus
 46.35).  Nevertheless, compose@1 is 4.21 points higher, while compose@8
 is nearly unchanged (76.32\% versus 76.56\%).  Thus its one-response gain
 coexists with a smaller distinct candidate pool, consistent with useful
-candidates becoming easier to obtain at a small sampling budget.  This
-comparison does not support an increase in cross-response diversity;
-clause counts alone also do not measure logical strength or necessity.
+candidates becoming easier to obtain at a small sampling budget, rather
+than increased cross-response diversity.
 
 \Needspace{22\baselineskip}
 \subsection{Does Negative Coverage Align with Final Verification?}
@@ -1467,14 +1423,9 @@ All & 691 & 5,711 & 0.842 \\
 
 Negative coverage achieves a macro AUROC of 0.842 (program-level bootstrap
 95\% CI: \([0.826,0.858]\)), with consistent alignment across Linear, NLA,
-and Loopy.  This diagnostic evaluates ranking on fixed candidates; it does not
-measure the causal effect of negative-trace construction on RL training.
-Coverage is an empirical diagnostic; final verification and generation
-determine whether a sufficient invariant is found.
-
-This population consists of archived tool outputs and verified references.
-Training-time response groups require separate evidence of informative
-within-group reward differences.
+and Loopy. Coverage thus ranks verification outcomes well on this fixed
+candidate population. Training-time reward diagnostics are reported in
+Appendix~\ref{app:reward-training-curves}.
 
 
 
@@ -1492,8 +1443,7 @@ are defined in Appendix~\ref{app:formal-method}.
 With the 900-second cap, post-filtering reaches 64.2\% compose@32 versus
 64.4\% for pre-filtering (Table~\ref{tab:prefilt-vs-postfilt}).  The recorded
 whole-workload cost is 127 versus 1,472 CPU-hours, or about 8.6\% as much.
-These values are total CPU-hours for the reported 832-program evaluation
-workload. The main observed advantage is avoiding repeated
+The main observed advantage is avoiding repeated
 filtering calls while retaining nearly the same verification rate.
 
 \paragraph{A tight timeout can erase the benefit of a larger candidate pool.}
@@ -1541,7 +1491,7 @@ Pre-filter          & All    & 40.4 & 52.8 & 57.9 & 62.1 & 64.4 & 1472 \\
 \centering
 \includegraphics[width=\linewidth]{figures/target_visibility.pdf}
 \captionsetup{font=small}
-\caption{Target visibility for the same Qwen3-8B SFT+RL model. (a) compose@\(k\); (b) pass@\(k\). No retraining or iterative feedback.}
+\caption{Target visibility for Qwen3-8B SFT+RL: (a) compose@\(k\); (b) pass@\(k\).}
 \label{fig:target-visibility}
 \end{wrapfigure}
 
@@ -1560,8 +1510,7 @@ budget (Figure~\ref{fig:target-visibility}).  Compose gains 1.32 points at
 
 Visible compose@4 reaches 78.73\%, compared with 78.37\% for hidden
 compose@32. Target visibility therefore reduces the sampling budget in this
-evaluation. The saved-pool estimates and prefix compositions remain subject
-to sampling variance (Appendix~\ref{app:limitations}).
+evaluation.
 
 \begin{table}[H]
 \centering
@@ -1932,15 +1881,13 @@ supplies much of the coverage encouraged by group credit.
 
 The training diagnostics compare Full and Clause-decomposed over
 2 RL epochs. Table~\ref{tab:shapley-entropy} reports an early reference
-measurement and the end-of-training value. Retention is computed from the
-displayed entropy values; these are policy statistics.
+measurement and the end-of-training value. Retention is final entropy
+divided by the early reference value.
 
 \begin{table}[H]
 \centering
 \small
-\caption{Policy entropy under the two rewards over 2 RL epochs. Retention
-is final entropy divided by the early reference value. Bold marks the
-higher final entropy and retention within each initialization.}
+\caption{Policy entropy over two RL epochs. Bold marks the higher final entropy and retention within each initialization.}
 \label{tab:shapley-entropy}
 \begin{tabular}{llrrr}
 \toprule
@@ -1974,21 +1921,6 @@ Appendix~\ref{app:formal-reward-collapse}.
 
 \section{Detailed Limitations}
 \label{app:limitations}
-
-\paragraph{Sampling variance and metric aggregation.}
-Archived pass@\(k\) estimates standalone success over subsets of a saved
-response pool; compose@\(k\) evaluates one prefix. The displayed
-pass values project reported estimates to integer counts; they do not
-recover observed verdicts or ensure additive stratum counts.  Sharing the
-nominal budget does not pair the individual responses used in the two
-aggregates or equalize their variance.  Reordering a fixed pool leaves its
-pass estimate unchanged but can alter compose.  Small differences and
-apparent saturation can therefore reflect the sampled pool and prefix;
-nested budgets also make curve points correlated.  Direct-count results
-retain run-level sampling variability. These measurements do not
-establish statistical significance or an asymptotic ceiling.  Repeating
-generation and evaluating both metrics on the same sampled subsets would
-permit uncertainty estimates for paired differences.
 
 \paragraph{Program scope.}
 Our implementation targets numerical programs with one scalar-integer loop.

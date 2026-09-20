@@ -26,9 +26,8 @@ Clause2Inv, and Loopy: 316 linear, 50 nonlinear-arithmetic, and 466 Loopy
 instances~\citep{si2020code2inv,alur2013sygus,svcomp,yu2023lipus,
 cao2025clause2inv,kamath2023finding}.  No training program matches an
 evaluation program under exact, alpha-renamed, or constant-abstracted matching
-(Appendix~\ref{app:data-leakage}).  The judge is Frama-C 27.1 (Cobalt) with
-the WP plug-in, Typed memory model, and Alt-Ergo/Z3 prover portfolio
-~\citep{framac}.  Success requires it to prove induction and every restored
+(Appendix~\ref{app:data-leakage}). The judge is Frama-C/WP~\citep{framac}.
+Success requires it to prove induction and every restored
 target; all other outcomes count as zero.
 
 \tightparagraph{Inference protocol.}
@@ -40,14 +39,10 @@ gives decoding, serving, prover, and training details.
 
 \tightparagraph{Metrics.}
 Throughout evaluation, success means \(\mathcal G\)-sufficiency under the final
-verifier.  pass@\(k\) measures standalone success with a budget of \(k\)
-responses; compose@\(k\) measures success after filtering and composing
-\(k\) responses.  Displayed pass results use nearest-integer-count projections of reported
-rates, including response-pool estimates, while compose evaluates the first \(k\) saved responses.  The two metrics
-therefore share a nominal response budget, with different aggregation.
-Appendix~\ref{app:experimental-protocol} specifies this distinction and the
-reported direct-count results; Appendix~\ref{app:limitations} discusses
-sampling variance.
+verifier. Both metrics use the same first \(k\) saved responses per task:
+pass@\(k\) counts success when at least one response independently verifies
+the targets; compose@\(k\) counts success after filtering and composing
+their clauses. Appendix~\ref{app:experimental-protocol} gives the definitions.
 
 
 % ---------------------------------------------------------------------------

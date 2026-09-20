@@ -6,7 +6,7 @@
 This section expands the method in Section~\ref{sec:method} into a complete
 input-to-output specification.  Given a task with hidden goals, CRAFT masks
 those goals and applies the same rollout--decompose--pool--filter--compose
-operator at inference time and during target construction.  We first define
+operator at inference time and during label construction.  We first define
 the program semantics and verifier, then the exact and resource-bounded
 filters, and finally the inference, SFT, and RL procedures.  Shapley credit and group reward collapse are formalized alongside RL scoring
 and policy updates; the remaining theoretical properties and proofs are
@@ -294,12 +294,12 @@ For evaluation, compose@\(n\) is the percentage of tasks for which
 at least one of these same \(n\) responses independently verifies the targets
 (Appendix~\ref{app:experimental-protocol}).
 
-\subsection{Complete SFT Target Construction}
+\subsection{Complete SFT Label Construction}
 
 SFT distills the same multi-response map into one response.  It accumulates
 raw candidates so that a clause discarded in one round can later acquire a
 supporting companion.  The policy \(\pi_0\) is the small open-weight model
-being trained and is the only learned generator in target construction.
+being trained and is the only learned generator in label construction.
 Executions of \(\mathcal L\) produce the trace signal, and
 \(\operatorname{Filter}_{\mathcal L}\) supplies the verifier decision; no
 external model supplies candidates, labels, or acceptance judgments.
@@ -309,7 +309,7 @@ external model supplies candidates, labels, or acceptance judgments.
 \label{alg:formal-sft}
 \begin{algorithmic}
 \alginput{masked loop \(\mathcal L\), policy \(\pi_0\), negatives \(\mathcal N\), group size \(g_{\mathrm{sft}}\), round limit \(t_{\mathrm{sft}}\)}
-\algoutput{one serialized target, or \(\mathsf{reject}\)}
+\algoutput{one serialized label, or \(\mathsf{reject}\)}
 \algline \kw{if} \(\mathcal N=\varnothing\) \kw{then return} \(\mathsf{reject}\)\\
 \algline \(P\leftarrow\langle\rangle\)\\
 \algline \kw{for} \(t=1,\ldots,t_{\mathrm{sft}}\) \kw{do}\\
@@ -324,7 +324,7 @@ external model supplies candidates, labels, or acceptance judgments.
 \end{algorithmic}
 \end{algorithm}
 
-The SFT input and target contain no element of \(\mathcal G\).  The parameter
+The SFT input and label contain no element of \(\mathcal G\).  The parameter
 values appear in Appendix~\ref{app:constants}.
 
 \subsection{Complete RL Group-Scoring Algorithm}
@@ -600,7 +600,7 @@ training requires logged groups from the two policies.
 
 \subsection{Training--Inference Alignment}
 
-Inference, SFT target construction, and RL group scoring all call the same
+Inference, SFT label construction, and RL group scoring all call the same
 pooled map in Equation~\eqref{eq:formal-craft-map}; they differ only in how
 the returned clauses are consumed.  Inference checks the restored goals, SFT
 serializes an accepted fixed point, and RL projects the fixed point back to

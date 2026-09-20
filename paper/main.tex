@@ -254,11 +254,11 @@ into clauses, pools and jointly filters clauses across responses, and composes
 the survivors into an invariant.  This recovers useful proof material without
 requiring any response to prove the hidden target independently.
 To make training support the same inference process, CRAFT aligns supervision
-targets and RL credit with filtered compositions.  Because target assertions
+labels and RL credit with filtered compositions.  Because target assertions
 and postconditions remain hidden throughout generation and training,
 execution-derived negative-trace coverage provides a target-independent
 strength signal.  Supervised fine-tuning (SFT) distills accepted multi-response
-compositions into single-response targets, while reinforcement learning (RL)
+compositions into single-response labels, while reinforcement learning (RL)
 credits coverage contributed by retained clauses even when their original
 responses fail as wholes.  On 832 C programs, SFT raises Qwen3-8B's
 compose@1---the verification rate after filtering and composing one

@@ -528,7 +528,7 @@ Nondeterministic & 28.6 & 41.5 & 14.9 \\
 The raw training-program pool is drawn primarily from SV-COMP and SyGuS
 \citep{svcomp,alur2013sygus}.  We retain scalar-integer single-loop programs
 and hide target assertions and postconditions in the model-facing input.
-RL uses 9,024 selected programs. SFT targets are synthesized and verified
+RL uses 9,024 selected programs. SFT labels are synthesized and verified
 by the multi-round procedure in Section~\ref{sec:method:sft}, using the
 same open-weight model that is subsequently trained.
 Table~\ref{tab:training-sets} summarizes the training sets. Loop shapes
@@ -683,7 +683,7 @@ this clause-level composition operator.
 
 \tightparagraph{Model naming.}
 Local models are named \textit{Backbone + SFT + RL}, omitting unused stages.
-SFT uses composed targets; SFT (single) uses independently filtered responses.
+SFT uses composed labels; SFT (single) uses independently filtered responses.
 RL defaults to Full, while reward ablations are named explicitly
 (Appendix~\ref{app:ablation-definitions}).
 
@@ -765,7 +765,7 @@ Model & \(k\) & pass & comp & pass & comp & pass & comp & pass & comp \\
 \begin{table}[H]
 \centering
 \small
-\caption{Verification after SFT on composed targets.}
+\caption{Verification after SFT on composed labels.}
 \label{tab:sft-probe-complete}
 \begin{tabular}{lccccccccc}
 \toprule
@@ -807,13 +807,13 @@ Model & \(k\) & pass & comp & pass & comp & pass & comp & pass & comp \\
 \end{tabular}
 \end{table}
 
-\subsection{SFT Models with Single-Response Targets}
+\subsection{SFT Models with Single-Response Labels}
 \label{app:sft-single}
 
 \begin{table}[H]
 \centering
 \small
-\caption{Verification after SFT on single-response targets.}
+\caption{Verification after SFT on single-response labels.}
 \label{tab:latest-sft-filter}
 \begin{tabular}{lccccccccc}
 \toprule
@@ -1157,20 +1157,20 @@ returns within the tested range.
 \centering
 \includegraphics[width=\linewidth]{figures/sft_composition_pass.pdf}
 \captionsetup{font=small}
-\caption{Effect of SFT target construction on Qwen3-8B pass@\(k\).}
+\caption{Effect of SFT label construction on Qwen3-8B pass@\(k\).}
 \label{fig:sft-composition-pass}
 \end{wrapfigure}
 
 
 
 
-We compare Bare, SFT (single), and composed-target SFT on the same 832
+We compare Bare, SFT (single), and composed-label SFT on the same 832
 programs. The two SFT datasets contain approximately equal numbers of
-training examples. Single targets are independently filtered responses;
-composed targets pool discoveries across responses.
+training examples. Single-response labels are independently filtered responses;
+composed labels pool discoveries across responses.
 
 SFT (single) improves pass over Bare but lowers compose at every reported
-budget.  Composed-target SFT exceeds both models on both metrics: relative
+budget.  Composed-label SFT exceeds both models on both metrics: relative
 to SFT (single), its compose gains are 40.70 points at \(k=1\) and 30.18
 at \(k=32\), with pass gains of 22.00 and 24.76 points.  Thus better
 standalone answers need not supply better compositions; supervision from
@@ -1882,7 +1882,7 @@ Full changes compose by \(-0.60\) to \(+1.32\) points: 67.91\% to
 69.23\% at \(k=1\), and 78.25\% to 78.37\% at \(k=32\). It is lower
 at \(k=4\) and tied at \(k=8\) and \(k=16\). Pass decreases by
 5.17--8.05 points. Thus the added composition benefit after SFT is small
-and concentrated at the one-response budget. Composed-target SFT already
+and concentrated at the one-response budget. Composed-label SFT already
 supplies much of the coverage encouraged by group credit.
 
 \paragraph{Does Full retain more policy entropy?}

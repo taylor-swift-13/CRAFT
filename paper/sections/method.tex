@@ -2,7 +2,7 @@
 \section{Method}\label{sec:method}
 %% ============================================================
 
-CRAFT shares one clause-processing pipeline across inference, SFT target
+CRAFT shares one clause-processing pipeline across inference, SFT label
 construction, and RL credit assignment (Figure~\ref{fig:overview}).
 Appendix~\ref{app:formal-method} gives the complete formal definition.
 
@@ -112,13 +112,13 @@ to the accumulated pool, and jointly filters it:
 \end{equation}
 Accumulating all admitted clauses in \(P_t\) allows a removed clause to return
 when a later response supplies support.
-The target can therefore combine discoveries across responses and rounds.
+The label can therefore combine discoveries across responses and rounds.
 
 \tightparagraph{Acceptance and serialization.}
 For nonempty \(\mathcal N\), the first composition satisfying
 \(\operatorname{cov}(C_t)\ge\tau\) within \(t_{\mathrm{sft}}\) rounds is
-serialized as the SFT target; otherwise no training pair is produced.
-Standard autoregressive cross-entropy trains the model on this target,
+serialized as the SFT label; otherwise no training pair is produced.
+Standard autoregressive cross-entropy trains the model on this label,
 conditioned on the masked loop.  Algorithm~\ref{alg:formal-sft} gives the
 complete procedure.
 

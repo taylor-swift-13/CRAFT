@@ -17,8 +17,8 @@ Training data comprise 9,024 RL records and 33,346 SFT records (31,865
 distinct sources) of target-masked scalar-integer single-loop programs.
 The raw training-program pool is drawn primarily from SV-COMP and SyGuS
 \citep{svcomp,alur2013sygus}; Appendix~\ref{app:data-curation} describes
-program selection and verified SFT-target construction.  SFT
-targets and RL rewards are produced only by the open-weight model being trained,
+program selection and verified SFT-label construction.  SFT
+labels and RL rewards are produced only by the open-weight model being trained,
 program execution, and Frama-C/WP verification; no external teacher or
 closed-model supervision is used.  The
 evaluation combines 832 programs from Code2Inv, SyGuS, SV-COMP, LIPuS,
@@ -73,7 +73,7 @@ highest API reference of 56.97\% under the evaluated protocol.
 \begin{insightbox}
 \textbf{Finding.}
 Compositional inference improves verification both before and after training.
-Aligning SFT targets and RL rewards with this inference process further improves
+Aligning SFT labels and RL rewards with this inference process further improves
 verification, while trained models continue to benefit from inference-time
 composition.
 \end{insightbox}
@@ -164,7 +164,7 @@ useful candidates available earlier even after substantial supervised training.
 \end{insightbox}
 
 % ---------------------------------------------------------------------------
-\subsection{RQ4: Why Do Composed SFT Targets and Clause-Level Rewards Help?}
+\subsection{RQ4: Why Do Composed SFT Labels and Clause-Level Rewards Help?}
 \label{sec:exp:ablations}
 
 \begin{figure}[H]
@@ -173,7 +173,7 @@ useful candidates available earlier even after substantial supervised training.
 \vspace{0pt}
 \includegraphics[width=\linewidth]{figures/sft_composition_compose_row.pdf}
 \captionsetup{font=small,margin={0pt,7pt}}
-\caption{Effect of SFT target construction on Qwen3-8B compose@\(k\).}
+\caption{Effect of SFT label construction on Qwen3-8B compose@\(k\).}
 \label{fig:sft-composition-compose}
 \end{minipage}%
 \begin{minipage}[t]{0.666667\textwidth}
@@ -185,14 +185,14 @@ useful candidates available earlier even after substantial supervised training.
 \end{minipage}
 \end{figure}
 
-We ablate SFT target construction and RL credit assignment to examine how
+We ablate SFT label construction and RL credit assignment to examine how
 training acquires useful clauses and preserves their contributions.
 
 \tightparagraph{Composition turns broader exploration into supervision.}
-SFT (single) uses independently filtered responses; composed targets pool
+SFT (single) uses independently filtered responses; composed labels pool
 valid clauses across responses, giving supervision access to more candidate
 invariants and complementary constraints.  With approximately equal numbers
-of training examples, composed-target SFT raises Qwen3-8B pass@1 from
+of training examples, composed-label SFT raises Qwen3-8B pass@1 from
 19.95\% to 41.93\% and compose@1 from 23.20\% to 63.90\%, relative to
 SFT (single) (Figure~\ref{fig:sft-composition-compose}).  Composition exposes
 SFT to the results of multi-response exploration, which the trained model
@@ -221,7 +221,7 @@ and target visibility.
 
 \begin{insightbox}
 \textbf{Finding.}
-Composed targets turn useful clauses from broader exploration into supervision;
+Composed labels turn useful clauses from broader exploration into supervision;
 clause-level rewards preserve useful contributions within failed responses.
 Together, they let training exploit more of the candidates that compositional
 verification can use.

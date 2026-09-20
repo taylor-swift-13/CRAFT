@@ -18,7 +18,7 @@ generation and training.  Inductive validity alone is insufficient: a valid
 but weak invariant may fail to prove the hidden targets.  Training therefore
 needs a target-independent strength signal beyond validity.
 
-We introduce \sam{} to align compositional inference, supervision targets,
+We introduce \sam{} to align compositional inference, supervision labels,
 and RL rewards.  At inference, it decomposes responses into clauses, pools
 and jointly filters them, and composes the survivors.  During training,
 execution-derived negative-trace coverage supplies a target-independent
@@ -46,7 +46,7 @@ as our primary metric.
   useful parts of imperfect responses and combines complementary constraints.
   With one response, bare Qwen3-8B reaches 37.86\% compose@1 versus
   6.43\% pass@1.
-  \item We align SFT targets and RL credit with compositional inference.
+  \item We align SFT labels and RL credit with compositional inference.
   SFT distills accepted multi-response compositions into single-response
   supervision, raising Qwen3-8B compose@1 to 63.90\%.  RL rewards surviving
   clauses' coverage and group contributions even when the complete response

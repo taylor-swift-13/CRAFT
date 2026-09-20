@@ -8,6 +8,8 @@
 \definecolor{ovRed}{HTML}{B85C47}
 \definecolor{ovPaper}{HTML}{F7F9F8}
 \pgfmathsetlengthmacro{\ovunit}{\textwidth/16}
+\pgfmathsetlengthmacro{\ovrewardwidth}{6.41*\ovunit-6pt}
+\pgfmathsetlengthmacro{\ovrlwidth}{3.90*\ovunit-6pt}
 % Helvetica is scaled by 0.92 in the manuscript: these yield 8/8.5 pt text.
 \def\ovbody{\sffamily\fontsize{8.7}{10.2}\selectfont}
 \def\ovtitle{\sffamily\fontsize{9.2}{10.8}\selectfont\bfseries}
@@ -57,12 +59,12 @@
 \node[u] at (14.06,6.78) {\(u\)};
 \node[note, anchor=west] at (14.31,6.78) {rejected};
 
-\node[card, text width=2.30*\ovunit] (masked) at (1.45,5.12)
+\node[card, draw=none, fill=black!5, text width=2.00*\ovunit,
+  inner ysep=3pt, minimum height=2.2184*\ovunit] (masked) at (1.40,5.14)
   {Masked loop\\[2pt]\(\mathcal L\! =\! (\mathrm{Init},B,S)\)\\[2pt]
    \textcolor{ovRed}{\(\mathcal G\) hidden}};
-\draw[flow] (masked.east)--(2.77,5.12);
-
-\fill[ovPaper, rounded corners=2pt] (2.86,3.96) rectangle (8.21,6.32);
+\fill[ovGreen!6, rounded corners=2pt] (2.86,3.96) rectangle (8.21,6.32);
+\draw[flow] (masked.east |- 0,4.94)--(2.82,4.94);
 \node[note, anchor=west] at (3.04,6.12) {within a rollout};
 \node[heading] at (4.31,5.75) {1\; Rollout};
 \node[heading] at (6.96,5.75) {2\; Decompose};
@@ -75,9 +77,9 @@
   \node[note] at (3.40,\y) {\(y_{\lab}\)};
   \foreach \letter [count=\i from 0] in \clauses {
     \node[\letter] at (3.78+\i*.33,\y) {\(\letter\)};
-    \node[\letter] at (6.55+\i*.34,\y) {\(\letter\)};
+    \node[\letter] at (6.65+\i*.34,\y) {\(\letter\)};
   }
-  \node[note, anchor=east] at (6.24,\y) {\(A_{\lab}\)};
+  \node[note, anchor=east] at (6.34,\y) {\(A_{\lab}\)};
 }
 \draw[ovGreen, line width=.8pt]
   (5.29,5.38)--(5.34,5.32)--(5.44,5.47);
@@ -86,10 +88,9 @@
     (5.29,\y-.07)--(5.43,\y+.07)
     (5.29,\y+.07)--(5.43,\y-.07);
 }
-\draw[flow] (5.56,4.94)--(5.75,4.94);
 \draw[flow] (8.25,4.94)--(8.58,4.94);
 
-\fill[ovPaper, rounded corners=2pt] (8.66,3.96) rectangle (15.60,6.32);
+\fill[ovGreen!6, rounded corners=2pt] (8.66,3.96) rectangle (15.60,6.32);
 \node[note, anchor=west] at (8.87,6.12) {across rollouts};
 \node[heading] at (9.68,5.75) {3\; Pool};
 \node[heading] at (11.32,5.75) {4\; Filter};
@@ -127,24 +128,24 @@
 \node[note, anchor=west] at (2.29,7.19) {composed set};
 \node[note, anchor=west] at (13.87,7.19) {rollout group};
 
-% (b) SFT: original acceptance, resampling, targets, and fine-tuning.
+% (b) SFT: original acceptance, resampling, labels, and fine-tuning.
 \draw[panel] (.10,.10) rectangle (3.96,7.05);
 \node[heading, anchor=west] at (.38,6.76) {(b)\; SFT};
-\node[note] at (2.03,6.17) {compose \(\to\) target};
+\node[note] at (2.03,6.17) {compose \(\to\) label};
 \draw[ovBorder, line width=.4pt] (.38,6.48)--(3.68,6.48);
-\node[card, text width=2.82*\ovunit] (composed) at (2.12,5.14)
+\node[card, draw=none, fill=black!5, text width=2.82*\ovunit] (composed) at (2.12,5.14)
   {Composed set\\[1pt]\(C_{\mathcal L}^{(t)}\)};
-\node[card, text width=2.62*\ovunit] (accept) at (2.12,3.49)
+\node[card, draw=none, fill=black!5, text width=2.62*\ovunit] (accept) at (2.12,3.49)
   {Coverage \(\ge\tau\)?};
 \draw[flow] (composed.south)--(accept.north);
 \draw[flow, rounded corners=2pt]
   (accept.west)--(.43,3.49)--(.43,5.14)--(composed.west);
 \node[note, anchor=west] at (.55,4.20) {resample};
-\node[card, fill=ovGreen, draw=ovGreen, text=white,
-  font=\ovtitle, inner xsep=6pt] (sfttarget) at (2.12,2.02) {SFT targets};
+\node[card, fill=ovGreen, draw=none, text=white,
+  font=\ovtitle, text width=2.82*\ovunit] (sfttarget) at (2.12,2.02) {SFT labels};
 \draw[flow] (accept.south)--(sfttarget.north);
 \node[note, anchor=west] at (2.24,2.77) {yes};
-\node[card, text width=2.82*\ovunit] (sftmodel) at (2.12,.74) {Fine-tune};
+\node[card, draw=none, fill=black!5, text width=2.82*\ovunit] (sftmodel) at (2.12,.74) {Fine-tune};
 \draw[flow] (sfttarget.south)--(sftmodel.north);
 
 % (c) Shared scorer. Binary is a reference, not a sampler input.
@@ -155,7 +156,7 @@
   {\textbf{Binary}\quad valid set \(\mapsto\{0,1\}\)};
 
 % A small, separate inset shows the two candidate-negative mechanisms.
-\fill[ovPaper, rounded corners=2pt] (4.52,3.90) rectangle (10.93,5.90);
+\fill[ovGreen!6, rounded corners=2pt] (4.52,3.90) rectangle (10.93,5.90);
 \node[heading, anchor=west] at (4.68,5.63) {Candidate negatives};
 \node[note, anchor=west] at (4.68,4.95) {off-trajectory};
 \node[note, anchor=west] at (4.68,4.16) {post-exit};
@@ -227,7 +228,8 @@
   (8.66,1.55)--(8.80,1.69) (8.66,1.69)--(8.80,1.55);
 \node[note, anchor=west] at (8.92,1.62) {shared};
 \node[card, draw=ovGreen!40, fill=ovGreen!5,
-  text width=5.54*\ovunit, inner ysep=2.5pt] (rewardformula) at (7.73,.74)
+  text width=\ovrewardwidth,
+  inner ysep=2.5pt] (rewardformula) at (7.725,.74)
   {\textbf{Full reward per rollout}\\[1pt]
    \(r_i=\operatorname{cov}(V_i)+0.3\phi_i\)};
 
@@ -242,15 +244,14 @@
   4.81/3/{v,d,u,e,f}}{
   \node[note, anchor=east] at (12.48,\y) {\(y_{\lab}\)};
   \foreach \letter [count=\i from 0] in \clauses {
-    \node[\letter] at (12.77+\i*.41,\y) {\(\letter\)};
+    \node[\letter, draw=none] at (12.77+\i*.41,\y) {\(\letter\)};
   }
 }
 \draw[flow] (13.60,4.59)--(13.60,4.40);
-\draw[pool] (12.24,3.61) rectangle (15.07,4.39);
 \foreach \letter [count=\i from 0] in {a,b,c,d,e,f}{
-  \node[\letter] (owner\letter) at (12.54+\i*.44,3.84) {\(\letter\)};
+  \node[\letter, draw=none] (owner\letter) at (12.54+\i*.44,3.84) {\(\letter\)};
 }
-\node[note] at (13.67,4.20) {pool, filtered once};
+\node[note] at (13.70,4.20) {pool, filtered once};
 \node[note, text=ovInk] (r1) at (12.71,2.70) {\(r_1\)};
 \node[note, text=ovInk] (r2) at (13.70,2.70) {\(r_2\)};
 \node[note, text=ovInk] (r3) at (14.69,2.70) {\(r_3\)};
@@ -260,7 +261,7 @@
 \draw[ovMuted, line width=.6pt]
   (r1.south)--(12.71,2.39)--(14.69,2.39)--(r3.south);
 \draw[ovMuted, line width=.6pt] (r2.south)--(13.70,2.39);
-\node[card, text width=3.65*\ovunit, inner ysep=3pt] (grpo) at (13.70,1.18)
+\node[card, draw=none, fill=black!5, text width=\ovrlwidth, inner ysep=3pt] (grpo) at (13.70,1.18)
   {\textbf{GRPO}\\[1pt]group-normalized\\advantage\\[1pt]
    \(\to\) policy update};
 \draw[flow] (13.70,2.39)--(grpo.north);

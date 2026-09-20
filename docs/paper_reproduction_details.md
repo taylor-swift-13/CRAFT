@@ -15,4 +15,11 @@ in the paper's implementation and experimental-protocol sections.
 - Single-response-target SFT and Qwen3-8B Bare-initialized reward tables use the September 10, 2026 evaluation report.
 - Cross-backbone Whole-rollout controls use the September 10, 2026 report for Qwen3 and the complete two-epoch evaluation for Llama.
 - Post-SFT Qwen3-8B Full uses the main evaluation; the other rewards use their reward-ablation evaluations.
-- Trained-model verification rates and local cost measurements have separate evaluation sources, as disclosed in the tool-comparison appendix.
+- Trained-model verification rates and local cost measurements have separate evaluation sources.
+
+## Training service packaging
+
+The training service uses a self-contained CPU-only container with gcc,
+the verifier, Why3, and its prover backend. Inputs support raw model text,
+invariant lists, or annotated code; outputs include per-response rewards
+and coverage.

@@ -342,9 +342,9 @@ evaluator is three-valued:
   \{\mathsf{true},\mathsf{false},\mathsf{unknown}\}.
   \label{eq:formal-state-eval}
 \end{equation}
-An unknown result leaves the negative trace unrejected and the candidate out
-of the reachable-state front end's accepted set; the verifier handles syntax
-and induction.
+An unknown evaluation neither rejects a negative trace nor removes a
+candidate during reachable-state screening; surviving candidates are passed
+to the verifier for syntax and induction checks.
 A trace counts as rejected only when at least one retained clause evaluates
 definitively to false at one of its states:
 \begin{equation}
@@ -362,20 +362,25 @@ SFT construction.  For RL, the explicit fallback below uses a binary survivor
 signal and never evaluates this ratio.
 
 For an RL group \(y_{1:g_{\mathrm{rl}}}\), first form the same globally
-deduplicated pool used at inference, and then invoke the verifier filter once:
+deduplicated pool used at inference. Let
+\(\operatorname{Screen}_{\mathcal E}(P)\) denote the order-preserving
+front end that removes malformed or out-of-scope clauses and any clause
+\(c\) with \(\operatorname{Eval}(c,s)=\mathsf{false}\) for some
+\(s\in\mathcal E\). Unknown evaluations do not remove a clause.
+Apply this screen to the pooled candidates, then invoke the verifier filter once:
 \begin{align}
   A_i&=\operatorname{Admit}(y_i),
   &P^*&=\operatorname{Unique}\!\left(A_1\Vert\cdots\Vert A_{g_{\mathrm{rl}}}\right),
   \label{eq:formal-pooled-filter}\\
-  C^*&=\operatorname{Filter}_{\mathcal L}(P^*),
-  &V_i&=\left\langle c\in A_i\ \middle|\
+  P_{\mathcal E}&=\operatorname{Screen}_{\mathcal E}(P^*),
+  &C^*&=\operatorname{Filter}_{\mathcal L}(P_{\mathcal E}),\notag\\
+  V_i&=\left\langle c\in A_i\ \middle|\
     \operatorname{key}(c)\in\operatorname{keys}(C^*)\right\rangle,
   &R_i&=\operatorname{rej}_{\mathcal N}(V_i).
   \label{eq:formal-projection}
 \end{align}
 Here \(V_i\) assigns each pooled survivor back to every response that proposed
-it.  A reachable-state front end evaluates the globally pooled candidates on
-\(\mathcal E\) before the verifier processes the same pool.  If
+it. The verifier processes the screened pool \(P_{\mathcal E}\). If
 \(f(\nu)=|\{j:\nu\in R_j\}|\), the reward is
 \begin{equation}
   r_i=w_c\frac{|R_i|}{|\mathcal N|}
@@ -405,8 +410,10 @@ excess output.
 \algline \(A_i\leftarrow\operatorname{Admit}(y_i)\) for every \(i\)\\
 \algline \(P^*\leftarrow\operatorname{Unique}(A_1\Vert\cdots\Vert
   A_{g_{\mathrm{rl}}})\)\cmnt{pool globally}\\
-\algline \(C^*\leftarrow\operatorname{Filter}_{\mathcal L}(P^*)\)
-  \cmnt{filter the pool once}\\
+\algline \(P_{\mathcal E}\leftarrow\operatorname{Screen}_{\mathcal E}(P^*)\)
+  \cmnt{screen pooled clauses on reachable states}\\
+\algline \(C^*\leftarrow\operatorname{Filter}_{\mathcal L}(P_{\mathcal E})\)
+  \cmnt{verify the screened pool once}\\
 \algline \(V_i\leftarrow\langle c\in A_i\mid\operatorname{key}(c)\in
   \operatorname{keys}(C^*)\rangle\) for every \(i\)\cmnt{project by provenance}\\
 \algline \kw{if} \(\mathcal N=\varnothing\) \kw{then}\\

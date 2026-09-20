@@ -57,15 +57,15 @@ SFT+RL starts from SFT. API models receive no additional training.
 \input{sections/main_results_table}
 
 \tightparagraph{Compositional inference alone substantially improves verification.}
-For Bare Qwen3-8B, pass@1 is 6.43\%,
-compose@1 reaches 37.86\%, or \(5.89\times\) the standalone rate.
+For Bare Qwen3-8B, pass@1 is 6.37\%,
+compose@1 reaches 37.86\%, or \(5.94\times\) the standalone rate.
 Both rates concern a one-response inference budget, showing that the framework can recover
 clauses sufficient for a proof from an answer that fails as a whole.
 
 \tightparagraph{Two-stage training aligned with inference further improves verification.}
 SFT constructs supervision from composed valid clause sets, while RL assigns
 credit based on the contributions of clauses retained after filtering.
-Qwen3-8B compose@1 rises from 37.86\% to 63.90\% after SFT and then to
+Qwen3-8B compose@1 rises from 37.86\% to 63.94\% after SFT and then to
 69.23\% after RL.  All four local backbones show this progressive
 improvement in compose@1; Qwen3-4B SFT+RL reaches 67.55\%, exceeding the
 highest API reference of 56.97\% under the evaluated protocol.
@@ -134,7 +134,7 @@ Figure~\ref{fig:rl-panels} compares Qwen3-8B from Bare and SFT initializations
 to examine whether this pattern also appears in compositional verification.
 
 \tightparagraph{SFT expands coverage and compresses the sampling budget.}
-SFT reaches 63.90\% compose@1, exceeding Bare compose@32 (57.81\%).
+SFT reaches 63.94\% compose@1, exceeding Bare compose@32 (57.81\%).
 After RL, SFT initialization raises compose@1 from 51.80\% to 69.23\%
 under the same one-response budget.
 It also raises compose@32 from 57.81\% to 78.37\%: SFT both makes
@@ -144,12 +144,12 @@ coverage within the measured range.
 \tightparagraph{After SFT, RL mainly makes useful candidates available earlier.}
 From Bare, RL improves compose@1 and compose@32 by 13.94 and 12.86
 points, respectively, retaining a substantial gain even at the largest budget.
-After three SFT epochs, its gains shrink to \textbf{5.33 points at compose@1
-and only 0.47 at compose@32}.  After SFT, RL mainly improves sampling
+After three SFT epochs, its gains shrink to \textbf{5.29 points at compose@1
+and only 0.49 at compose@32}.  After SFT, RL mainly improves sampling
 efficiency: useful candidates appear with fewer responses, while
 coverage at the largest tested budget changes little.
 
-Meanwhile, post-SFT RL lowers pass@1 from 41.93\% to 30.78\%.
+Meanwhile, post-SFT RL lowers pass@1 from 41.95\% to 30.77\%.
 The independent clause-cap ablation shows the same trade-off within
 SFT+RL: increasing the cap from 4 to 16 lowers standalone response success
 while improving compose@1 and compose@8 (Appendix~\ref{app:clause-cap}).  Both results show
@@ -193,7 +193,7 @@ SFT (single) uses independently filtered responses; composed labels pool
 valid clauses across responses, giving supervision access to more candidate
 invariants and complementary constraints.  With approximately equal numbers
 of training examples, composed-label SFT raises Qwen3-8B pass@1 from
-19.95\% to 41.93\% and compose@1 from 23.20\% to 63.90\%, relative to
+19.95\% to 41.95\% and compose@1 from 23.20\% to 63.94\%, relative to
 SFT (single) (Figure~\ref{fig:sft-composition-compose}).  Composition exposes
 SFT to the results of multi-response exploration, which the trained model
 can exploit with a single response.

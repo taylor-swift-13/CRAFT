@@ -1139,13 +1139,18 @@ cross-response composition.
 
 
 Useful clauses are already recoverable at a one-response budget:
-Qwen3-8B reaches 37.86\% compose@1 versus 6.43\% pass@1, and Llama 3.1-8B
+Qwen3-8B reaches 37.86\% compose@1 versus 6.37\% pass@1, and Llama 3.1-8B
 reaches 27.88\% versus 0.60\%.  Additional sampling helps, but the final
 budget doubling yields smaller compositional gains.  From 16 to 32
 responses, compose rises from 56.37\% to 57.81\% for Qwen3-8B and from
 51.68\% to 52.16\% for Llama, while pass rises from 21.63\% to 25.96\%
 and from 6.25\% to 9.74\%, respectively.  These curves show diminishing
 returns within the tested range.
+
+The Qwen3-30B-A3B MoE model underperforms the smaller dense Qwen3-4B,
+Qwen3-8B, and Qwen3-14B models in compose@\(k\) at every tested budget.
+Thus its larger total parameter count does not translate into better
+compositional verification under this evaluation protocol.
 
 \finishfigurewrap
 \Needspace{22\baselineskip}
@@ -1171,7 +1176,7 @@ composed labels pool discoveries across responses.
 
 SFT (single) improves pass over Bare but lowers compose at every reported
 budget.  Composed-label SFT exceeds both models on both metrics: relative
-to SFT (single), its compose gains are 40.70 points at \(k=1\) and 30.18
+to SFT (single), its compose gains are 40.74 points at \(k=1\) and 30.16
 at \(k=32\), with pass gains of 22.00 and 24.76 points.  Thus better
 standalone answers need not supply better compositions; supervision from
 broader candidate pools improves both in this comparison.  Main-text
@@ -1250,7 +1255,7 @@ Full (default) & 35.70 & 48.32 & 53.00 & 56.97 & 59.86 & 61.90 & 72.00 & 74.40 &
 \end{table}
 
 \paragraph{Preserving partial contributions improves composition.}
-From Bare Qwen3-8B, Whole-rollout raises pass@1 from 6.43\% to 15.50\%
+From Bare Qwen3-8B, Whole-rollout raises pass@1 from 6.37\% to 15.50\%
 but lowers compose@32 from 57.81\% to 23.32\%.  Clause-decomposed restores
 66.35\% compose@32 by crediting surviving clauses even when their response
 fails.  Its advantage over Whole-rollout is 43.03 points from Bare and
@@ -1939,6 +1944,13 @@ Our implementation targets numerical programs with one scalar-integer loop.
 The evaluation excludes nested loops and invariants over arrays, heaps, or
 recursively defined predicates. The negative-trace construction probes scalar
 arithmetic relations and exit boundaries~\citep{liu2024towards}.
+
+\paragraph{Nonlinear arithmetic.}
+Most NLA programs remain unsolved by the evaluated local Qwen3 models,
+even after SFT and RL. This suggests that invariants sufficient for these
+programs largely lie beyond the candidates these models can access within
+the tested sampling budgets. Composition can recover useful generated
+clauses, but cannot supply nonlinear relations absent from the candidate pool.
 
 \paragraph{Conditional reachability of negative traces.}
 Nondeterminism, truncated or sparsely recorded traces, and unrecorded state

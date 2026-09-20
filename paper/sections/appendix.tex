@@ -53,10 +53,11 @@ responses in these pools passes as a whole on this program; pooled filtering
 removes incompatible siblings and retains the useful relation.
 
 \paragraph{Case study: composition without cross-response support.}
-We replay the first four GPT-5-nano responses, comparing independent
-and pooled filtering with \(\operatorname{Filter}_{\mathcal L}\).
-The assertion shown below is hidden during generation and filtering,
-then restored for final verification.
+This case shows that clauses can each survive independent filtering yet
+require cross-response composition to prove the target. We compare independent
+and pooled filtering of the first four GPT-5-nano responses for the same task,
+using \(\operatorname{Filter}_{\mathcal L}\). The target assertion is hidden
+during generation and filtering, then restored for final verification.
 
 \begin{lstlisting}[language=C]
 /*@ requires n >= 0; */
@@ -96,7 +97,8 @@ verifies the target.}
 \end{table}
 
 \noindent\begin{minipage}{\textwidth}
-Each pooled clause is independently inductive. The composed annotation is
+Every clause retained by pooled filtering also survives independent filtering.
+The composed annotation is
 \begin{lstlisting}
 /*@
   loop invariant x >= 0;
@@ -164,6 +166,12 @@ The complete composed annotation is
 All four independently filtered responses fail. The pooled annotation verifies
 through cross-response support during filtering.
 \end{minipage}
+
+This dependence on cross-response inductive support is rare in CRAFT,
+which encourages long conjunctive invariants: a longer response has more
+opportunity to include both a useful clause and its supporting clauses.
+The pre-/post-filtering comparison in Appendix~\ref{app:houdini-order}
+is consistent with this interpretation.
 
 \section{Implementation Details}
 \label{app:constants}

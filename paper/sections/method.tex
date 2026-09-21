@@ -6,6 +6,65 @@ CRAFT shares one clause-processing pipeline across inference, SFT label
 construction, and RL credit assignment (Figure~\ref{fig:overview}).
 Appendix~\ref{app:formal-method} gives the complete formal definition.
 
+\begin{definition}[Loop-verification task and target-hidden setting]
+\label{def:method-task}
+Let \(\Sigma\) be the program-state space.  A loop is
+\(\mathcal L=(\mathsf{Init},B,S)\), where \(\mathsf{Init}\) characterizes
+loop-entry states, \(B\) is the guard, and
+\(S\subseteq\Sigma\times\Sigma\) is one normally completing loop step.  A
+verification task is \(\mathcal T=(\mathcal L,\mathcal G)\), where
+\(\mathcal G=\{(\ell,g_\ell)\}\) contains targets at their original program
+locations.
+
+For a finite clause set \(C\), let
+\(I(C)=\bigwedge_{c\in C}c\), with \(I(\varnothing)=\mathsf{true}\).  The set
+is \emph{jointly inductive} when its conjunction satisfies
+\begin{equation}
+\operatorname{Ind}_{\mathcal L}(I(C))\iff
+\begin{cases}
+\forall\sigma:\ \mathsf{Init}(\sigma)\Rightarrow I(C)(\sigma),\\
+\forall\sigma,\sigma':\ I(C)(\sigma)\land B(\sigma)\land
+S(\sigma,\sigma')\Rightarrow I(C)(\sigma').
+\end{cases}
+\label{eq:method-inductive}
+\end{equation}
+Here and throughout the paper, a \emph{valid invariant} is inductive in this
+sense~\citep{floyd1967assigning,hoare1969axiomatic}.
+
+For a body target, let \(S^B_\ell\) be the path-sensitive relation from the
+loop head through guard evaluation to location \(\ell\); for a post-loop
+target, let \(X_\ell\) collect all paths from the loop head through an exit to
+\(\ell\), including guard-false and \texttt{break} exits.  The conjunction is
+\emph{target-sufficient} when, for every \((\ell,g)\in\mathcal G\), the
+applicable obligation holds:
+\begin{align}
+ I(C)(\sigma)\land S^B_\ell(\sigma,\sigma')
+   &\Rightarrow g(\sigma') &&\text{(body target)},\nonumber\\
+ I(C)(\sigma)\land X_\ell(\sigma,\sigma')
+   &\Rightarrow g(\sigma') &&\text{(post-loop target)}.
+ \label{eq:main-target-obligations}
+\end{align}
+Both obligations are universally quantified over \(\sigma,\sigma'\).  For an
+immediate post-loop target with only guard-false exits and a side-effect-free
+guard, the second reduces to \(I(C)\land\neg B\Rightarrow g\).
+
+In the \emph{target-hidden} setting, generation and all intermediate scores
+observe only \(\mathcal L\); \(\mathcal G\) is restored only after the
+invariant is fixed for final task verification.  Preconditions and executable
+loop semantics remain visible.  We study scalar-integer C programs with one
+loop; Appendix~\ref{app:scope-example} gives the scope and an example, and
+Appendix~\ref{app:formal-loop-verification} defines the path relations and
+verification obligations completely.
+\end{definition}
+
+We use the notation of Definition~\ref{def:method-task} throughout the
+inference, SFT, and RL procedures below.
+Clause pools and filter outputs are ordered sequences in the algorithms;
+set notation denotes their members, and conjunction ignores order.
+We abbreviate the bounded filter as \(\operatorname{Filter}_{\mathcal L}\)
+and the final verifier as \(\operatorname{TaskVerify}\), suppressing the
+fixed budgets \(\delta,h_{\max}\) defined in Appendix~\ref{app:formal-houdini}.
+
 \subsection{Target-Hidden Composable Inference}
 \label{sec:method:core}
 \label{sec:method:inference}
@@ -23,8 +82,8 @@ inference procedure; \(\Vert\) denotes concatenation and
 \caption{Rollout--decompose--pool--filter--compose}
 \label{alg:method-pipeline}
 \begin{algorithmic}
-\alginput{task \(\mathcal T=(\mathcal L,\mathcal G)\), policy \(\pi\), number of responses \(n\)}
-\algoutput{composed invariant \(I\), final verdict \(v\)}
+\alginput{task \(\mathcal T\) from Definition~\ref{def:method-task}, policy \(\pi\), number of responses \(n\)}
+\algoutput{filtered clause set \(C\), composed invariant \(I(C)\), final verdict \(v\)}
 \algline \(x\leftarrow\mathcal L\) by masking \(\mathcal G\) in \(\mathcal T\)\cmnt{hide target}\\
 \algline \(y_{1:n}\sim\pi(\cdot\mid x)\)\cmnt{rollout}\\
 \algline \(A_i\leftarrow\operatorname{Admit}(y_i)\) for \(i=1,\ldots,n\)
@@ -32,9 +91,9 @@ inference procedure; \(\Vert\) denotes concatenation and
 \algline \(P\leftarrow\operatorname{Unique}(A_1\Vert\cdots\Vert A_n)\)
   \cmnt{pool in response order}\\
 \algline \(C\leftarrow\operatorname{Filter}_{\mathcal L}(P)\)\cmnt{filter}\\
-\algline \(I\leftarrow\bigwedge_{c\in C}c\)\cmnt{compose}\\
+\algline form \(I(C)\) as in Definition~\ref{def:method-task}\cmnt{compose}\\
 \algline \(v\leftarrow\operatorname{TaskVerify}(\mathcal T,C)\)\cmnt{restore target}\\
-\algline \kw{return} \((I,v)\)\\
+\algline \kw{return} \((C,I(C),v)\)\\
 \end{algorithmic}
 \end{algorithm}
 
@@ -74,7 +133,7 @@ For a verified clause set \(C\), the state evaluator returns
 \(\operatorname{Eval}(c,s)\in\{\mathsf{true},\mathsf{false},\mathsf{unknown}\}\).
 A negative trace is rejected only by a definite false evaluation:
 \begin{equation}
- \operatorname{rej}(C)=\{\nu\in\mathcal N:\exists s\in\nu,\exists c\in C,
+ \operatorname{rej}_{\mathcal N}(C)=\{\nu\in\mathcal N:\exists s\in\nu,\exists c\in C,
    \operatorname{Eval}(c,s)=\mathsf{false}\}.
  \label{eq:main-negative-rejection}
 \end{equation}
@@ -82,8 +141,8 @@ An unknown evaluation contributes no rejection.  Perturbations form
 singleton traces; each cleaned post-exit continuation remains one trace.
 The trajectory-level coverage is
 \begin{equation}
-  \operatorname{cov}(C)=
-  \frac{|\operatorname{rej}(C)|}{|\mathcal N|},
+  \operatorname{cov}_{\mathcal N}(C)=
+  \frac{|\operatorname{rej}_{\mathcal N}(C)|}{|\mathcal N|},
   \qquad |\mathcal N|>0.
   \label{eq:method-coverage}
 \end{equation}
@@ -99,7 +158,7 @@ verification (Appendix~\ref{app:coverage-predictiveness}).
 
 SFT distills accepted multi-response compositions into single-response
 supervision, aiming to make a richer set of useful clauses available with
-fewer samples.  Starting with \(P_0=\varnothing\), each round samples \(g_{\mathrm{sft}}\) responses
+fewer samples.  Starting with \(P_0=\langle\rangle\), each round samples \(g_{\mathrm{sft}}\) responses
 from the same base model that is subsequently fine-tuned, adds their clauses
 to the accumulated pool, and jointly filters it:
 \begin{equation}
@@ -116,7 +175,7 @@ The label can therefore combine discoveries across responses and rounds.
 
 \tightparagraph{Acceptance and serialization.}
 For nonempty \(\mathcal N\), the first composition satisfying
-\(\operatorname{cov}(C_t)\ge\tau\) within \(t_{\mathrm{sft}}\) rounds is
+\(\operatorname{cov}_{\mathcal N}(C_t)\ge\tau\) within \(t_{\mathrm{sft}}\) rounds is
 serialized as the SFT label; otherwise no training pair is produced.
 Standard autoregressive cross-entropy trains the model on this label,
 conditioned on the masked loop.  Algorithm~\ref{alg:formal-sft} gives the
@@ -128,13 +187,19 @@ complete procedure.
 A failed response should not erase the contributions of its useful clauses.
 RL therefore assigns credit to the parts retained by joint filtering.
 For a group sampled from the current policy, let
-\(A_i=\operatorname{Admit}(y_i)\).  We pool and filter once, then map
-surviving clauses back to their proposing responses:
+\(A_i=\operatorname{Admit}(y_i)\).  Executions yield reachable loop-head
+states \(\mathcal E\).  The order-preserving screen
+\(\operatorname{Screen}_{\mathcal E}\) removes malformed or out-of-scope
+clauses and clauses that evaluate to false on any \(s\in\mathcal E\);
+unknown evaluations cause no removal.  We screen the pooled clauses, filter
+once, and map survivors back to their proposing responses:
 \begin{align}
   P^*&=\operatorname{Unique}\!\left(A_1\Vert\cdots\Vert A_{g_{\mathrm{rl}}}\right),
-  &C^*&=\operatorname{Filter}_{\mathcal L}(P^*),\\
+  &&\nonumber\\
+  P_{\mathcal E}&=\operatorname{Screen}_{\mathcal E}(P^*),
+  &C^*&=\operatorname{Filter}_{\mathcal L}(P_{\mathcal E}),\nonumber\\
   V_i&=\langle c\in A_i\mid\operatorname{key}(c)\in\operatorname{keys}(C^*)\rangle,
-  &R_i&=\operatorname{rej}(V_i).
+  &R_i&=\operatorname{rej}_{\mathcal N}(V_i).
   \label{eq:method-credit-pool}
 \end{align}
 Canonical keys identify which clauses each response proposed;

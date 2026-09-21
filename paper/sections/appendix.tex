@@ -1941,6 +1941,19 @@ Appendix~\ref{app:formal-reward-collapse}.
 \section{Detailed Limitations}
 \label{app:limitations}
 
+\paragraph{Conjunctive composition.}
+CRAFT combines retained clauses by conjunction and does not search for
+disjunctions among candidates. A disjunction can be inductive even when its
+individual disjuncts are not, so this restriction can miss useful invariants
+that describe alternative execution modes. However, \(c_1\lor c_2\) is
+logically weaker than either \(c_1\) or \(c_2\): it admits more states and
+can lose constraints needed to prove a target. Disjunctive combinations also
+introduce Boolean alternatives that can increase case splitting and SMT
+solving cost, especially alongside arithmetic constraints. Our composition
+therefore focuses on strengthening summaries through conjunction; exploring
+disjunctions while controlling precision and verification cost remains future
+work.
+
 \paragraph{Program scope.}
 Our implementation targets numerical programs with one scalar-integer loop.
 The evaluation excludes nested loops and invariants over arrays, heaps, or

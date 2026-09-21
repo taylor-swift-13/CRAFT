@@ -67,8 +67,8 @@ SFT constructs supervision from composed valid clause sets, while RL assigns
 credit based on the contributions of clauses retained after filtering.
 Qwen3-8B compose@1 rises from 37.86\% to 63.94\% after SFT and then to
 69.23\% after RL.  All four local backbones show this progressive
-improvement in compose@1; Qwen3-4B SFT+RL reaches 67.55\%, exceeding the
-highest API reference of 56.97\% under the evaluated protocol.
+improvement in compose@1; Qwen3-4B SFT+RL reaches 67.55\%, exceeding
+Sonnet-4.6's 56.97\% under the evaluated protocol.
 
 \begin{insightbox}
 \textbf{Finding.}
@@ -137,7 +137,7 @@ to examine whether this pattern also appears in compositional verification.
 SFT reaches 63.94\% compose@1, exceeding Bare compose@32 (57.81\%).
 After RL, SFT initialization raises compose@1 from 51.80\% to 69.23\%
 under the same one-response budget.
-It also raises compose@32 from 57.81\% to 78.37\%: SFT both makes
+It also raises compose@32 from 57.81\% to 79.93\%: SFT both makes
 useful candidates accessible with fewer responses and expands verification
 coverage within the measured range.
 
@@ -145,11 +145,11 @@ coverage within the measured range.
 From Bare, RL improves compose@1 and compose@32 by 13.94 and 12.86
 points, respectively, retaining a substantial gain even at the largest budget.
 After three SFT epochs, its gains shrink to \textbf{5.29 points at compose@1
-and only 0.49 at compose@32}.  After SFT, RL mainly improves sampling
+and 2.05 at compose@32}. After SFT, RL mainly improves sampling
 efficiency: useful candidates appear with fewer responses, while
-coverage at the largest tested budget changes little.
+coverage at the largest tested budget improves more modestly.
 
-Meanwhile, post-SFT RL lowers pass@1 from 41.95\% to 30.77\%.
+Meanwhile, post-SFT RL lowers pass@1 from 41.95\% to 36.78\%.
 The independent clause-cap ablation shows the same trade-off within
 SFT+RL: increasing the cap from 4 to 16 lowers standalone response success
 while improving compose@1 and compose@8 (Appendix~\ref{app:clause-cap}).  Both results show
@@ -211,8 +211,8 @@ remains 24.28 points.
 \tightparagraph{Group credit adds most from Bare.}
 Full adds Shapley credit with weight 0.3.  From Bare, it raises compose@32
 from 66.35\% to 70.67\%; after SFT, the selected Full model reaches
-69.23\% compose@1 versus Clause-decomposed's 67.91\%, while compose@32 improves by only
-0.12 points.  The full comparison is in Appendix~\ref{app:full-credit-analysis}.
+69.23\% compose@1 versus Clause-decomposed's 67.91\%, while compose@32 improves by
+1.68 points. The full comparison is in Appendix~\ref{app:full-credit-analysis}.
 
 \label{sec:exp:probe}
 Appendix~\ref{app:independent-experiments} reports the complete ablations,

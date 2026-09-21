@@ -35,8 +35,9 @@ def main() -> None:
             ax.plot(k, values, label=label, color=color, marker=marker,
                     linestyle=linestyle, linewidth=1.4, markersize=3.8,
                     markeredgewidth=0.5, markeredgecolor="white")
+            endpoint_y = -9 if title == "(b) pass@k" and label == "Target-hidden" else 6
             ax.annotate(f"{values[-1]:.2f}", (k[-1], values[-1]),
-                        xytext=(-3, 6), textcoords="offset points",
+                        xytext=(-3, endpoint_y), textcoords="offset points",
                         va="center", ha="right", color=color, fontsize=8.2)
         ax.set_title(title)
         ax.set_xscale("log", base=2)

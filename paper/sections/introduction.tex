@@ -2,22 +2,30 @@
 \section{Introduction}\label{sec:intro}
 %% ============================================================
 
-Loop invariants reduce unbounded executions to finite proof obligations, but
-generating invariants strong enough to complete a proof remains difficult.
-LLM generation introduces a particular mismatch: a response may fail because
-of one incorrect clause while still containing clauses useful for a proof, and
-complementary clauses may be scattered across different responses.  Treating
-each response as an indivisible prediction therefore discards proof-relevant
-information.  This motivates decomposing responses into clauses and composing
-verified clauses across responses.
+Loop invariants summarize loop behavior and reduce unbounded executions to
+finite proof obligations.  Their value extends beyond proving a given
+postcondition: legacy code can lack explicit assertions or specifications,
+yet useful invariants can capture properties for reuse in later analysis and
+verification.  Even when a final postcondition is available, intervening
+loops or function calls can prevent it from providing direct feedback for an
+earlier loop without reasoning through the subsequent computation.  A strong
+invariant, combined with the loop's exit conditions, supplies an intermediate
+assertion for that later reasoning.  These settings motivate discovering
+informative loop summaries from program semantics without requiring a given
+verification target.
 
-We study \emph{target-hidden loop verification}: the model sees the loop
-context, while target assertions and postconditions \(\mathcal G\) are withheld.
-Visible targets often yield correct invariants by direct copying or rewriting;
-failed proofs provide explicit feedback, turning generation into a
-well-defined proof-search problem.  Without targets, inductiveness is too weak: any inductive
-over-approximation, including \(\mathsf{true}\), is valid but may be useless.
-Training therefore needs a target-independent strength signal.
+We study this problem through \emph{target-hidden loop verification}:
+generation and training scores use the loop context alone, while target
+assertions and postconditions \(\mathcal G\) are restored only for final
+verification.  Two challenges arise.  First, without a target, proof success
+cannot directly guide candidate selection or training.  Inductiveness alone
+is insufficient: \(\mathsf{true}\) is a valid invariant but supplies no useful
+information about loop behavior.  We therefore need a target-independent
+signal of invariant strength.  Second, an LLM response may contain both useful
+and incorrect clauses, while complementary constraints may be scattered
+across responses.  Rejecting or rewarding each response as a whole obscures
+the value of its useful parts.  Generation and training must therefore
+account for how individual clauses contribute to a composed invariant.
 
 We introduce \sam{} to align compositional inference, supervision labels,
 and RL rewards.  At inference, it decomposes responses into clauses, pools

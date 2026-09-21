@@ -15,7 +15,8 @@ collected in Appendix~\ref{app:composition-proofs} within this formalization.
 \subsection{Task Semantics, Loop Invariants, and Verification}
 \label{app:formal-loop-verification}
 
-Let \(\Sigma\) be the program-state space.  A loop is
+We retain the notation of Definition~\ref{def:method-task} and expand its
+semantics here.  Let \(\Sigma\) be the program-state space.  A loop is
 \(\mathcal L=(\mathsf{Init},B,S)\), where \(\mathsf{Init}\) characterizes the
 first loop-head states, \(B\) is the guard, and
 \(S\subseteq\Sigma\times\Sigma\) is one normally completing loop step.  Thus
@@ -45,7 +46,7 @@ A response is decomposed into a finite candidate family \(C\) of clauses.  The
 clauses compose by conjunction,
 \begin{equation}
   I(C)=\bigwedge_{c\in C}c,
-  \qquad I(\varnothing)=\mathit{true}.
+  \qquad I(\varnothing)=\mathsf{true}.
   \label{eq:formal-compose}
 \end{equation}
 The set \(C\) is \emph{jointly inductive} when
@@ -261,7 +262,7 @@ For any response sequence \(y_{1:n}\), define
   &P(y_{1:n})&=\operatorname{Unique}\!\left(A_1\Vert\cdots\Vert A_n\right),
   \label{eq:formal-pool}\\
   C(y_{1:n})&=\operatorname{Filter}_{\mathcal L}(P(y_{1:n})),
-  &I(y_{1:n})&=\bigwedge_{c\in C(y_{1:n})}c.
+  &I(C(y_{1:n}))&=\bigwedge_{c\in C(y_{1:n})}c.
   \label{eq:formal-craft-map}
 \end{align}
 This is the shared rollout--decompose--pool--filter--compose operator.  The
@@ -275,16 +276,16 @@ not required.
 \caption{CRAFT inference}
 \label{alg:rcf}
 \begin{algorithmic}
-\alginput{task \(\mathcal T=(\mathcal L,\mathcal G)\), policy \(\pi\), number of responses \(n\)}
-\algoutput{composed invariant \(I\), final verdict \(v\)}
+\alginput{task \(\mathcal T\) from Definition~\ref{def:method-task}, policy \(\pi\), number of responses \(n\)}
+\algoutput{filtered clause set \(C\), composed invariant \(I(C)\), final verdict \(v\)}
 \algline \(x\leftarrow\operatorname{Mask}(\mathcal T)=\mathcal L\)\cmnt{hide goals}\\
 \algline sample \(y_{1:n}\sim\pi(\cdot\mid x)\)\cmnt{rollout}\\
 \algline \(A_i\leftarrow\operatorname{Admit}(y_i)\) for every \(i\)\cmnt{decompose and cap}\\
 \algline \(P\leftarrow\operatorname{Unique}(A_1\Vert\cdots\Vert A_n)\)\cmnt{pool}\\
 \algline \(C\leftarrow\operatorname{Filter}_{\mathcal L}^{\delta,h_{\max}}(P)\)\cmnt{filter}\\
-\algline \(I\leftarrow\bigwedge_{c\in C}c\)\cmnt{compose}\\
+\algline form \(I(C)\) as in Definition~\ref{def:method-task}\cmnt{compose}\\
 \algline \(v\leftarrow\operatorname{TaskVerify}_{\delta}(\mathcal T,C)\)\cmnt{restore goals}\\
-\algline \kw{return} \((I,v)\)\\
+\algline \kw{return} \((C,I(C),v)\)\\
 \end{algorithmic}
 \end{algorithm}
 

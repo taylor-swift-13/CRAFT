@@ -7,10 +7,12 @@ finite proof obligations, enabling verification beyond the executions covered
 by finite testing.  Their value extends beyond proving a given
 postcondition: legacy code can lack explicit assertions or specifications,
 yet useful invariants can capture properties for reuse in later analysis and
-verification.  A final postcondition may not directly guide an intermediate
-loop when other loops or function calls follow it.  A strong
-invariant, combined with the loop's exit conditions, supplies an intermediate
-assertion for that later reasoning.  These settings motivate discovering
+verification.  When other loops or function calls follow a loop, the
+function's final postcondition does not determine what should hold
+immediately after that loop.  Proving the postcondition then requires an
+intermediate assertion at that point, and a strong invariant, combined with
+the loop's exit conditions, supplies exactly such a summary.  These settings
+motivate discovering
 informative loop summaries from program semantics without requiring a given
 verification target.
 
@@ -61,7 +63,7 @@ without an external teacher or reward model.
 
 On 832 C programs, we restore hidden targets only for final verification to
 test whether the generated invariants contain sufficient information to
-complete a proof.  Compositional inference substantially improves bare-model
+complete a proof.  Compositional inference substantially improves base-model
 verification, and aligned training yields further gains.  Our primary metric
 is compose@1, the verification rate after filtering and composing one response.
 
@@ -73,7 +75,7 @@ is compose@1, the verification rate after filtering and composing one response.
   \item We introduce CRAFT, aligning target-hidden compositional inference
   with supervision and reward. A shared pooled filtering procedure recovers
   useful clauses from imperfect responses, constructs SFT labels, and
-  identifies the contributions rewarded by RL. With one response, bare
+  identifies the contributions rewarded by RL. With one response, base
   Qwen3-8B reaches 37.86\% compose@1 versus 6.37\% pass@1.
   \item We turn multi-response discoveries into single-response learning
   signals. SFT learns accepted compositions, raising Qwen3-8B compose@1 to

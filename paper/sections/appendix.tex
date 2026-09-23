@@ -739,13 +739,13 @@ Qwen3-8B Full after SFT uses the same evaluation as the main results;
 the other rewards use the reward-ablation evaluations.
 Analyses appear in Appendix~\ref{app:independent-experiments}.
 
-\subsection{Bare Models}
+\subsection{Base Models}
 \label{app:probe-curves}
 
 \begin{table}[H]
 \centering
 \small
-\caption{Bare-model verification results.}
+\caption{Base-model verification results.}
 \label{tab:probe-complete}
 \begin{tabular}{lccccccccc}
 \toprule
@@ -901,13 +901,13 @@ Model & \(k\) & pass & comp & pass & comp & pass & comp & pass & comp \\
 \end{tabular}
 \end{table}
 
-\subsection{RL Directly from Bare}
+\subsection{RL Directly from Base}
 \label{app:rl-results}
 
 \begin{table}[H]
 \centering
 \small
-\caption{Verification after RL from Bare with the Full reward.}
+\caption{Verification after RL from Base with the Full reward.}
 \label{tab:rlzero-additional}
 \begin{tabular}{lccccccccc}
 \toprule
@@ -1002,14 +1002,14 @@ Model & \(k\) & pass & comp & pass & comp & pass & comp & pass & comp \\
 \end{tabular}
 \end{table}
 
-\subsection{Reward Variants from Bare}
-\label{app:raw-reward-bare}
+\subsection{Reward Variants from Base}
+\label{app:raw-reward-base}
 
 \begin{table}[H]
 \centering
 \small
-\caption{Qwen3-8B reward ablation from Bare.}
-\label{tab:latest-rl-bare}
+\caption{Qwen3-8B reward ablation from Base.}
+\label{tab:latest-rl-base}
 \begin{tabular}{lccccccccc}
 \toprule
 \rowcolor{algobg}
@@ -1165,7 +1165,7 @@ tables; the analyses here explain what the comparisons reveal.
 \subsection{Can Failed Responses Still Supply a Successful Proof?}
 \label{app:probe-analysis}
 
-Figure~\ref{fig:appendix-probe} compares pass and compose for six Bare
+Figure~\ref{fig:appendix-probe} compares pass and compose for six Base
 models; Table~\ref{tab:probe-complete} gives the numerical results.
 At \(k=1\), processing acts within one response; larger budgets also allow
 cross-response composition.
@@ -1173,7 +1173,7 @@ cross-response composition.
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{figures/base_model_probe_all.pdf}
-\caption{Pass@\(k\) and compose@\(k\) for six Bare models.}
+\caption{Pass@\(k\) and compose@\(k\) for six Base models.}
 \label{fig:appendix-probe}\label{fig:base-model-probe}\label{fig:appendix-probe-llama}
 \end{figure}
 
@@ -1211,12 +1211,12 @@ compositional verification under this evaluation protocol.
 
 
 
-We compare Bare, SFT (single), and composed-label SFT on the same 832
+We compare Base, SFT (single), and composed-label SFT on the same 832
 programs. The two SFT datasets contain approximately equal numbers of
 training examples. Single-response labels are independently filtered responses;
 composed labels pool discoveries across responses.
 
-SFT (single) improves pass over Bare but lowers compose at every reported
+SFT (single) improves pass over Base but lowers compose at every reported
 budget.  Composed-label SFT exceeds both models on both metrics: relative
 to SFT (single), its compose gains are 40.74 points at \(k=1\) and 30.16
 at \(k=32\), with pass gains of 22.00 and 24.76 points.  Thus better
@@ -1269,7 +1269,7 @@ no separate redundancy or overflow penalty.
 \rowcolor{algobg}
 Reward & 1 & 4 & 8 & 16 & 32 & 1 & 4 & 8 & 16 & 32 \\
 \midrule
-\multicolumn{11}{l}{\textit{Qwen3-8B, RL directly from Bare}} \\
+\multicolumn{11}{l}{\textit{Qwen3-8B, RL directly from Base}} \\
 Binary & 4.45 & 4.45 & 4.45 & 4.45 & 4.45 & 4.45 & 4.45 & 4.45 & 4.45 & 4.45 \\
 Whole-rollout & 15.50 & 16.59 & 16.83 & 17.67 & 18.39 & 20.79 & 21.88 & 22.24 & 22.84 & 23.32 \\
 Clause-decomposed & 9.01 & 15.87 & 18.87 & 20.31 & 21.63 & 48.80 & 57.69 & 60.70 & 63.70 & 66.35 \\
@@ -1297,10 +1297,10 @@ Full (default) & 35.70 & 48.32 & 53.00 & 56.97 & 59.86 & 61.90 & 72.00 & 74.40 &
 \end{table}
 
 \paragraph{Preserving partial contributions improves composition.}
-From Bare Qwen3-8B, Whole-rollout raises pass@1 from 6.37\% to 15.50\%
+From Base Qwen3-8B, Whole-rollout raises pass@1 from 6.37\% to 15.50\%
 but lowers compose@32 from 57.81\% to 23.32\%.  Clause-decomposed restores
 66.35\% compose@32 by crediting surviving clauses even when their response
-fails.  Its advantage over Whole-rollout is 43.03 points from Bare and
+fails.  Its advantage over Whole-rollout is 43.03 points from Base and
 19.72 points after SFT at \(k=32\), supporting clause-level credit under
 both initializations.  Binary reaches only 4.45\% and 15.99\%, respectively.
 
@@ -1314,19 +1314,19 @@ Clause-decomposed comparison examines Shapley credit
 \label{app:reward-training-curves}
 
 Figure~\ref{fig:reward-training-curves} reports per-step mean rewards over
-two RL epochs for Qwen3-8B, comparing four rewards from Bare and SFT.
+two RL epochs for Qwen3-8B, comparing four rewards from Base and SFT.
 
 \begin{wrapfigure}{r}{0.666667\textwidth}
 \centering
 \includegraphics[width=\linewidth]{figures/reward_training_curves.pdf}
-\caption{Training rewards from (a) Bare and (b) SFT. Pale lines: per-step means; dark lines: trailing 15-step means. Reward scales differ across objectives.}
+\caption{Training rewards from (a) Base and (b) SFT. Pale lines: per-step means; dark lines: trailing 15-step means. Reward scales differ across objectives.}
 \label{fig:reward-training-curves}
 \end{wrapfigure}
 
 \paragraph{Binary reward saturates without strong verification.}
 In both initializations, every recorded Binary reward in the final 20 updates is
 1.000.  Yet the corresponding two-epoch evaluations reach only 4.45\%
-compose@32 from Bare and 15.99\% after SFT
+compose@32 from Base and 15.99\% after SFT
 (Table~\ref{tab:reward-ablation}).  Saturating the correctness reward
 therefore does not ensure invariants strong enough to prove hidden targets.
 
@@ -1346,7 +1346,7 @@ are analyzed in Appendix~\ref{app:full-credit-analysis}.
 \subsection{Can More Clauses Hurt Answers Yet Help Proofs?}
 \label{app:clause-cap}
 
-We vary the per-response clause cap for Bare, SFT, and SFT+RL Qwen3-8B.
+We vary the per-response clause cap for Base, SFT, and SFT+RL Qwen3-8B.
 Within each model, all caps reuse the same saved response pool and evaluation
 settings: only the first \(c\) parsed clauses of each response are admitted
 to standalone verification or pooled filtering. This sweep uses a separate
@@ -1365,7 +1365,7 @@ evaluation pool from the main results.
 & \multicolumn{3}{c}{compose@8} \\
 \headercmidrules{\cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}}
 \rowcolor{algobg}
-Cap & Bare & SFT & SFT+RL & Bare & SFT & SFT+RL & Bare & SFT & SFT+RL \\
+Cap & Base & SFT & SFT+RL & Base & SFT & SFT+RL & Base & SFT & SFT+RL \\
 \midrule
 1 & \textbf{12.14} & 19.59 & 22.84 & 11.06 & 19.23 & 22.72 & 17.67 & 35.10 & 25.48 \\
 2 & 9.50 & 27.28 & 30.29 & 17.31 & 30.89 & 34.01 & 25.24 & 49.40 & 39.18 \\
@@ -1377,7 +1377,7 @@ Cap & Bare & SFT & SFT+RL & Bare & SFT & SFT+RL & Bare & SFT & SFT+RL \\
 \end{table}
 
 \paragraph{The best clause budget depends on the success criterion.}
-Bare pass@1 is highest at cap 1 and falls as the cap grows.  SFT and
+Base pass@1 is highest at cap 1 and falls as the cap grows.  SFT and
 SFT+RL instead peak at caps 8 and 4, respectively.  For SFT+RL, increasing
 the cap from 4 to 16 lowers displayed pass@1 from 45.31\% to 30.89\%,
 while compose@1 rises from 50.48\% to 69.11\% and compose@8 from 57.45\%
@@ -1401,7 +1401,7 @@ response (Clauses), distinct canonical keys across eight responses
 \rowcolor{algobg}
 Model & Statistic & Cap 1 & Cap 2 & Cap 4 & Cap 8 & Cap 16 \\
 \midrule
-\multirow{3}{*}{Bare}
+\multirow{3}{*}{Base}
  & Clauses & 1.00 & 1.98 & 3.88 & 7.24 & 12.37 \\
  & Unique@8 & 2.72 & 5.50 & 11.67 & 24.30 & 41.69 \\
  & Survivors@8 & 1.42 & 2.49 & 5.37 & 11.33 & 19.91 \\
@@ -1419,7 +1419,7 @@ Model & Statistic & Cap 1 & Cap 2 & Cap 4 & Cap 8 & Cap 16 \\
 \end{tabular}
 \end{table}
 
-At cap 16, Bare and SFT admit similar numbers of clauses per response
+At cap 16, Base and SFT admit similar numbers of clauses per response
 (12.37 versus 12.73), but SFT supplies more unique clauses (56.07 versus
 41.69) and more than twice as many survivors (46.35 versus 19.91).
 Output length alone therefore does not explain the SFT gain.
@@ -1886,7 +1886,7 @@ preclude a direct numerical comparison.
 \label{app:full-credit-analysis}
 
 We compare Full with Clause-decomposed on Qwen3-8B to examine when added
-group credit helps from Bare versus SFT after 2 RL epochs.
+group credit helps from Base versus SFT after 2 RL epochs.
 
 At equal coverage, Full gives more credit to traces rejected by fewer
 responses, encouraging complementary effective coverage.  The allocation
@@ -1911,7 +1911,7 @@ and~\ref{tab:reward-ablation}.
 \rowcolor{algobg}
 Reward & 1 & 4 & 8 & 16 & 32 & 1 & 4 & 8 & 16 & 32 \\
 \midrule
-\multicolumn{11}{l}{\textit{RL from Bare}} \\
+\multicolumn{11}{l}{\textit{RL from Base}} \\
 Clause-decomposed & \textbf{9.01} & \textbf{15.87} & \textbf{18.87} & \textbf{20.31} & \textbf{21.63} & 48.80 & 57.69 & 60.70 & 63.70 & 66.35 \\
 Full (default) & 2.88 & 5.41 & 7.81 & 9.62 & 11.06 & \textbf{51.80} & \textbf{60.46} & \textbf{64.18} & \textbf{68.87} & \textbf{70.67} \\
 \midrule
@@ -1922,7 +1922,7 @@ Full (default) & \textbf{36.78} & \textbf{51.92} & \textbf{56.49} & \textbf{59.5
 \end{tabular}
 \end{table}
 
-\paragraph{From Bare, Full improves composition throughout the tested budgets.}
+\paragraph{From Base, Full improves composition throughout the tested budgets.}
 Full improves compose by 2.77--5.17 points across the tested budgets,
 including 48.80\% to 51.80\% at \(k=1\) and 66.35\% to 70.67\% at
 \(k=32\).  Its advantage remains substantial at the largest measured
@@ -1933,7 +1933,7 @@ can accompany less successful complete responses.
 Full improves compose by 0.24--2.05 points across the tested budgets:
 67.91\% to 69.23\% at \(k=1\), and 78.25\% to 79.93\% at \(k=32\).
 Pass also improves by 0.24--2.16 points. The added composition benefit after
-SFT is smaller than from Bare, but remains positive at every tested budget.
+SFT is smaller than from Base, but remains positive at every tested budget.
 
 \paragraph{Does Full retain more policy entropy?}
 
@@ -1955,7 +1955,7 @@ Initialization & Reward & Early entropy & Final entropy & Retention (\%) \\
 \multirow{2}{*}{SFT} & Full (default) & 0.3195 & \textbf{0.1842} & \textbf{57.7} \\
  & Clause-decomposed & 0.3233 & 0.1323 & 40.9 \\
 \midrule
-\multirow{2}{*}{Bare} & Full (default) & 0.0588 & \textbf{0.0130} & \textbf{22.1} \\
+\multirow{2}{*}{Base} & Full (default) & 0.0588 & \textbf{0.0130} & \textbf{22.1} \\
  & Clause-decomposed & 0.0773 & 0.0120 & 15.5 \\
 \bottomrule
 \end{tabular}
@@ -1963,7 +1963,7 @@ Initialization & Reward & Early entropy & Final entropy & Retention (\%) \\
 
 Full retains more policy entropy under both initializations. The absolute
 final-entropy difference is larger after SFT (0.1842 versus 0.1323) than
-from Bare (0.0130 versus 0.0120); Bare also starts from unequal reference
+from Base (0.0130 versus 0.0120); Base also starts from unequal reference
 entropies. These observations suggest that Full slows entropy loss during
 training.
 
@@ -1971,7 +1971,7 @@ training.
 The training summary reports a batch mean-to-maximum reward ratio
 0.01--0.06 lower for Full than for Clause-decomposed.
 
-Full improves compose@\(k\) from Bare and retains higher policy entropy than
+Full improves compose@\(k\) from Base and retains higher policy entropy than
 Clause-decomposed. The Shapley mechanism and its limits are formalized in
 Appendix~\ref{app:formal-reward-collapse}.
 

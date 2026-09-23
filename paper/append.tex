@@ -64,7 +64,7 @@ checkpoints, saved response order, sampling budgets
 \(k\in\{1,4,8,16,32\}\), composition procedure, and verifier unchanged.
 
 We report two complementary comparisons.  The \emph{training-stage
-comparison} follows representative Bare, RL-from-Bare, and SFT+RL
+comparison} follows representative Base, RL-from-Base, and SFT+RL
 checkpoints.  The \emph{matched reward ablation} separately compares Binary,
 Whole-rollout, Clause-decomposed, and Full reward runs within a common
 initialization. The two comparisons use separate checkpoint groups.
@@ -82,10 +82,10 @@ are percentage-point changes from the corresponding 832-program result.
 \rowcolor{headerbg}
 Setting & \(N\) & @1 & @4 & @8 & @16 & @32 \\
 \midrule
-Bare         & 832 & 8.29 & 16.47 & 20.55 & 24.40 & 28.13 \\
+Base         & 832 & 8.29 & 16.47 & 20.55 & 24.40 & 28.13 \\
              & 708 & 7.91\pp{-0.38} & 15.82\pp{-0.65} & 19.77\pp{-0.78} & 23.31\pp{-1.09} & 26.84\pp{-1.29} \\
 \addlinespace
-RL from Bare & 832 & 2.88 & 5.41 & 7.81 & 9.62 & 11.06 \\
+RL from Base & 832 & 2.88 & 5.41 & 7.81 & 9.62 & 11.06 \\
              & 708 & 2.54\pp{-0.34} & 4.24\pp{-1.17} & 6.64\pp{-1.17} & 7.91\pp{-1.71} & 9.18\pp{-1.88} \\
 \addlinespace
 SFT+RL       & 832 & 32.93 & 46.88 & 51.44 & 53.37 & 55.89 \\
@@ -103,10 +103,10 @@ SFT+RL       & 832 & 32.93 & 46.88 & 51.44 & 53.37 & 55.89 \\
 \rowcolor{headerbg}
 Setting & \(N\) & @1 & @4 & @8 & @16 & @32 \\
 \midrule
-Bare         & 832 & 43.75 & 55.17 & 59.01 & 61.18 & 62.50 \\
+Base         & 832 & 43.75 & 55.17 & 59.01 & 61.18 & 62.50 \\
              & 708 & 42.09\pp{-1.66} & 53.81\pp{-1.36} & 57.91\pp{-1.10} & 60.17\pp{-1.01} & 61.44\pp{-1.06} \\
 \addlinespace
-RL from Bare & 832 & 51.80 & 60.46 & 64.18 & 68.87 & 70.67 \\
+RL from Base & 832 & 51.80 & 60.46 & 64.18 & 68.87 & 70.67 \\
              & 708 & 48.87\pp{-2.93} & 57.20\pp{-3.26} & 61.16\pp{-3.02} & 65.68\pp{-3.19} & 67.51\pp{-3.16} \\
 \addlinespace
 SFT+RL       & 832 & 66.23 & 72.48 & 74.40 & 75.12 & 75.60 \\
@@ -124,7 +124,7 @@ shape of both curves.  Across the two tables, the absolute changes range from
 0.30 to 3.65 points.  The larger shifts for SFT+RL indicate that the removed
 subset is comparatively favorable to that checkpoint, but SFT+RL remains the
 strongest stage at every budget under both pass and composition.  Likewise,
-RL from Bare continues to improve compose@\(k\) over Bare while reducing
+RL from Base continues to improve compose@\(k\) over Base while reducing
 pass@\(k\), preserving the distinction between standalone-response quality
 and cross-response clause utility.
 
@@ -133,8 +133,8 @@ and cross-response clause utility.
 The central robustness question is whether internal benchmark deduplication changes the reward
 ranking.  Tables~\ref{tab:supp-reward-compose} and
 \ref{tab:supp-reward-pass} report the complete matched ablation.  Each reward
-has adjacent 832- and 708-program rows.  ``Bare (reference)'' appears only in
-the Bare-initialization panel; it is not an additional trained reward.
+has adjacent 832- and 708-program rows.  ``Base (reference)'' appears only in
+the Base-initialization panel; it is not an additional trained reward.
 
 \begin{table}[H]
 \centering
@@ -143,8 +143,8 @@ the Bare-initialization panel; it is not an additional trained reward.
 \rowcolor{headerbg}
 Reward & \(N\) & @1 & @4 & @8 & @16 & @32 \\
 \midrule
-\multicolumn{7}{l}{\textit{RL directly from Bare}} \\
-Bare (reference)  & 832 & 43.75 & 55.17 & 59.01 & 61.18 & 62.50 \\
+\multicolumn{7}{l}{\textit{RL directly from Base}} \\
+Base (reference)  & 832 & 43.75 & 55.17 & 59.01 & 61.18 & 62.50 \\
                   & 708 & 42.09 & 53.81 & 57.91 & 60.17 & 61.44 \\
 \addlinespace
 Binary            & 832 & 4.45 & 4.45 & 4.45 & 4.45 & 4.45 \\
@@ -184,8 +184,8 @@ Full (ours)       & 832 & 68.51 & 75.72 & 77.52 & 78.25 & 78.37 \\
 \rowcolor{headerbg}
 Reward & \(N\) & @1 & @4 & @8 & @16 & @32 \\
 \midrule
-\multicolumn{7}{l}{\textit{RL directly from Bare}} \\
-Bare (reference)  & 832 & 8.29 & 16.47 & 20.55 & 24.40 & 28.13 \\
+\multicolumn{7}{l}{\textit{RL directly from Base}} \\
+Base (reference)  & 832 & 8.29 & 16.47 & 20.55 & 24.40 & 28.13 \\
                   & 708 & 7.91 & 15.82 & 19.77 & 23.31 & 26.84 \\
 \addlinespace
 Binary            & 832 & 4.45 & 4.45 & 4.45 & 4.45 & 4.45 \\
@@ -232,7 +232,7 @@ gap between clause-level and response-level credit.
 
 \paragraph{Pass and compose expose different effects.}
 Whole-rollout can retain stronger pass@\(k\) than the clause-level objectives,
-especially from Bare, while performing substantially worse under composition.
+especially from Base, while performing substantially worse under composition.
 This is consistent with the objectives: response-level credit favors complete
 standalone answers, whereas clause-level credit preserves useful partial
 content for later composition.  The within-benchmark deduplication control
@@ -387,7 +387,7 @@ We next isolate negative-trace sampling while holding the Full reward fixed.
 Structure uses the target-hidden negative-trace construction defined in the
 main paper; Random replaces it with a budget-matched random construction.  We
 compare both samplers under RL and SFT+RL.  As in the main paper, RL denotes
-training directly from Bare, whereas SFT+RL starts from the SFT model.
+training directly from Base, whereas SFT+RL starts from the SFT model.
 
 \begin{table}[htbp]
 \centering

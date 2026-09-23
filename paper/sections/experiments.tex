@@ -211,8 +211,9 @@ making the signal sparse.  Consistent with this, Whole-rollout reaches only
 23.32\% compose@32, below Base's 57.81\%.  Clause-decomposed removes this
 all-or-nothing gate and rewards retained clause contributions, reaching
 66.35\% compose@32.  Relative to Base, this gain comes with a decrease in
-pass@32 from 25.96\% to 21.63\%, illustrating the trade-off between
-compositional verification and standalone success.
+pass@32 from 25.96\% to 21.63\%.  This reflects our training alignment:
+RL rewards clause contributions that serve CRAFT's composition pipeline,
+rather than standalone pass.
 
 \tightparagraph{Group credit adds most from Base.}
 Full adds Shapley credit with weight 0.3.  From Base, it raises compose@32

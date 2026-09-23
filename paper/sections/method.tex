@@ -18,44 +18,48 @@ verification task is \(\mathcal T=(\mathcal L,\mathcal G)\), where
 locations.
 
 For a finite clause set \(C\), let
-\(I(C)=\bigwedge_{c\in C}c\), with \(I(\varnothing)=\mathsf{true}\).  The set
-is \emph{jointly inductive} when its conjunction satisfies
-\begin{equation}
-\operatorname{Ind}_{\mathcal L}(I(C))\iff
-\begin{cases}
-\forall\sigma:\ \mathsf{Init}(\sigma)\Rightarrow I(C)(\sigma),\\
-\forall\sigma,\sigma':\ I(C)(\sigma)\land B(\sigma)\land
-S(\sigma,\sigma')\Rightarrow I(C)(\sigma').
-\end{cases}
-\label{eq:method-inductive}
-\end{equation}
-Here and throughout the paper, a \emph{valid invariant} is inductive in this
-sense~\citep{floyd1967assigning,hoare1969axiomatic}.
-
-For a body target, let \(S^B_\ell\) be the path-sensitive relation from the
-loop head through guard evaluation to location \(\ell\); for a post-loop
-target, let \(X_\ell\) collect all paths from the loop head through an exit to
-\(\ell\), including guard-false and \texttt{break} exits.  The conjunction is
-\emph{target-sufficient} when, for every \((\ell,g)\in\mathcal G\), the
-applicable obligation holds:
+\(I(C)=\bigwedge_{c\in C}c\), with \(I(\varnothing)=\mathsf{true}\).  We
+distinguish three standard partial-correctness obligations
+\citep{floyd1967assigning,hoare1969axiomatic,cao2025clause2inv}:
 \begin{align}
- I(C)(\sigma)\land S^B_\ell(\sigma,\sigma')
-   &\Rightarrow g(\sigma') &&\text{(body target)},\nonumber\\
- I(C)(\sigma)\land X_\ell(\sigma,\sigma')
-   &\Rightarrow g(\sigma') &&\text{(post-loop target)}.
- \label{eq:main-target-obligations}
+\operatorname{Est}_{\mathcal L}(I(C))
+&\iff \forall\sigma:\ \mathsf{Init}(\sigma)\Rightarrow I(C)(\sigma),
+&&\text{(establishment)},\label{eq:method-establishment}\\
+\operatorname{Pres}_{\mathcal L}(I(C))
+&\iff \forall\sigma,\sigma':\
+I(C)(\sigma)\land B(\sigma)\land S(\sigma,\sigma')
+\Rightarrow I(C)(\sigma'),
+&&\text{(preservation)}.\label{eq:method-preservation}
 \end{align}
-Both obligations are universally quantified over \(\sigma,\sigma'\).  For an
-immediate post-loop target with only guard-false exits and a side-effect-free
-guard, the second reduces to \(I(C)\land\neg B\Rightarrow g\).
+Preservation is the inductiveness condition.  A valid loop invariant must
+satisfy both establishment and preservation:
+\[
+\operatorname{ValidInv}_{\mathcal L}(I(C))
+\iff \operatorname{Est}_{\mathcal L}(I(C))
+\land \operatorname{Pres}_{\mathcal L}(I(C)).
+\]
+
+For a target \((\ell,g)\), let \(R_\ell\) relate a loop-head state to a state
+at \(\ell\) along an execution path.  The termination (postcondition) obligation
+is
+\begin{equation}
+\operatorname{Term}_{\mathcal L}(I(C),\ell,g)\iff
+\forall\sigma,\sigma':\
+I(C)(\sigma)\land R_\ell(\sigma,\sigma')\Rightarrow g(\sigma').
+\label{eq:method-termination}
+\end{equation}
+The task is verified when \(\operatorname{ValidInv}_{\mathcal L}(I(C))\)
+holds and this obligation holds for every target in \(\mathcal G\).  The
+termination obligation states what follows if execution reaches the target;
+it does not prove that the loop terminates.  Appendix~\ref{app:formal-loop-verification}
+defines \(R_\ell\) for targets inside and after the loop, including the
+applicable exit paths.
 
 In the \emph{target-hidden} setting, generation and all intermediate scores
-observe only \(\mathcal L\); \(\mathcal G\) is restored only after the
-invariant is fixed for final task verification.  Preconditions and executable
-loop semantics remain visible.  We study scalar-integer C programs with one
-loop; Appendix~\ref{app:scope-example} gives the scope and an example, and
-Appendix~\ref{app:formal-loop-verification} defines the path relations and
-verification obligations completely.
+observe only \(\mathcal L\); \(\mathcal G\) is restored only for final
+verification.  Preconditions and executable loop semantics remain visible.
+We study scalar-integer C programs with one loop; Appendix~\ref{app:scope-example}
+gives the scope and an example.
 \end{definition}
 
 We use the notation of Definition~\ref{def:method-task} throughout the

@@ -24,15 +24,13 @@ local reasoning errors~\citep{li2026loris}. Quokka uses UAutomizer
 to evaluate invariant correctness and verification speedups
 ~\citep{wei2025invbench}.  These workflows rely on visible targets or
 target-derived feedback unavailable under target hiding.
-CRAFT samples independent responses in one generation round and pools their
-clauses before joint Houdini filtering, without feeding verification results
-back to the generator.  It further aligns SFT supervision and RL credit with
-this cross-response composition.
+CRAFT jointly filters clauses from independent responses without verifier
+feedback to the generator, and aligns SFT and RL with this composition.
 
 Broader specification-generation frameworks also synthesize loop invariants
 by combining LLM generation with
 program analysis or symbolic verification
-~\citep{wen2024enchanting,yang2026sespec,ma2024specgen}.
+~\citep{wen2024enchanting,yang2026sespec,ma2025specgen}.
 
 \tightparagraph{Training from formal and behavioral feedback.}
 Verified data and execution or prover feedback have been used to train
@@ -45,11 +43,8 @@ COINS and SpecRL further use positive and negative behaviors to distinguish
 weak valid specifications from stronger ones
 ~\citep{yang2026coins,huang2026specrl}; SpecRL rewards verified candidates
 according to the fraction of negative tests their specifications reject.
-CRAFT distills accepted multi-response compositions into single-response
-supervision and uses decompositional clause-level credit to reward useful
-surviving parts even when the complete response fails.  Its behavioral
-evidence comes from target-hidden executions and is applied only after
-clauses survive pooled verification.
+CRAFT instead uses target-hidden behavioral evidence to train on verified
+multi-response compositions and reward retained clauses from failed responses.
 
 \tightparagraph{Credit assignment in RLVR.}
 Related RLVR and RLHF methods study group-relative advantages and
@@ -58,9 +53,6 @@ Per-response RL can improve pass@1 without expanding large-\(k\) coverage
 ~\citep{yue2025rlcapacity,he2025unlikeliness}.  Recent objectives directly
 optimize pass@\(k\) or up-weight rare correct responses
 ~\citep{walder2025pkpo,chen2025passktraining,he2025unlikeliness}.
-Pass@\(k\) objectives seek at least one successful complete response. CRAFT
-constructs successful invariants from clauses distributed across responses,
-even when no individual response independently proves the target.
-CRAFT rewards the negative-trace coverage of jointly retained clauses and uses
-Shapley allocation to divide shared coverage credit among contributing responses.
-The resulting credit enters a response-level advantage for policy updates.
+Pass@\(k\) objectives seek a successful complete response; CRAFT can combine
+clauses from multiple failed responses into a proof. Its clause-based coverage
+and Shapley credit produce response-level advantages for policy updates.

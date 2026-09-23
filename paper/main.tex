@@ -248,13 +248,14 @@ for Target-Hidden Loop Verification}
 Loop invariants reduce unbounded executions to finite proof obligations, but
 LLM-generated invariants often fail as complete responses even when they
 contain useful clauses.  Complementary clauses may also be scattered across
-different responses.  We introduce CRAFT, a decompose-and-compose framework
-for target-hidden loop verification.  At inference, CRAFT decomposes responses
+different responses.  We introduce CRAFT, a framework that aligns invariant
+generation and training with clause composition under hidden verification
+targets.  At inference, CRAFT decomposes responses
 into clauses, pools and jointly filters clauses across responses, and composes
 the survivors into an invariant.  This recovers useful proof material without
 requiring any response to prove the hidden target independently.
-To make training support the same inference process, CRAFT aligns supervision
-labels and RL credit with filtered compositions.  Because target assertions
+The same filtered compositions supply SFT labels and determine which clauses
+receive RL credit.  Because target assertions
 and postconditions remain hidden throughout generation and training,
 execution-derived negative-trace coverage provides a target-independent
 strength signal.  Supervised fine-tuning (SFT) distills accepted multi-response

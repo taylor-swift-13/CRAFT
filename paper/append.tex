@@ -71,30 +71,9 @@ initialization. The two comparisons use separate checkpoint groups.
 
 \subsection{Training-stage comparison}
 
-Tables~\ref{tab:supp-stage-pass} and~\ref{tab:supp-stage-compose} pair the full
+Tables~\ref{tab:supp-stage-compose} and~\ref{tab:supp-stage-pass} pair the full
 and internally deduplicated evaluations.  Parenthesized entries on the 708-program rows
 are percentage-point changes from the corresponding 832-program result.
-
-\begin{table}[H]
-\centering
-\begin{tabular}{lrrrrrr}
-\toprule
-\rowcolor{headerbg}
-Setting & \(N\) & @1 & @4 & @8 & @16 & @32 \\
-\midrule
-Base         & 832 & 8.29 & 16.47 & 20.55 & 24.40 & 28.13 \\
-             & 708 & 7.91\pp{-0.38} & 15.82\pp{-0.65} & 19.77\pp{-0.78} & 23.31\pp{-1.09} & 26.84\pp{-1.29} \\
-\addlinespace
-RL from Base & 832 & 2.88 & 5.41 & 7.81 & 9.62 & 11.06 \\
-             & 708 & 2.54\pp{-0.34} & 4.24\pp{-1.17} & 6.64\pp{-1.17} & 7.91\pp{-1.71} & 9.18\pp{-1.88} \\
-\addlinespace
-SFT+RL       & 832 & 32.93 & 46.88 & 51.44 & 53.37 & 55.89 \\
-             & 708 & 30.37\pp{-2.56} & 43.64\pp{-3.24} & 47.88\pp{-3.56} & 49.72\pp{-3.65} & 52.40\pp{-3.49} \\
-\bottomrule
-\end{tabular}
-\caption{Qwen3-8B training-stage comparison under pass@\(k\).}
-\label{tab:supp-stage-pass}
-\end{table}
 
 \begin{table}[H]
 \centering
@@ -117,13 +96,34 @@ SFT+RL       & 832 & 66.23 & 72.48 & 74.40 & 75.12 & 75.60 \\
 \label{tab:supp-stage-compose}
 \end{table}
 
+\begin{table}[H]
+\centering
+\begin{tabular}{lrrrrrr}
+\toprule
+\rowcolor{headerbg}
+Setting & \(N\) & @1 & @4 & @8 & @16 & @32 \\
+\midrule
+Base         & 832 & 8.29 & 16.47 & 20.55 & 24.40 & 28.13 \\
+             & 708 & 7.91\pp{-0.38} & 15.82\pp{-0.65} & 19.77\pp{-0.78} & 23.31\pp{-1.09} & 26.84\pp{-1.29} \\
+\addlinespace
+RL from Base & 832 & 2.88 & 5.41 & 7.81 & 9.62 & 11.06 \\
+             & 708 & 2.54\pp{-0.34} & 4.24\pp{-1.17} & 6.64\pp{-1.17} & 7.91\pp{-1.71} & 9.18\pp{-1.88} \\
+\addlinespace
+SFT+RL       & 832 & 32.93 & 46.88 & 51.44 & 53.37 & 55.89 \\
+             & 708 & 30.37\pp{-2.56} & 43.64\pp{-3.24} & 47.88\pp{-3.56} & 49.72\pp{-3.65} & 52.40\pp{-3.49} \\
+\bottomrule
+\end{tabular}
+\caption{Qwen3-8B training-stage comparison under pass@\(k\).}
+\label{tab:supp-stage-pass}
+\end{table}
+
 \Needspace{8\baselineskip}
 \paragraph{Stage conclusions.}
 Removing within-benchmark duplicates lowers the reported rates but preserves the
 shape of both curves.  Across the two tables, the absolute changes range from
 0.30 to 3.65 points.  The larger shifts for SFT+RL indicate that the removed
 subset is comparatively favorable to that checkpoint, but SFT+RL remains the
-strongest stage at every budget under both pass and composition.  Likewise,
+strongest stage at every budget under both composition and pass.  Likewise,
 RL from Base continues to improve compose@\(k\) over Base while reducing
 pass@\(k\), preserving the distinction between standalone-response quality
 and cross-response clause utility.
@@ -230,9 +230,9 @@ higher at @4, whereas Full is higher at @1, @8, @16, and @32 on both sets.
 These small local crossings do not alter the endpoint ranking or the larger
 gap between clause-level and response-level credit.
 
-\paragraph{Pass and compose expose different effects.}
-Whole-rollout can retain stronger pass@\(k\) than the clause-level objectives,
-especially from Base, while performing substantially worse under composition.
+\paragraph{Compose and pass expose different effects.}
+Whole-rollout can perform substantially worse under composition than the
+clause-level objectives, especially from Base, while retaining stronger pass@\(k\).
 This is consistent with the objectives: response-level credit favors complete
 standalone answers, whereas clause-level credit preserves useful partial
 content for later composition.  The within-benchmark deduplication control
@@ -397,27 +397,6 @@ training directly from Base, whereas SFT+RL starts from the SFT model.
 \rowcolor{headerbg}
 Training & Sampler & @1 & @4 & @8 & @16 & @32 \\
 \midrule
-SFT+RL & Structure & 37.98 & 51.80 & 56.13 & 59.98 & 62.74 \\
-       & Random    & 37.26 & 48.20 & 53.85 & 58.05 & 60.70 \\
-       & $\Delta$ & +0.72 & +3.60 & +2.28 & +1.93 & +2.04 \\
-\addlinespace
-RL     & Structure & 8.17 & 13.10 & 14.90 & 17.43 & 19.35 \\
-       & Random    & 5.65 & 11.18 & 13.22 & 15.87 & 18.03 \\
-       & $\Delta$ & +2.52 & +1.92 & +1.68 & +1.56 & +1.32 \\
-\bottomrule
-\end{tabular}
-\caption{Qwen3-8B negative-sampling ablation with Full reward: pass@\(k\). Differences are Structure minus Random in percentage points.}
-\label{tab:sampler-pass-all}
-\end{table}
-
-\begin{table}[htbp]
-\centering
-
-\begin{tabular}{llrrrrr}
-\toprule
-\rowcolor{headerbg}
-Training & Sampler & @1 & @4 & @8 & @16 & @32 \\
-\midrule
 SFT+RL & Structure & 67.55 & 76.08 & 77.52 & 78.61 & 78.73 \\
        & Random    & 68.39 & 75.24 & 77.16 & 78.25 & 78.49 \\
        & $\Delta$ & -0.84 & +0.84 & +0.36 & +0.36 & +0.24 \\
@@ -431,11 +410,6 @@ RL     & Structure & 49.28 & 57.93 & 62.26 & 64.90 & 66.83 \\
 \label{tab:sampler-compose-all}
 \end{table}
 
-Tables~\ref{tab:sampler-pass-strata} and
-\ref{tab:sampler-compose-strata} disaggregate the same comparison by program
-class.  The ``All'' results are reported separately above to avoid repeating
-the aggregate in the stratified tables.
-
 \begin{table}[htbp]
 \centering
 
@@ -444,28 +418,23 @@ the aggregate in the stratified tables.
 \rowcolor{headerbg}
 Training & Sampler & @1 & @4 & @8 & @16 & @32 \\
 \midrule
-\multicolumn{7}{l}{\textit{Linear ($n=316$)}} \\
-SFT+RL & Structure & 40.51 & 56.33 & 59.18 & 64.56 & 67.09 \\
-       & Random    & 37.66 & 49.68 & 56.01 & 59.49 & 63.61 \\
-RL     & Structure & 10.13 & 13.29 & 15.19 & 18.35 & 20.25 \\
-       & Random    & 8.23 & 13.29 & 15.19 & 17.41 & 19.62 \\
+SFT+RL & Structure & 37.98 & 51.80 & 56.13 & 59.98 & 62.74 \\
+       & Random    & 37.26 & 48.20 & 53.85 & 58.05 & 60.70 \\
+       & $\Delta$ & +0.72 & +3.60 & +2.28 & +1.93 & +2.04 \\
 \addlinespace
-\multicolumn{7}{l}{\textit{NLA ($n=50$)}} \\
-SFT+RL & Structure & 6.00 & 6.00 & 8.00 & 8.00 & 8.00 \\
-       & Random    & 6.00 & 8.00 & 8.00 & 8.00 & 8.00 \\
-RL     & Structure & 0.00 & 0.00 & 2.00 & 2.00 & 2.00 \\
-       & Random    & 0.00 & 0.00 & 2.00 & 2.00 & 2.00 \\
-\addlinespace
-\multicolumn{7}{l}{\textit{Loopy ($n=466$)}} \\
-SFT+RL & Structure & 39.70 & 53.65 & 59.23 & 62.45 & 65.67 \\
-       & Random    & 40.34 & 51.50 & 57.30 & 62.45 & 64.38 \\
-RL     & Structure & 7.73 & 14.38 & 16.09 & 18.45 & 20.60 \\
-       & Random    & 4.51 & 10.94 & 13.09 & 16.31 & 18.67 \\
+RL     & Structure & 8.17 & 13.10 & 14.90 & 17.43 & 19.35 \\
+       & Random    & 5.65 & 11.18 & 13.22 & 15.87 & 18.03 \\
+       & $\Delta$ & +2.52 & +1.92 & +1.68 & +1.56 & +1.32 \\
 \bottomrule
 \end{tabular}
-\caption{Pass@\(k\) negative-trace sampling ablation by program class.}
-\label{tab:sampler-pass-strata}
+\caption{Qwen3-8B negative-sampling ablation with Full reward: pass@\(k\). Differences are Structure minus Random in percentage points.}
+\label{tab:sampler-pass-all}
 \end{table}
+
+Tables~\ref{tab:sampler-compose-strata} and
+\ref{tab:sampler-pass-strata} disaggregate the same comparison by program
+class.  The ``All'' results are reported separately above to avoid repeating
+the aggregate in the stratified tables.
 
 \begin{table}[htbp]
 \centering
@@ -498,24 +467,54 @@ RL     & Structure & 50.86 & 59.44 & 64.59 & 66.95 & 69.74 \\
 \label{tab:sampler-compose-strata}
 \end{table}
 
-\paragraph{Negative-trace sampling mainly affects standalone success.}
-On the full benchmark, Structure improves pass@\(k\) over Random at every
-response budget: the gain ranges from 0.72 to 3.61 points under SFT+RL and
-from 1.32 to 2.52 points under RL.  The stratified results
-locate most of this gain in Linear and Loopy
-programs.  The small NLA subset changes by at
-most two points, corresponding to a single program, and often ties.
+\begin{table}[htbp]
+\centering
+
+\begin{tabular}{llrrrrr}
+\toprule
+\rowcolor{headerbg}
+Training & Sampler & @1 & @4 & @8 & @16 & @32 \\
+\midrule
+\multicolumn{7}{l}{\textit{Linear ($n=316$)}} \\
+SFT+RL & Structure & 40.51 & 56.33 & 59.18 & 64.56 & 67.09 \\
+       & Random    & 37.66 & 49.68 & 56.01 & 59.49 & 63.61 \\
+RL     & Structure & 10.13 & 13.29 & 15.19 & 18.35 & 20.25 \\
+       & Random    & 8.23 & 13.29 & 15.19 & 17.41 & 19.62 \\
+\addlinespace
+\multicolumn{7}{l}{\textit{NLA ($n=50$)}} \\
+SFT+RL & Structure & 6.00 & 6.00 & 8.00 & 8.00 & 8.00 \\
+       & Random    & 6.00 & 8.00 & 8.00 & 8.00 & 8.00 \\
+RL     & Structure & 0.00 & 0.00 & 2.00 & 2.00 & 2.00 \\
+       & Random    & 0.00 & 0.00 & 2.00 & 2.00 & 2.00 \\
+\addlinespace
+\multicolumn{7}{l}{\textit{Loopy ($n=466$)}} \\
+SFT+RL & Structure & 39.70 & 53.65 & 59.23 & 62.45 & 65.67 \\
+       & Random    & 40.34 & 51.50 & 57.30 & 62.45 & 64.38 \\
+RL     & Structure & 7.73 & 14.38 & 16.09 & 18.45 & 20.60 \\
+       & Random    & 4.51 & 10.94 & 13.09 & 16.31 & 18.67 \\
+\bottomrule
+\end{tabular}
+\caption{Pass@\(k\) negative-trace sampling ablation by program class.}
+\label{tab:sampler-pass-strata}
+\end{table}
 
 \paragraph{Composition is insensitive to negative-trace sampling.}
 For compose@\(k\), the aggregate Structure--Random difference lies between
 -1.93 and +0.84 points and changes sign with the training stage and response
 budget.  The class-level results show the same mixed pattern: neither sampler
 dominates uniformly across Linear, NLA, and Loopy programs.  Thus, Structure
-provides a modest and consistent benefit for standalone
-pass@\(k\), but has no systematic effect on compose@\(k\).  This ablation
+has no systematic effect on compose@\(k\), despite the modest and consistent
+improvements in pass@\(k\) reported below.  This ablation
 also separates negative-trace sampling from the
 larger reward-design effects above: the qualitative advantage of clause-level
 credit under composition cannot be attributed to the sampling strategy.
+
+\paragraph{Negative-trace sampling also affects standalone success.}
+On the full benchmark, Structure improves pass@\(k\) over Random at every
+response budget: the gain ranges from 0.72 to 3.61 points under SFT+RL and
+from 1.32 to 2.52 points under RL.  The stratified results locate most of
+this gain in Linear and Loopy programs.  The small NLA subset changes by at
+most two points, corresponding to a single program, and often ties.
 
 
 \clearpage
@@ -545,15 +544,15 @@ Results are reported to one decimal place.
 \rowcolor{headerbg}
 Training & @1 & @4 & @8 & @16 & @32 \\
 \midrule
-\multicolumn{6}{l}{\textit{Pass@\(k\)}} \\
-train-1 & \(36.9\pm1.0\) & \(51.8\pm0.1\) & \(56.1\pm0.3\) & \(59.5\pm0.1\) & \(62.0\pm0.8\) \\
-train-2 & \(37.7\pm0.4\) & \(51.7\pm0.1\) & \(56.0\pm0.1\) & \(59.7\pm0.2\) & \(62.8\pm0.1\) \\
-train-3 & \(31.7\pm0.3\) & \(43.3\pm0.4\) & \(46.5\pm0.1\) & \(49.8\pm0.1\) & \(53.8\pm0.2\) \\
-\addlinespace
 \multicolumn{6}{l}{\textit{Compose@\(k\)}} \\
 train-1 & \(67.6\pm0.8\) & \(75.7\pm0.5\) & \(77.3\pm0.6\) & \(78.0\pm0.3\) & \(78.1\pm0.4\) \\
 train-2 & \(67.6\pm0.3\) & \(75.8\pm0.3\) & \(77.3\pm0.2\) & \(78.3\pm0.3\) & \(78.4\pm0.3\) \\
 train-3 & \(68.4\pm0.2\) & \(75.4\pm0.3\) & \(76.8\pm0.3\) & \(77.7\pm0.2\) & \(78.8\pm0.2\) \\
+\addlinespace
+\multicolumn{6}{l}{\textit{Pass@\(k\)}} \\
+train-1 & \(36.9\pm1.0\) & \(51.8\pm0.1\) & \(56.1\pm0.3\) & \(59.5\pm0.1\) & \(62.0\pm0.8\) \\
+train-2 & \(37.7\pm0.4\) & \(51.7\pm0.1\) & \(56.0\pm0.1\) & \(59.7\pm0.2\) & \(62.8\pm0.1\) \\
+train-3 & \(31.7\pm0.3\) & \(43.3\pm0.4\) & \(46.5\pm0.1\) & \(49.8\pm0.1\) & \(53.8\pm0.2\) \\
 \bottomrule
 \end{tabular}
 \caption{Verification by training run (mean \(\pm\) SD over three inference runs).}
@@ -566,17 +565,6 @@ train-3 & \(68.4\pm0.2\) & \(75.4\pm0.3\) & \(76.8\pm0.3\) & \(77.7\pm0.2\) & \(
 \rowcolor{headerbg}
 Training & Inference & @1 & @4 & @8 & @16 & @32 \\
 \midrule
-\multicolumn{7}{l}{\textit{Pass@\(k\)}} \\
-train-1 & run-1 & 36.8 & 51.9 & 56.5 & 59.5 & 61.5 \\
-train-1 & run-2 & 35.9 & 51.7 & 56.0 & 59.5 & 61.5 \\
-train-1 & run-3 & 37.9 & 51.7 & 55.9 & 59.6 & 62.9 \\
-train-2 & run-1 & 38.0 & 51.8 & 56.1 & 60.0 & 62.7 \\
-train-2 & run-2 & 37.9 & 51.8 & 56.0 & 59.6 & 63.0 \\
-train-2 & run-3 & 37.3 & 51.6 & 55.9 & 59.6 & 62.7 \\
-train-3 & run-1 & 32.0 & 42.9 & 46.4 & 49.8 & 53.6 \\
-train-3 & run-2 & 31.6 & 43.6 & 46.6 & 49.9 & 53.7 \\
-train-3 & run-3 & 31.5 & 43.5 & 46.5 & 49.8 & 54.0 \\
-\addlinespace
 \multicolumn{7}{l}{\textit{Compose@\(k\)}} \\
 train-1 & run-1 & 68.5 & 75.7 & 77.5 & 78.2 & 78.4 \\
 train-1 & run-2 & 66.9 & 75.2 & 76.6 & 77.6 & 77.6 \\
@@ -587,6 +575,17 @@ train-2 & run-3 & 67.4 & 75.5 & 77.0 & 78.0 & 78.1 \\
 train-3 & run-1 & 68.4 & 75.1 & 76.4 & 77.5 & 78.6 \\
 train-3 & run-2 & 68.6 & 75.6 & 76.8 & 77.6 & 78.7 \\
 train-3 & run-3 & 68.3 & 75.6 & 77.0 & 77.9 & 79.0 \\
+\addlinespace
+\multicolumn{7}{l}{\textit{Pass@\(k\)}} \\
+train-1 & run-1 & 36.8 & 51.9 & 56.5 & 59.5 & 61.5 \\
+train-1 & run-2 & 35.9 & 51.7 & 56.0 & 59.5 & 61.5 \\
+train-1 & run-3 & 37.9 & 51.7 & 55.9 & 59.6 & 62.9 \\
+train-2 & run-1 & 38.0 & 51.8 & 56.1 & 60.0 & 62.7 \\
+train-2 & run-2 & 37.9 & 51.8 & 56.0 & 59.6 & 63.0 \\
+train-2 & run-3 & 37.3 & 51.6 & 55.9 & 59.6 & 62.7 \\
+train-3 & run-1 & 32.0 & 42.9 & 46.4 & 49.8 & 53.6 \\
+train-3 & run-2 & 31.6 & 43.6 & 46.6 & 49.9 & 53.7 \\
+train-3 & run-3 & 31.5 & 43.5 & 46.5 & 49.8 & 54.0 \\
 \bottomrule
 \end{tabular}
 \caption{Verification for all nine training--inference combinations.}
@@ -596,36 +595,10 @@ train-3 & run-3 & 68.3 & 75.6 & 77.0 & 77.9 & 79.0 \\
 \clearpage
 \subsection{Results by program class}
 
-Tables~\ref{tab:repeat-pass-strata} and~\ref{tab:repeat-compose-strata}
+Tables~\ref{tab:repeat-compose-strata} and~\ref{tab:repeat-pass-strata}
 report the same within-training inference summaries for Linear (316 programs),
 NLA (50 programs), and Loopy (466 programs).
 
-\begin{table}[H]
-\centering
-\begin{tabular}{lrrrrr}
-\toprule
-\rowcolor{headerbg}
-Training & @1 & @4 & @8 & @16 & @32 \\
-\midrule
-\multicolumn{6}{l}{\textit{Linear}} \\
-train-1 & \(39.6\pm1.5\) & \(56.2\pm0.2\) & \(60.1\pm0.8\) & \(63.1\pm0.5\) & \(65.7\pm0.7\) \\
-train-2 & \(40.3\pm0.4\) & \(55.7\pm0.6\) & \(59.3\pm0.5\) & \(64.6\pm0.3\) & \(66.9\pm0.4\) \\
-train-3 & \(33.1\pm0.7\) & \(45.5\pm1.0\) & \(49.7\pm0.3\) & \(54.2\pm0.2\) & \(57.1\pm0.5\) \\
-\addlinespace
-\multicolumn{6}{l}{\textit{NLA}} \\
-train-1 & \(4.0\pm0.0\) & \(5.3\pm1.2\) & \(6.7\pm1.2\) & \(6.7\pm1.2\) & \(8.0\pm0.0\) \\
-train-2 & \(6.0\pm0.0\) & \(6.0\pm0.0\) & \(8.0\pm0.0\) & \(8.0\pm0.0\) & \(8.0\pm0.0\) \\
-train-3 & \(2.0\pm0.0\) & \(4.0\pm0.0\) & \(4.0\pm0.0\) & \(4.0\pm0.0\) & \(4.0\pm0.0\) \\
-\addlinespace
-\multicolumn{6}{l}{\textit{Loopy}} \\
-train-1 & \(38.6\pm1.4\) & \(53.7\pm0.2\) & \(58.7\pm0.9\) & \(62.8\pm0.1\) & \(65.2\pm0.9\) \\
-train-2 & \(39.3\pm0.4\) & \(53.9\pm0.2\) & \(58.9\pm0.3\) & \(62.0\pm0.4\) & \(66.0\pm0.2\) \\
-train-3 & \(33.9\pm0.0\) & \(46.1\pm0.0\) & \(48.9\pm0.0\) & \(51.7\pm0.0\) & \(56.9\pm0.0\) \\
-\bottomrule
-\end{tabular}
-\caption{Pass@\(k\) by program class (mean \(\pm\) SD over three inference runs).}
-\label{tab:repeat-pass-strata}
-\end{table}
 \begin{table}[H]
 \centering
 \begin{tabular}{lrrrrr}
@@ -652,11 +625,37 @@ train-3 & \(70.7\pm0.1\) & \(79.6\pm0.0\) & \(81.1\pm0.0\) & \(82.0\pm0.0\) & \(
 \caption{Compose@\(k\) by program class (mean \(\pm\) SD over three inference runs).}
 \label{tab:repeat-compose-strata}
 \end{table}
+\begin{table}[H]
+\centering
+\begin{tabular}{lrrrrr}
+\toprule
+\rowcolor{headerbg}
+Training & @1 & @4 & @8 & @16 & @32 \\
+\midrule
+\multicolumn{6}{l}{\textit{Linear}} \\
+train-1 & \(39.6\pm1.5\) & \(56.2\pm0.2\) & \(60.1\pm0.8\) & \(63.1\pm0.5\) & \(65.7\pm0.7\) \\
+train-2 & \(40.3\pm0.4\) & \(55.7\pm0.6\) & \(59.3\pm0.5\) & \(64.6\pm0.3\) & \(66.9\pm0.4\) \\
+train-3 & \(33.1\pm0.7\) & \(45.5\pm1.0\) & \(49.7\pm0.3\) & \(54.2\pm0.2\) & \(57.1\pm0.5\) \\
+\addlinespace
+\multicolumn{6}{l}{\textit{NLA}} \\
+train-1 & \(4.0\pm0.0\) & \(5.3\pm1.2\) & \(6.7\pm1.2\) & \(6.7\pm1.2\) & \(8.0\pm0.0\) \\
+train-2 & \(6.0\pm0.0\) & \(6.0\pm0.0\) & \(8.0\pm0.0\) & \(8.0\pm0.0\) & \(8.0\pm0.0\) \\
+train-3 & \(2.0\pm0.0\) & \(4.0\pm0.0\) & \(4.0\pm0.0\) & \(4.0\pm0.0\) & \(4.0\pm0.0\) \\
+\addlinespace
+\multicolumn{6}{l}{\textit{Loopy}} \\
+train-1 & \(38.6\pm1.4\) & \(53.7\pm0.2\) & \(58.7\pm0.9\) & \(62.8\pm0.1\) & \(65.2\pm0.9\) \\
+train-2 & \(39.3\pm0.4\) & \(53.9\pm0.2\) & \(58.9\pm0.3\) & \(62.0\pm0.4\) & \(66.0\pm0.2\) \\
+train-3 & \(33.9\pm0.0\) & \(46.1\pm0.0\) & \(48.9\pm0.0\) & \(51.7\pm0.0\) & \(56.9\pm0.0\) \\
+\bottomrule
+\end{tabular}
+\caption{Pass@\(k\) by program class (mean \(\pm\) SD over three inference runs).}
+\label{tab:repeat-pass-strata}
+\end{table}
 
 \paragraph{Inference variability and differences across training runs.}
 On the full benchmark, the reported within-training standard deviations
-are at most 1.0 percentage point for pass@\(k\) and 0.8 point for
-compose@\(k\).  The three training-run means are closely grouped for
+are at most 0.8 percentage point for compose@\(k\) and 1.0 point for
+pass@\(k\).  The three training-run means are closely grouped for
 composition: 67.6--68.4\% at compose@1 and 78.1--78.8\% at compose@32.
 Standalone success varies more across training runs, with mean pass@1
 ranging from 31.7\% to 37.7\% and mean pass@32 from 53.8\% to 62.8\%.
@@ -702,14 +701,14 @@ Naive & \acc{154/316}{48.73\%} & \acc{4/50}{8.00\%} & \acc{221/466}{47.42\%}
 Daikon & \acc{73/316}{23.10\%} & \acc{0/50}{0.00\%} & \acc{101/466}{21.67\%}
   & \acc{174/832}{20.91\%} & 0 & 4.89\,s \\
 \midrule
-\sam{} (pass@1) & \acc{193/316}{61.08\%} & \acc{7/50}{14.00\%} & \acc{252/466}{54.08\%}
-  & \acc{452/832}{54.33\%} & 6,895.34 & 53.68\,s \\
 \sam{} (compose@1) & \acc{180/316}{56.96\%} & \acc{27/50}{54.00\%} & \acc{276/466}{59.23\%}
   & \acc{483/832}{58.05\%} & 6,895.34 & 60.97\,s \\
 \sam{} (compose@4) & \acc{243/316}{76.90\%} & \acc{34/50}{68.00\%} & \acc{363/466}{77.90\%}
   & \acc{640/832}{76.92\%} & 24,986.02 & 64.92\,s \\
 \sam{} (compose@8) & \acc{250/316}{79.11\%} & \acc{35/50}{70.00\%} & \acc{384/466}{82.40\%}
   & \acc{669/832}{80.41\%} & 49,106.91 & 68.98\,s \\
+\sam{} (pass@1) & \acc{193/316}{61.08\%} & \acc{7/50}{14.00\%} & \acc{252/466}{54.08\%}
+  & \acc{452/832}{54.33\%} & 6,895.34 & 53.68\,s \\
 \bottomrule
 \end{tabular}
 \end{table}

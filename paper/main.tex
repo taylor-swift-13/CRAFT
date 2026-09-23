@@ -246,10 +246,12 @@ for Target-Hidden Loop Verification}
 \maketitle
 
 \begin{abstract}
-Loop invariants reduce unbounded executions to finite proof obligations, but
-LLM-generated invariants often fail as complete responses even when they
-contain useful clauses.  Complementary clauses may also be scattered across
-different responses.  We introduce CRAFT, a framework that aligns invariant
+Loop invariants reduce unbounded executions to finite proof obligations.
+For legacy programs with unknown or unavailable verification goals,
+target-specific verifier feedback is unavailable, making invariant generation
+especially challenging.  Meanwhile, LLM-generated invariants often fail
+as complete responses even when they contain useful clauses, and complementary
+clauses may be scattered across different responses.  We introduce CRAFT, a framework that aligns invariant
 generation and training with clause composition under hidden verification
 targets.  At inference, CRAFT decomposes responses
 into clauses, pools and jointly filters clauses across responses, and composes

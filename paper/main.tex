@@ -246,28 +246,21 @@ for Target-Hidden Loop Verification}
 \maketitle
 
 \begin{abstract}
-Loop invariants are central to program verification: they characterize
-properties preserved during loop execution and provide a basis for proving
-program correctness.  For legacy programs whose verification goals are
-unclear, they also serve as reusable summaries of program behavior, providing
-a basis for subsequent analysis and verification.  However, traditional target-driven
-methods are difficult to apply in this setting.  We therefore study
-target-hidden loop verification, withholding target assertions and
-postconditions during generation and training so that models infer invariants
-from program behavior itself.  Yet LLM-generated invariants often fail as
-complete responses even when they contain useful clauses, and complementary
-clauses may be scattered across different responses.  We introduce CRAFT, a
-framework that aligns
-invariant generation and training with clause composition in this setting.
-At inference, CRAFT decomposes responses
+Loop invariants reduce unbounded executions to finite proof obligations, but
+LLM-generated invariants often fail as complete responses even when they
+contain useful clauses.  Complementary clauses may also be scattered across
+different responses.  We introduce CRAFT, a framework that aligns invariant
+generation and training with clause composition under hidden verification
+targets.  At inference, CRAFT decomposes responses
 into clauses, pools and jointly filters clauses across responses, and composes
 the survivors into an invariant.  This recovers useful proof material without
 requiring any response to prove the hidden target independently.
 The same filtered compositions supply SFT labels and determine which clauses
-receive RL credit.  Execution-derived negative-trace coverage provides a
-target-independent strength signal.  Supervised fine-tuning (SFT) distills
-accepted multi-response compositions into single-response labels, while
-reinforcement learning (RL)
+receive RL credit.  Because target assertions
+and postconditions remain hidden throughout generation and training,
+execution-derived negative-trace coverage provides a target-independent
+strength signal.  Supervised fine-tuning (SFT) distills accepted multi-response
+compositions into single-response labels, while reinforcement learning (RL)
 credits coverage contributed by retained clauses even when their original
 responses fail as wholes.  On 832 C programs, SFT raises Qwen3-8B's
 compose@1---the verification rate after filtering and composing one

@@ -3,6 +3,7 @@
 
 All rows (k = 1, 4, 8) come from one archived rollout pool per model:
 compose@k = prefix-subset composition counts, pass@k = the unbiased estimator.
+Each suite reports compose before pass.
 The script replaces the block between the table's \\midrule and \\bottomrule
 in paper/sections/appendix.tex in place.
 """
@@ -41,8 +42,8 @@ def row_values(summary: dict, k: str) -> list[float]:
     values = []
     for suite, denom in SUITES:
         key = suite if suite != "all" else "all"
-        values.extend((100 * pas.get(key, 0.0) / denom,
-                       100 * comp.get(key, 0) / denom))
+        values.extend((100 * comp.get(key, 0) / denom,
+                       100 * pas.get(key, 0.0) / denom))
     return values
 
 
@@ -57,8 +58,8 @@ def block(name: str, summary: dict, best: dict) -> str:
             pass_count = pas.get(key, 0.0)
             comp_count = comp.get(key, 0)
             cells.append(
-                f"{cell(pass_count, denom, best[k][2 * suite_idx])} & "
-                f"{cell(comp_count, denom, best[k][2 * suite_idx + 1])}"
+                f"{cell(comp_count, denom, best[k][2 * suite_idx])} & "
+                f"{cell(pass_count, denom, best[k][2 * suite_idx + 1])}"
             )
         model = f"\\multirow{{{len(KS)}}}{{*}}{{{name}}}" if row_idx == 0 else ""
         lines.append(model + " & " + k + "\n  & " + "\n  & ".join(cells) + " \\\\")

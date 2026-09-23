@@ -39,26 +39,28 @@ gives decoding, serving, prover, and training details.
 
 \tightparagraph{Metrics.}
 Throughout evaluation, success means \(\mathcal G\)-sufficiency under the final
-verifier. Both metrics use the same first \(k\) saved responses per task:
-pass@\(k\) counts success when at least one response independently verifies
-the targets; compose@\(k\) counts success after filtering and composing
-their clauses. Appendix~\ref{app:experimental-protocol} gives the definitions.
+verifier. Our primary metric is compose@\(k\): success under CRAFT's
+filtering-and-composition pipeline on the first \(k\) saved responses. We report pass@\(k\)
+as a standalone baseline: success when at least one of the same responses
+independently verifies the targets. Appendix~\ref{app:experimental-protocol}
+gives the definitions.
 
 
 % ---------------------------------------------------------------------------
 \subsection{RQ1: How Much Do Compositional Inference and Aligned Training Improve Verification?}
 \label{sec:exp:main}
 
-Table~\ref{tab:rcf-paired} compares four local backbones across training
-stages, with four API models as references, reporting pass and compose
-at one- and eight-response budgets. RL denotes training from Base;
+Table~\ref{tab:rcf-paired} compares three local backbones across training
+stages, with four API models as references. It reports the primary compose
+metric and the standalone pass baseline at one- and eight-response budgets.
+RL denotes training from Base;
 SFT+RL starts from SFT. API models receive no additional training.
 
 \input{sections/main_results_table}
 
 \tightparagraph{Compositional inference alone substantially improves verification.}
-For Base Qwen3-8B, pass@1 is 6.37\%,
-compose@1 reaches 37.86\%, or \(5.94\times\) the standalone rate.
+For Base Qwen3-8B, compose@1 reaches 37.86\%, versus pass@1 at 6.37\%,
+or \(5.94\times\) the standalone rate.
 Both rates concern a one-response inference budget, showing that the framework can recover
 clauses sufficient for a proof from an answer that fails as a whole.
 
@@ -66,7 +68,7 @@ clauses sufficient for a proof from an answer that fails as a whole.
 SFT constructs supervision from composed valid clause sets, while RL assigns
 credit based on the contributions of clauses retained after filtering.
 Qwen3-8B compose@1 rises from 37.86\% to 63.94\% after SFT and then to
-69.23\% after RL.  All four local backbones show this progressive
+69.23\% after RL.  All three local backbones show this progressive
 improvement in compose@1; Qwen3-4B SFT+RL reaches 67.55\%, exceeding
 Sonnet-4.6's 56.97\% under the evaluated protocol.
 
@@ -180,7 +182,7 @@ useful candidates available earlier even after substantial supervised training.
 \vspace{0pt}
 \includegraphics[width=\linewidth]{figures/reward_ablation_row.pdf}
 \captionsetup{font=small,margin={7pt,0pt}}
-\caption{Qwen3-8B reward ablation from Base: (a) pass@\(k\); (b) compose@\(k\). Vertical scales differ.}
+\caption{Qwen3-8B reward ablation from Base: (a) compose@\(k\); (b) pass@\(k\). Vertical scales differ.}
 \label{fig:reward-ablation}
 \end{minipage}
 \end{figure}
@@ -192,8 +194,8 @@ training acquires useful clauses and preserves their contributions.
 SFT (single) uses independently filtered responses; composed labels pool
 valid clauses across responses, giving supervision access to more candidate
 invariants and complementary constraints.  With approximately equal numbers
-of training examples, composed-label SFT raises Qwen3-8B pass@1 from
-19.95\% to 41.95\% and compose@1 from 23.20\% to 63.94\%, relative to
+of training examples, composed-label SFT raises Qwen3-8B compose@1 from
+23.20\% to 63.94\% and pass@1 from 19.95\% to 41.95\%, relative to
 SFT (single) (Figure~\ref{fig:sft-composition-compose}).  Composition exposes
 SFT to the results of multi-response exploration, which the trained model
 can exploit with a single response.
@@ -202,7 +204,7 @@ can exploit with a single response.
 With verification targets hidden, RL uses inductiveness and negative coverage
 (Figure~\ref{fig:reward-ablation}).  Binary alone reaches only 4.45\%
 compose@32.  Whole-rollout adds coverage but gates credit on the entire
-response: pass@1 improves to 15.50\%, yet compose@32 falls to 23.32\%,
+response: compose@32 falls to 23.32\%, even as pass@1 improves to 15.50\%,
 below Base's 57.81\%.  One rejected clause therefore withholds credit from
 every useful survivor.  Clause-decomposed removes this gate and reaches
 66.35\% compose@32; after SFT, its compose@1 advantage over Whole-rollout

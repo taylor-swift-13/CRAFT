@@ -35,7 +35,7 @@ def official_probe(data):
                          (2.05 if i < 3 else .40) / height,
                          pos.width * 2, AXES_HEIGHT / height])
         r = data['stages']['Bare'][model]
-        for metric, color, marker, ls in [('pass', RUST, 'o', '-'), ('compose', GREEN, 's', '--')]:
+        for metric, color, marker, ls in [('compose', GREEN, 's', '--'), ('pass', RUST, 'o', '-')]:
             ax.plot(data['k'], r[metric], label=metric+'@k', color=color,
                     marker=marker, linestyle=ls, markersize=3.8)
         style(ax, data['k'])

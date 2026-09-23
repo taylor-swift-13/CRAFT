@@ -18,7 +18,7 @@ def main():
     colors[default] = GREEN
     markers = {'Binary': 'o', 'Whole-rollout': 's', 'Clause-decomposed': '^', 'Full': 'D'}
     fig, axes = panel_figure(2)
-    for ax, metric in zip(axes, ['pass', 'compose']):
+    for ax, metric in zip(axes, ['compose', 'pass']):
         ax.plot(data['k'], data['stages']['Bare']['Qwen3-8B'][metric],
                 color=MUTED, marker='x', linestyle=':', label='Bare reference', linewidth=1.2)
         for reward, values in rewards.items():
@@ -32,7 +32,7 @@ def main():
         ax.set(xlim=(.85,38), ylim=(0,30 if metric=='pass' else (75 if default=='Full' else 70)),
                xlabel='Responses, k', ylabel='Verified (%)')
         ax.set_yticks([0,10,20,30] if metric=='pass' else [0,20,40,60])
-        ax.set_title('(a) pass@k' if metric=='pass' else '(b) compose@k')
+        ax.set_title('(a) compose@k' if metric=='compose' else '(b) pass@k')
         ax.grid(axis='y', alpha=.8)
     panel_legend(fig, axes[0], columns=2)
     save_panel_figure(fig, OUT, 'reward_ablation')

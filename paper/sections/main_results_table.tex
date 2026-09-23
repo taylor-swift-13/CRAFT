@@ -8,37 +8,31 @@
 & & \multicolumn{2}{c}{\(k=1\)} & \multicolumn{2}{c}{\(k=8\)} \\
 \headercmidrules{\cmidrule(lr){3-4}\cmidrule(lr){5-6}}
 \rowcolor{algobg}
-\multirow{-2}{*}{Backbone} & \multirow{-2}{*}{Training} & pass & compose & pass & compose \\
+\multirow{-2}{*}{Backbone} & \multirow{-2}{*}{Training} & compose & pass & compose & pass \\
 \midrule
 \multirow{4}{*}{Qwen3-4B}
- & Base & 5.29 & 32.93 & 12.50 & 47.60 \\
- & SFT & 40.38 & 62.62 & 59.98 & 76.20 \\
- & RL & 1.68 & 48.80 & 4.45 & 62.50 \\
- & SFT+RL (\sam{}) & 35.10 & 67.55 & 53.25 & 78.00 \\
+ & Base & 32.93 & 5.29 & 47.60 & 12.50 \\
+ & SFT & 62.62 & 40.38 & 76.20 & 59.98 \\
+ & RL & 48.80 & 1.68 & 62.50 & 4.45 \\
+ & SFT+RL (\sam{}) & 67.55 & 35.10 & 78.00 & 53.25 \\
 \cmidrule(lr){1-6}
 \multirow{4}{*}{Qwen3-8B}
- & Base & 6.37 & 37.86 & 17.31 & 54.21 \\
- & SFT & 41.95 & 63.94 & 61.18 & 76.20 \\
- & RL & 2.88 & 51.80 & 7.81 & 64.18 \\
- & SFT+RL (\sam{}) & 36.78 & 69.23 & 56.49 & \textbf{78.73} \\
+ & Base & 37.86 & 6.37 & 54.21 & 17.31 \\
+ & SFT & 63.94 & 41.95 & 76.20 & 61.18 \\
+ & RL & 51.80 & 2.88 & 64.18 & 7.81 \\
+ & SFT+RL (\sam{}) & 69.23 & 36.78 & \textbf{78.73} & 56.49 \\
 \cmidrule(lr){1-6}
 \multirow{4}{*}{Qwen3-14B}
- & Base & 7.69 & 43.51 & 17.91 & 61.54 \\
- & SFT & \textbf{45.79} & 66.35 & \textbf{63.58} & 78.37 \\
- & RL & 10.34 & 65.38 & 18.63 & 72.24 \\
- & SFT+RL (\sam{}) & 35.82 & \textbf{69.35} & 53.00 & 77.04 \\
-\cmidrule(lr){1-6}
-\multirow{4}{*}{Llama 3.1-8B}
- & Base & 0.60 & 27.88 & 3.85 & 51.20 \\
- & SFT & 39.30 & 61.30 & 56.85 & 73.08 \\
- & RL & 4.45 & 46.03 & 10.46 & 56.25 \\
- & SFT+RL (\sam{}) & 35.70 & 61.90 & 53.00 & 74.40 \\
+ & Base & 43.51 & 7.69 & 61.54 & 17.91 \\
+ & SFT & 66.35 & \textbf{45.79} & 78.37 & \textbf{63.58} \\
+ & RL & 65.38 & 10.34 & 72.24 & 18.63 \\
+ & SFT+RL (\sam{}) & \textbf{69.35} & 35.82 & 77.04 & 53.00 \\
 \midrule
 \multicolumn{6}{l}{\textit{API models}} \\
-GPT-5-nano & -- & 3.61 & 33.89 & 16.11 & 55.53 \\
-GPT-5 & -- & 32.57 & 51.32 & 51.68 & 72.00 \\
-Claude Sonnet-4.6 & -- & 36.30 & 56.97 & 44.95 & 66.95 \\
-DeepSeek V4-Flash & -- & 28.13 & 51.44 & 48.20 & 74.40 \\
+GPT-5-nano & -- & 33.89 & 3.61 & 55.53 & 16.11 \\
+GPT-5 & -- & 51.32 & 32.57 & 72.00 & 51.68 \\
+Claude Sonnet-4.6 & -- & 56.97 & 36.30 & 66.95 & 44.95 \\
+DeepSeek V4-Flash & -- & 51.44 & 28.13 & 74.40 & 48.20 \\
 \bottomrule
 \end{tabular}
 \caption{Verification across models and training stages (\%). Bold marks each column's maximum.}

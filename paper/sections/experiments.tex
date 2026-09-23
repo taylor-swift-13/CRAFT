@@ -51,13 +51,13 @@ their clauses. Appendix~\ref{app:experimental-protocol} gives the definitions.
 
 Table~\ref{tab:rcf-paired} compares four local backbones across training
 stages, with four API models as references, reporting pass and compose
-at one- and eight-response budgets. RL denotes training from Bare;
+at one- and eight-response budgets. RL denotes training from Base;
 SFT+RL starts from SFT. API models receive no additional training.
 
 \input{sections/main_results_table}
 
 \tightparagraph{Compositional inference alone substantially improves verification.}
-For Bare Qwen3-8B, pass@1 is 6.37\%,
+For Base Qwen3-8B, pass@1 is 6.37\%,
 compose@1 reaches 37.86\%, or \(5.94\times\) the standalone rate.
 Both rates concern a one-response inference budget, showing that the framework can recover
 clauses sufficient for a proof from an answer that fails as a whole.
@@ -96,7 +96,7 @@ composition.
 \vspace{0pt}
 \includegraphics[width=\linewidth]{figures/training_stages_row.pdf}
 \captionsetup{font=small,margin={7pt,0pt}}
-\caption{Qwen3-8B verification across sampling budgets, with RL initialized from (a) Bare and (b) SFT.}
+\caption{Qwen3-8B verification across sampling budgets, with RL initialized from (a) Base and (b) SFT.}
 \label{fig:rl-panels}
 \end{minipage}
 \end{figure}
@@ -130,11 +130,11 @@ composition verify more programs with fewer tokens.
 
 Prior work suggests that RLVR can increase the sampling frequency of existing
 behaviors~\citep{yue2025rlcapacity}.
-Figure~\ref{fig:rl-panels} compares Qwen3-8B from Bare and SFT initializations
+Figure~\ref{fig:rl-panels} compares Qwen3-8B from Base and SFT initializations
 to examine whether this pattern also appears in compositional verification.
 
 \tightparagraph{SFT expands coverage and compresses the sampling budget.}
-SFT reaches 63.94\% compose@1, exceeding Bare compose@32 (57.81\%).
+SFT reaches 63.94\% compose@1, exceeding Base compose@32 (57.81\%).
 After RL, SFT initialization raises compose@1 from 51.80\% to 69.23\%
 under the same one-response budget.
 It also raises compose@32 from 57.81\% to 79.93\%: SFT both makes
@@ -142,7 +142,7 @@ useful candidates accessible with fewer responses and expands verification
 coverage within the measured range.
 
 \tightparagraph{After SFT, RL mainly makes useful candidates available earlier.}
-From Bare, RL improves compose@1 and compose@32 by 13.94 and 12.86
+From Base, RL improves compose@1 and compose@32 by 13.94 and 12.86
 points, respectively, retaining a substantial gain even at the largest budget.
 After three SFT epochs, its gains shrink to \textbf{5.29 points at compose@1
 and 2.05 at compose@32}. After SFT, RL mainly improves sampling
@@ -180,7 +180,7 @@ useful candidates available earlier even after substantial supervised training.
 \vspace{0pt}
 \includegraphics[width=\linewidth]{figures/reward_ablation_row.pdf}
 \captionsetup{font=small,margin={7pt,0pt}}
-\caption{Qwen3-8B reward ablation from Bare: (a) pass@\(k\); (b) compose@\(k\). Vertical scales differ.}
+\caption{Qwen3-8B reward ablation from Base: (a) pass@\(k\); (b) compose@\(k\). Vertical scales differ.}
 \label{fig:reward-ablation}
 \end{minipage}
 \end{figure}
@@ -203,13 +203,13 @@ With verification targets hidden, RL uses inductiveness and negative coverage
 (Figure~\ref{fig:reward-ablation}).  Binary alone reaches only 4.45\%
 compose@32.  Whole-rollout adds coverage but gates credit on the entire
 response: pass@1 improves to 15.50\%, yet compose@32 falls to 23.32\%,
-below Bare's 57.81\%.  One rejected clause therefore withholds credit from
+below Base's 57.81\%.  One rejected clause therefore withholds credit from
 every useful survivor.  Clause-decomposed removes this gate and reaches
 66.35\% compose@32; after SFT, its compose@1 advantage over Whole-rollout
 remains 24.28 points.
 
-\tightparagraph{Group credit adds most from Bare.}
-Full adds Shapley credit with weight 0.3.  From Bare, it raises compose@32
+\tightparagraph{Group credit adds most from Base.}
+Full adds Shapley credit with weight 0.3.  From Base, it raises compose@32
 from 66.35\% to 70.67\%; after SFT, the selected Full model reaches
 69.23\% compose@1 versus Clause-decomposed's 67.91\%, while compose@32 improves by
 1.68 points. The full comparison is in Appendix~\ref{app:full-credit-analysis}.

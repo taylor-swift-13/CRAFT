@@ -202,16 +202,17 @@ SFT to the results of multi-response exploration, which the trained model
 can exploit with a single response.
 
 \tightparagraph{One rejected clause should not erase the others' credit.}
-Compose--pass tension also matters for reward design.  With verification
-targets hidden, RL uses inductiveness and negative coverage
-(Figure~\ref{fig:reward-ablation}).  A whole-response gate gives sparse
-credit: if one clause fails, useful surviving clauses receive no credit.
-Binary alone reaches only 4.45\% compose@32.  Whole-rollout raises pass@1
-from 6.37\% to 15.50\%, but yields only 23.32\% compose@32, below Base's
-57.81\%.  Clause-decomposed removes this gate and rewards retained clause
-contributions, reaching 66.35\% compose@32; relative to Base, its pass@32
-falls from 25.96\% to 21.63\%.  After SFT, its compose@1 advantage over
-Whole-rollout remains 24.28 points.
+With verification targets hidden, RL uses inductiveness and negative-trace
+coverage as its reward signal (Figure~\ref{fig:reward-ablation}).  Binary
+reward reaches only 4.45\% compose@32.  Whole-rollout adds a coverage reward,
+but pays it only when every clause in a response survives filtering.  Thus,
+one rejected clause can withhold credit from other useful surviving clauses,
+making the signal sparse.  Consistent with this, Whole-rollout reaches only
+23.32\% compose@32, below Base's 57.81\%.  Clause-decomposed removes this
+all-or-nothing gate and rewards retained clause contributions, reaching
+66.35\% compose@32.  Relative to Base, this gain comes with a decrease in
+pass@32 from 25.96\% to 21.63\%, illustrating the trade-off between
+compositional verification and standalone success.
 
 \tightparagraph{Group credit adds most from Base.}
 Full adds Shapley credit with weight 0.3.  From Base, it raises compose@32

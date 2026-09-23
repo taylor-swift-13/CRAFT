@@ -52,6 +52,48 @@ All three clauses rearrange to the hidden assertion.  None of the ten raw
 responses in these pools passes as a whole on this program; pooled filtering
 removes incompatible siblings and retains the useful relation.
 
+\paragraph{Case study: a loop summary for subsequent computation.}
+An invariant can serve as an intermediate assertion even when the final
+target concerns later computation. Consider two sequential numerical loops:
+\begin{lstlisting}[language=C]
+/*@ requires 0 <= n <= 100; */
+void example(int n) {
+  int i = 0, s = 0;
+  while (i < n) {
+    s += 2 * i + 1;
+    i++;
+  }
+  int j = 0;
+  while (j < n) {
+    s -= n;
+    j++;
+  }
+  /*@ assert s == 0; */
+}
+\end{lstlisting}
+The final assertion describes the result of both loops, rather than the
+first loop alone. For generation, CRAFT receives only the first loop and its
+entry context, including the precondition; the second loop and final target
+are withheld. One response supplies the following clauses, all retained by
+joint inductive filtering:
+\[
+  0\le i,\qquad i\le n,\qquad s=i^2.
+\]
+At the first loop's exit, \(i\ge n\) gives \(i=n\), yielding the intermediate
+assertion \(s=n^2\). This summarizes the first loop independently of the
+later computation. It initializes the second loop's invariant
+\(0\le j\le n\land s=n(n-j)\), which implies the final target \(s=0\)
+when \(j=n\).
+
+For this reuse check, the second loop's invariants and the loop frame and
+termination annotations were supplied manually. Frama-C/WP discharged all
+29 reported proof goals for the annotated program with runtime-error checks
+enabled, including the intermediate and final assertions. This case
+demonstrates reuse of a generated single-loop summary; it does not constitute
+automated end-to-end invariant synthesis for multiple loops. Since all three
+generated clauses survived in one response, it also does not measure a
+cross-response composition gain.
+
 \paragraph{Case study: composition without cross-response support.}
 This case shows that clauses can each survive independent filtering yet
 require cross-response composition to prove the target. We compare independent
@@ -1675,16 +1717,16 @@ combines recorded request latency with measured filtering and final verification
 \small
 \caption{Verification and inference cost of trained Qwen3-8B CRAFT.}
 \label{tab:trained-cost-run}
-\begin{tabular}{llrrrrrr}
+\begin{tabular}{lrrrrrr}
 \toprule
 \rowcolor{algobg}
-Method & Reason. & Linear & NLA & Loopy & All & Tokens/task & Time/task \\
+Method & Linear & NLA & Loopy & All & Tokens/task & Time/task \\
 \midrule
-\sam{} (compose@1) & none & \acc{233}{73.73\%} & \acc{6}{12.00\%}
+\sam{} (compose@1) & \acc{233}{73.73\%} & \acc{6}{12.00\%}
   & \acc{337}{72.32\%} & \acc{576}{69.23\%} & 1,348.23 & 28.22\,s \\
-\sam{} (compose@4) & none & \acc{253}{80.06\%} & \acc{6}{12.00\%}
+\sam{} (compose@4) & \acc{253}{80.06\%} & \acc{6}{12.00\%}
   & \acc{374}{80.26\%} & \acc{633}{76.08\%} & 2,053.71 & 33.53\,s \\
-\sam{} (compose@8) & none & \acc{258}{81.65\%} & \acc{6}{12.00\%}
+\sam{} (compose@8) & \acc{258}{81.65\%} & \acc{6}{12.00\%}
   & \acc{391}{83.91\%} & \acc{655}{78.73\%} & 2,993.44 & 40.90\,s \\
 \bottomrule
 \end{tabular}
@@ -1695,46 +1737,46 @@ Method & Reason. & Linear & NLA & Loopy & All & Tokens/task & Time/task \\
 \small
 \caption{Target-hidden tool comparison with GPT-5-nano and reasoning disabled. Dashes denote unsupported categories.}
 \label{tab:tools-complete}
-\begin{tabular}{llrrrrrr}
+\begin{tabular}{lrrrrrr}
 \toprule
 \rowcolor{algobg}
-Method & Reason. & Linear & NLA & Loopy & Supported Total & Tokens/task & Time/task \\
+Method & Linear & NLA & Loopy & Supported Total & Tokens/task & Time/task \\
 \midrule
-AutoSpec & none & \acc{151}{47.78\%} & \acc{3}{6.00\%} & \acc{197}{42.27\%}
+AutoSpec & \acc{151}{47.78\%} & \acc{3}{6.00\%} & \acc{197}{42.27\%}
   & \acc{351/832}{42.19\%}
   & 2,216.11 & 27.34\,s \\
-SESpec & none & \acc{91}{28.80\%} & \acc{2}{4.00\%} & \acc{154}{33.05\%}
+SESpec & \acc{91}{28.80\%} & \acc{2}{4.00\%} & \acc{154}{33.05\%}
   & \acc{247/832}{29.69\%}
   & 22,081.61 & 68.50\,s \\
-Clause2Inv & none & \acc{66}{20.89\%} & --- & ---
+Clause2Inv & \acc{66}{20.89\%} & --- & ---
   & \acc{66/316}{20.89\%}
   & 1,461.80 & 18.37\,s \\
-LORIS & none & \acc{133}{42.09\%} & \acc{11}{22.00\%} & \acc{210}{45.06\%}
+LORIS & \acc{133}{42.09\%} & \acc{11}{22.00\%} & \acc{210}{45.06\%}
   & \acc{354/832}{42.55\%}
   & 47,816.27 & 138.17\,s \\
-LaM4Inv & none & \acc{70}{22.15\%} & \acc{1}{2.00\%} & ---
+LaM4Inv & \acc{70}{22.15\%} & \acc{1}{2.00\%} & ---
   & \acc{71/366}{19.40\%}
   & 1,470.80 & 14.70\,s \\
-Daikon & --- & \acc{73}{23.10\%} & \acc{0}{0.00\%} & \acc{101}{21.67\%}
+Daikon & \acc{73}{23.10\%} & \acc{0}{0.00\%} & \acc{101}{21.67\%}
   & \acc{174/832}{20.91\%}
   & 0 & 4.89\,s \\
-Loopy & none & \acc{64}{20.25\%} & \acc{0}{0.00\%} & \acc{92}{19.74\%}
+Loopy & \acc{64}{20.25\%} & \acc{0}{0.00\%} & \acc{92}{19.74\%}
   & \acc{156/832}{18.75\%}
   & 14,513.37 & 147.16\,s \\
 \midrule
-Naive & none & \acc{48}{15.19\%} & \acc{1}{2.00\%} & \acc{88}{18.88\%}
+Naive & \acc{48}{15.19\%} & \acc{1}{2.00\%} & \acc{88}{18.88\%}
   & \acc{137/832}{16.47\%}
   & 225.95 & 2.98\,s \\
-\sam{} (pass@1) & none & \acc{8/316}{2.53\%} & \acc{0/50}{0.00\%} & \acc{22/466}{4.72\%}
+\sam{} (pass@1) & \acc{8/316}{2.53\%} & \acc{0/50}{0.00\%} & \acc{22/466}{4.72\%}
   & \acc{30/832}{3.61\%}
   & 1,136.82 & 7.86\,s \\
-\sam{} (compose@1) & none & \acc{110}{34.81\%} & \acc{11}{22.00\%} & \acc{161}{34.55\%}
+\sam{} (compose@1) & \acc{110}{34.81\%} & \acc{11}{22.00\%} & \acc{161}{34.55\%}
   & \acc{282/832}{33.89\%}
   & 1,136.82 & 24.52\,s \\
-\sam{} (compose@4) & none & \acc{152}{48.10\%} & \acc{15}{30.00\%} & \acc{241}{51.72\%}
+\sam{} (compose@4) & \acc{152}{48.10\%} & \acc{15}{30.00\%} & \acc{241}{51.72\%}
   & \acc{408/832}{49.04\%}
   & 1,905.10 & 46.40\,s \\
-\sam{} (compose@8) & none & \acc{175}{55.38\%} & \acc{22}{44.00\%} & \acc{265}{56.87\%}
+\sam{} (compose@8) & \acc{175}{55.38\%} & \acc{22}{44.00\%} & \acc{265}{56.87\%}
   & \acc{462/832}{55.53\%}
   & 2,929.47 & 69.99\,s \\
 \bottomrule
@@ -1778,14 +1820,13 @@ restored-target final judge. Target/postcondition feedback is removed from
 Clause2Inv, LaM4Inv, and LORIS; only target-independent initiation and
 preservation feedback is retained. Each method uses its full supported
 set; unsupported categories are excluded rather than counted as failures.
-The medium-reasoning results discussed below use their respective token costs.
 
 \paragraph{AutoSpec.}
 AutoSpec pools eight parallel proposals in its native workflow, reaching
 42.19\% verification with 2,216.11 tokens per task. CRAFT compose@4 reaches
 49.04\% with 1,905.10 tokens. Both methods exploit multiple proposals;
 CRAFT's clause-processing pipeline achieves higher verification with fewer
-tokens. With medium reasoning, AutoSpec reaches 61.78\%.
+tokens.
 
 \paragraph{SESpec.}
 SESpec uses verifier feedback to iteratively repair a running candidate.
@@ -1820,9 +1861,7 @@ candidate invariants and using Houdini to filter them.
 Loopy's initial responses contain invariant annotations in 98.8\% of cases,
 but its native extractor passes only 1.75\% of initial responses to Houdini.
 Generating annotations therefore does not ensure that they reach the
-verifier. Its verification rate rises from 18.75\% with reasoning disabled
-to 68.03\% in the archived medium-reasoning evaluation, reversing its
-ranking with AutoSpec.
+verifier.
 
 \paragraph{Daikon.}
 Daikon provides a non-LLM reference, verifying 20.91\% without model calls

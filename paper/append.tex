@@ -29,6 +29,8 @@
 \captionsetup[table]{font=small}
 \raggedbottom
 \newcommand{\pp}[1]{\,({#1})}
+\newcommand{\sam}{CRAFT}
+\newcommand{\acc}[2]{#2}
 
 \title{CRAFT: Supplementary Experimental Analyses}
 \author{}
@@ -44,8 +46,9 @@ benchmark change the conclusions of the Qwen3-8B training experiments.
 Appendix~B characterizes the computational profile of the evaluation used for
 Qwen3-8B and all of its training variants.  Appendix~C isolates the effect of
 negative-trace sampling under the Full reward.  Appendix~D reports three
-training runs with three inference runs each.  All verification rates are
-percentages.
+training runs with three inference runs each.  Appendix~E archives a rerun
+of the main paper's tool comparison with medium reasoning effort.  All
+verification rates are percentages.
 
 \appendix
 \section{Robustness to Benchmark Deduplication}
@@ -659,5 +662,82 @@ Standalone success varies more across training runs, with mean pass@1
 ranging from 31.7\% to 37.7\% and mean pass@32 from 53.8\% to 62.8\%.
 Thus, in these runs, similar compositional verification rates coexist
 with larger differences in standalone success.
+
+\clearpage
+\section{Medium-Reasoning Tool Comparison}
+\label{app:supp-medium}
+
+Table~\ref{tab:supp-medium} reports an archived rerun of the main paper's
+tool comparison with \texttt{reasoning\_effort=medium} for every LLM-based
+row, on the same target-hidden inputs and under the same restored-target
+judge as the reasoning-disabled comparison in the main paper.  These rows
+use each method's native token costs and are contextual evidence; they are
+not mixed into the reasoning-disabled comparison.  LORIS and LaM4Inv were
+evaluated only with reasoning disabled and do not appear in this rerun.
+
+\begin{table}[H]
+\centering
+\caption{Archived target-hidden tool comparison with GPT-5-nano at
+\texttt{reasoning\_effort=medium}. Dashes denote unsupported categories.
+Daikon makes no model call and is listed once for reference. The CRAFT
+compose rows are prefix compositions of the same archived ten-response
+pool, measured with the current inference filter chain as in the main
+paper's reasoning-disabled comparison.}
+\label{tab:supp-medium}
+\begin{tabular}{lrrrrrr}
+\toprule
+\rowcolor{headerbg}
+Method & Linear & NLA & Loopy & Supported Total & Tokens/task & Time/task \\
+\midrule
+AutoSpec & \acc{208/316}{65.82\%} & \acc{4/50}{8.00\%} & \acc{302/466}{64.81\%}
+  & \acc{514/832}{61.78\%} & 25,154.54 & 54.77\,s \\
+SESpec & \acc{180/316}{56.96\%} & \acc{3/50}{6.00\%} & \acc{231/466}{49.57\%}
+  & \acc{414/832}{49.76\%} & 44,807.05 & 117.31\,s \\
+Clause2Inv & \acc{63/316}{19.94\%} & \acc{1/50}{2.00\%} & ---
+  & \acc{64/366}{17.49\%} & 385.80 & 29.04\,s \\
+Loopy & \acc{230/316}{72.78\%} & \acc{6/50}{12.00\%} & \acc{330/466}{70.82\%}
+  & \acc{566/832}{68.03\%} & 111,973.15 & 381.01\,s \\
+Naive & \acc{154/316}{48.73\%} & \acc{4/50}{8.00\%} & \acc{221/466}{47.42\%}
+  & \acc{379/832}{45.55\%} & 4,493.37 & 28.87\,s \\
+Daikon & \acc{73/316}{23.10\%} & \acc{0/50}{0.00\%} & \acc{101/466}{21.67\%}
+  & \acc{174/832}{20.91\%} & 0 & 4.89\,s \\
+\midrule
+\sam{} (pass@1) & \acc{193/316}{61.08\%} & \acc{7/50}{14.00\%} & \acc{252/466}{54.08\%}
+  & \acc{452/832}{54.33\%} & 6,895.34 & 53.68\,s \\
+\sam{} (compose@1) & \acc{180/316}{56.96\%} & \acc{27/50}{54.00\%} & \acc{276/466}{59.23\%}
+  & \acc{483/832}{58.05\%} & 6,895.34 & 60.97\,s \\
+\sam{} (compose@4) & \acc{243/316}{76.90\%} & \acc{34/50}{68.00\%} & \acc{363/466}{77.90\%}
+  & \acc{640/832}{76.92\%} & 24,986.02 & 64.92\,s \\
+\sam{} (compose@8) & \acc{250/316}{79.11\%} & \acc{35/50}{70.00\%} & \acc{384/466}{82.40\%}
+  & \acc{669/832}{80.41\%} & 49,106.91 & 68.98\,s \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Reasoning changes the ranking.  Relative to the reasoning-disabled
+comparison in the main paper, AutoSpec rises from 42.19\% to 61.78\% and
+Loopy from 18.75\% to 68.03\%, reversing their reasoning-disabled ranking;
+Naive rises from 16.47\% to 45.55\%.  CRAFT benefits as well: compose@1
+rises from 33.89\% to 58.05\% and compose@8 from 55.53\% to 80.41\%, with
+NLA compose@1 rising from 22.00\% to 54.00\%.  On Linear, medium compose@1
+sits below medium pass@1 (56.96\% versus 61.08\%): finite-budget filtering
+need not dominate standalone verification on every stratum, consistent with
+the filtering-order comparison in the main paper.  Under this setting,
+CRAFT compose@4 verifies 76.92\% of programs with 24,986 tokens per task,
+exceeding every medium-reasoning tool row at lower token cost (Loopy:
+68.03\% at 111,973 tokens).  Reasoning tokens dominate these costs: the
+archived CRAFT pool averages 6,030 completion tokens per rollout, versus
+256 with reasoning disabled.  This cost gap motivates the
+reasoning-disabled main protocol described in the main paper.
+
+Cost accounting follows the main paper's tool comparison.  CRAFT tokens at
+budget $k$ are the mean prompt per call (865.11) plus $k$ times the mean
+completion per rollout (6,030.23) billed in the archived pool; time at $k$
+is the per-call latency (53.68\,s) plus the measured prefix filter-and-judge
+time (7.29, 11.24, and 15.30\,s at $k$ = 1, 4, 8).  AutoSpec's token mean
+uses 832 exact-usage tasks; SESpec's token mean covers 830 rows with usage
+records; Clause2Inv's token mean is estimated over its supported tasks, and
+its archived medium run covers Linear and NLA (366 tasks), with Loopy
+unsupported.
 
 \end{document}

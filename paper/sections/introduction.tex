@@ -7,15 +7,19 @@ finite proof obligations, enabling verification beyond the executions covered
 by finite testing.  Their value extends beyond proving a given
 postcondition: legacy code can lack explicit assertions or specifications,
 yet useful invariants can capture properties for reuse in later analysis and
-verification.  Even when a final postcondition is available, intervening
-loops or function calls can prevent it from providing direct feedback for an
-earlier loop without reasoning through the subsequent computation.  A strong
+verification.  A final postcondition may not directly guide an intermediate
+loop when other loops or function calls follow it.  A strong
 invariant, combined with the loop's exit conditions, supplies an intermediate
 assertion for that later reasoning.  These settings motivate discovering
 informative loop summaries from program semantics without requiring a given
 verification target.
 
-We study this problem through \emph{target-hidden loop verification}:
+Existing learning-based approaches, including Code2Inv, CLN2Inv, and
+LIPuS~\citep{si2020code2inv,ryan2020cln2inv,yu2023lipus}, and LLM-based
+methods such as LaM4Inv, Clause2Inv, and
+LORIS~\citep{wu2024lam4inv,cao2025clause2inv,li2026loris}, use given
+verification targets or target-derived feedback to guide invariant search.
+We instead study \emph{target-hidden loop verification}:
 generation and training scores use the loop context alone, while target
 assertions and postconditions \(\mathcal G\) are restored only for final
 verification.  Two challenges arise.  First, without a target, proof success
@@ -26,49 +30,55 @@ reachable states while excluding as many unreachable states as possible.
 However, the exact reachable set is generally difficult to obtain, making
 this precision difficult to measure directly as a training reward.
 We therefore need a computable, target-independent proxy for invariant
-strength.  Second, an LLM response may contain both useful
+strength.
+
+Second, an LLM response may contain both useful
 and incorrect clauses, while complementary constraints may be scattered
 across responses.  Rejecting or rewarding each response as a whole obscures
-the value of its useful parts.  Moreover, two clauses that are not inductive
-individually can form an inductive conjunction by supporting each other's
-preservation.  Generation and training must therefore
-account for how individual clauses contribute to a composed invariant.
+the value of its useful parts.  A clause's value also depends on its companions:
+two clauses that are not inductive individually can form an inductive
+conjunction, with each helping establish that the other remains true after
+an iteration.  Checking clauses independently can therefore discard useful
+combinations.  Generation and training must account for their joint value.
 
 We introduce \sam{} to align compositional inference, supervision labels,
 and RL rewards.  At inference, it decomposes responses into clauses, pools
 them for joint verification, repeatedly removes unproved clauses, and
-conjoins the survivors.  During training, the fraction of execution-derived
-candidate negative traces rejected by verified clauses supplies a
-target-independent strength proxy.  SFT uses verified multi-response
+conjoins the survivors.  During training, we construct candidate negative
+traces by perturbing observed states and continuing execution beyond observed
+loop exits.  With correctness checked by induction, rejecting more candidate
+traces rules out more sampled behaviors.  Their rejection rate therefore
+provides a computable strength proxy, not an exact measure of reachable-set
+precision.
+SFT uses verified multi-response
 compositions that meet a coverage threshold as single-response training
-labels; RL rewards the coverage of clauses
-retained by the same filtering procedure, with Shapley credit allocating
-shared coverage among contributing responses.  Useful parts can thus receive
+labels; RL rewards the retained clauses' coverage and their contributions
+to coverage across the response group.  Useful parts can thus receive
 credit even when the complete response fails.  The two stages aim to make
 multi-response discoveries accessible with fewer samples.  All supervision
 comes from the model's own generations, program execution, and verification,
 without an external teacher or reward model.
 
-Evaluation on 832 C programs shows that compositional inference substantially
-improves bare-model verification and that aligned training yields further
-gains.  We use compose@1, the verification rate after filtering one response,
-as our primary metric.
+On 832 C programs, we restore hidden targets only for final verification to
+test whether the generated invariants contain sufficient information to
+complete a proof.  Compositional inference substantially improves bare-model
+verification, and aligned training yields further gains.  Our primary metric
+is compose@1, the verification rate after filtering and composing one response.
 
 \input{sections/fig_overview}
 
 \begin{samepage}
 \tightparagraph{Contributions.}
 \begin{itemize}
-  \item We introduce a compositional inference framework for target-hidden
-  invariant generation.  Pooling clauses before Houdini filtering preserves
-  useful parts of imperfect responses and combines complementary constraints.
-  With one response, bare Qwen3-8B reaches 37.86\% compose@1 versus
-  6.37\% pass@1.
-  \item We align SFT labels and RL credit with compositional inference.
-  SFT distills accepted multi-response compositions into single-response
-  supervision, raising Qwen3-8B compose@1 to 63.94\%.  RL rewards surviving
-  clauses' coverage and group contributions even when the complete response
-  fails, further raising compose@1 to 69.23\%.
+  \item We introduce CRAFT, aligning target-hidden compositional inference
+  with supervision and reward. A shared pooled filtering procedure recovers
+  useful clauses from imperfect responses, constructs SFT labels, and
+  identifies the contributions rewarded by RL. With one response, bare
+  Qwen3-8B reaches 37.86\% compose@1 versus 6.37\% pass@1.
+  \item We turn multi-response discoveries into single-response learning
+  signals. SFT learns accepted compositions, raising Qwen3-8B compose@1 to
+  63.94\%; RL rewards retained clauses' coverage and group contributions,
+  including those from failed responses, further raising it to 69.23\%.
   \item Our experiments reveal that whole-response success and compositional
   verification can diverge.  SFT broadens verification coverage and compresses
   the sampling budget; after substantial SFT, RL mainly improves sampling

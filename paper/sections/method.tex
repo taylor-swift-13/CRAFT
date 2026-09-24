@@ -164,7 +164,8 @@ verification (Appendix~\ref{app:coverage-predictiveness}).
 SFT distills accepted multi-response compositions into single-response
 supervision, aiming to make a richer set of useful clauses available with
 fewer samples.  Starting with \(P_0=\langle\rangle\), each round samples \(g_{\mathrm{sft}}\) responses
-from the same base model that is subsequently fine-tuned, adds their clauses
+from a fixed generator policy \(\pi_0\) (instantiated in
+Section~\ref{sec:exp:setup}), adds their clauses
 to the accumulated pool, and jointly filters it:
 \begin{equation}
   P_t=\operatorname{Unique}\!\left(P_{t-1}\Vert

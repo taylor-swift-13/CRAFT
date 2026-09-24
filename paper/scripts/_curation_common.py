@@ -5,12 +5,14 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import resource
 import tempfile
 from pathlib import Path
 from typing import Dict, Iterable, Optional, Sequence
 
-from paper.scripts.sanitize_training_prompts import PROGRAM_MARKER
+from rl_pipeline.common.prompts import PROGRAM_MARKER
+from rl_pipeline.common.state import _constant_integer_bound, normalize_invariant
 
 # Curation ledgers label the sampler's ``escape`` family ``post_exit``.
 LEDGER_FAMILY = {"relation": "relation", "escape": "post_exit", "range": "range"}
@@ -91,3 +93,67 @@ def atomic_parquet(records, schema, output: Path) -> None:
         os.replace(temporary, output)
     finally:
         temporary.unlink(missing_ok=True)
+
+
+_AT = re.compile(r"\\at\(\s*([A-Za-z_]\w*)\s*,\s*(Pre|LoopEntry)\s*\)")
+_IDENTIFIER = re.compile(r"[A-Za-z_]\w*")
+
+
+def _current_variables(clause: str, program_variables: set[str]) -> set[str]:
+    return set(_IDENTIFIER.findall(_AT.sub(" ", clause))) & program_variables
+
+
+def _labelled_variables(clause: str) -> set[tuple[str, str]]:
+    return set(_AT.findall(clause))
+
+
+def _is_equality(clause: str) -> bool:
+    return "==" in clause.replace("==>", "").replace("<==>", "")
+
+
+def _clause_features(clause: str, program, modified: set[str]) -> dict:
+    clause = normalize_invariant(clause)
+    variables = set(program.pre_vars)
+    current = _current_variables(clause, variables)
+    labelled = _labelled_variables(clause)
+    current_modified = current & modified
+    labelled_modified = {name for name, _label in labelled} & modified
+    constant_bound = _constant_integer_bound(clause) is not None
+    equality = _is_equality(clause)
+    modular = "%" in clause
+    implication = "==>" in clause
+    polynomial = equality and any(operator in clause for operator in ("*", "/", "%", "<<", ">>"))
+    frame_only = bool(labelled) and not current_modified and not labelled_modified
+    entry_relation = bool(current_modified & labelled_modified)
+    multi_modified_relation = len(current_modified | labelled_modified) >= 2
+    modified_parameter_relation = bool(current_modified) and bool(
+        (current | {name for name, _ in labelled}) - modified
+    )
+    phase_relation = bool(current_modified) and (modular or "||" in clause or implication)
+    transition_law = (
+        not constant_bound
+        and not frame_only
+        and (
+            entry_relation
+            or multi_modified_relation
+            or (equality and modified_parameter_relation)
+            or phase_relation
+        )
+    )
+    informative_progress = bool(current_modified) and (
+        constant_bound or (not equality and any(op in clause for op in ("<=", ">=", "<", ">")))
+    )
+    return {
+        "clause": clause,
+        "current_variables": sorted(current),
+        "labelled_variables": [list(item) for item in sorted(labelled)],
+        "current_modified": sorted(current_modified),
+        "constant_bound": constant_bound,
+        "equality": equality,
+        "polynomial": polynomial,
+        "modular": modular,
+        "implication": implication,
+        "frame_only": frame_only,
+        "transition_law": transition_law,
+        "informative_progress": informative_progress,
+    }

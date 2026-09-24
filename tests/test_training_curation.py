@@ -217,48 +217,5 @@ class TrainingCurationTests(unittest.TestCase):
             self.assertEqual(canonicalize_break_idiom(untouched), (untouched, False))
 
 
-class SelectSftProgramsTests(unittest.TestCase):
-    def test_select_merges_sft_rows_and_related_rl_extras(self):
-        import pyarrow as pa
-        import pyarrow.parquet as pq
-
-        def rl_record(source: str, relatedness: float, relation: int, traces: int) -> dict:
-            return {
-                "data_source": "loopgym",
-                "prompt": [{"content": "s", "role": "system"},
-                           {"content": "task\nProgram:\n" + source, "role": "user"}],
-                "ability": "loop_invariant",
-                "reward_model": {"ground_truth": {"raw_code": source}, "style": "frama-c"},
-                "extra_info": {"file_id": "x", "curation": json.dumps({
-                    "relatedness": relatedness, "relation": relation, "n_negative_traces": traces})},
-            }
-
-        with tempfile.TemporaryDirectory() as directory:
-            d = Path(directory)
-            (d / "sft.json").write_text(json.dumps([_sft_record(COUNTER_OTHER_INIT)]))
-            rl = [
-                rl_record(COUNTER_OTHER_INIT, 0.9, 10, 50),   # already in SFT -> skipped
-                rl_record(PRODUCT, 0.95, 40, 100),             # related extra
-                rl_record(NONDET, 0.2, 40, 100),               # below min relatedness
-            ]
-            pq.write_table(pa.Table.from_pylist(rl), d / "rl.parquet")
-            result = subprocess.run(
-                [sys.executable, str(ROOT / "paper/scripts/select_sft_programs.py"),
-                 "--sft", str(d / "sft.json"), "--rl", str(d / "rl.parquet"),
-                 "--output", str(d / "out.json"), "--report", str(d / "report.json"),
-                 "--target", "10", "--min-relatedness", "0.5"],
-                cwd=ROOT, capture_output=True, text=True,
-            )
-            self.assertEqual(result.returncode, 0, result.stderr)
-            out = json.loads((d / "out.json").read_text())
-            report = json.loads((d / "report.json").read_text())
-        self.assertEqual(report["from_sft"], 1)
-        self.assertEqual(report["from_rl"], 1)
-        self.assertEqual(len(out), 2)
-        self.assertEqual(out[0]["conversations"][2]["value"], "loop invariant x >= 0;")
-        self.assertEqual(out[1]["conversations"][2]["value"], "")
-        self.assertIn("y = y * x", out[1]["conversations"][1]["value"])
-
-
 if __name__ == "__main__":
     unittest.main()

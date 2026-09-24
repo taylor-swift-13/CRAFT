@@ -86,14 +86,10 @@ later computation. It initializes the second loop's invariant
 \(0\le j\le n\land s=n(n-j)\), which implies the final target \(s=0\)
 when \(j=n\).
 
-For this reuse check, the second loop's invariants and the loop frame and
-termination annotations were supplied manually. Frama-C/WP discharged all
-29 reported proof goals for the annotated program with runtime-error checks
-enabled, including the intermediate and final assertions. This case
-demonstrates reuse of a generated single-loop summary; it does not constitute
-automated end-to-end invariant synthesis for multiple loops. Since all three
-generated clauses survived in one response, it also does not measure a
-cross-response composition gain.
+For this reuse check, we manually annotated the second loop, including its
+frame and termination conditions. Frama-C/WP discharged all 29 proof goals
+with runtime-error checks enabled, demonstrating summary reuse rather than
+end-to-end multi-loop synthesis or cross-response composition.
 
 \paragraph{Case study: composition without cross-response support.}
 This case shows that clauses can each survive independent filtering yet
@@ -572,8 +568,9 @@ The raw training-program pool is drawn primarily from SV-COMP and SyGuS
 \citep{svcomp,alur2013sygus}.  We retain scalar-integer single-loop programs
 and hide target assertions and postconditions in the model-facing input.
 RL uses 9,024 selected programs. SFT labels are synthesized and verified
-by the multi-round procedure in Section~\ref{sec:method:sft}, using the
-same open-weight model that is subsequently trained.
+by the multi-round procedure in Section~\ref{sec:method:sft} with Qwen3-8B
+as the generator.  The corpus is produced once and shared unchanged by every
+trained backbone; there are no backbone-specific synthesis runs.
 Table~\ref{tab:training-sets} summarizes the training sets. Loop shapes
 abstract identifiers and nontrivial constants in the guard and body;
 source overlap compares program text in training prompts.
@@ -590,7 +587,8 @@ SFT set & 33,346 records over 31,865 distinct program sources \\
 RL--SFT exact-source overlap & 7,410 distinct program sources \\
 \bottomrule
 \end{tabular}
-\caption{Training-set sizes, loop shapes, and source overlap.}
+\caption{Training-set sizes, loop shapes, and source overlap.  The SFT set
+is synthesized once with Qwen3-8B and shared by all trained backbones.}
 \label{tab:training-sets}
 \end{table}
 

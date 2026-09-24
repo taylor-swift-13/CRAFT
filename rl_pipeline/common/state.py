@@ -677,3 +677,47 @@ def first_falsifying_state(expr: str, states: List[State]) -> Optional[State]:
             if result is None:
                 return None
         return None
+
+
+def _strip_outer_parentheses(expression: str) -> str:
+    result = expression.strip()
+    while result.startswith("(") and result.endswith(")"):
+        depth = 0
+        encloses_all = True
+        for index, char in enumerate(result):
+            if char == "(":
+                depth += 1
+            elif char == ")":
+                depth -= 1
+                if depth == 0 and index != len(result) - 1:
+                    encloses_all = False
+                    break
+        if not encloses_all or depth != 0:
+            break
+        result = result[1:-1].strip()
+    return result
+
+
+def _constant_integer_bound(expression: str):
+    expression = _strip_outer_parentheses(normalize_invariant(expression))
+    direct = re.fullmatch(
+        r"([A-Za-z_]\w*)\s*(>=|>|<=|<)\s*([+-]?\d+)", expression
+    )
+    if direct:
+        variable, operator, number = direct.groups()
+    else:
+        reverse = re.fullmatch(
+            r"([+-]?\d+)\s*(<=|<|>=|>)\s*([A-Za-z_]\w*)", expression
+        )
+        if not reverse:
+            return None
+        number, operator, variable = reverse.groups()
+        operator = {"<=": ">=", "<": ">", ">=": "<=", ">": "<"}[operator]
+    value = int(number)
+    if operator == ">":
+        return variable, "lower", value + 1
+    if operator == ">=":
+        return variable, "lower", value
+    if operator == "<":
+        return variable, "upper", value - 1
+    return variable, "upper", value

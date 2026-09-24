@@ -29,8 +29,9 @@ from paper.scripts.filter_training_by_negative_coverage import (  # noqa: E402
     _atomic_json,
     _display_path,
 )
-from paper.scripts.sanitize_training_prompts import _canonical_source, _canonical_user  # noqa: E402
 from rl_pipeline.common import prompts  # noqa: E402
+from rl_pipeline.common.program import _canonical_source  # noqa: E402
+from rl_pipeline.common.prompts import _canonical_user  # noqa: E402
 
 
 def main() -> None:

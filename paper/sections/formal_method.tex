@@ -251,11 +251,12 @@ independently verifies the targets
 
 SFT distills the same multi-response map into one response.  It accumulates
 raw candidates so that a clause discarded in one round can later acquire a
-supporting companion.  The policy \(\pi_0\) is the small open-weight model
-being trained and is the only learned generator in label construction.
+supporting companion.  The released corpus instantiates \(\pi_0\) with
+Qwen3-8B and shares the resulting labels across all trained backbones;
+\(\pi_0\) is the only learned generator in label construction.
 Executions of \(\mathcal L\) produce the trace signal, and
 \(\operatorname{Filter}_{\mathcal L}\) supplies the verifier decision; no
-external model supplies candidates, labels, or acceptance judgments.
+other model supplies candidates, labels, or acceptance judgments.
 
 \begin{algorithm}[H]
 \caption{Multi-response SFT synthesis}
@@ -424,16 +425,16 @@ set is \(\bigcup_{i\in S}R_i\).
 
 \begin{proposition}[Equivalence to standard Shapley]
 \label{prop:shapley-closed-form}
-Let \(G=\{1,\ldots,g\}\) index the responses above, and define their coverage
+Let \(\mathcal J=\{1,\ldots,g\}\) index the responses above, and define their coverage
 game by
 \[
   u(S)=\frac{1}{|\mathcal N|}\left|\bigcup_{j\in S}R_j\right|,
-  \qquad S\subseteq G.
+  \qquad S\subseteq\mathcal J.
 \]
 The standard Shapley value of response \(i\),
 \begin{equation}
   \operatorname{Sh}_i(u)
-  =\sum_{S\subseteq G\setminus\{i\}}
+  =\sum_{S\subseteq\mathcal J\setminus\{i\}}
     \frac{|S|!\,(g-|S|-1)!}{g!}
     \bigl(u(S\cup\{i\})-u(S)\bigr),
   \label{eq:standard-shapley}
@@ -447,7 +448,7 @@ is exactly
   \qquad
   f(\nu)=|\{j:\nu\in R_j\}|.
 \]
-Consequently, \(\sum_{i\in G}\phi_i=u(G)\).
+Consequently, \(\sum_{i\in\mathcal J}\phi_i=u(\mathcal J)\).
 \end{proposition}
 
 \begin{proof}
@@ -459,7 +460,7 @@ expected marginal contribution of response \(i\) under a uniformly random
 permutation.
 
 For each trace \(\nu\), define
-\(Q_\nu=\{j\in G:\nu\in R_j\}\).  If \(Q_\nu=\varnothing\), the trace never
+\(Q_\nu=\{j\in\mathcal J:\nu\in R_j\}\).  If \(Q_\nu=\varnothing\), the trace never
 contributes to the game.  Otherwise, it changes the coalition value exactly
 once in any permutation: when the first response from \(Q_\nu\) is added.
 By symmetry, each member of \(Q_\nu\) is first with probability
@@ -761,7 +762,8 @@ than an intermediate set by Equation~\eqref{eq:formal-bounded-houdini}.
 \begin{proposition}[Coverage credit omits pure support]
 \label{prop:support-credit}
 Suppose response \(i\) contributes a retained clause \(c\) that supports
-another retained clause in the sense of Appendix~\ref{app:formal-method}, but
+another retained clause according to
+Equation~\eqref{eq:formal-verifier-support}, but
 \(\operatorname{rej}_{\mathcal N}(V_i)=\varnothing\).  Then the coverage
 term assigned to response \(i\) is zero, irrespective of whether removing
 \(c\) would prevent the other clause from surviving.

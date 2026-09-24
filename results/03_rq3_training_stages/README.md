@@ -2,7 +2,6 @@
 
 This directory supports comparisons among Bare, SFT, RL, and SFT+RL.
 
-- `sft_synth/` and `sft_synth_v2/` contain SFT synthesis outputs.
 - `rl_data_archive_20260906_D5w99L/` retains the RL training-data archive.
 - `paper_summaries/` contains the selected RL configuration, the Qwen3-8B
   composed-target SFT comparison, and the Qwen3-14B `rft_full` step282

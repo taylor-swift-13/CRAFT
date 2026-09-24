@@ -31,3 +31,9 @@ def system_prompt() -> str:
         return load("system_prompt.txt")
     except OSError:
         return ""
+
+PROGRAM_MARKER = "Program:\n"
+
+
+def _canonical_user(source: str) -> str:
+    return GENERATE_PROMPT.format(program=source)

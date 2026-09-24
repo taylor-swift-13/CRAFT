@@ -24,8 +24,8 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from paper.scripts._curation_common import limit_memory  # noqa: E402
-from paper.scripts.sanitize_training_prompts import PROGRAM_MARKER  # noqa: E402
 from rl_pipeline.common.program import parse_program  # noqa: E402
+from rl_pipeline.common.prompts import PROGRAM_MARKER  # noqa: E402
 from rl_pipeline.sampler.example_sampler import (  # noqa: E402
     NEGATIVE_SCHEMA_VERSION,
     ExampleSampler,

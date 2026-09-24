@@ -26,8 +26,7 @@ from typing import Dict, List, Tuple
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from paper.scripts._curation_common import digest_of, limit_memory  # noqa: E402
-from paper.scripts.audit_sft_invariant_quality import _clause_features  # noqa: E402
+from paper.scripts._curation_common import _clause_features, digest_of, limit_memory  # noqa: E402
 from paper.scripts.filter_training_by_negative_coverage import _atomic_json, _source_from_sft  # noqa: E402
 from rl_pipeline.common.program import parse_program, strip_postcondition  # noqa: E402
 from rl_pipeline.common.state import dedup_normalized, extract_invariants  # noqa: E402

@@ -8,7 +8,7 @@ figures read their inputs directly from these directories.
 | --- | --- | --- |
 | `01_rq1_main_verification/` | RQ1 | Local/API model evaluations, probe pools, main-table data |
 | `02_rq2_tool_comparison/` | RQ2 | AutoSpec, SESpec, Clause2Inv, Loopy, Daikon, and CRAFT tool runs |
-| `03_rq3_training_stages/` | RQ3 | SFT synthesis, RL data, and stage-comparison summaries |
+| `03_rq3_training_stages/` | RQ3 | SFT composition, RL data, and stage-comparison summaries |
 | `04_rq4_ablations/` | RQ4 | Reward, sampler, coverage, clause-cap, and target-visibility experiments |
 | `05_appendix_audits/` | Appendix | Data/protocol audits and formal case-study artifacts |
 

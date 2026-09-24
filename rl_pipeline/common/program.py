@@ -631,3 +631,20 @@ def parse_program(source: str) -> Program:
         unsigned_vars=unsigned_vars,
         loops=loops,
     )
+
+
+_UNSUPPORTED_LOOP_PRAGMA = re.compile(
+    r"(?m)^[ \t]*//@[ \t]*loop[ \t]+pragma[ \t]+UNROLL[ \t]+1;[ \t]*(?:\n|$)"
+)
+
+
+def _strip_unsupported_pragma(source: str) -> tuple[str, bool]:
+    """Remove ACSL loop-unroll pragmas the deployed interface does not support."""
+    cleaned, count = _UNSUPPORTED_LOOP_PRAGMA.subn("", source)
+    return cleaned, bool(count)
+
+
+def _canonical_source(source: str) -> str:
+    """Normalize only terminal whitespace so prompt reconstruction is idempotent."""
+    source, _ = _strip_unsupported_pragma(source)
+    return strip_postcondition(source).rstrip() + "\n"

@@ -17,10 +17,13 @@ Training data comprise 9,024 RL records and 33,346 SFT records (31,865
 distinct sources) of target-masked scalar-integer single-loop programs.
 The raw training-program pool is drawn primarily from SV-COMP and SyGuS
 \citep{svcomp,alur2013sygus}; Appendix~\ref{app:data-curation} describes
-program selection and verified SFT-label construction.  SFT
-labels and RL rewards are produced only by the open-weight model being trained,
-program execution, and Frama-C/WP verification; no external teacher or
-closed-model supervision is used.  The
+program selection and verified SFT-label construction.  The SFT corpus is
+synthesized once with Qwen3-8B as the generator in the procedure of
+Section~\ref{sec:method:sft} and is shared unchanged by all trained
+backbones; RL rewards are computed online from each trained model's own
+rollouts.  Program execution and Frama-C/WP verification supply every
+acceptance and scoring decision; no closed model, human labeler, or external
+reward model is involved at any stage.  The
 evaluation combines 832 programs from Code2Inv, SyGuS, SV-COMP, LIPuS,
 Clause2Inv, and Loopy: 316 linear, 50 nonlinear-arithmetic, and 466 Loopy
 instances~\citep{si2020code2inv,alur2013sygus,svcomp,yu2023lipus,

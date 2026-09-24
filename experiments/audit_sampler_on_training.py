@@ -35,8 +35,12 @@ import pyarrow.parquet as pq
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from paper.scripts._curation_common import digest_of, limit_memory, quantile  # noqa: E402
-from paper.scripts.audit_sft_invariant_quality import _clause_features  # noqa: E402
+from paper.scripts._curation_common import (  # noqa: E402
+    _clause_features,
+    digest_of,
+    limit_memory,
+    quantile,
+)
 from paper.scripts.filter_training_by_negative_coverage import (  # noqa: E402
     _atomic_json,
     _display_path,

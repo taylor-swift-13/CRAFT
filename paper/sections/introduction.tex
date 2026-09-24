@@ -58,8 +58,11 @@ labels; RL rewards the retained clauses' coverage and their contributions
 to coverage across the response group.  Useful parts can thus receive
 credit even when the complete response fails.  The two stages aim to make
 multi-response discoveries accessible with fewer samples.  All supervision
-comes from the model's own generations, program execution, and verification,
-without an external teacher or reward model.
+comes from open-weight model generations, program execution, and
+verification: SFT labels are synthesized once from Qwen3-8B rollouts and
+shared across backbones, RL rewards are computed from each trained model's
+own rollouts, and no closed model, human labeler, or external reward model
+is used.
 
 On 832 C programs, we restore hidden targets only for final verification to
 test whether the generated invariants contain sufficient information to

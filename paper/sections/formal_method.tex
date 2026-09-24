@@ -9,44 +9,9 @@ inference and training procedures introduced in Section~\ref{sec:method}.
 \subsection{Task Semantics, Loop Invariants, and Verification}
 \label{app:formal-loop-verification}
 
-We use the notation of Definition~\ref{def:method-task}.  Let \(\Sigma\) be
-the program-state space and let
-\(\mathcal L=(\mathsf{Init},B,S)\), where \(\mathsf{Init}\) characterizes
-loop-entry states, \(B\) is the loop guard, and \(S\) is one normally
-completing loop step.  A task is \(\mathcal T=(\mathcal L,\mathcal G)\),
-where \(\mathcal G\) contains assertions and postconditions at their program
-locations.  For a finite clause set \(C\), its composed invariant is
-\begin{equation}
-  I(C)=\bigwedge_{c\in C}c,
-  \qquad I(\varnothing)=\mathsf{true}.
-  \label{eq:formal-compose}
-\end{equation}
-
-\begin{definition}[Loop-invariant obligations]
-\label{def:formal-inductive}
-The invariant \(I(C)\) is established when it holds on loop entry, and
-preserved when one guarded loop step keeps it true:
-\begin{align}
-\operatorname{Est}_{\mathcal L}(I(C))
-&\iff \forall\sigma:\
-  \mathsf{Init}(\sigma)\Rightarrow I(C)(\sigma),
-&&\text{(establishment)},\\
-\operatorname{Pres}_{\mathcal L}(I(C))
-&\iff \forall\sigma,\sigma':\
-  I(C)(\sigma)\land B(\sigma)\land S(\sigma,\sigma')
-  \Rightarrow I(C)(\sigma'),
-&&\text{(preservation)}.
-\label{eq:formal-invariant-obligations}
-\end{align}
-Preservation is the inductiveness condition.  We call \(I(C)\) a valid loop
-invariant exactly when both conditions hold:
-\begin{equation}
-\operatorname{ValidInv}_{\mathcal L}(I(C))
-\iff \operatorname{Est}_{\mathcal L}(I(C))\land
-     \operatorname{Pres}_{\mathcal L}(I(C)).
-\label{eq:formal-valid-invariant}
-\end{equation}
-\end{definition}
+We use the establishment, preservation, and validity conditions from
+Definition~\ref{def:method-task}.  Let \(\Sigma\) be the program-state space
+and \(S\subseteq\Sigma\times\Sigma\) one normally completing loop step.
 
 For each target \((\ell,g)\in\mathcal G\), let \(R_\ell(\sigma,\sigma')\)
 mean that execution from loop-head state \(\sigma\) can reach target location
@@ -453,7 +418,7 @@ Consequently, \(\sum_{i\in\mathcal J}\phi_i=u(\mathcal J)\).
 
 \begin{proof}
 The coefficient in Equation~\eqref{eq:standard-shapley} is the fraction of
-permutations of \(G\) in which exactly the members of \(S\) precede \(i\):
+permutations of \(\mathcal J\) in which exactly the members of \(S\) precede \(i\):
 there are \(|S|!\) orders before \(i\), \((g-|S|-1)!\) orders after it, and
 \(g!\) orders in total.  Hence the standard subset definition equals the
 expected marginal contribution of response \(i\) under a uniformly random
@@ -490,8 +455,8 @@ scored by Algorithm~\ref{alg:formal-rl-reward}.  Define
        {\operatorname{std}_{j}r_j+\delta_{\mathrm{adv}}}.
   \label{eq:formal-advantage}
 \end{equation}
-For token \(a_{i,u}\) and its prefix
-\(h_{i,u}=(\mathcal L,a_{i,<u})\), let
+Let \(T_i\) be the number of generated tokens in response \(i\).  For token
+\(a_{i,u}\) and its prefix \(h_{i,u}=(\mathcal L,a_{i,<u})\), let
 \begin{align}
   \rho_{i,u}(\theta)
   &=\frac{\pi_\theta(a_{i,u}\mid h_{i,u})}
@@ -510,7 +475,7 @@ surrogate used by the implementation.  Its expectation equals
 \(\pi_\theta(\cdot\mid h_{i,u})\).  During an update, however, the saved token
 comes from \(\pi_{\theta_{\mathrm{old}}}\), so \(k_{i,u}\) is used as a
 sampled penalty under the saved old-policy tokens.
-The clipped group objective is
+With clipping half-width \(\varepsilon>0\), the group objective is
 \begin{equation}
   \mathcal J(\theta)=\mathbb E\!\left[
   \frac{1}{g_{\mathrm{rl}}}\sum_i\frac{1}{T_i}\sum_{u=1}^{T_i}
@@ -561,26 +526,30 @@ training requires logged groups from the two policies.
 
 \subsection{Training--Inference Alignment}
 
-Inference, SFT label construction, and RL group scoring all call the same
-pooled map in Equation~\eqref{eq:formal-craft-map}; they differ only in how
-the returned clauses are consumed.  Inference checks the restored goals, SFT
-serializes an accepted fixed point, and RL projects the fixed point back to
-the responses that proposed its surviving clauses.  Negative coverage supplies the target-independent
-training surrogate; restored-goal verification supplies the final verdict.
+Inference, SFT label construction, and RL group scoring share the
+pool--filter--compose core in Equation~\eqref{eq:formal-craft-map}.  RL first
+screens its pooled candidates against observed reachable states before
+filtering.  Inference checks the restored goals, SFT serializes an accepted
+fixed point, and RL projects the fixed point back to the responses that
+proposed its surviving clauses.  Negative coverage supplies the
+target-independent training surrogate; restored-goal verification supplies
+the final verdict.
 
 \subsection{Extension to Verifiably Composable Generation}
 
 \begin{definition}[Verifiably composable generation]
 \label{def:vcg}
 A task provides visible input \(x\), hidden goals \(\mathcal G\), an atomic
-decomposition \(\operatorname{parts}_x\), a duplicate-removal operator
-\(\operatorname{Unique}_x\), a subset filter \(\operatorname{Filter}_x\), a
+decomposition \(\operatorname{parts}_x\) returning an ordered sequence of
+admitted atoms, an order-preserving duplicate-removal operator
+\(\operatorname{Unique}_x\), a subsequence filter \(\operatorname{Filter}_x\), a
 composition operator \(\operatorname{Compose}_x\), and a validity predicate
 \(\operatorname{Valid}_x\).  For responses \(y_{1:n}\), define
 \begin{align}
   P_x(y_{1:n})
-    &=\operatorname{Unique}_x\!\left(\bigcup_i
-      \operatorname{parts}_x(y_i)\right),\\
+    &=\operatorname{Unique}_x\!\left(
+      \operatorname{parts}_x(y_1)\Vert\cdots\Vert
+      \operatorname{parts}_x(y_n)\right),\\
   O_x(y_{1:n})
     &=\operatorname{Compose}_x\!\left(
       \operatorname{Filter}_x(P_x(y_{1:n}))\right).
@@ -596,8 +565,9 @@ individual \(O_x(y_i)\) does.
 \end{definition}
 
 Loop-invariant generation instantiates the atoms with invariant clauses,
-composition with conjunction, validity with joint inductiveness, and the
-filter with bounded Houdini.  The transfer property for any other
+\(\operatorname{parts}_x\) with \(\operatorname{Admit}\), composition with
+conjunction, validity with joint inductiveness, and the filter with bounded
+Houdini.  The transfer property for any other
 instantiation satisfying Definition~\ref{def:vcg} is proved in
 Appendix~\ref{app:composition-proofs}.
 

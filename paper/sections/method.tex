@@ -7,59 +7,31 @@ compositions become SFT labels, and retained clauses determine each response's
 RL credit, including useful parts of failed responses (Figure~\ref{fig:overview}).
 Appendix~\ref{app:formal-method} gives the complete formal definition.
 
-\begin{definition}[Loop-verification task and target-hidden setting]
+\begin{definition}[Target-hidden loop-verification task]
 \label{def:method-task}
-Let \(\Sigma\) be the program-state space.  A loop is
-\(\mathcal L=(\mathsf{Init},B,S)\), where \(\mathsf{Init}\) characterizes
-loop-entry states, \(B\) is the guard, and
-\(S\subseteq\Sigma\times\Sigma\) is one normally completing loop step.  A
-verification task is \(\mathcal T=(\mathcal L,\mathcal G)\), where
-\(\mathcal G=\{(\ell,g_\ell)\}\) contains targets at their original program
-locations.
-
-For a finite clause set \(C\), let
-\(I(C)=\bigwedge_{c\in C}c\), with \(I(\varnothing)=\mathsf{true}\).  We
-distinguish three standard partial-correctness obligations
-\citep{floyd1967assigning,hoare1969axiomatic,cao2025clause2inv}:
-\begin{align}
+Let \(\mathcal L=(\mathsf{Init},B,S)\) describe loop-entry states, the guard,
+and one loop step.  A task \(\mathcal T=(\mathcal L,\mathcal G)\) additionally
+specifies verification targets \(\mathcal G\) at their program locations.
+For a clause set \(C\), the composed invariant is
+\(I(C)=\bigwedge_{c\in C}c\), with \(I(\varnothing)=\mathsf{true}\).
+Its establishment and preservation conditions are
+\begin{align*}
 \operatorname{Est}_{\mathcal L}(I(C))
-&\iff \forall\sigma:\ \mathsf{Init}(\sigma)\Rightarrow I(C)(\sigma),
-&&\text{(establishment)},\label{eq:method-establishment}\\
+  &\iff \forall\sigma:\ \mathsf{Init}(\sigma)\Rightarrow I(C)(\sigma),\\
 \operatorname{Pres}_{\mathcal L}(I(C))
-&\iff \forall\sigma,\sigma':\
-I(C)(\sigma)\land B(\sigma)\land S(\sigma,\sigma')
-\Rightarrow I(C)(\sigma'),
-&&\text{(preservation)}.\label{eq:method-preservation}
-\end{align}
-Preservation is the inductiveness condition.  A valid loop invariant must
-satisfy both establishment and preservation:
-\[
-\operatorname{ValidInv}_{\mathcal L}(I(C))
-\iff \operatorname{Est}_{\mathcal L}(I(C))
-\land \operatorname{Pres}_{\mathcal L}(I(C)).
-\]
-
-For a target \((\ell,g)\), let \(R_\ell\) relate a loop-head state to a state
-at \(\ell\) along an execution path.  The termination (postcondition) obligation
-is
-\begin{equation}
-\operatorname{Term}_{\mathcal L}(I(C),\ell,g)\iff
-\forall\sigma,\sigma':\
-I(C)(\sigma)\land R_\ell(\sigma,\sigma')\Rightarrow g(\sigma').
-\label{eq:method-termination}
-\end{equation}
-The task is verified when \(\operatorname{ValidInv}_{\mathcal L}(I(C))\)
-holds and this obligation holds for every target in \(\mathcal G\).  The
-termination obligation states what follows if execution reaches the target;
-it does not prove that the loop terminates.  Appendix~\ref{app:formal-loop-verification}
-defines \(R_\ell\) for targets inside and after the loop, including the
-applicable exit paths.
-
-In the \emph{target-hidden} setting, generation and all intermediate scores
-observe only \(\mathcal L\); \(\mathcal G\) is restored only for final
-verification.  Preconditions and executable loop semantics remain visible.
-We study scalar-integer C programs with one loop; Appendix~\ref{app:scope-example}
-gives the scope and an example.
+  &\iff \forall\sigma,\sigma':\
+  I(C)(\sigma)\land B(\sigma)\land S(\sigma,\sigma')
+  \Rightarrow I(C)(\sigma').
+\end{align*}
+The invariant is valid exactly when both hold:
+\(\operatorname{ValidInv}_{\mathcal L}(I(C))\iff
+\operatorname{Est}_{\mathcal L}(I(C))\land
+\operatorname{Pres}_{\mathcal L}(I(C))\).
+In the \emph{target-hidden} setting, generation and intermediate scores see
+\(\mathcal L\) but not \(\mathcal G\); targets are used only for final
+verification.  Appendix~\ref{app:formal-loop-verification} gives the full
+proof obligations, and Appendix~\ref{app:scope-example} describes the
+single-loop scalar-integer C scope.
 \end{definition}
 
 We use the notation of Definition~\ref{def:method-task} throughout the

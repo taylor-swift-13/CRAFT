@@ -248,7 +248,7 @@ for Target-Hidden Loop Verification}
 
 \begin{abstract}
 Loop invariants reduce unbounded executions to finite proof obligations.
-For legacy programs with unknown or unavailable verification goals,
+For legacy programs with unknown verification goals,
 target-specific verifier feedback is unavailable, making invariant generation
 especially challenging.  Meanwhile, LLM-generated invariants often fail
 as complete responses even when they contain useful clauses, and complementary
@@ -259,19 +259,19 @@ into clauses, pools and jointly filters clauses across responses, and composes
 the survivors into an invariant.  This recovers useful proof material without
 requiring any response to prove the hidden target independently.
 The same filtered compositions supply SFT labels and determine which clauses
-receive RL credit.  Because target assertions
-and postconditions remain hidden throughout generation and training,
-execution-derived negative-trace coverage provides a target-independent
-strength signal.  Supervised fine-tuning (SFT) distills accepted multi-response
-compositions into single-response labels, while reinforcement learning (RL)
-credits coverage contributed by retained clauses even when their original
-responses fail as wholes.  On 832 C programs, SFT raises Qwen3-8B's
-compose@1---the verification rate after filtering and composing one
-response---from 37.86\% to 63.94\%, exceeding the untrained model's 57.81\%
+receive RL credit.  Because target assertions and postconditions remain hidden
+throughout generation and training, CRAFT estimates invariant strength by
+measuring how many candidate negative traces constructed from executions an
+invariant rejects.  Supervised fine-tuning (SFT) distills accepted compositions
+from multiple responses into labels for one response, while reinforcement
+learning (RL) credits coverage contributed by retained clauses even when their
+original responses fail as wholes.  On 832 C programs, SFT raises Qwen3-8B's
+compose@1 (the verification rate after filtering and composing one response)
+from 37.86\% to 63.94\%, exceeding the untrained model's 57.81\%
 compose@32.  Subsequent RL raises compose@1 to 69.23\%.  Reward ablations show
-that whole-response credit can improve standalone success while degrading
-compositional verification, whereas clause-level credit preserves useful
-contributions from failed responses.
+that credit for entire responses can improve standalone success while degrading
+compositional verification, whereas credit for individual clauses preserves
+useful contributions from failed responses.
 \end{abstract}
 
 %% ============================================================

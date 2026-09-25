@@ -8,13 +8,13 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from paper_style import GREEN, OCHRE, SLATE, panel_figure, panel_legend, save_panel_figure
+from paper_style import GREEN, ORANGE, SLATE, panel_figure, panel_legend, save_panel_figure
 
 
 OUT = Path(__file__).resolve().parent
 STYLES = (
     ("Qwen3-8B", "Bare", SLATE, "o", ":"),
-    ("Qwen3-8B + SFT (single)", "SFT (single)", OCHRE, "s", "--"),
+    ("Qwen3-8B + SFT (single)", "SFT (single)", ORANGE, "s", "--"),
     ("Qwen3-8B + SFT", "SFT", GREEN, "D", "-"),
 )
 

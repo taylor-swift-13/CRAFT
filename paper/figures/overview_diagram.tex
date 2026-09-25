@@ -3,47 +3,47 @@
 \begingroup
 \definecolor{ovInk}{HTML}{243247}
 \definecolor{ovMuted}{HTML}{64748B}
-\definecolor{ovBorder}{HTML}{DCE6F0}
-\definecolor{ovGreen}{HTML}{397FC1}
-\definecolor{ovRed}{HTML}{D68B32}
-\definecolor{ovPaper}{HTML}{F7FAFD}
+\definecolor{ovBorder}{HTML}{DCE7E2}
+\definecolor{ovGreen}{HTML}{147D68}
+\definecolor{ovReject}{HTML}{69788A}
+\definecolor{ovPaper}{HTML}{F7FAF8}
 \pgfmathsetlengthmacro{\ovunit}{\textwidth/16}
 \pgfmathsetlengthmacro{\ovrewardwidth}{6.41*\ovunit-6pt}
 \pgfmathsetlengthmacro{\ovrlwidth}{3.90*\ovunit-6pt}
-% Helvetica is scaled by 0.92 in the manuscript: these yield 8/8.5 pt text.
-\def\ovbody{\sffamily\fontsize{8.7}{10.2}\selectfont}
-\def\ovtitle{\sffamily\fontsize{9.2}{10.8}\selectfont\bfseries}
+% Keep all labels at their native font size; the vertical canvas adds breathing room.
+\def\ovbody{\sffamily\fontsize{9.0}{10.6}\selectfont}
+\def\ovtitle{\sffamily\fontsize{9.5}{11.1}\selectfont\bfseries}
 \begin{tikzpicture}[
-  x=\ovunit, y=.94*\ovunit, font=\ovbody, text=ovInk,
+  x=\ovunit, y=1.02*\ovunit, font=\ovbody, text=ovInk,
   >=Stealth,
   flow/.style={-{Stealth[length=1.35mm,width=.9mm]},
-    draw=ovMuted, line width=.65pt},
+    draw=ovMuted, line width=.55pt},
   feedback/.style={-{Stealth[length=1.35mm,width=.9mm]},
-    draw=ovGreen!85!black, line width=.65pt,
+    draw=ovGreen!85!black, line width=.55pt,
     dash pattern=on 2pt off 1.4pt, rounded corners=1.5pt},
   credit/.style={-{Stealth[length=.95mm,width=.65mm]},
-    draw=ovMuted!72, line width=.45pt, dash pattern=on 1.4pt off 1pt},
+    draw=ovMuted!72, line width=.35pt, dash pattern=on 1.4pt off 1pt},
   panel/.style={draw=ovBorder, fill=white, rounded corners=2pt,
-    line width=.6pt},
+    line width=.45pt},
   card/.style={draw=ovBorder, fill=white, rounded corners=1.5pt,
-    line width=.5pt, align=center, inner xsep=3pt, inner ysep=4pt,
+    line width=.4pt, align=center, inner xsep=3pt, inner ysep=4pt,
     outer sep=0pt},
   heading/.style={font=\ovtitle, text=ovInk, align=center},
   note/.style={font=\ovbody, text=ovMuted, align=center},
   chip/.style={rounded corners=.6pt, inner sep=0pt,
     minimum width=.30*\ovunit, minimum height=.30*\ovunit,
-    line width=.4pt, font=\ovbody},
+    line width=.35pt, font=\ovbody},
   a/.style={chip, fill=ovGreen!88, draw=ovGreen!88, text=white},
   b/.style={chip, fill=ovGreen!20, draw=ovGreen!40, text=ovInk},
   c/.style={a}, d/.style={b}, e/.style={a}, f/.style={b},
-  u/.style={chip, fill=ovRed!22, draw=ovRed!55, text=ovRed!85!black},
+  u/.style={chip, fill=ovReject!16, draw=ovReject!55, text=ovReject!85!black},
   v/.style={u},
   pool/.style={rounded corners=1.5pt, draw=ovMuted!65, fill=white,
-    line width=.55pt, dash pattern=on 2.3pt off 1.5pt},
+    line width=.45pt, dash pattern=on 2.3pt off 1.5pt},
   state/.style={circle, draw=ovGreen, fill=ovGreen,
     minimum size=.18*\ovunit, inner sep=0pt},
-  candidate/.style={circle, draw=ovRed, fill=ovRed!16,
-    line width=.65pt, minimum size=.20*\ovunit, inner sep=0pt}
+  candidate/.style={circle, draw=ovReject, fill=ovReject!16,
+    line width=.55pt, minimum size=.20*\ovunit, inner sep=0pt}
 ]
 
 % (a) Preserve the five-stage decompose--compose design.
@@ -62,8 +62,8 @@
 \node[card, draw=none, fill=black!5, text width=2.00*\ovunit,
   inner ysep=3pt, minimum height=2.2184*\ovunit] (masked) at (1.40,5.14)
   {Masked loop\\[2pt]\(\mathcal L\! =\! (\mathrm{Init},B,S)\)\\[2pt]
-   \textcolor{ovRed}{\(\mathcal G\) hidden}};
-\fill[ovGreen!6, rounded corners=2pt] (2.86,3.96) rectangle (8.21,6.32);
+   \textcolor{ovMuted}{\(\mathcal G\) hidden}};
+\fill[ovGreen!4, rounded corners=2pt] (2.86,3.96) rectangle (8.21,6.32);
 \draw[flow] (masked.east |- 0,4.94)--(2.82,4.94);
 \node[note, anchor=west] at (3.04,6.12) {within a rollout};
 \node[heading] at (4.31,5.75) {1\; Rollout};
@@ -84,13 +84,13 @@
 \draw[ovGreen, line width=.8pt]
   (5.29,5.38)--(5.34,5.32)--(5.44,5.47);
 \foreach \y in {4.94,4.50}{
-  \draw[ovRed, line width=.8pt]
+  \draw[ovReject, line width=.8pt]
     (5.29,\y-.07)--(5.43,\y+.07)
     (5.29,\y+.07)--(5.43,\y-.07);
 }
 \draw[flow] (8.25,4.94)--(8.58,4.94);
 
-\fill[ovGreen!6, rounded corners=2pt] (8.66,3.96) rectangle (15.60,6.32);
+\fill[ovGreen!4, rounded corners=2pt] (8.66,3.96) rectangle (15.60,6.32);
 \node[note, anchor=west] at (8.87,6.12) {across rollouts};
 \node[heading] at (9.68,5.75) {3\; Pool};
 \node[heading] at (11.32,5.75) {4\; Filter};
@@ -152,12 +152,13 @@
 \draw[panel] (4.30,.10) rectangle (11.16,7.05);
 \node[heading, anchor=west] at (4.58,6.76) {(c)\; Target-free scorer};
 \draw[ovBorder, line width=.4pt] (4.58,6.48)--(10.88,6.48);
-\node[note] at (7.73,6.12)
-  {\textbf{Binary}\quad valid set \(\mapsto\{0,1\}\)};
+\node[heading, anchor=west] at (4.58,6.12) {Binary};
+\node[note, anchor=west] at (5.95,6.12)
+  {\(\vcenter{\hbox{\sffamily valid set}}\mapsto\{0,1\}\)};
 
 % A small, separate inset shows the two candidate-negative mechanisms.
-\fill[ovGreen!6, rounded corners=2pt] (4.52,3.90) rectangle (10.93,5.90);
-\node[heading, anchor=west] at (4.68,5.63) {Candidate negatives};
+\fill[ovGreen!4, rounded corners=2pt] (4.52,3.90) rectangle (10.93,5.90);
+\node[heading, anchor=west] at (4.58,5.63) {Candidate negatives};
 \node[note, anchor=west] at (4.68,4.95) {off-trajectory};
 \node[note, anchor=west] at (4.68,4.16) {post-exit};
 \foreach \x [count=\i] in {7.09,7.66,8.23}{
@@ -166,7 +167,7 @@
 \draw[flow, draw=ovGreen] (off1)--(off2);
 \draw[flow, draw=ovGreen] (off2)--(off3);
 \node[candidate] (offneg) at (8.24,5.31) {};
-\draw[flow, draw=ovRed, dashed] (off2)--(offneg);
+\draw[flow, draw=ovReject, dashed] (off2)--(offneg);
 \node[state] (post1) at (7.09,4.12) {};
 \node[state] (post2) at (7.66,4.12) {};
 \draw[flow, draw=ovGreen] (post1)--(post2);
@@ -174,14 +175,14 @@
 \node[note] at (8.03,4.50) {exit};
 \node[candidate] (post3) at (8.41,4.12) {};
 \node[candidate] (post4) at (9.01,4.12) {};
-\draw[flow, draw=ovRed] (post2)--(post3);
-\draw[flow, draw=ovRed] (post3)--(post4);
-\node[circle, draw=ovRed!65, fill=white,
+\draw[flow, draw=ovReject] (post2)--(post3);
+\draw[flow, draw=ovReject] (post3)--(post4);
+\node[circle, draw=ovReject!65, fill=white,
   minimum size=.49*\ovunit, inner sep=0pt] (negset) at (10.29,4.79)
   {\(\mathcal N\)};
-\draw[flow, draw=ovRed!80, rounded corners=2pt]
+\draw[flow, draw=ovReject!80, rounded corners=2pt]
   (offneg.east)--(9.35,5.31)--(negset.north west);
-\draw[flow, draw=ovRed!80] (post4.east)--(negset.south west);
+\draw[flow, draw=ovReject!80] (post4.east)--(negset.south west);
 \draw[flow, rounded corners=2pt]
   (negset.south)--(10.29,3.77)--(8.03,3.77)--(8.03,3.66);
 

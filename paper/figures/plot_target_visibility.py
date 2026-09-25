@@ -9,7 +9,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from paper_style import GREEN, RUST, panel_figure, panel_legend, save_panel_figure
+from paper_style import GREEN, TEAL, panel_figure, panel_legend, save_panel_figure
 
 
 def main() -> None:
@@ -30,7 +30,7 @@ def main() -> None:
     for ax, (title, hidden_values, visible_values, limits, ticks) in zip(axes, panels):
         for label, values, color, marker, linestyle in [
             ("Target-hidden", hidden_values, GREEN, "D", "-"),
-            ("Target-visible", visible_values, RUST, "^", "--"),
+            ("Target-visible", visible_values, TEAL, "^", "--"),
         ]:
             ax.plot(k, values, label=label, color=color, marker=marker,
                     linestyle=linestyle, linewidth=1.4, markersize=3.8,

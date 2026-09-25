@@ -2,11 +2,15 @@
 \section{Conclusion and Limitations}\label{sec:conclusion}
 %% ============================================================
 
-Useful invariant clauses need not occur in one successful response.
-Cross-response filtering substantially improves base-model verification,
-while SFT and RL make these gains available at smaller sampling budgets.
-Reward ablations show that whole-response credit can improve pass while
-reducing compositional verification. The evaluation focuses on scalar-integer
-single-loop programs. Future work will explore extending CRAFT to other tasks
-with compositional structure, such as test-case generation and
-function-contract generation.
+CRAFT recovers proofs from clauses in responses that fail to prove targets
+alone. Decomposing, filtering, and composing those clauses raises Base
+Qwen3-8B verification from 6.37\% pass@1 to 37.86\% compose@1.
+Composed SFT labels broaden coverage, while subsequent RL makes useful
+clauses available in fewer samples. Reward ablations show that whole-response
+credit can improve standalone pass but reduce verification through
+decomposition, filtering, and composition. Our evaluation covers
+scalar-integer single-loop programs, conjunctive composition, and Frama-C/WP;
+nonlinear relations remain difficult. Future work will extend CRAFT to richer
+program states and control flow and test whether inference and training built
+around decomposition, filtering, and composition transfer to other
+compositional tasks, including specification and test-case generation.

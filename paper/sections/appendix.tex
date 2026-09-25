@@ -4,23 +4,34 @@
 
 \input{sections/formal_method}
 
-\section{Scope and Motivating Example}
+\Needspace{20\baselineskip}
+\section{Case Study}
 \label{app:scope-example}
 
-We focus on numerical loops because their arithmetic equalities and
-inequalities, including polynomial relations, admit scalable automatic
-checking.  The study considers one braced while loop over scalar C integers,
-including nonlinear updates.  Even this setting can hide nonlinear relations
-across coupled recurrences.  For example:
-\begin{lstlisting}
-void f(int k, int z) {
+Numerical loops, including both linear and nonlinear ones, are a primary
+subject of prior
+work on loop-invariant
+inference~\citep{si2020code2inv,yu2023lipus,kamath2023finding}. We use this
+setting to examine target-hidden invariant generation, as well as the reuse
+and composition of generated invariants. In the target-hidden cases, the
+generator sees the loop and its entry context, while the target assertion is
+withheld until final verification. Case 1 shows
+recovery of a hidden algebraic relation. Case 2 shows an invariant stronger
+than its target and compares the actual invariant candidates of other tools.
+Case 3 shows how an invariant inferred for the first of two loops helps verify
+the final assertion.
+Cases 4 and 5 show how clauses from different responses can jointly prove a
+target or support one another's inductiveness.
+
+\subsubsection*{Case 1: target-hidden invariant discovery.}
+\begin{lstlisting}[numbers=none]
+void foo(int k, int z) {
   int x = 1, y = 1, c = 1;
   while (c < k) { c++; x = x*z + 1; y = y*z; }
   /*@ assert 1+x*z-x-z*y == 0; */
 }
 \end{lstlisting}
 
-\paragraph{Case study: target-hidden invariant discovery.}
 If the assertion is visible, it can be copied as a loop-invariant candidate.
 It holds initially because \(x=y=1\).  Writing
 \(I(x,y)=1+xz-x-zy\), one loop iteration gives
@@ -52,13 +63,69 @@ All three clauses rearrange to the hidden assertion.  None of the ten raw
 responses in these pools passes as a whole on this program; pooled filtering
 removes incompatible siblings and retains the useful relation.
 
+\subsubsection*{Case 2: a stronger invariant where baselines fail.}
+The loop alternates which counter is incremented; its hidden target asks
+whether the counters agree after \(2k\) iterations.
+\begin{lstlisting}[language=C,numbers=none]
+void foo(int b, int j, int n) {
+  int k = 100, i = j;
+  n = 0;
+  while (n < 2*k) {
+    if (b) i++; else j++;
+    b = !b; n++;
+  }
+  /*@ assert i == j; */
+}
+\end{lstlisting}
+Table~\ref{tab:multi-goal-case} shows the saved candidate clauses; \(b_0,j_0,n_0\)
+denote input values. CRAFT uses the first eight target-hidden GPT-5-nano
+responses, while baseline rows show their archived outputs.
+
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabular}{@{}p{1.7cm}p{9.2cm}c@{}}
+\toprule
+\rowcolor{algobg}
+Method & Saved invariant candidates & Full proof \\
+\midrule
+CRAFT & \(\begin{aligned}[t]
+&0\le n\le2k,\quad i+j=2j_0+n,\quad n\bmod2=0\Rightarrow i=j;\\
+&n\bmod2=1\Rightarrow (b=0\land i-j=1)\lor(b=1\land i-j=-1)
+\end{aligned}\) & 4/4 \\
+AutoSpec & \(0\le n,\quad n\le2k\) & 0/4 \\
+Naive & \(\begin{aligned}[t]
+&0\le n\le2k;\\
+&i-j = (n\bmod 2 = 0)\;?\;0:(b\;?\;-1:1)
+\end{aligned}\) & 0/4 \\
+Daikon & \(\begin{aligned}[t]
+&n\ge0,\ k=100,\ i\ge j_0,\ j\ge j_0;\\
+&j_0\ne0,\ b\ne k,\ b\ne j_0,\ k\ne b_0,\ k\ne j_0;\\
+&k\ne n_0,\ b_0\ne j_0,\ b_0\ne n_0,\ j_0\ne n_0
+\end{aligned}\) & 0/4 \\
+SESpec & No loop annotation & --- \\
+Clause2Inv & Unsupported on this instance & --- \\
+\bottomrule
+\end{tabular}
+\caption{Archived candidate clauses for Case 2. Full proof counts
+separately checked targets with invariant induction, not merely exit assertions.}
+\label{tab:multi-goal-case}
+\end{table}
+
+At exit, CRAFT's parity and sum clauses prove the hidden \(i=j\) and three
+additional goals: \(i+j=2j_0+n\), \(i=j_0+n/2\), and \(j=j_0+n/2\).
+Naive's exit assertion is locally provable, but WP cannot establish its
+candidate's preservation; Daikon even proposes \(j_0\ne0\), which the program
+does not guarantee. The extra goals were added after target-hidden generation
+and do not change benchmark scores.
+
 \needspace{24\baselineskip}
-\paragraph{Case study: a loop summary for subsequent computation.}
+\subsubsection*{Case 3: a loop summary for subsequent computation.}
 An invariant can serve as an intermediate assertion even when the final
 target concerns later computation. Consider two sequential numerical loops:
-\begin{lstlisting}[language=C]
+\begin{lstlisting}[language=C,numbers=none]
 /*@ requires 0 <= n <= 100; */
-void example(int n) {
+void foo(int n) {
   int i = 0, s = 0;
   while (i < n) {
     s += 2 * i + 1;
@@ -91,16 +158,16 @@ frame and termination conditions. Frama-C/WP discharged all 29 proof goals
 with runtime-error checks enabled, demonstrating summary reuse rather than
 end-to-end multi-loop synthesis or cross-response composition.
 
-\paragraph{Case study: composition without cross-response support.}
+\subsubsection*{Case 4: composition without cross-response support.}
 This case shows that clauses can each survive independent filtering yet
 require cross-response composition to prove the target. We compare independent
 and pooled filtering of the first four GPT-5-nano responses for the same task,
 using \(\operatorname{Filter}_{\mathcal L}\). The target assertion is hidden
 during generation and filtering, then restored for final verification.
 
-\begin{lstlisting}[language=C]
+\begin{lstlisting}[language=C,numbers=none]
 /*@ requires n >= 0; */
-void f(int n) {
+void foo(int n) {
   int x = n, y = 0;
   while (x > 0) {
     y = y + 1;
@@ -154,16 +221,16 @@ The gain comes from combining complementary clauses to prove the target.
 \end{minipage}
 
 \noindent\begin{minipage}{\textwidth}
-\paragraph{Case study: composition through cross-response support.}
+\subsubsection*{Case 5: composition through cross-response support.}
 The preceding case needs composition only to prove the target.  A second
 archived GPT-5-nano replay shows the stronger mechanism from
 Proposition~\ref{prop:mutual-support}: pooling can also make a clause provably
 inductive.  As before, the assertion is restored only after target-hidden
 filtering.
 
-\begin{lstlisting}[language=C]
+\begin{lstlisting}[language=C,numbers=none]
 extern int unknown(void);
-void f(int n) {
+void foo(int n) {
   int x = 1, m = 1;
   while (x < n) {
     if (unknown()) m = x;

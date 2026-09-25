@@ -1,0 +1,186 @@
+{
+  "source": "src/input/Loopy/202.c",
+  "generation_target_hidden": true,
+  "original_goal": "i == j",
+  "craft_prefix_size": 8,
+  "audit_goals": {
+    "original_equal": "i == j",
+    "sum_conservation": "i + j == 2 * \\at(j,Pre) + n",
+    "i_half_progress": "i == \\at(j,Pre) + n / 2",
+    "j_half_progress": "j == \\at(j,Pre) + n / 2"
+  },
+  "archived_original_verdicts": {
+    "autospec": false,
+    "clause2inv": false,
+    "sespec": false,
+    "naive": false,
+    "loopgym_r1_no_houdini": false,
+    "loopgym_r1_houdini": false,
+    "loopgym_r5_houdini": true,
+    "loopgym_r10_houdini": true,
+    "daikon": false
+  },
+  "methods": {
+    "craft_r8": {
+      "archived_clauses": [
+        "0 <= n <= 2*k",
+        "(i + j) == (n + 2 * \\at(j,Pre))",
+        "((n % 2) == 0) ==> (i == j)",
+        "(n % 2 == 1) ==> (((b == 0) && (i - j == 1)) || ((b == 1) && (i - j == -1)))"
+      ],
+      "combined": {
+        "assertion_only_results": {
+          "original_equal": true,
+          "sum_conservation": true,
+          "i_half_progress": true,
+          "j_half_progress": true
+        },
+        "proved_goals": 13,
+        "total_goals": 13,
+        "all_proved": true,
+        "returncode": 0,
+        "command": [
+          "/home/yangfp/.opam/frama-c.31/bin/frama-c",
+          "-wp",
+          "-wp-print",
+          "-wp-timeout",
+          "5",
+          "-wp-prover",
+          "alt-ergo,z3",
+          "-wp-model",
+          "Typed",
+          "-wp-prop=-@terminates,-missing_return",
+          "/home/yangfp/CRAFT/results/05_appendix_audits/formal_cases/multi_goal_gpt5nano_loopy202/craft_r8.c"
+        ]
+      },
+      "independent_goal_verdicts": {
+        "original_equal": true,
+        "sum_conservation": true,
+        "i_half_progress": true,
+        "j_half_progress": true
+      }
+    },
+    "autospec": {
+      "archived_clauses": [
+        "n <= 2*k",
+        "0 <= n"
+      ],
+      "combined": {
+        "assertion_only_results": {
+          "original_equal": false,
+          "sum_conservation": false,
+          "i_half_progress": true,
+          "j_half_progress": true
+        },
+        "proved_goals": 7,
+        "total_goals": 9,
+        "all_proved": false,
+        "returncode": 0,
+        "command": [
+          "/home/yangfp/.opam/frama-c.31/bin/frama-c",
+          "-wp",
+          "-wp-print",
+          "-wp-timeout",
+          "5",
+          "-wp-prover",
+          "alt-ergo,z3",
+          "-wp-model",
+          "Typed",
+          "-wp-prop=-@terminates,-missing_return",
+          "/home/yangfp/CRAFT/results/05_appendix_audits/formal_cases/multi_goal_gpt5nano_loopy202/autospec.c"
+        ]
+      },
+      "independent_goal_verdicts": {
+        "original_equal": false,
+        "sum_conservation": false,
+        "i_half_progress": false,
+        "j_half_progress": false
+      }
+    },
+    "naive": {
+      "archived_clauses": [
+        "0 <= n && n <= 2*k",
+        "i - j == (n % 2 == 0) ? 0 : (b ? -1 : 1)"
+      ],
+      "combined": {
+        "assertion_only_results": {
+          "original_equal": true,
+          "sum_conservation": false,
+          "i_half_progress": true,
+          "j_half_progress": true
+        },
+        "proved_goals": 7,
+        "total_goals": 9,
+        "all_proved": false,
+        "returncode": 0,
+        "command": [
+          "/home/yangfp/.opam/frama-c.31/bin/frama-c",
+          "-wp",
+          "-wp-print",
+          "-wp-timeout",
+          "5",
+          "-wp-prover",
+          "alt-ergo,z3",
+          "-wp-model",
+          "Typed",
+          "-wp-prop=-@terminates,-missing_return",
+          "/home/yangfp/CRAFT/results/05_appendix_audits/formal_cases/multi_goal_gpt5nano_loopy202/naive.c"
+        ]
+      },
+      "independent_goal_verdicts": {
+        "original_equal": false,
+        "sum_conservation": false,
+        "i_half_progress": false,
+        "j_half_progress": false
+      }
+    },
+    "daikon": {
+      "archived_clauses": [
+        "n >= 0",
+        "k == 100",
+        "\\at(j, Pre) != 0",
+        "b != k",
+        "b != \\at(j, Pre)",
+        "j >= \\at(j, Pre)",
+        "k != \\at(b, Pre)",
+        "k != \\at(j, Pre)",
+        "k != \\at(n, Pre)",
+        "i >= \\at(j, Pre)",
+        "\\at(b, Pre) != \\at(j, Pre)",
+        "\\at(b, Pre) != \\at(n, Pre)",
+        "\\at(j, Pre) != \\at(n, Pre)"
+      ],
+      "combined": {
+        "assertion_only_results": {
+          "original_equal": false,
+          "sum_conservation": false,
+          "i_half_progress": true,
+          "j_half_progress": true
+        },
+        "proved_goals": 21,
+        "total_goals": 31,
+        "all_proved": false,
+        "returncode": 0,
+        "command": [
+          "/home/yangfp/.opam/frama-c.31/bin/frama-c",
+          "-wp",
+          "-wp-print",
+          "-wp-timeout",
+          "5",
+          "-wp-prover",
+          "alt-ergo,z3",
+          "-wp-model",
+          "Typed",
+          "-wp-prop=-@terminates,-missing_return",
+          "/home/yangfp/CRAFT/results/05_appendix_audits/formal_cases/multi_goal_gpt5nano_loopy202/daikon.c"
+        ]
+      },
+      "independent_goal_verdicts": {
+        "original_equal": false,
+        "sum_conservation": false,
+        "i_half_progress": false,
+        "j_half_progress": false
+      }
+    }
+  }
+}

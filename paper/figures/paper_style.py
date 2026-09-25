@@ -3,7 +3,7 @@
 
 One palette for all matplotlib PDFs and the overview SVG, so the paper reads
 as a single visual system.  Keep in sync with:
-  - the \\definecolor block in paper/main.tex (green/teal/olive/rust family)
+  - the \\definecolor block in paper/main.tex (blue/orange family)
   - the <style> tokens in paper/sections/fig_overview.tex
 
 Usage in a plot script:
@@ -20,27 +20,27 @@ AXIS_WIDTH = 0.6
 GRID_WIDTH = 0.55
 
 # ---------------------------------------------------------------- core hues
-GREEN = "#2E7D5B"   # verified / ours / primary method
-TEAL = "#347F78"    # SFT stage, secondary series
-OCHRE = "#B87A2C"   # scorer / weak-baseline series
+GREEN = "#397FC1"   # verified / ours / primary method
+TEAL = "#5C9BDC"    # SFT stage, secondary series
+OCHRE = "#E7AC50"   # scorer / weak-baseline series
 SLATE = "#5B7185"   # RL stage, "before" series
-RUST = "#B85C47"    # rejected / baseline series
-INK = "#1F3128"     # text
-MUTED = "#66786F"   # secondary text, axes, untrained reference
-FAINT = "#D8E2DC"   # hairlines, grids
+RUST = "#D68B32"    # rejected / baseline series
+INK = "#243247"     # text
+MUTED = "#64748B"   # secondary text, axes, untrained reference
+FAINT = "#DCE6F0"   # hairlines, grids
 
 # ------------------------------------------------- tints (fills, grid cells)
-GREEN_TINT = "#E8F3EC"
-TEAL_TINT = "#E6F2F0"
-OCHRE_TINT = "#F8F0E2"
+GREEN_TINT = "#EAF3FC"
+TEAL_TINT = "#EDF5FD"
+OCHRE_TINT = "#FFF5E8"
 SLATE_TINT = "#E9EEF3"
-RUST_TINT = "#F6E3DF"
-PANEL_BG = "#FBFCFB"
+RUST_TINT = "#FFF0DE"
+PANEL_BG = "#FAFCFE"
 
 # --------------------------- clause identity shades (overview figure only)
-# Six distinguishable greens; a clause keeps its color across
+# Six distinguishable blues; a clause keeps its color across
 # rollout -> decompose -> pool so provenance is visually traceable.
-CLAUSE = ["#2E7D5B", "#4C9A74", "#7FB99C", "#A9D0BD", "#3A8F83", "#62A98A"]
+CLAUSE = ["#397FC1", "#5C9BDC", "#82B1E5", "#A5CBED", "#3174B3", "#74A8DB"]
 
 
 def use_paper_style(base_size: float = 10.0) -> None:

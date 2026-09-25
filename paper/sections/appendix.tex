@@ -1820,6 +1820,15 @@ Clause2Inv, LaM4Inv, and LORIS; only target-independent initiation and
 preservation feedback is retained. Each method uses its full supported
 set; unsupported categories are excluded rather than counted as failures.
 
+\paragraph{Direct invariant-strength comparison.}
+We also compare target-free, inductively filtered invariants by checking
+implication in both directions under C integer bounds. On the 316 Linear
+programs supported by all eight baselines (the seven tools above plus Naive),
+all pairwise comparisons are resolved for 279 programs. With GPT-5-nano and
+reasoning disabled, \sam{} compose@8 is strictly stronger than at least six
+baselines on 186 of these programs and than all eight on 58. A baseline with
+no surviving invariant counts as beaten only when \sam{} has a nontrivial one.
+
 \paragraph{AutoSpec.}
 AutoSpec pools eight parallel proposals in its native workflow, reaching
 42.19\% verification with 2,216.11 tokens per task. CRAFT compose@4 reaches

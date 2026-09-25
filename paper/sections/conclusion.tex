@@ -1,16 +1,18 @@
 %% ============================================================
 \section{Conclusion and Limitations}\label{sec:conclusion}
 %% ============================================================
+\enlargethispage{2\baselineskip}
 
 CRAFT recovers proofs from clauses in responses that fail to prove targets
 alone. Decomposing, filtering, and composing those clauses raises Base
-Qwen3-8B verification from 6.37\% pass@1 to 37.86\% compose@1.
+Qwen3-8B verification from 6.37\% to 37.86\%.
 Composed SFT labels broaden coverage, while subsequent RL makes useful
 clauses available in fewer samples. Reward ablations show that whole-response
 credit can improve standalone pass but reduce verification through
-decomposition, filtering, and composition. Our evaluation covers
-scalar-integer single-loop programs, conjunctive composition, and Frama-C/WP;
-nonlinear relations remain difficult. Future work will extend CRAFT to richer
+decomposition, filtering, and composition. CRAFT currently handles one loop
+over scalar integers and combines clauses by conjunction. We evaluate it with
+Frama-C/WP; nonlinear relations remain challenging for the evaluated models.
+Future work will extend CRAFT to richer
 program states and control flow and test whether inference and training built
 around decomposition, filtering, and composition transfer to other
 compositional tasks, including specification and test-case generation.

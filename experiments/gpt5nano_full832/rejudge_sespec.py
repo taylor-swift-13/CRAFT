@@ -36,7 +36,7 @@ from rl_pipeline.reward.annotate import build_annotated
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_RESULTS = REPO_ROOT / "results" / "gpt5nano_full832"
+DEFAULT_RESULTS = REPO_ROOT / "results" / "02_rq2_tool_comparison" / "gpt5nano_full832"
 DEFAULT_OUTPUT = DEFAULT_RESULTS / "sespec832_rejudge_native_loop"
 SUITES = ("linear", "NLA_lipus", "Loopy")
 EXPECTED = {"linear": 316, "NLA_lipus": 50, "Loopy": 466}

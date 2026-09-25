@@ -1,0 +1,22 @@
+$ /home/yangfp/LORIS/.conda/bin/python /home/yangfp/CRAFT/experiments/gpt5nano_full832/near_neighbor_runner.py --method loris --source /home/yangfp/CRAFT/results/gpt5nano_full832/artifacts/loris/Loopy/26/attempt_1789659771206754402/input.hidden.c --suite Loopy --case-id 26 --timeout 600 --log /home/yangfp/CRAFT/results/gpt5nano_full832/artifacts/loris/Loopy/26/attempt_1789659771206754402/native.log
+
+[stdout]
+
+
+[stderr]
+Traceback (most recent call last):
+  File "/home/yangfp/CRAFT/experiments/gpt5nano_full832/near_neighbor_runner.py", line 357, in <module>
+    raise SystemExit(main())
+  File "/home/yangfp/CRAFT/experiments/gpt5nano_full832/near_neighbor_runner.py", line 351, in main
+    result = run_loris(args) if args.method == "loris" else run_lam4inv(args)
+  File "/home/yangfp/CRAFT/experiments/gpt5nano_full832/near_neighbor_runner.py", line 212, in run_loris
+    success, block, iterations, _input, _output, _bmc = verifier.runWithShortenTokens(
+  File "/home/yangfp/LORIS/src/StepProofVerifier/StepProofVerifier.py", line 456, in runWithShortenTokens
+    success, checker_message = self.checkInvariants(invariant_block)
+  File "/home/yangfp/LORIS/src/StepProofVerifier/StepProofVerifier.py", line 86, in checkInvariants
+    __success, checker_message = self.checker.check(
+  File "/home/yangfp/LORIS/src/frama_c.py", line 61, in check
+    frama_c_std_output, _ = p.communicate()
+  File "/home/yangfp/LORIS/.conda/lib/python3.10/subprocess.py", line 1141, in communicate
+    stdout = self.stdout.read()
+KeyboardInterrupt

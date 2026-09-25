@@ -1,0 +1,10 @@
+[
+  {
+    "completion_tokens": 384,
+    "finish_reason": "stop",
+    "prompt_tokens": 197,
+    "response": "```c\nassert(i >= 0);\nassert(a >= 0);\nassert(i <= 20);\nassert(a <= 20);\nassert(i == a || i < a || i > a); // trivially true, used to ensure i and a are bounded\n\n// Invariants derived from the structure:\n// 1) If the loop is entered, i and a are non-decreasing together until the goto condition triggers.\n// 2) The only way to exit the loop body normally is when i reaches 20 (via goto LOOPEND).\n// 3) When i < 20, i and a are incremented together, preserving i - a constant (but they are re-synced by the guard).\n// 4) At the top of each iteration, i and a are both in [0,20].\nassert(0 <= i && i <= 20);\nassert(0 <= a && a <= 20);\n\n// Iteration start invariant: i and a are in [0,20], and i <= 20\n// After body before the next iteration check, the invariants must still hold.\n// 5) If i == 20, we will exit; otherwise i increases by 1 and a increases by 1, preserving i <= a until the guard may alter.\nassert((i == 20) || (i >= 0 && i <= 19 && a >= 0 && a <= 19));\n\n// Relation between i and a before the next iteration:\n// - When i < 20, both i and a have been incremented together, so i and a remain in sync by increments.\n// - When i == 20, the loop condition will exit to LOOPEND.\nassert((i == 20) || (i == a) || (i == a - 1) || (i == a + 1));\n```",
+    "seconds": 6.126954487997864,
+    "total_tokens": 581
+  }
+]

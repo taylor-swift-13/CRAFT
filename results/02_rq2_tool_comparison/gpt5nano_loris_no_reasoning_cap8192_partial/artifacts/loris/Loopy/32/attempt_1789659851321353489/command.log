@@ -1,0 +1,64 @@
+$ /home/yangfp/LORIS/.conda/bin/python /home/yangfp/CRAFT/experiments/gpt5nano_full832/near_neighbor_runner.py --method loris --source /home/yangfp/CRAFT/results/gpt5nano_full832/artifacts/loris/Loopy/32/attempt_1789659851321353489/input.hidden.c --suite Loopy --case-id 32 --timeout 600 --log /home/yangfp/CRAFT/results/gpt5nano_full832/artifacts/loris/Loopy/32/attempt_1789659851321353489/native.log
+
+[stdout]
+
+
+[stderr]
+Traceback (most recent call last):
+  File "/home/yangfp/CRAFT/experiments/gpt5nano_full832/near_neighbor_runner.py", line 357, in <module>
+    raise SystemExit(main())
+  File "/home/yangfp/CRAFT/experiments/gpt5nano_full832/near_neighbor_runner.py", line 351, in main
+    result = run_loris(args) if args.method == "loris" else run_lam4inv(args)
+  File "/home/yangfp/CRAFT/experiments/gpt5nano_full832/near_neighbor_runner.py", line 212, in run_loris
+    success, block, iterations, _input, _output, _bmc = verifier.runWithShortenTokens(
+  File "/home/yangfp/LORIS/src/StepProofVerifier/StepProofVerifier.py", line 515, in runWithShortenTokens
+    natural_proof = self.getNaturalProofNew(invariant, type, "\n".join([ "assert(" + invariant + ");" for invariant in self.now_invariants ]))
+  File "/home/yangfp/LORIS/src/StepProofVerifier/StepProofVerifier.py", line 126, in getNaturalProofNew
+    response, chat_history = self.llm.get_response_by_prompt(prompt, chat_history=[], input_token_list=self.input_token_list, output_token_list=self.output_token_list)
+  File "/home/yangfp/CRAFT/experiments/gpt5nano_full832/near_neighbor_runner.py", line 52, in get_response_by_prompt
+    response = self.client.chat.completions.create(
+  File "/home/yangfp/.local/lib/python3.10/site-packages/openai/_utils/_utils.py", line 298, in wrapper
+    return func(*args, **kwargs)
+  File "/home/yangfp/.local/lib/python3.10/site-packages/openai/resources/chat/completions/completions.py", line 1284, in create
+    return self._post(
+  File "/home/yangfp/.local/lib/python3.10/site-packages/openai/_base_client.py", line 1360, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+  File "/home/yangfp/.local/lib/python3.10/site-packages/openai/_base_client.py", line 1065, in request
+    response = self._send_request(
+  File "/home/yangfp/.local/lib/python3.10/site-packages/openai/_client.py", line 483, in _send_request
+    response = self._send_with_auth_retry(request, stream=stream, **kwargs)
+  File "/home/yangfp/.local/lib/python3.10/site-packages/openai/_client.py", line 461, in _send_with_auth_retry
+    response = super()._send_request(request, stream=stream, **kwargs)
+  File "/home/yangfp/.local/lib/python3.10/site-packages/openai/_base_client.py", line 990, in _send_request
+    return self._client.send(request, stream=stream, **kwargs)
+  File "/home/yangfp/.local/lib/python3.10/site-packages/httpx/_client.py", line 914, in send
+    response = self._send_handling_auth(
+  File "/home/yangfp/.local/lib/python3.10/site-packages/httpx/_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+  File "/home/yangfp/.local/lib/python3.10/site-packages/httpx/_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+  File "/home/yangfp/.local/lib/python3.10/site-packages/httpx/_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+  File "/home/yangfp/.local/lib/python3.10/site-packages/httpx/_transports/default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+  File "/home/yangfp/.local/lib/python3.10/site-packages/httpcore/_sync/connection_pool.py", line 216, in handle_request
+    raise exc from None
+  File "/home/yangfp/.local/lib/python3.10/site-packages/httpcore/_sync/connection_pool.py", line 196, in handle_request
+    response = connection.handle_request(
+  File "/home/yangfp/.local/lib/python3.10/site-packages/httpcore/_sync/http_proxy.py", line 344, in handle_request
+    return self._connection.handle_request(request)
+  File "/home/yangfp/.local/lib/python3.10/site-packages/httpcore/_sync/http11.py", line 143, in handle_request
+    raise exc
+  File "/home/yangfp/.local/lib/python3.10/site-packages/httpcore/_sync/http11.py", line 113, in handle_request
+    ) = self._receive_response_headers(**kwargs)
+  File "/home/yangfp/.local/lib/python3.10/site-packages/httpcore/_sync/http11.py", line 186, in _receive_response_headers
+    event = self._receive_event(timeout=timeout)
+  File "/home/yangfp/.local/lib/python3.10/site-packages/httpcore/_sync/http11.py", line 224, in _receive_event
+    data = self._network_stream.read(
+  File "/home/yangfp/.local/lib/python3.10/site-packages/httpcore/_backends/sync.py", line 126, in read
+    return self._sock.recv(max_bytes)
+  File "/home/yangfp/LORIS/.conda/lib/python3.10/ssl.py", line 1292, in recv
+    return self.read(buflen)
+  File "/home/yangfp/LORIS/.conda/lib/python3.10/ssl.py", line 1165, in read
+    return self._sslobj.read(len)
+KeyboardInterrupt

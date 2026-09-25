@@ -38,7 +38,7 @@ from rl_pipeline.common.state import (
 
 
 REPO = Path(__file__).resolve().parents[1]
-ARCHIVE = REPO / "results" / "gpt5nano_full832"
+ARCHIVE = REPO / "results" / "02_rq2_tool_comparison" / "gpt5nano_full832"
 DEFAULT_ROOT = REPO / "results" / "negative_sampler_relation_escape_832"
 EXPECTED_TASKS = 832
 EXPECTED_CANDIDATES = 6190

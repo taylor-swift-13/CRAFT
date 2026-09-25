@@ -1,0 +1,663 @@
+2026-09-17 23:43:03,393 - INFO - Running benchmark /home/yangfp/CRAFT/results/gpt5nano_full832/artifacts/loris/Loopy/27/attempt_1789659782260090530/input.hidden.c...
+
+2026-09-17 23:43:07,132 - INFO - HTTP Request: POST https://api.openlux.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-17 23:43:07,150 - INFO - Initial invariant block: 
+ 
+
+2026-09-17 23:43:07,150 - INFO - Begin iteration...
+
+2026-09-17 23:43:07,150 - INFO - CHECKER TIME: 3.7574563026428223
+2026-09-17 23:43:14,297 - INFO - ===================Iteration: 1===================
+2026-09-17 23:43:14,298 - INFO - [231], [115]
+2026-09-17 23:43:14,298 - INFO - Not established: []
+2026-09-17 23:43:14,299 - INFO - Not preserved: []
+2026-09-17 23:43:14,299 - INFO - Not valid assertions: []
+2026-09-17 23:43:16,954 - INFO - HTTP Request: POST https://api.openlux.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-17 23:43:16,955 - INFO - Syntax Error. Fixed invariant block: /*@
+loop invariant i1: len >= 0;
+loop invariant i2: i >= 0;
+loop invariant i3: j >= 0;
+loop invariant i4: i <= BASE_SZ;
+loop invariant i5: j <= BASE_SZ;
+loop invariant i6: len == 0 || len > 0;
+loop invariant i7: (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1);
+loop invariant i8: i <= j ? i - j <= 0 : j - i <= 0;
+loop invariant i9: i - j <= BASE_SZ - len;*/
+2026-09-17 23:43:16,955 - INFO - CHECKER TIME: 13.562179327011108
+2026-09-17 23:43:28,551 - INFO - ===================Iteration: 2===================
+2026-09-17 23:43:28,551 - INFO - [231, 501], [115, 113]
+2026-09-17 23:43:28,551 - INFO - Not established: ['(__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)']
+2026-09-17 23:43:28,551 - INFO - Not preserved: ['i <= BASE_SZ', 'j <= BASE_SZ']
+2026-09-17 23:43:28,551 - INFO - Not valid assertions: []
+2026-09-17 23:43:28,551 - INFO - Get natural proof for the establishment of (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)
+2026-09-17 23:43:28,553 - INFO -                                                                          
+extern int unknown(void);
+
+extern int unknown();
+
+/*@
+  requires BASE_SZ > 0;
+*/
+void main(int BASE_SZ, int __BLAST_NONDET)
+{
+  
+  
+  
+  int i;
+  int j;
+  int len = BASE_SZ;
+
+  
+
+  {;
+
+}
+
+   
+  
+  i = 0;
+  j = 0;
+  while (1) {
+    if ( len == 0 ){ 
+      goto END;
+    } else {
+      {;
+
+}
+ {;
+
+}
+
+      {;
+
+}
+ {;
+
+}
+
+      if ( __BLAST_NONDET ) {
+        i++;
+        j++;
+        goto END;
+      }
+    }
+    i ++;
+    j ++;
+    len --;
+  }
+
+ END:  return;
+}
+
+
+Above is a C code with some assertions to prove.
+In order to prove the assertions, you previously proposed the following loop invariants:
+
+```c
+assert(len >= 0);
+assert(i >= 0);
+assert(j >= 0);
+assert(i <= BASE_SZ);
+assert(j <= BASE_SZ);
+assert(len == 0 || len > 0);
+assert((__BLAST_NONDET == 0) || (__BLAST_NONDET == 1));
+assert(i <= j ? i - j <= 0 : j - i <= 0);
+assert(i - j <= BASE_SZ - len);
+```
+
+Note that a loop invariant is a C assertion that holds before the loop, and after each iteration of the loop.Please prove the establishment of the loop invariant (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) step by step. That is, (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) holds before the loop starts. 
+Specifically, you should prove the following goal: P ==> I, where P is the pre-condition, and I is the loop invariant (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1).
+You should prove the goal in the following steps: First, list the initial conditions. In this case, the initial conditions are the program states before the loop. Note that, the loop condition should not be viewed as a condition. Second, prove that (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) holds before the loop step by step.Here are some instructions on step-by-step Structure for your proof:
+ - The whole proof contains three parts: initial conditions, proof process, and conclusion. Label them with `[Initial]`, `[Proof]`, and `[Conclusion]`, respectively.
+ - In the `[Initial]` part, just list the initial conditions, do not perform any logical inference - leave them to the proof process.
+ - In the `[Proof]` part, label each step explicitly with the format:
+  `[STEP N: <STEP_NAME>]` where `N` is the step number and `<STEP_NAME>` describes the step. Do not miss the left `[` and the right `]`.
+ - Under each step, provide detailed mathematical/logical reasoning.
+ - Each step should be a sequential logical reasoning. For example, if a step contains subcases, please split them into different steps.
+2026-09-17 23:43:29,879 - INFO - HTTP Request: POST https://api.openlux.ai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-09-17 23:43:40,396 - INFO - HTTP Request: POST https://api.openlux.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-17 23:43:40,397 - INFO - Natural Proof: [Initial]
+- Unknown preconditions for function main: BASE_SZ > 0 is given as a precondition for the function via /*@
+  requires BASE_SZ > 0;
+  */
+- The value of __BLAST_NONDET is arbitrary (it's an extern nondeterministic int). There is no explicit constraint on its value before the loop, other than its being an int.
+- The loop will start with some initial values of variables as assigned in the code just before the loop:
+  i = 0;
+  j = 0;
+  len = BASE_SZ;
+- The invariant we want to prove is:
+  I: (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)
+[Proof]
+[STEP 1: [STEP_NAME: Unfold the goal into a simpler form]]
+- The goal to prove before the loop starts is P ==> I, where P is the precondition implied by the code before the loop and I is the invariant (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1).
+- Since P should capture the facts at the moment just before the loop begins, we identify P as:
+  P: True, given the only information is that BASE_SZ > 0 and that i = 0, j = 0, len = BASE_SZ after the initialization.
+- The invariant to establish at this point is:
+  I0: (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)
+- Therefore the specific goal is: From P (the initial state), deduce I0.
+
+[STEP 2: [STEP_NAME: Examine the nature of __BLAST_NONDET]] 
+- __BLAST_NONDET is an external nondeterministic integer input. By the semantics of nondeterminism in verification, it can take any integer value unless constrained by explicit assertions.
+- There is no constraint in the pre-state that restricts __BLAST_NONDET to 0 or 1. Hence, without any additional assumptions, we cannot deduce (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) from P alone.
+- However, the problem statement requests to prove establishment of the invariant step by step, specifically showing that (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) holds before the loop starts. This suggests we are to treat the invariant as a property that must hold given the preconditions, possibly by adding it as an assumed precondition or by deriving it from an explicit or implicit specification of __BLAST_NONDET.
+- If we treat the invariant as a requirement to be established independently of the actual value of __BLAST_NONDET, we must assume either:
+  a) There is an implicit precondition that __BLAST_NONDET is constrained to 0 or 1, or
+  b) We allow the invariant to be established as a tautology if we assume that __BLAST_NONDET is chosen nondeterministically but we still assert the disjunction as a property that must hold for the verification to succeed.
+- For the sake of the step-by-step proof requested, we will proceed by explicitly stating that to establish I0, we rely on the assumption that the nondeterministic input __BLAST_NONDET is constrained to be either 0 or 1. This aligns with the invariant we wish to prove.
+
+[STEP 3: [STEP_NAME: Step 1 — Assume explicit constraint on nondeterministic input]]
+- Assume A: (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1).
+- Under assumption A, P implies I0 immediately, since I0 is exactly A.
+- Therefore, with A, the implication P ==> I0 holds trivially.
+
+[STEP 4: [STEP_NAME: Step 2 — Justify the need for the assumption]] 
+- In formal verification, to prove P ==> I for I = (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1), one must either derive I from P or assume I as part of the precondition. Since __BLAST_NONDET is unconstrained in P, deriving I from P is not possible without additional assumptions.
+- Thus, to complete the proof in a sound manner, we can either:
+  - Add an explicit precondition requiring __BLAST_NONDET to be 0 or 1, i.e., require (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) as part of P, or
+  - Accept the step as showing that if we constrain __BLAST_NONDET to 0 or 1, then I holds; otherwise, the invariant is not guaranteed by P alone.
+- Given the user’s goal to prove establishment of the invariant step by step, we adopt the first option for the [Proof] steps: we add the explicit precondition A as a substep, showing that under A, the invariant holds.
+
+[STEP 5: [STEP_NAME: Step 3 — State the explicit precondition and the direct consequence]]
+- Let P' be the precondition augmented with the assumption A:
+  P' = P ∧ ((__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)).
+- From P', we have immediately I0:
+  I0 is (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1),
+  which is exactly A, hence I0 holds.
+- Therefore, under P', the assertion P' ==> I0 holds trivially. Since P' implies P, if we consider P' as the effective prerequisite, the goal is established under that assumption.
+
+[STEP 6: [STEP_NAME: Step 4 — Reconcile with original goal and conclude]] 
+- The original goal stated was P ==> I, where P is the pre-state and I is (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1).
+- Without adding any assumption, P does not logically entail I, because __BLAST_NONDET is unconstrained.
+- Therefore, to complete the establishment of the invariant as requested, we explicitly require the assumption A (explicit precondition) or equivalently an invariant augmentation that the nondeterministic input is restricted to 0 or 1.
+- Conclusion under explicit assumption A: P ∧ A ==> I holds, as I is identical to A.
+- Conclusion without extra assumptions: P ==> I cannot be proven solely from P, since __BLAST_NONDET may take any integer value, and I may be false if __BLAST_NONDET is not 0 or 1.
+
+[Conclusion]
+- The goal of proving P ==> I (establishment of the invariant (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) before the loop) cannot be achieved from P alone because __BLAST_NONDET is unconstrained by the precondition BASE_SZ > 0 and the initializations. To prove the invariant, one must either:
+  - Explicitly constrain __BLAST_NONDET to be either 0 or 1 as part of the precondition, i.e., assume ((__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)), or
+  - Treat the invariant as a separate postcondition that is only guaranteed under the constraint that __BLAST_NONDET takes a value 0 or 1.
+
+- If we adopt the explicit assumption A, then the invariant holds before the loop starts, as required. Without that assumption, the proof of P ==> I is not valid.
+2026-09-17 23:43:40,397 - INFO - Found proof steps in natural language proof: ['[STEP 1: [STEP_NAME: Unfold the goal into a simpler form]', '[STEP 2: [STEP_NAME: Examine the nature of __BLAST_NONDET]', '[STEP 3: [STEP_NAME: Step 1 — Assume explicit constraint on nondeterministic input]', '[STEP 4: [STEP_NAME: Step 2 — Justify the need for the assumption]', '[STEP 5: [STEP_NAME: Step 3 — State the explicit precondition and the direct consequence]', '[STEP 6: [STEP_NAME: Step 4 — Reconcile with original goal and conclude]']
+2026-09-17 23:43:40,397 - INFO - Formalizing step [STEP 1: [STEP_NAME: Unfold the goal into a simpler form]....
+2026-09-17 23:43:44,326 - INFO - HTTP Request: POST https://api.openlux.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-17 23:43:44,327 - INFO - [Initial]
+BASE_SZ > 0 && (i == 0) && (j == 0) && (len == BASE_SZ) && (true) && (true) && (true) && (true) && (true) // initial
+(__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) // derived
+ END == END // declaration
+
+[Proof]
+((BASE_SZ > 0) && (i == 0) && (j == 0) && (len == BASE_SZ)) ==> (((__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)) ) // From initial state description, we want to establish invariant
+((__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)) ==> ((__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)) // tautology
+(__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) ==> ((__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)) // tautology
+
+[Conclusion]
+(__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) // Conclusion of Step 1: Unfold the goal into a simpler form
+2026-09-17 23:43:44,413 - INFO - Checker input with initial conditions:                                                                          
+extern int unknown(void);
+
+extern int unknown();
+
+
+void main(int BASE_SZ, int __BLAST_NONDET)
+{
+  
+  
+  
+  int i;
+  int j;
+  int len = BASE_SZ;
+
+  
+
+  {;
+
+}
+
+   
+  
+  i = 0;
+  j = 0;
+  while (1) {
+    if ( len == 0 
+//@ assert(BASE_SZ > 0 && (i == 0) && (j == 0) && (len == BASE_SZ) && (true) && (true) && (true) && (true) && (true));
+){ 
+      goto END;
+    } else {
+      {;
+
+}
+ {;
+
+}
+
+      {;
+
+}
+ {;
+
+}
+
+      if ( __BLAST_NONDET ) {
+        i++;
+        j++;
+        goto END;
+      }
+    }
+    i ++;
+    j ++;
+    len --;
+  }
+
+ END:  return;
+}
+
+2026-09-17 23:43:44,601 - INFO - Incorrect initial conditions: []
+2026-09-17 23:43:44,601 - INFO - Extracted initial conditions: ['BASE_SZ > 0 && (i == 0) && (j == 0) && (len == BASE_SZ) && (true) && (true) && (true) && (true) && (true)', '(__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)', 'END == END']
+2026-09-17 23:43:44,601 - INFO - Checking line ((BASE_SZ > 0) && (i == 0) && (j == 0) && (len == BASE_SZ)) ==> (((__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)) ) // From initial state description, we want to establish invariant...
+2026-09-17 23:43:44,616 - INFO - Checking line ((__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)) ==> ((__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)) // tautology...
+2026-09-17 23:43:44,623 - INFO - Checking line (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) ==> ((__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)) // tautology...
+2026-09-17 23:43:44,631 - INFO - Checking line ...
+2026-09-17 23:43:44,631 - INFO - Checking conclusion (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) // Conclusion of Step 1: Unfold the goal into a simpler form...
+2026-09-17 23:43:44,631 - INFO - Formalizing step [STEP 2: [STEP_NAME: Examine the nature of __BLAST_NONDET]....
+2026-09-17 23:43:47,796 - INFO - HTTP Request: POST https://api.openlux.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-17 23:43:47,796 - INFO - [Initial]
+(BASE_SZ > 0) && (0 <= BASE_SZ) && (__BLAST_NONDET == __BLAST_NONDET) // initial
+(True) && (True) // initial
+(__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) // initial
+(i == 0) // initial
+(j == 0) // initial
+(len == BASE_SZ) // initial
+// initial
+
+[Proof]
+(__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) ==> (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) // From the assumption
+// From a to a is a tautology
+
+[Conclusion]
+(__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) // Directly from the assumption and goal of this step
+2026-09-17 23:43:47,811 - INFO - Checker input with initial conditions:                                                                          
+extern int unknown(void);
+
+extern int unknown();
+
+
+void main(int BASE_SZ, int __BLAST_NONDET)
+{
+  
+  
+  
+  int i;
+  int j;
+  int len = BASE_SZ;
+
+  
+
+  {;
+
+}
+
+   
+  
+  i = 0;
+  j = 0;
+  while (1) {
+    if ( len == 0 
+//@ assert((BASE_SZ > 0) && (0 <= BASE_SZ) && (__BLAST_NONDET == __BLAST_NONDET));
+//@ assert((True) && (True));
+//@ assert((__BLAST_NONDET == 0) || (__BLAST_NONDET == 1));
+//@ assert((i == 0));
+//@ assert((j == 0));
+//@ assert((len == BASE_SZ));
+){ 
+      goto END;
+    } else {
+      {;
+
+}
+ {;
+
+}
+
+      {;
+
+}
+ {;
+
+}
+
+      if ( __BLAST_NONDET ) {
+        i++;
+        j++;
+        goto END;
+      }
+    }
+    i ++;
+    j ++;
+    len --;
+  }
+
+ END:  return;
+}
+
+2026-09-17 23:43:47,992 - INFO - Incorrect initial conditions: []
+2026-09-17 23:43:47,992 - INFO - Extracted initial conditions: ['(BASE_SZ > 0) && (0 <= BASE_SZ) && (__BLAST_NONDET == __BLAST_NONDET)', '(True) && (True)', '(__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)', '(i == 0)', '(j == 0)', '(len == BASE_SZ)']
+2026-09-17 23:43:47,992 - INFO - Checking line (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) ==> (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) // From the assumption...
+2026-09-17 23:43:48,000 - INFO - Checking line // From a to a is a tautology...
+2026-09-17 23:43:48,000 - INFO - Checking line ...
+2026-09-17 23:43:48,000 - INFO - Checking conclusion (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) // Directly from the assumption and goal of this step...
+2026-09-17 23:43:48,000 - INFO - Formalizing step [STEP 3: [STEP_NAME: Step 1 — Assume explicit constraint on nondeterministic input]....
+2026-09-17 23:43:50,987 - INFO - HTTP Request: POST https://api.openlux.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-17 23:43:50,988 - INFO - [Initial]
+// BASE_SZ > 0 && i == 0 && j == 0 && len == BASE_SZ  && (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) // initial
+( BASE_SZ > 0 ) && ( i == 0 ) && ( j == 0 ) && ( len == BASE_SZ ) && ( (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) ) // initial
+[Proof]
+((BASE_SZ > 0) && (i == 0) && (j == 0) && (len == BASE_SZ) && ((__BLAST_NONDET == 0) || (__BLAST_NONDET == 1))) ==> ((__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)) // Step 1: Assume explicit constraint on nondeterministic input
+[Conclusion]
+// (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)
+2026-09-17 23:43:50,993 - INFO - Checker input with initial conditions:                                                                          
+extern int unknown(void);
+
+extern int unknown();
+
+
+void main(int BASE_SZ, int __BLAST_NONDET)
+{
+  
+  
+  
+  int i;
+  int j;
+  int len = BASE_SZ;
+
+  
+
+  {;
+
+}
+
+   
+  
+  i = 0;
+  j = 0;
+  while (1) {
+    if ( len == 0 
+//@ assert(( BASE_SZ > 0 ) && ( i == 0 ) && ( j == 0 ) && ( len == BASE_SZ ) && ( (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) ));
+){ 
+      goto END;
+    } else {
+      {;
+
+}
+ {;
+
+}
+
+      {;
+
+}
+ {;
+
+}
+
+      if ( __BLAST_NONDET ) {
+        i++;
+        j++;
+        goto END;
+      }
+    }
+    i ++;
+    j ++;
+    len --;
+  }
+
+ END:  return;
+}
+
+2026-09-17 23:43:51,171 - INFO - Incorrect initial conditions: []
+2026-09-17 23:43:51,171 - INFO - Extracted initial conditions: ['( BASE_SZ > 0 ) && ( i == 0 ) && ( j == 0 ) && ( len == BASE_SZ ) && ( (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) )']
+2026-09-17 23:43:51,171 - INFO - Checking line ((BASE_SZ > 0) && (i == 0) && (j == 0) && (len == BASE_SZ) && ((__BLAST_NONDET == 0) || (__BLAST_NONDET == 1))) ==> ((__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)) // Step 1: Assume explicit constraint on nondeterministic input...
+2026-09-17 23:43:51,181 - INFO - Checking conclusion // (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)...
+2026-09-17 23:43:51,181 - INFO - Formalizing step [STEP 4: [STEP_NAME: Step 2 — Justify the need for the assumption]....
+2026-09-17 23:43:56,044 - INFO - HTTP Request: POST https://api.openlux.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-17 23:43:56,122 - INFO - [Initial]
+(BASE_SZ > 0) // initial
+(__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) // derived
+
+[Proof]
+((BASE_SZ > 0) && (true)) && (((__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)) ) ==> ((__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)) // Step 4 justification: If the nondeterministic input is constrained to 0 or 1, then the invariant holds immediately.
+((__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)) ==> ((__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)) // Step 4 justification: tautology under the assumption
+[Conclusion]
+__BLAST_NONDET == 0 || __BLAST_NONDET == 1 // Under the explicit assumption that __BLAST_NONDET is 0 or 1, the invariant holds before the loop.
+2026-09-17 23:43:56,131 - INFO - Checker input with initial conditions:                                                                          
+extern int unknown(void);
+
+extern int unknown();
+
+
+void main(int BASE_SZ, int __BLAST_NONDET)
+{
+  
+  
+  
+  int i;
+  int j;
+  int len = BASE_SZ;
+
+  
+
+  {;
+
+}
+
+   
+  
+  i = 0;
+  j = 0;
+  while (1) {
+    if ( len == 0 
+//@ assert((BASE_SZ > 0));
+){ 
+      goto END;
+    } else {
+      {;
+
+}
+ {;
+
+}
+
+      {;
+
+}
+ {;
+
+}
+
+      if ( __BLAST_NONDET ) {
+        i++;
+        j++;
+        goto END;
+      }
+    }
+    i ++;
+    j ++;
+    len --;
+  }
+
+ END:  return;
+}
+
+2026-09-17 23:43:56,301 - INFO - Incorrect initial conditions: []
+2026-09-17 23:43:56,301 - INFO - Extracted initial conditions: ['(BASE_SZ > 0)', '(__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)']
+2026-09-17 23:43:56,301 - INFO - Checking line ((BASE_SZ > 0) && (true)) && (((__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)) ) ==> ((__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)) // Step 4 justification: If the nondeterministic input is constrained to 0 or 1, then the invariant holds immediately....
+2026-09-17 23:43:56,301 - INFO - Checking line ((__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)) ==> ((__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)) // Step 4 justification: tautology under the assumption...
+2026-09-17 23:43:56,310 - INFO - Checking conclusion __BLAST_NONDET == 0 || __BLAST_NONDET == 1 // Under the explicit assumption that __BLAST_NONDET is 0 or 1, the invariant holds before the loop....
+2026-09-17 23:43:56,310 - INFO - Formalizing step [STEP 5: [STEP_NAME: Step 3 — State the explicit precondition and the direct consequence]....
+2026-09-17 23:43:58,919 - INFO - HTTP Request: POST https://api.openlux.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-17 23:43:58,920 - INFO - [Initial]
+(__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) // initial
+(P) // initial
+(BASE_SZ > 0) // initial
+(i == 0) // initial
+(j == 0) // initial
+(len == BASE_SZ) // initial
+[Proof]
+(__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) ==> (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) // Under explicit assumption, the invariant holds directly.
+(__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) ==> (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) // Step 3 repeats the explicit precondition leading to the invariant.
+[Conclusion]
+(__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) // The invariant is established under the explicit precondition.
+2026-09-17 23:43:58,930 - INFO - Checker input with initial conditions:                                                                          
+extern int unknown(void);
+
+extern int unknown();
+
+
+void main(int BASE_SZ, int __BLAST_NONDET)
+{
+  
+  
+  
+  int i;
+  int j;
+  int len = BASE_SZ;
+
+  
+
+  {;
+
+}
+
+   
+  
+  i = 0;
+  j = 0;
+  while (1) {
+    if ( len == 0 
+//@ assert((__BLAST_NONDET == 0) || (__BLAST_NONDET == 1));
+//@ assert((P));
+//@ assert((BASE_SZ > 0));
+//@ assert((i == 0));
+//@ assert((j == 0));
+//@ assert((len == BASE_SZ));
+){ 
+      goto END;
+    } else {
+      {;
+
+}
+ {;
+
+}
+
+      {;
+
+}
+ {;
+
+}
+
+      if ( __BLAST_NONDET ) {
+        i++;
+        j++;
+        goto END;
+      }
+    }
+    i ++;
+    j ++;
+    len --;
+  }
+
+ END:  return;
+}
+
+2026-09-17 23:43:59,097 - INFO - Incorrect initial conditions: []
+2026-09-17 23:43:59,097 - INFO - Extracted initial conditions: ['(__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)', '(P)', '(BASE_SZ > 0)', '(i == 0)', '(j == 0)', '(len == BASE_SZ)']
+2026-09-17 23:43:59,097 - INFO - Checking line (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) ==> (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) // Under explicit assumption, the invariant holds directly....
+2026-09-17 23:43:59,104 - INFO - Checking line (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) ==> (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) // Step 3 repeats the explicit precondition leading to the invariant....
+2026-09-17 23:43:59,110 - INFO - Checking conclusion (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) // The invariant is established under the explicit precondition....
+2026-09-17 23:43:59,110 - INFO - Formalizing step [STEP 6: [STEP_NAME: Step 4 — Reconcile with original goal and conclude]....
+2026-09-17 23:44:02,034 - INFO - HTTP Request: POST https://api.openlux.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-17 23:44:02,035 - INFO - [Initial]
+// initial
+(true) // initial
+true // derived
+__BLAST_NONDET == 0 || __BLAST_NONDET == 1 // derived
+((BASE_SZ > 0)) // initial
+((i == 0) && (j == 0) && (len == BASE_SZ)) // initial
+( i == 0 ) // initial
+( j == 0 ) // initial
+( len == BASE_SZ ) // initial
+[Proof]
+(__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) ==> (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) // From Step 4, conclude invariant holds under assumption
+[Conclusion]
+// (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)
+2026-09-17 23:44:02,049 - INFO - Checker input with initial conditions:                                                                          
+extern int unknown(void);
+
+extern int unknown();
+
+
+void main(int BASE_SZ, int __BLAST_NONDET)
+{
+  
+  
+  
+  int i;
+  int j;
+  int len = BASE_SZ;
+
+  
+
+  {;
+
+}
+
+   
+  
+  i = 0;
+  j = 0;
+  while (1) {
+    if ( len == 0 
+//@ assert((true));
+//@ assert(((BASE_SZ > 0)));
+//@ assert(((i == 0) && (j == 0) && (len == BASE_SZ)));
+//@ assert(( i == 0 ));
+//@ assert(( j == 0 ));
+//@ assert(( len == BASE_SZ ));
+){ 
+      goto END;
+    } else {
+      {;
+
+}
+ {;
+
+}
+
+      {;
+
+}
+ {;
+
+}
+
+      if ( __BLAST_NONDET ) {
+        i++;
+        j++;
+        goto END;
+      }
+    }
+    i ++;
+    j ++;
+    len --;
+  }
+
+ END:  return;
+}
+
+2026-09-17 23:44:02,220 - INFO - Incorrect initial conditions: []
+2026-09-17 23:44:02,221 - INFO - Extracted initial conditions: ['(true)', 'true', '__BLAST_NONDET == 0 || __BLAST_NONDET == 1', '((BASE_SZ > 0))', '((i == 0) && (j == 0) && (len == BASE_SZ))', '( i == 0 )', '( j == 0 )', '( len == BASE_SZ )']
+2026-09-17 23:44:02,221 - INFO - Checking line (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) ==> (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1) // From Step 4, conclude invariant holds under assumption...
+2026-09-17 23:44:02,228 - INFO - Checking conclusion // (__BLAST_NONDET == 0) || (__BLAST_NONDET == 1)...
+2026-09-17 23:44:02,228 - INFO - Wrong proof in step None: None

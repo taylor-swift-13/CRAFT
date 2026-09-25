@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Shared visual style for every CRAFT paper figure.
 
-One palette for all matplotlib PDFs and the overview SVG, so the paper reads
+One palette for all matplotlib PDFs and the overview TikZ figure, so the paper reads
 as a single visual system.  Keep in sync with:
-  - the \\definecolor block in paper/main.tex (blue/orange family)
-  - the <style> tokens in paper/sections/fig_overview.tex
+  - the \\definecolor block in paper/main.tex
+  - the color tokens in paper/figures/overview_diagram.tex
 
 Usage in a plot script:
     from paper_style import GREEN, RUST, ..., use_paper_style
@@ -20,27 +20,28 @@ AXIS_WIDTH = 0.6
 GRID_WIDTH = 0.55
 
 # ---------------------------------------------------------------- core hues
-GREEN = "#397FC1"   # verified / ours / primary method
-TEAL = "#5C9BDC"    # SFT stage, secondary series
-OCHRE = "#E7AC50"   # scorer / weak-baseline series
-SLATE = "#5B7185"   # RL stage, "before" series
-RUST = "#D68B32"    # rejected / baseline series
+GREEN = "#147D68"   # verified / ours / primary method
+TEAL = "#3D6EA6"    # SFT stage, secondary series
+ORANGE = "#AD650B"  # vivid orange for SFT (single) in Figure 5
+OCHRE = "#3D6EA6"   # blue secondary series in multi-series plots
+SLATE = "#526477"   # RL stage, "before" series
+RUST = "#69788A"    # rejected / baseline series
 INK = "#243247"     # text
 MUTED = "#64748B"   # secondary text, axes, untrained reference
-FAINT = "#DCE6F0"   # hairlines, grids
+FAINT = "#DCE7E2"   # hairlines, grids
 
 # ------------------------------------------------- tints (fills, grid cells)
-GREEN_TINT = "#EAF3FC"
-TEAL_TINT = "#EDF5FD"
-OCHRE_TINT = "#FFF5E8"
+GREEN_TINT = "#EAF4F0"
+TEAL_TINT = "#EDF2F9"
+OCHRE_TINT = "#EDF2F9"
 SLATE_TINT = "#E9EEF3"
-RUST_TINT = "#FFF0DE"
-PANEL_BG = "#FAFCFE"
+RUST_TINT = "#EEF1F4"
+PANEL_BG = "#F7FAF8"
 
 # --------------------------- clause identity shades (overview figure only)
-# Six distinguishable blues; a clause keeps its color across
+# Six distinguishable green/blue shades; a clause keeps its color across
 # rollout -> decompose -> pool so provenance is visually traceable.
-CLAUSE = ["#397FC1", "#5C9BDC", "#82B1E5", "#A5CBED", "#3174B3", "#74A8DB"]
+CLAUSE = ["#147D68", "#3D6EA6", "#48A58D", "#78A6CE", "#0C6352", "#527F95"]
 
 
 def use_paper_style(base_size: float = 10.0) -> None:

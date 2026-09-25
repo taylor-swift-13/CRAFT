@@ -11,7 +11,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-from paper_style import GREEN, OCHRE, RUST, SLATE, panel_figure, panel_legend, save_panel_figure
+from paper_style import GREEN, OCHRE, ORANGE, RUST, panel_figure, panel_legend, save_panel_figure
 
 OUT = Path(__file__).resolve().parent
 SOURCE = OUT.parent.parent / 'results/04_rq4_ablations/paper_summaries/reward_curves_step1-282.csv'
@@ -19,7 +19,7 @@ WINDOW = 15
 SERIES = (
     ('binary', 'Binary', RUST, ':'),
     ('wc', 'Whole-rollout', OCHRE, '--'),
-    ('base', 'Clause-decomposed', SLATE, '-.'),
+    ('base', 'Clause-decomposed', ORANGE, '-.'),
     ('full', 'Full (default)', GREEN, '-'),
 )
 

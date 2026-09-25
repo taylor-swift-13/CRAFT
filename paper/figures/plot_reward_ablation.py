@@ -5,7 +5,7 @@ from pathlib import Path
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from paper_style import GREEN, MUTED, OCHRE, RUST, SLATE, panel_figure, panel_legend, save_panel_figure
+from paper_style import GREEN, MUTED, OCHRE, ORANGE, RUST, panel_figure, panel_legend, save_panel_figure
 
 OUT = Path(__file__).resolve().parent
 
@@ -14,7 +14,7 @@ def main():
     data = json.loads((OUT.parent.parent/'results/01_rq1_main_verification/paper_summaries/experiment_results_current.json').read_text())
     rewards = data['rewards']['Bare']
     default = data['default_reward']
-    colors = {'Binary': RUST, 'Whole-rollout': OCHRE, 'Clause-decomposed': SLATE, 'Full': GREEN}
+    colors = {'Binary': RUST, 'Whole-rollout': OCHRE, 'Clause-decomposed': ORANGE, 'Full': GREEN}
     colors[default] = GREEN
     markers = {'Binary': 'o', 'Whole-rollout': 's', 'Clause-decomposed': '^', 'Full': 'D'}
     fig, axes = panel_figure(2)

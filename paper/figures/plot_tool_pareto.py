@@ -8,7 +8,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from paper_style import FAINT, GREEN, INK, MUTED, RUST, panel_figure, panel_legend, save_panel_figure
+from paper_style import FAINT, GREEN, INK, MUTED, TEAL, panel_figure, panel_legend, save_panel_figure
 
 OUT = Path(__file__).resolve().parent
 
@@ -76,8 +76,8 @@ def plot_panel(ax: plt.Axes, cost_index: int) -> None:
                     color=INK, fontsize=8.2)
 
     for data, label, color, marker, style in (
-        (OURS, "CRAFT (GPT-5-nano)", GREEN, "D", "-"),
-        (TRAINED, "CRAFT (trained)", RUST, "^", "--"),
+        (OURS, "CRAFT (GPT-5-nano)", TEAL, "D", "-"),
+        (TRAINED, "CRAFT (trained)", GREEN, "^", "--"),
     ):
         xs = [value[cost_index] for value in data.values()]
         ys = [value[1] for value in data.values()]
@@ -118,7 +118,7 @@ def plot_panel(ax: plt.Axes, cost_index: int) -> None:
     ax.set_yticks([0, 20, 40, 60, 80])
     ax.grid(axis="y", color=FAINT, linewidth=0.55, alpha=0.9)
     ax.spines[["top", "right"]].set_visible(False)
-    ax.tick_params(color="#A8B8C8", width=0.6)
+    ax.tick_params(color="#A6B8AF", width=0.6)
 
 
 def main() -> None:

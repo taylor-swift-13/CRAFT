@@ -29,7 +29,7 @@ DEFAULT_CANDIDATES = (
 )
 DEFAULT_SAMPLES = REPO_ROOT / "results" / "negative_sampler_relation_escape_832"
 DEFAULT_TRIVIAL = (
-    REPO_ROOT / "results" / "gpt5nano_full832" /
+    REPO_ROOT / "results" / "02_rq2_tool_comparison" / "gpt5nano_full832" /
     "trivial_invariant_full832.jsonl"
 )
 DEFAULT_OUTPUT = REPO_ROOT / "results" / "gold_invariants_832" / "coverage_auc.json"

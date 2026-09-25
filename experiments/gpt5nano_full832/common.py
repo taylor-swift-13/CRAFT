@@ -23,7 +23,7 @@ from rl_pipeline.sampler import ExampleSampler
 HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parents[1]
 PROTOCOL_PATH = HERE / "protocol.json"
-DEFAULT_RESULTS_ROOT = REPO_ROOT / "results" / "gpt5nano_full832"
+DEFAULT_RESULTS_ROOT = REPO_ROOT / "results" / "02_rq2_tool_comparison" / "gpt5nano_full832"
 METHODS = (
     "autospec",
     "clause2inv",

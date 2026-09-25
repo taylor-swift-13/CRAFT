@@ -21,7 +21,7 @@ import statistics
 
 
 REPO = Path(__file__).resolve().parents[1]
-DEFAULT_ROOT = REPO / "results" / "gpt5nano_full832"
+DEFAULT_ROOT = REPO / "results" / "02_rq2_tool_comparison" / "gpt5nano_full832"
 EXPECTED_TASKS = 832
 
 

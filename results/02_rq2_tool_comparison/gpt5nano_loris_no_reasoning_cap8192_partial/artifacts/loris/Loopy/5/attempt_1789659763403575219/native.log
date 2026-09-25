@@ -1,0 +1,51 @@
+2026-09-17 23:42:44,007 - INFO - Running benchmark /home/yangfp/CRAFT/results/gpt5nano_full832/artifacts/loris/Loopy/5/attempt_1789659763403575219/input.hidden.c...
+
+2026-09-17 23:42:47,497 - INFO - HTTP Request: POST https://api.openlux.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-17 23:42:47,503 - INFO - Initial invariant block: 
+ /*@
+loop invariant i1: x >= 0;
+loop invariant i2: y >= -2*n;
+loop invariant i3: x <= 2*n;
+loop invariant i4: y <= 2*n;
+loop invariant i5: (x <= 2*n) && (x >= 0) && (y >= -2*n);
+loop invariant i6: (x <= 2*n) && (y <= 2*n) && (x >= 0) && (y >= -2*n);
+loop invariant i7:  (x < 2*n) ? (y == ( (x <= n) ? (2*(x)) : (2*(-1) + 2*(n)) )) : true ;
+loop invariant i8: ((x <= n) && (y == 2*(x))) || ((x > n) && (y == 2*(n) - (x - n)));*/
+
+2026-09-17 23:42:47,503 - INFO - Begin iteration...
+
+2026-09-17 23:42:47,503 - INFO - CHECKER TIME: 3.496492862701416
+2026-09-17 23:42:53,156 - INFO - ===================Iteration: 1===================
+2026-09-17 23:42:53,156 - INFO - [189], [171]
+2026-09-17 23:42:53,156 - INFO - Not established: []
+2026-09-17 23:42:53,157 - INFO - Not preserved: []
+2026-09-17 23:42:53,157 - INFO - Not valid assertions: []
+2026-09-17 23:42:56,211 - INFO - HTTP Request: POST https://api.openlux.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-17 23:42:56,212 - INFO - Syntax Error. Fixed invariant block: /*@
+loop invariant i1: x >= 0;
+loop invariant i2: y >= -2*n;
+loop invariant i3: x <= 2*n;
+loop invariant i4: y <= 2*n;
+loop invariant i5: (x <= 2*n) && (x >= 0) && (y >= -2*n);
+loop invariant i6: (x <= 2*n) && (y <= 2*n) && (x >= 0) && (y >= -2*n);
+loop invariant i7: ((x <= n) && (y == 2*x)) || ((x > n) && (y == 2*n - (x - n)));*/
+2026-09-17 23:42:56,212 - INFO - CHECKER TIME: 12.205081462860107
+2026-09-17 23:43:01,923 - INFO - Succeed in 1 iterations!
+
+2026-09-17 23:43:01,923 - INFO - Resulted invariants: /*@
+loop invariant i1: x >= 0;
+loop invariant i2: y >= -2*n;
+loop invariant i3: x <= 2*n;
+loop invariant i4: y <= 2*n;
+loop invariant i5: (x <= 2*n) && (x >= 0) && (y >= -2*n);
+loop invariant i6: (x <= 2*n) && (y <= 2*n) && (x >= 0) && (y >= -2*n);
+loop invariant i7: ((x <= n) && (y == 2*x)) || ((x > n) && (y == 2*n - (x - n)));*/
+
+2026-09-17 23:43:01,923 - INFO - True, /*@
+loop invariant i1: x >= 0;
+loop invariant i2: y >= -2*n;
+loop invariant i3: x <= 2*n;
+loop invariant i4: y <= 2*n;
+loop invariant i5: (x <= 2*n) && (x >= 0) && (y >= -2*n);
+loop invariant i6: (x <= 2*n) && (y <= 2*n) && (x >= 0) && (y >= -2*n);
+loop invariant i7: ((x <= n) && (y == 2*x)) || ((x > n) && (y == 2*n - (x - n)));*/, 1, 704, 298

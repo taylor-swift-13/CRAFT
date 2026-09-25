@@ -118,7 +118,7 @@ def plot_panel(ax: plt.Axes, cost_index: int) -> None:
     ax.set_yticks([0, 20, 40, 60, 80])
     ax.grid(axis="y", color=FAINT, linewidth=0.55, alpha=0.9)
     ax.spines[["top", "right"]].set_visible(False)
-    ax.tick_params(color="#92A39A", width=0.6)
+    ax.tick_params(color="#A8B8C8", width=0.6)
 
 
 def main() -> None:

@@ -55,7 +55,7 @@ def main() -> None:
         ax.grid(axis="y", color=FAINT, linewidth=0.55, alpha=0.8)
         ax.set_axisbelow(True)
     axes[1].set_yticks([0, 0.5, 1], ['0', '.5', '1'])
-    save_panel_figure(fig, OUT, 'negative_coverage_predictiveness')
+    save_panel_figure(fig, OUT, 'negative_coverage_predictiveness', normalize_linewidth=False)
     plt.close(fig)
 
 

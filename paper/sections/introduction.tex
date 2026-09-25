@@ -3,7 +3,7 @@
 %% ============================================================
 
 Loop invariants summarize loop behavior and reduce unbounded executions to
-finite proof obligations.  {\color{blue}However, target-driven invariant generation
+finite proof obligations.  However, target-driven invariant generation
 assumes a given postcondition or assertion, which may be absent from legacy
 code.  Even when a final
 postcondition exists, weakest-precondition reasoning through subsequent loops
@@ -12,12 +12,12 @@ difficult to discover automatically.  Moreover, invariants tailored to a
 particular downstream goal may be less reusable for subsequent analyses with
 different objectives.  We therefore study \emph{target-hidden loop
 verification}, generating loop properties from the loop context without
-exposing a particular verification target.}
+exposing a particular verification target.
 
 Existing learning-based approaches, including Code2Inv, CLN2Inv, and
 LIPuS~\citep{si2020code2inv,ryan2020cln2inv,yu2023lipus}, and LLM-based
 methods such as LaM4Inv, Clause2Inv, and
-LORIS~\citep{wu2024lam4inv,cao2025clause2inv,li2026loris}, {\color{blue}often use a
+LORIS~\citep{wu2024lam4inv,cao2025clause2inv,li2026loris}, often use a
 given verification target to guide invariant generation and refinement.
 With a visible target, whether a candidate invariant helps prove the desired
 property provides direct feedback for generation and refinement; when the
@@ -26,10 +26,10 @@ distinguish useful candidates, since \(\mathsf{true}\) is an invariant of
 every loop.  A useful invariant should cover reachable loop states while
 excluding as many unreachable states as possible.  Because the exact
 reachable set is generally unknown and difficult to express precisely as a
-logical formula, we need} a computable, target-independent proxy for invariant
+logical formula, we need a computable, target-independent proxy for invariant
 strength.
 
-An LLM response may contain both useful and incorrect clauses.  {\color{blue}Accepting or
+An LLM response may contain both useful and incorrect clauses.  Accepting or
 rejecting it as a whole can discard its useful parts.  Responses must therefore
 be decomposed into
 clauses so their useful parts can inform both inference and training.  Useful
@@ -37,14 +37,14 @@ clauses may also be scattered across responses: conjoining valid invariants
 can yield a stronger invariant, while candidate clauses that fail preservation
 checks in isolation may become jointly inductive with supporting constraints.
 Under target hiding, where strength feedback is scarce, pooling and composing
-clauses across responses helps build stronger invariants.}
+clauses across responses helps build stronger invariants.
 
-{\color{blue}We introduce \sam{} to align inference and training with the same
-compositional verification procedure.}  At inference, it decomposes responses
+We introduce \sam{} to align inference and training with the same
+compositional verification procedure.  At inference, it decomposes responses
 into clauses, pools them for joint verification, repeatedly removes unproved
 clauses, and conjoins the survivors.  During training, we construct candidate
 negative traces by perturbing observed states and continuing execution beyond
-observed loop exits.  {\color{blue}The rate at which verified invariants reject these
+observed loop exits.  The rate at which verified invariants reject these
 traces provides a computable, target-independent proxy for strength, rather
 than an exact measure of reachable-set precision.  SFT distills verified
 multi-response compositions that meet a coverage threshold into
@@ -53,18 +53,18 @@ from a single response under this inference procedure.  It applies the same
 pooled filtering to groups of current responses and computes response-level
 advantages from the negative-trace coverage of each response's retained
 clauses and their complementary contributions across the group.  Useful
-clauses thus provide training credit even when the complete response fails.}  All supervision comes from open-weight model
+clauses thus provide training credit even when the complete response fails.  All supervision comes from open-weight model
 generations, program execution, and verification; no closed model, human
 labeler, or external reward model is used.
 
 On 832 C programs, compositional inference substantially improves base-model
-verification, and aligned training yields further gains.  {\color{blue}Our primary metric,
+verification, and aligned training yields further gains.  Our primary metric,
 compose@1, measures verification after filtering and composing one response.
 After SFT and RL,
 Qwen3-8B reaches 69.23\% compose@1, exceeding its untrained compose@32
 (57.81\%) with a single response.  At the same one-response budget, it also
 exceeds GPT-5 (51.32\%) and Claude Sonnet-4.6 (56.97\%) in compose@1 under
-our evaluation protocol.  We use pass@1 as a standalone-response baseline.}
+our evaluation protocol.  We use pass@1 as a standalone-response baseline.
 
 \input{sections/fig_overview}
 
@@ -80,11 +80,11 @@ our evaluation protocol.  We use pass@1 as a standalone-response baseline.}
   signals. SFT learns accepted compositions, raising Qwen3-8B compose@1 to
   63.94\%; RL rewards retained clauses' coverage and group contributions,
   including those from failed responses, further raising it to 69.23\%.
-  \item {\color{blue} Ablations show why aligning training with compositional inference
+  \item Ablations show why aligning training with compositional inference
   matters: SFT on multi-response compositions provides more effective
   supervision than SFT on independently filtered responses, while rewarding
   retained clause contributions improves compositional verification more than
   whole-response rewards.  Whole-response success alone does not capture the
-  value of generated clauses for composition.}
+  value of generated clauses for composition.
 \end{itemize}
 \end{samepage}

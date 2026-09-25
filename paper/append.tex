@@ -3,6 +3,7 @@
 \usepackage[margin=0.72in]{geometry}
 \usepackage{amsmath}
 \usepackage{booktabs}
+\usepackage{multirow}
 \usepackage[table]{xcolor}
 \usepackage{float}
 \usepackage{needspace}
@@ -47,7 +48,8 @@ Appendix~B characterizes the computational profile of the evaluation used for
 Qwen3-8B and all of its training variants.  Appendix~C isolates the effect of
 negative-trace sampling under the Full reward.  Appendix~D reports three
 training runs with three inference runs each.  Appendix~E archives a rerun
-of the main paper's tool comparison with medium reasoning effort.  All
+of the main paper's tool comparison with medium reasoning effort. Appendix~F
+examines filtering and cross-response pooling on a matched Qwen3-8B run. All
 verification rates are percentages.
 
 \appendix
@@ -738,5 +740,105 @@ uses 832 exact-usage tasks; SESpec's token mean covers 830 rows with usage
 records; Clause2Inv's token mean is estimated over its supported tasks, and
 its archived medium run covers Linear and NLA (366 tasks), with Loopy
 unsupported.
+
+\clearpage
+\section{Filtering and Pooling Across Responses}
+\label{app:supp-filter-pooling}
+
+\subsection{Matched evaluation and metrics}
+
+Table~\ref{tab:supp-filter-compose-pass} uses a paired evaluation of a
+Qwen3-8B model trained with SFT and the Full RL reward. All three metrics
+use the same 832 programs and saved response prefixes. This run is distinct
+from the selected Full evaluation in the main paper (69.23\% compose@1):
+its compose@1 is 68.51\%. The compose and pass rows are also used in
+Appendix~\ref{app:supp-dedup}; the filter rows report the corresponding
+separately filtered evaluation.
+
+For each response, \emph{pass@\(k\)} asks whether any of the first \(k\)
+unfiltered responses proves the target. \emph{filter@\(k\)} applies the same
+clause admission and Houdini filter to each response separately, then asks
+whether any one of the first \(k\) filtered responses proves the target.
+\emph{compose@\(k\)} pools clauses from the first \(k\) responses, filters
+the pooled set once, and checks its conjunction. Thus filter@\(k\) still
+combines clauses \emph{within} a response; the difference from compose@\(k\)
+concerns only cross-response pooling and the verifier obligations it creates.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Matched verification rates for Qwen3-8B with SFT and Full RL (\%).
+All three @\(k\) metrics use the same saved prefixes.}
+\label{tab:supp-filter-compose-pass}
+\begin{tabular}{llrrrrr}
+\toprule
+\rowcolor{headerbg}
+Subset & Metric & @1 & @4 & @8 & @16 & @32 \\
+\midrule
+\multirow{3}{*}{All (832)}
+ & pass    & 36.78 & 51.92 & 56.49 & 59.50 & 61.54 \\
+ & filter  & 68.51 & 75.24 & 77.52 & 79.09 & 80.29 \\
+ & compose & 68.51 & 75.72 & 77.52 & 78.25 & 78.37 \\
+\addlinespace
+\multirow{3}{*}{Loopy (466)}
+ & pass    & 37.55 & 53.86 & 59.66 & 62.88 & 64.81 \\
+ & filter  & 71.46 & 78.97 & 81.76 & 83.05 & 84.55 \\
+ & compose & 71.46 & 79.61 & 81.97 & 82.62 & 82.83 \\
+\addlinespace
+\multirow{3}{*}{Linear (316)}
+ & pass    & 40.82 & 56.33 & 59.49 & 62.66 & 65.19 \\
+ & filter  & 73.10 & 79.43 & 81.33 & 83.54 & 84.49 \\
+ & compose & 73.10 & 80.06 & 81.33 & 82.28 & 82.28 \\
+\addlinespace
+\multirow{3}{*}{NLA (50)}
+ & pass    & 4.00 & 6.00 & 8.00 & 8.00 & 8.00 \\
+ & filter  & 12.00 & 14.00 & 14.00 & 14.00 & 14.00 \\
+ & compose & 12.00 & 12.00 & 12.00 & 12.00 & 12.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{What the comparison shows}
+
+At one response, filter@1 and compose@1 coincide by construction: both
+admit and filter the clauses in that response. Their 68.51\% success rate is
+31.73 percentage points above pass@1. This is the effect of retaining useful
+clauses from otherwise unsuccessful complete responses, not a gain from
+combining different responses. After 32 responses, pass@32 reaches 61.54\%,
+filter@32 reaches 80.29\%, and compose@32 reaches 78.37\%.
+
+The net target-verification difference between filter@\(k\) and
+compose@\(k\) is small in this trained-model run: compose is 0.48 points
+higher at \(k=4\), equal at \(k=1,8\), and 0.84 and 1.92 points lower at
+\(k=16,32\). These results do not establish that pooling is logically weaker.
+Under exact Houdini,
+filtering the union retains separately inductive clauses and may preserve
+clauses that require cross-response support. The reversal at \(k=16,32\)
+is explained by finite-budget verification: pooling more responses creates
+larger SMT proof obligations, which are more likely to time out and cause
+conservative clause deletion. Separately filtering each response keeps those
+obligations smaller, so filter@\(k\) can exceed compose@\(k\) despite the
+ideal logical inclusion. This solver effect is also visible in the main
+paper's filtering-order experiment, where increasing the pooled verifier
+budget recovers verification rate.
+
+Pooling can join separately inductive summaries that prove different parts
+of a target, or make mutually supporting clauses inductive. For target
+success in this trained-model run, however, most of the benefit over pass
+is already available by filtering each response separately.
+
+Filtering and composition are not independent sources of benefit in CRAFT:
+inference always pools admitted clauses and filters them, even at \(k=1\).
+When a response contains many clauses, filtering has more scope to recover a
+useful conjunction; with fewer clauses per response, cross-response pooling
+has more scope to supply missing constraints. A well-trained CRAFT model often
+puts many clauses in one response, making filtering dominant here. This
+explains the pass--compose tension: a complete response can fail while its
+filtered clauses prove the target. Compose@1 is our primary metric because it
+evaluates this full procedure on one response.
+
+This table measures target verification, not invariant strength. CRAFT still
+pools and filters all available clauses to seek the strongest inductive
+summary supported by the candidate pool within its verifier budget.
 
 \end{document}

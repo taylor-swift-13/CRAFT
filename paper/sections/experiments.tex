@@ -137,8 +137,6 @@ Prior work suggests that RLVR can increase the sampling frequency of existing
 behaviors~\citep{yue2025rlcapacity}.
 Figure~\ref{fig:rl-panels} compares Qwen3-8B from Base and SFT initializations
 to examine whether this pattern also appears in compositional verification.
-Appendix~\ref{app:reward-sharpening} shows that sharpening remains, but that
-finer credit assignment through compositional rewards helps mitigate it.
 
 \tightparagraph{SFT expands coverage and compresses the sampling budget.}
 SFT reaches 63.94\% compose@1, exceeding Base compose@32 (57.81\%).
@@ -155,6 +153,9 @@ After three SFT epochs, its gains shrink to \textbf{5.29 points at compose@1
 and 2.05 at compose@32}. After SFT, RL mainly improves sampling
 efficiency: useful candidates appear with fewer responses, while
 coverage at the largest tested budget improves more modestly.
+Appendix~\ref{app:reward-sharpening} further examines this sharpening pattern
+and shows that finer credit assignment through compositional rewards helps
+mitigate it.
 
 \tightparagraph{RL reveals a tension between pass and compose.}
 Table~\ref{tab:rcf-paired} shows that RL's compositional gains can coincide

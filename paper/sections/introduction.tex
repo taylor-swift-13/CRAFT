@@ -60,11 +60,13 @@ labeler, or external reward model is used.
 On 832 C programs, compositional inference substantially improves base-model
 verification, and aligned training yields further gains.  Our primary metric,
 compose@1, measures verification after filtering and composing one response.
+We use pass@1 as a standalone-response baseline.
 After SFT and RL,
 Qwen3-8B reaches 69.23\% compose@1, exceeding its untrained compose@32
 (57.81\%) with a single response.  At the same one-response budget, it also
 exceeds GPT-5 (51.32\%) and Claude Sonnet-4.6 (56.97\%) in compose@1 under
-our evaluation protocol.  We use pass@1 as a standalone-response baseline.
+our evaluation protocol.  Across sampling budgets, compositional rewards
+also help mitigate sharpening, preserving verification gains at larger budgets.
 
 \input{sections/fig_overview}
 

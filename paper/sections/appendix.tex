@@ -659,9 +659,12 @@ percentages of successful tasks.
 
 \paragraph{Training configuration.}
 Tables~\ref{tab:sft-training-config} and~\ref{tab:rl-training-config}
-record the SFT and RL run configurations. SFT uses 3 epochs;
-RL uses 2 epochs on 9,024 programs. Reward and sampler constants are reported
-in Table~\ref{tab:constants}.
+record the SFT and RL run configurations. SFT uses LLaMA-Factory, while RL
+uses verl. Both stages run on eight NVIDIA A800 GPUs, with training seed 42
+for the main experiments. SFT uses 3 epochs on 33,346 records; RL uses
+2 epochs on 9,024 programs. For Qwen3-8B, SFT and RL take approximately
+4 and 9 hours, respectively, on this eight-GPU setup. Reward and sampler
+constants are reported in Table~\ref{tab:constants}.
 
 \begin{table}[H]
 \centering

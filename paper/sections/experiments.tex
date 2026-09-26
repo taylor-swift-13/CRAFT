@@ -101,7 +101,7 @@ composition.
 \vspace{0pt}
 \includegraphics[width=\linewidth]{figures/training_stages_row.pdf}
 \captionsetup{font=small,margin={7pt,0pt}}
-\caption{Qwen3-8B verification across sampling budgets, with RL initialized from (a) Base and (b) SFT.}
+\caption{Qwen3-8B verification across sampling budgets, with RL initialized from (a) Base and (b) SFT. SFT reduces the sampling budget needed for verification; RL exhibits a sharpening effect, with larger gains at smaller \(k\).}
 \label{fig:rl-panels}
 \end{minipage}
 \end{figure}
@@ -137,6 +137,9 @@ Prior work suggests that RLVR can increase the sampling frequency of existing
 behaviors~\citep{yue2025rlcapacity}.
 Figure~\ref{fig:rl-panels} compares Qwen3-8B from Base and SFT initializations
 to examine whether this pattern also appears in compositional verification.
+Sharpening remains, but the comparison in
+Appendix~\ref{app:reward-sharpening} suggests that finer credit assignment
+through compositional rewards helps mitigate it.
 
 \tightparagraph{SFT expands coverage and compresses the sampling budget.}
 SFT reaches 63.94\% compose@1, exceeding Base compose@32 (57.81\%).

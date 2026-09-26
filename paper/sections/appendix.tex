@@ -560,7 +560,7 @@ or explanations.
 The training interface accepts a target-hidden program, sampled responses,
 and a reward configuration, and returns each response's reward and coverage.
 
-\section{Do Training and Evaluation Share Programs or Only Structural Patterns?}
+\section{Program and Structural Overlap Between Training and Evaluation}
 \label{app:data-leakage}
 
 We compare the RL (9,024 records and 9,024 distinct program sources)
@@ -2049,6 +2049,64 @@ The training summary reports a batch mean-to-maximum reward ratio
 Full improves compose@\(k\) from Base and retains higher policy entropy than
 Clause-decomposed. The Shapley mechanism and its limits are formalized in
 Appendix~\ref{app:formal-reward-collapse}.
+
+\subsection{How Does Reward Design Affect Sharpening Across Sampling Budgets?}
+\label{app:reward-sharpening}
+
+We compare sharpening under two reward designs: Whole-rollout with
+pass@\(k\), and Full with compose@\(k\). Figure~\ref{fig:reward-sharpening}
+shows Qwen3-8B before and after two RL epochs on 832 programs for
+Whole-rollout from Base and SFT, and Full after SFT, together with gains
+over each initialization at the same sampling budget. Full from Base
+is shown in Figure~\ref{fig:rl-panels}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/reward_sharpening.pdf}
+\caption{Qwen3-8B verification before and after RL (top) and gains over the
+corresponding initialization (bottom): Whole-rollout from (a) Base and
+(b) SFT, measured by pass@\(k\); (c) Full after SFT, measured
+by compose@\(k\). Top panels use different scales; bottom panels share a
+scale, with dotted lines marking zero gain. Whole-rollout falls below Base
+at \(k=8\) and below SFT at every tested budget, while Full retains positive
+compose gains through \(k=32\) after SFT.}
+\label{fig:reward-sharpening}
+\end{figure}
+
+\paragraph{Whole-rollout exhibits an early crossing in standalone success.}
+From Base, Whole-rollout raises pass@1 from 6.37\% to 15.50\% but lowers
+pass@32 from 25.96\% to 18.39\%. Its gain becomes negative at \(k=8\),
+the first tested budget where the trained curve falls below Base.
+This crossing is consistent with sharpening: complete successful responses
+become more frequent at one sample, while fewer tasks are solved within
+32 samples. After SFT, Whole-rollout lowers pass@1 from 41.95\% to 38.82\%
+and pass@32 from 68.03\% to 53.73\%. Its gain is negative at every tested
+budget, worsening from -3.13 to -14.30 points. Thus, the characteristic
+increase in pass@1 alongside a decrease in pass@32 occurs from Base;
+after SFT, Whole-rollout degrades standalone verification throughout the
+tested range, with a larger loss at higher budgets.
+
+\paragraph{Full preserves gains at larger composition budgets.}
+After SFT, Full improves compose@1 by 5.29 points and compose@32 by
+2.05 points. The larger gain at one sample is consistent with useful
+clauses becoming available earlier, although the gain does not decrease
+strictly monotonically with \(k\). From Base, the respective gains are
+13.94 and 12.86 points, so the largest measured budget retains most of
+the improvement. Thus, a sharpening pattern is weaker for composition
+and is clearest after SFT. Full's compose gain remains positive at every
+tested budget. SFT already reaches 77.88\% compose@32, which also leaves less
+room for improvement at that budget.
+
+\paragraph{Partial credit can preserve useful variation in GRPO rewards.}
+A plausible explanation is that Full rewards surviving clauses from
+otherwise unsuccessful responses. Whole-rollout's
+gate instead removes the coverage reward whenever any processed clause
+fails, potentially assigning zero to every response in a GRPO group.
+Full removes this source of reward sparsity and can distinguish responses
+through the coverage of their surviving clauses. Its Shapley term can also
+distinguish responses with equal coverage but different complementary
+contributions. By reducing reward sparsity and providing finer reward
+distinctions within each GRPO group, Full can help mitigate sharpening.
 
 \endgroup
 

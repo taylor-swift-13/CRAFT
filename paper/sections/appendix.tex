@@ -20,8 +20,8 @@ recovery of a hidden algebraic relation. Case 2 shows an invariant stronger
 than its target and compares the actual invariant candidates of other tools.
 Case 3 shows how an invariant inferred for the first of two loops helps verify
 the final assertion.
-Cases 4 and 5 show how clauses from different responses can jointly prove a
-target or support one another's inductiveness.
+Case 4 shows how independently inductive clauses from different responses
+can jointly prove a target.
 
 \subsubsection*{Case 1: target-hidden invariant discovery.}
 \begin{lstlisting}[numbers=none]
@@ -219,65 +219,6 @@ fails the restored-target judge.  Together, the exit condition gives
 \(x\leq0\), the bound gives \(x=0\), and the relation yields \(y=n\).
 The gain comes from combining complementary clauses to prove the target.
 \end{minipage}
-
-\noindent\begin{minipage}{\textwidth}
-\subsubsection*{Case 5: composition through cross-response support.}
-The preceding case needs composition only to prove the target.  A second
-archived GPT-5-nano replay shows the stronger mechanism from
-Proposition~\ref{prop:mutual-support}: pooling can also make a clause provably
-inductive.  As before, the assertion is restored only after target-hidden
-filtering.
-
-\begin{lstlisting}[language=C,numbers=none]
-extern int unknown(void);
-void foo(int n) {
-  int x = 1, m = 1;
-  while (x < n) {
-    if (unknown()) m = x;
-    x = x + 1;
-  }
-  if (n > 1) { /*@ assert m >= 1; */ }
-}
-\end{lstlisting}
-
-Replaying its first four responses gives:
-\begin{center}
-\small
-\begin{tabular}{cllc}
-\toprule
-\rowcolor{algobg}
-Response & Relevant proposal & Independent survivors & Target \\
-\midrule
-1 & \(m\leq x\) & \(m\leq x\) & fail \\
-2 & \(x\geq1\) & \(x\geq1\) & fail \\
-3 & --- & \(\varnothing\) & fail \\
-4 & \(m\geq1\) & \(\varnothing\) & fail \\
-\midrule
-Pooled 1--4 & \multicolumn{2}{l}{\(m\leq x,\ x\geq1,\ m\geq1\)} & verified \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-Response~4's \(m\geq1\) cannot be established inductive alone: after the
-nondeterministic assignment \(m=x\), preservation requires \(x\geq1\).
-Response~2 supplies that hypothesis, so pooled filtering retains both clauses.
-The complete composed annotation is
-\begin{lstlisting}
-/*@
-  loop invariant m <= x;
-  loop invariant x >= 1;
-  loop invariant m >= 1;
-*/
-\end{lstlisting}
-All four independently filtered responses fail. The pooled annotation verifies
-through cross-response support during filtering.
-\end{minipage}
-
-This dependence on cross-response inductive support is rare in CRAFT,
-which encourages long conjunctive invariants: a longer response has more
-opportunity to include both a useful clause and its supporting clauses.
-The pre-/post-filtering comparison in Appendix~\ref{app:houdini-order}
-is consistent with this interpretation.
 
 \section{Implementation Details}
 \label{app:constants}
@@ -820,7 +761,7 @@ Analyses appear in Appendix~\ref{app:independent-experiments}.
   & \multicolumn{2}{c}{Loopy / 466} & \multicolumn{2}{c}{All / 832} \\
 \headercmidrules{\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(lr){9-10}}
 \rowcolor{algobg}
-Model & \(k\) & comp & pass & comp & pass & comp & pass & comp & pass \\
+Model & \(k\) & compose & pass & compose & pass & compose & pass & compose & pass \\
 \midrule
 \multirow{5}{*}{Qwen3-1.7B}
  & 1  & 19.30 & 5.38 & 6.00 & 2.00 & 21.03 & 6.22 & 19.47 & 5.65 \\
@@ -882,7 +823,7 @@ Model & \(k\) & comp & pass & comp & pass & comp & pass & comp & pass \\
   & \multicolumn{2}{c}{Loopy / 466} & \multicolumn{2}{c}{All / 832} \\
 \headercmidrules{\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(lr){9-10}}
 \rowcolor{algobg}
-Model & \(k\) & comp & pass & comp & pass & comp & pass & comp & pass \\
+Model & \(k\) & compose & pass & compose & pass & compose & pass & compose & pass \\
 \midrule
 \multirow{5}{*}{\shortstack[l]{Qwen3-4B\\+ SFT}}
  & 1  & 65.82 & 43.67 & 8.00 & 2.00 & 66.31 & 42.27 & 62.62 & 40.38 \\
@@ -930,7 +871,7 @@ Model & \(k\) & comp & pass & comp & pass & comp & pass & comp & pass \\
   & \multicolumn{2}{c}{Loopy / 466} & \multicolumn{2}{c}{All / 832} \\
 \headercmidrules{\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(lr){9-10}}
 \rowcolor{algobg}
-Model & \(k\) & comp & pass & comp & pass & comp & pass & comp & pass \\
+Model & \(k\) & compose & pass & compose & pass & compose & pass & compose & pass \\
 \midrule
 % source-model: single_qwen3_4b
 \multirow{5}{*}{\shortstack[l]{Qwen3-4B\\+ SFT (single)}}
@@ -982,7 +923,7 @@ Model & \(k\) & comp & pass & comp & pass & comp & pass & comp & pass \\
   & \multicolumn{2}{c}{Loopy / 466} & \multicolumn{2}{c}{All / 832} \\
 \headercmidrules{\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(lr){9-10}}
 \rowcolor{algobg}
-Model & \(k\) & comp & pass & comp & pass & comp & pass & comp & pass \\
+Model & \(k\) & compose & pass & compose & pass & compose & pass & compose & pass \\
 \midrule
 \multirow{5}{*}{\shortstack[l]{Qwen3-4B\\+ RL}}
  & 1  & 52.22 & 2.22 & 10.00 & 0.00 & 50.64 & 1.50 & 48.80 & 1.68 \\
@@ -1031,7 +972,7 @@ Model & \(k\) & comp & pass & comp & pass & comp & pass & comp & pass \\
   & \multicolumn{2}{c}{Loopy / 466} & \multicolumn{2}{c}{All / 832} \\
 \headercmidrules{\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(lr){9-10}}
 \rowcolor{algobg}
-Model & \(k\) & comp & pass & comp & pass & comp & pass & comp & pass \\
+Model & \(k\) & compose & pass & compose & pass & compose & pass & compose & pass \\
 \midrule
 % source-model: grpo_qwen3_4b_rft_full
 \multirow{5}{*}{\shortstack[l]{Qwen3-4B\\+ SFT\\+ RL}}
@@ -1083,7 +1024,7 @@ Model & \(k\) & comp & pass & comp & pass & comp & pass & comp & pass \\
   & \multicolumn{2}{c}{Loopy / 466} & \multicolumn{2}{c}{All / 832} \\
 \headercmidrules{\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(lr){9-10}}
 \rowcolor{algobg}
-Model & \(k\) & comp & pass & comp & pass & comp & pass & comp & pass \\
+Model & \(k\) & compose & pass & compose & pass & compose & pass & compose & pass \\
 \midrule
 % source-model: grpo_qwen3_8b_zero_binary
 \multirow{5}{*}{\shortstack[l]{Qwen3-8B\\+ RL (Binary)}}
@@ -1135,7 +1076,7 @@ Model & \(k\) & comp & pass & comp & pass & comp & pass & comp & pass \\
   & \multicolumn{2}{c}{Loopy / 466} & \multicolumn{2}{c}{All / 832} \\
 \headercmidrules{\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(lr){9-10}}
 \rowcolor{algobg}
-Model & \(k\) & comp & pass & comp & pass & comp & pass & comp & pass \\
+Model & \(k\) & compose & pass & compose & pass & compose & pass & compose & pass \\
 \midrule
 % source-model: grpo_qwen3_8b_rft_binary
 \multirow{5}{*}{\shortstack[l]{Qwen3-8B\\+ SFT\\+ RL (Binary)}}
@@ -1186,7 +1127,7 @@ Model & \(k\) & comp & pass & comp & pass & comp & pass & comp & pass \\
   & \multicolumn{2}{c}{Loopy / 466} & \multicolumn{2}{c}{All / 832} \\
 \headercmidrules{\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(lr){9-10}}
 \rowcolor{algobg}
-Model & \(k\) & comp & pass & comp & pass & comp & pass & comp & pass \\
+Model & \(k\) & compose & pass & compose & pass & compose & pass & compose & pass \\
 \midrule
 % source-model: grpo_qwen3_4b_rft_wc
 \multirow{5}{*}{\shortstack[l]{Qwen3-4B\\+ SFT\\+ RL (Whole-rollout)}}
@@ -1660,7 +1601,7 @@ evaluation.
   & \multicolumn{2}{c}{Loopy / 466} & \multicolumn{2}{c}{All / 832} \\
 \headercmidrules{\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(lr){9-10}}
 \rowcolor{algobg}
-Configuration & \(k\) & comp & pass & comp & pass & comp & pass & comp & pass
+Configuration & \(k\) & compose & pass & compose & pass & compose & pass & compose & pass
   \\
 \midrule
 \multirow{5}{*}{\shortstack[l]{CRAFT\\(target-hidden)}}
@@ -1717,7 +1658,7 @@ metric column.
   & \multicolumn{2}{c}{Loopy / 466} & \multicolumn{2}{c}{All / 832} \\
 \headercmidrules{\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(lr){9-10}}
 \rowcolor{algobg}
-Model & \(k\) & comp & pass & comp & pass & comp & pass & comp & pass \\
+Model & \(k\) & compose & pass & compose & pass & compose & pass & compose & pass \\
 \midrule
 \multirow{3}{*}{GPT-5-nano} & 1
   & \acc{110/316}{34.81} & \acc{12/316}{3.80} & \acc{11/50}{22.00} & \acc{0/50}{0.00} & \acc{161/466}{34.55} & \acc{18/466}{3.86} & \acc{282/832}{33.89}& \acc{30/832}{3.61}  \\

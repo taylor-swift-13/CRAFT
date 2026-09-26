@@ -2,10 +2,12 @@
 
 \usepackage[margin=0.72in]{geometry}
 \usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{booktabs}
 \usepackage{multirow}
 \usepackage[table]{xcolor}
 \usepackage{float}
+\usepackage{listings}
 \usepackage{needspace}
 \usepackage{microtype}
 \usepackage{times}
@@ -16,6 +18,46 @@
 % Match the table typography and palette in main.tex.
 \definecolor{headerbg}{HTML}{EAF4F0}
 \definecolor{codegray}{HTML}{64748B}
+\definecolor{codeblue}{HTML}{147D68}
+\definecolor{codered}{HTML}{3D6EA6}
+\definecolor{promptbg}{HTML}{F7FAF8}
+\definecolor{promptframe}{HTML}{DCE7E2}
+\lstdefinestyle{cstyle}{
+  language=C,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{codeblue}\bfseries,
+  commentstyle=\color{codegray}\itshape,
+  stringstyle=\color{codered},
+  numbers=left,
+  numberstyle=\tiny\color{codegray},
+  stepnumber=1,
+  numbersep=6pt,
+  backgroundcolor=\color{promptbg},
+  showspaces=false,
+  showstringspaces=false,
+  showtabs=false,
+  frame=single,
+  rulecolor=\color{promptframe},
+  framesep=4pt,
+  framerule=0.45pt,
+  xleftmargin=0.2em,
+  xrightmargin=0.2em,
+  framexleftmargin=0.35em,
+  framexrightmargin=0.35em,
+  tabsize=2,
+  captionpos=b,
+  breaklines=true,
+  breakatwhitespace=false,
+  escapeinside={(*@}{@*)},
+  morekeywords={loop,invariant,assigns,variant,requires,assert},
+  literate={\\at}{{{\color{codeblue}\textbackslash at}}}3
+           {\\forall}{{{\color{codeblue}\textbackslash forall}}}7
+           {\\exists}{{{\color{codeblue}\textbackslash exists}}}7,
+  aboveskip=0.8em,
+  belowskip=0.5em,
+}
+\lstset{style=cstyle}
+
 \newcommand{\papertablestyle}{%
   \fontsize{9}{10.5}\selectfont
   \setlength{\tabcolsep}{2.4pt}%
@@ -49,7 +91,8 @@ Qwen3-8B and all of its training variants.  Appendix~C isolates the effect of
 negative-trace sampling under the Full reward.  Appendix~D reports three
 training runs with three inference runs each.  Appendix~E archives a rerun
 of the main paper's tool comparison with medium reasoning effort. Appendix~F
-examines filtering and cross-response pooling on a matched Qwen3-8B run. All
+examines filtering and cross-response pooling on a matched Qwen3-8B run.
+Appendix~G gives an example of cross-response inductive support. All
 verification rates are percentages.
 
 \appendix
@@ -840,5 +883,64 @@ evaluates this full procedure on one response.
 This table measures target verification, not invariant strength. CRAFT still
 pools and filters all available clauses to seek the strongest inductive
 summary supported by the candidate pool within its verifier budget.
+
+\clearpage
+\section{Example of cross-response inductive support}
+\label{app:supp-support-example}
+\noindent\begin{minipage}{\textwidth}
+An archived GPT-5-nano replay illustrates how pooling can make a clause
+provably inductive through cross-response support. The assertion is restored
+only after target-hidden filtering.
+
+\begin{lstlisting}[language=C,numbers=none]
+extern int unknown(void);
+void foo(int n) {
+  int x = 1, m = 1;
+  while (x < n) {
+    if (unknown()) m = x;
+    x = x + 1;
+  }
+  if (n > 1) { /*@ assert m >= 1; */ }
+}
+\end{lstlisting}
+
+Replaying its first four responses gives:
+\begin{center}
+\small
+\begin{tabular}{cllc}
+\toprule
+\rowcolor{headerbg}
+Response & Relevant proposal & Independent survivors & Target \\
+\midrule
+1 & \(m\leq x\) & \(m\leq x\) & fail \\
+2 & \(x\geq1\) & \(x\geq1\) & fail \\
+3 & --- & \(\varnothing\) & fail \\
+4 & \(m\geq1\) & \(\varnothing\) & fail \\
+\midrule
+Pooled 1--4 & \multicolumn{2}{l}{\(m\leq x,\ x\geq1,\ m\geq1\)} & verified \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Response~4's \(m\geq1\) cannot be established inductive alone: after the
+nondeterministic assignment \(m=x\), preservation requires \(x\geq1\).
+Response~2 supplies that hypothesis, so pooled filtering retains both clauses.
+The complete composed annotation is
+\begin{lstlisting}
+/*@
+  loop invariant m <= x;
+  loop invariant x >= 1;
+  loop invariant m >= 1;
+*/
+\end{lstlisting}
+All four independently filtered responses fail. The pooled annotation verifies
+through cross-response support during filtering.
+\end{minipage}
+
+This dependence on cross-response inductive support is rare in CRAFT,
+which encourages long conjunctive invariants: a longer response has more
+opportunity to include both a useful clause and its supporting clauses.
+The pre-/post-filtering comparison in the main paper's Appendix K.6
+is consistent with this interpretation.
 
 \end{document}

@@ -1,0 +1,92 @@
+{
+  "key": "linear_163",
+  "suite": "linear",
+  "original_verified": true,
+  "survivor_count": 33,
+  "source_sha256": "974e06bc20ce1f6fc651cf8e11bb1475190596d35ea6bdf79daeb37e756d91f5",
+  "verification_sha256": "332b011004109941af7a2f478bd65e79f65f4547349e5c272a8f95d96d46a514",
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "n__pre": "1",
+        "choice_1": "1",
+        "b": "1",
+        "j": "1",
+        "flag": "1",
+        "b__entry": "0",
+        "n__entry": "1",
+        "flag__entry": "1",
+        "n": "1",
+        "j__entry": "0"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "n__pre": "1",
+        "choice_1": "0",
+        "b": "1",
+        "j": "2",
+        "flag": "0",
+        "b__entry": "0",
+        "n__entry": "1",
+        "flag__entry": "0",
+        "n": "1",
+        "j__entry": "0"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "n__pre": "1",
+        "b": "1",
+        "j": "0",
+        "flag": "1",
+        "b__entry": "0",
+        "n__entry": "1",
+        "choice_1": "1",
+        "flag__entry": "1",
+        "n": "1",
+        "j__entry": "0"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "b",
+    "rank_direction": 1,
+    "attempts": [
+      {
+        "variable": "b",
+        "direction": 1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "n": "i",
+    "b": "i",
+    "j": "i",
+    "flag": "i"
+  },
+  "frame_variables": [
+    "flag",
+    "n"
+  ],
+  "seconds": 0.27716660499572754
+}

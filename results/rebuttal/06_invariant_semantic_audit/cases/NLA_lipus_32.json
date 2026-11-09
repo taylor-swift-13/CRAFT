@@ -1,0 +1,91 @@
+{
+  "key": "NLA_lipus_32",
+  "suite": "NLA_lipus",
+  "original_verified": true,
+  "survivor_count": 32,
+  "source_sha256": "d181c4ac87dbf0930409fdbba1b7d1be13a1ea3e5a0c14cf130b913fdec88628",
+  "verification_sha256": "6e2091a53db55d30468ab52ad7d367eebded44d722390a67f19dcc72313cdaae",
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "a__pre": "153248833",
+        "sn": "1072741831",
+        "sn__entry": "0",
+        "a__entry": "153248833",
+        "x__entry": "0",
+        "x": "7",
+        "a": "153248833"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "sn__entry": "0",
+        "x__entry": "0",
+        "a__pre": "-2146959103",
+        "a": "-2146959103",
+        "sn": "0",
+        "a__entry": "-2146959103",
+        "x": "461652616"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "sn__entry": "0",
+        "x__entry": "0",
+        "sn": "715827882",
+        "a__pre": "-2147483647",
+        "a": "-2147483647",
+        "a__entry": "-2147483647",
+        "x": "2"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "x",
+    "rank_direction": 1,
+    "attempts": [
+      {
+        "variable": "sn",
+        "direction": 1,
+        "status": "sat"
+      },
+      {
+        "variable": "sn",
+        "direction": -1,
+        "status": "sat"
+      },
+      {
+        "variable": "x",
+        "direction": 1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "a": "i",
+    "sn": "i",
+    "x": "i"
+  },
+  "frame_variables": [
+    "a"
+  ],
+  "seconds": 4.694115161895752
+}

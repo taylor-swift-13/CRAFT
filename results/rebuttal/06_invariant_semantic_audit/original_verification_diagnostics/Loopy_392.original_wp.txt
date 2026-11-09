@@ -1,0 +1,165 @@
+[kernel] Parsing /tmp/craft16_minimal_20261107_v2/scratch/Loopy_392/rlinfer_duzbbwd7/prog.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Warning: Missing RTE guards
+[wp] /tmp/craft16_minimal_20261107_v2/scratch/Loopy_392/rlinfer_duzbbwd7/prog.c:23: Warning: 
+  Missing assigns clause (assigns 'everything' instead)
+[wp] 19 goals scheduled
+[wp] [Timeout] typed_loopy_392_assert (Qed 2ms) (Z3)
+[wp] Proved goals:   18 / 19
+  Qed:              17
+  Alt-Ergo 2.6.2:    1 (16ms)
+  Timeout:           1
+------------------------------------------------------------
+  Function loopy_392
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_392/rlinfer_duzbbwd7/prog.c, line 13):
+Let x = k + n.
+Let x_1 = -k.
+Assume {
+  Type: is_sint32(k_1) /\ is_sint32(k) /\ is_sint32(n) /\ is_sint32(n_1) /\
+      is_sint32(k_1 - k) /\ is_sint32(1 + k_1 - k).
+  (* Pre-condition *)
+  Have: (0 < n_1) /\ (n_1 <= k_1).
+  (* Invariant *)
+  Have: k <= k_1.
+  (* Invariant *)
+  Have: k_1 <= x.
+  (* Invariant *)
+  Have: 0 < n.
+  (* Then *)
+  Have: k_1 < x.
+}
+Prove: k <= (1 + k_1).
+Prover Z3 4.13.3 returns Valid (Qed:3ms) (20ms) (26279)
+Prover Alt-Ergo 2.6.2 returns Valid (Qed:3ms) (16ms) (18)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_392/rlinfer_duzbbwd7/prog.c, line 13):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_392/rlinfer_duzbbwd7/prog.c, line 14):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_392/rlinfer_duzbbwd7/prog.c, line 14):
+Prove: true.
+Prover Qed returns Valid (0.65ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_392/rlinfer_duzbbwd7/prog.c, line 15):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_392/rlinfer_duzbbwd7/prog.c, line 15):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_392/rlinfer_duzbbwd7/prog.c, line 16):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_392/rlinfer_duzbbwd7/prog.c, line 16):
+Prove: true.
+Prover Qed returns Valid (0.66ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_392/rlinfer_duzbbwd7/prog.c, line 17):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_392/rlinfer_duzbbwd7/prog.c, line 17):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_392/rlinfer_duzbbwd7/prog.c, line 18):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_392/rlinfer_duzbbwd7/prog.c, line 18):
+Prove: true.
+Prover Qed returns Valid (0.57ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_392/rlinfer_duzbbwd7/prog.c, line 19):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_392/rlinfer_duzbbwd7/prog.c, line 19):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_392/rlinfer_duzbbwd7/prog.c, line 20):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_392/rlinfer_duzbbwd7/prog.c, line 20):
+Prove: true.
+Prover Qed returns Valid (0.79ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_392/rlinfer_duzbbwd7/prog.c, line 21):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_392/rlinfer_duzbbwd7/prog.c, line 21):
+Prove: true.
+Prover Qed returns Valid (0.71ms)
+
+------------------------------------------------------------
+
+Goal Assertion (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_392/rlinfer_duzbbwd7/prog.c, line 28):
+Let x = k + n.
+Assume {
+  Type: is_sint32(k_1) /\ is_sint32(k) /\ is_sint32(n) /\ is_sint32(n_1) /\
+      is_sint32(k_1 - k).
+  (* Pre-condition *)
+  Have: (0 < n_1) /\ (n_1 <= k_1).
+  (* Invariant *)
+  Have: k <= k_1.
+  (* Invariant *)
+  Have: k_1 <= x.
+  (* Invariant *)
+  Have: 0 < n.
+  (* Else *)
+  Have: x <= k_1.
+}
+Prove: 0 <= k.
+Prover Z3 4.13.3 returns Timeout (Qed:2ms) (5s)
+Prover Alt-Ergo 2.6.2 returns Timeout (Qed:2ms) (5s)
+
+------------------------------------------------------------
+[wp:pedantic-assigns] /tmp/craft16_minimal_20261107_v2/scratch/Loopy_392/rlinfer_duzbbwd7/prog.c:6: Warning: 
+  No 'assigns' specification for function 'loopy_392'.
+  Callers assumptions might be imprecise.
+

@@ -1,0 +1,708 @@
+[kernel] Parsing /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c (with preprocessing)
+[kernel:CERT:MSC:37] /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c:36: Warning: 
+  Body of function main16 falls-through. Adding a return statement
+[wp] Running WP plugin...
+[wp] Warning: Missing RTE guards
+[wp] /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c:36: Warning: 
+  Missing assigns clause (assigns 'everything' instead)
+[wp] 45 goals scheduled
+[wp] [Timeout] typed_main16_assert (Qed 7ms) (Z3)
+[wp] Proved goals:   44 / 45
+  Qed:              34
+  Alt-Ergo 2.6.2:    4 (13ms-20ms)
+  Z3 4.13.3:         6 (10ms-120ms-480ms)
+  Timeout:           1
+------------------------------------------------------------
+  Function main16
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 13):
+Prove: true.
+Prover Qed returns Valid (8ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 13):
+Prove: true.
+Prover Qed returns Valid (0.66ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 14):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 14):
+Prove: true.
+Prover Qed returns Valid (0.73ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 15):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 15):
+Prove: true.
+Prover Qed returns Valid (0.85ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 16):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 16):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 17):
+Let x = 1 + c.
+Let x_1 = c * x * (1 + (2 * c)).
+Let x_2 = x_1 / 6.
+Let x_3 = k * (1 + k) * (1 + (2 * k)).
+Let x_4 = x_3 / 6.
+Let x_5 = k_1 * (1 + k_1) * (1 + (2 * k_1)).
+Let x_6 = (x * x) + x_2.
+Assume {
+  Type: is_sint32(c) /\ is_sint32(k) /\ is_sint32(k_1) /\ is_sint32(x) /\
+      is_sint32(x_2) /\ is_sint32(x_6).
+  (* Pre-condition *)
+  Have: k_1 <= 30.
+  (* Invariant *)
+  Have: 0 <= (k_1 * k_1 * k_1).
+  (* Invariant *)
+  Have: ((k_1 = 0) -> ((x_5 / 6) = 0)).
+  (* Invariant *)
+  Have: (-5) <= x_5.
+  (* Invariant *)
+  Have: 0 <= k_1.
+  (* Invariant *)
+  Have: (-2) <= x_5.
+  (* Invariant *)
+  Have: 0 <= c.
+  (* Invariant *)
+  Have: c <= k.
+  (* Invariant *)
+  Have: (-5) <= x_1.
+  (* Invariant *)
+  Have: x_2 <= (k * k * k).
+  (* Invariant *)
+  Have: ((k = c) -> (x_4 = x_2)).
+  (* Invariant *)
+  Have: x_2 <= x_4.
+  (* Invariant *)
+  Have: ((x_2 = 0) -> (c = 0)).
+  (* Invariant *)
+  Have: x_2 <= (x_3 / 3).
+  (* Then *)
+  Have: c < k.
+  (* Invariant *)
+  Have: (-1) <= c.
+}
+Prove: 0 <= x_6.
+Prover Z3 4.13.3 returns Valid (Qed:7ms) (10ms) (33309)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 17):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 18):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 18):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 19):
+Let x = 1 + c.
+Let x_1 = c * x * (1 + (2 * c)).
+Let x_2 = x_1 / 6.
+Let x_3 = (x * x) + x_2.
+Let x_4 = k * (1 + k) * (1 + (2 * k)).
+Let x_5 = x_4 / 6.
+Let x_6 = k * k * k.
+Let x_7 = k_1 * (1 + k_1) * (1 + (2 * k_1)).
+Assume {
+  Type: is_sint32(c) /\ is_sint32(k) /\ is_sint32(k_1) /\ is_sint32(x) /\
+      is_sint32(x_2) /\ is_sint32(x_3).
+  (* Pre-condition *)
+  Have: k_1 <= 30.
+  (* Invariant *)
+  Have: 0 <= (k_1 * k_1 * k_1).
+  (* Invariant *)
+  Have: ((k_1 = 0) -> ((x_7 / 6) = 0)).
+  (* Invariant *)
+  Have: (-5) <= x_7.
+  (* Invariant *)
+  Have: 0 <= k_1.
+  (* Invariant *)
+  Have: (-2) <= x_7.
+  (* Invariant *)
+  Have: 0 <= c.
+  (* Invariant *)
+  Have: c <= k.
+  (* Invariant *)
+  Have: (-5) <= x_1.
+  (* Invariant *)
+  Have: x_2 <= x_6.
+  (* Invariant *)
+  Have: ((k = c) -> (x_5 = x_2)).
+  (* Invariant *)
+  Have: x_2 <= x_5.
+  (* Invariant *)
+  Have: ((x_2 = 0) -> (c = 0)).
+  (* Invariant *)
+  Have: x_2 <= (x_4 / 3).
+  (* Then *)
+  Have: c < k.
+  (* Invariant *)
+  Have: (-1) <= c.
+  (* Invariant *)
+  Have: 0 <= x_3.
+}
+Prove: x_3 <= x_6.
+Prover Z3 4.13.3 returns Valid (Qed:10ms) (480ms) (763812)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 19):
+Assume {
+  Type: is_sint32(k).
+  (* Pre-condition *)
+  Have: k <= 30.
+  (* Invariant *)
+  Have: 0 <= k.
+}
+Prove: 0 <= (k * k * k).
+Prover Alt-Ergo 2.6.2 returns Valid (Qed:1ms) (15ms) (14)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 20):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 20):
+Prove: true.
+Prover Qed returns Valid (0.74ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 21):
+Let x = k - 1.
+Let x_1 = 2 * k.
+Let x_2 = k * x * (x_1 - 1).
+Let x_3 = x_2 / 6.
+Let x_4 = (k * k) + x_3.
+Let x_5 = k * k * k.
+Let x_6 = k * (1 + k) * (1 + x_1).
+Let x_7 = x_6 / 6.
+Let x_8 = k_1 * (1 + k_1) * (1 + (2 * k_1)).
+Assume {
+  Type: is_sint32(k) /\ is_sint32(k_1) /\ is_sint32(x) /\ is_sint32(x_3) /\
+      is_sint32(x_4).
+  (* Pre-condition *)
+  Have: k_1 <= 30.
+  (* Invariant *)
+  Have: 0 <= (k_1 * k_1 * k_1).
+  (* Invariant *)
+  Have: ((k_1 = 0) -> ((x_8 / 6) = 0)).
+  (* Invariant *)
+  Have: (-5) <= x_8.
+  (* Invariant *)
+  Have: 0 <= k_1.
+  (* Invariant *)
+  Have: (-2) <= x_8.
+  (* Invariant *)
+  Have: 0 < k.
+  (* Invariant *)
+  Have: (-5) <= x_2.
+  (* Invariant *)
+  Have: x_3 <= x_5.
+  (* Invariant *)
+  Have: x_3 <= x_7.
+  (* Invariant *)
+  Have: ((x_3 = 0) -> (k = 1)).
+  (* Invariant *)
+  Have: x_3 <= (x_6 / 3).
+  (* Invariant *)
+  Have: 0 <= x_4.
+  (* Invariant *)
+  Have: x_4 <= x_5.
+}
+Prove: x_7 = x_4.
+Prover Z3 4.13.3 returns Valid (Qed:9ms) (30ms) (33989)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 21):
+Prove: true.
+Prover Qed returns Valid (0.89ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 22):
+Let x = 1 + c.
+Let x_1 = k * (1 + k) * (1 + (2 * k)).
+Let x_2 = x_1 / 6.
+Let x_3 = c * x * (1 + (2 * c)).
+Let x_4 = x_3 / 6.
+Let x_5 = (x * x) + x_4.
+Let x_6 = k * k * k.
+Let x_7 = k_1 * (1 + k_1) * (1 + (2 * k_1)).
+Assume {
+  Type: is_sint32(c) /\ is_sint32(k) /\ is_sint32(k_1) /\ is_sint32(x) /\
+      is_sint32(x_4) /\ is_sint32(x_5).
+  (* Pre-condition *)
+  Have: k_1 <= 30.
+  (* Invariant *)
+  Have: 0 <= (k_1 * k_1 * k_1).
+  (* Invariant *)
+  Have: ((k_1 = 0) -> ((x_7 / 6) = 0)).
+  (* Invariant *)
+  Have: (-5) <= x_7.
+  (* Invariant *)
+  Have: 0 <= k_1.
+  (* Invariant *)
+  Have: (-2) <= x_7.
+  (* Invariant *)
+  Have: 0 <= c.
+  (* Invariant *)
+  Have: c <= k.
+  (* Invariant *)
+  Have: (-5) <= x_3.
+  (* Invariant *)
+  Have: x_4 <= x_6.
+  (* Invariant *)
+  Have: ((k = c) -> (x_2 = x_4)).
+  (* Invariant *)
+  Have: x_4 <= x_2.
+  (* Invariant *)
+  Have: ((x_4 = 0) -> (c = 0)).
+  (* Invariant *)
+  Have: x_4 <= (x_1 / 3).
+  (* Then *)
+  Have: c < k.
+  (* Invariant *)
+  Have: (-1) <= c.
+  (* Invariant *)
+  Have: 0 <= x_5.
+  (* Invariant *)
+  Have: x_5 <= x_6.
+  (* Invariant *)
+  Have: ((x = k) -> (x_2 = x_5)).
+}
+Prove: x_5 <= x_2.
+Prover Z3 4.13.3 returns Valid (Qed:10ms) (160ms) (182951)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 22):
+Let x = k * (1 + k) * (1 + (2 * k)).
+Assume {
+  Type: is_sint32(k).
+  (* Pre-condition *)
+  Have: k <= 30.
+  (* Invariant *)
+  Have: 0 <= k.
+  (* Invariant *)
+  Have: 0 <= (k * k * k).
+  (* Invariant *)
+  Have: ((k = 0) -> ((x / 6) = 0)).
+}
+Prove: (-5) <= x.
+Prover Alt-Ergo 2.6.2 returns Valid (Qed:2ms) (19ms) (118)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 23):
+Prove: true.
+Prover Qed returns Valid (4ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 23):
+Prove: true.
+Prover Qed returns Valid (0.98ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 24):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 24):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 25):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 25):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 26):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 26):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 27):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 27):
+Prove: true.
+Prover Qed returns Valid (0.91ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 28):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 28):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 29):
+Let x = k * (1 + k) * (1 + (2 * k)).
+Let x_1 = 1 + y.
+Let x_2 = x / 6.
+Let x_3 = k * k * k.
+Let x_4 = x_1 * x_1.
+Let x_5 = x_4 + x_2.
+Let x_6 = k_1 * (1 + k_1) * (1 + (2 * k_1)).
+Assume {
+  Type: is_sint32(k) /\ is_sint32(k_1) /\ is_sint32(y) /\ is_sint32(x_1) /\
+      is_sint32(-x_4).
+  (* Pre-condition *)
+  Have: k_1 <= 30.
+  (* Invariant *)
+  Have: 0 <= (k_1 * k_1 * k_1).
+  (* Invariant *)
+  Have: ((k_1 = 0) -> ((x_6 / 6) = 0)).
+  (* Invariant *)
+  Have: (-5) <= x_6.
+  (* Invariant *)
+  Have: 0 <= k_1.
+  (* Invariant *)
+  Have: (-2) <= x_6.
+  (* Invariant *)
+  Have: 0 <= y.
+  (* Invariant *)
+  Have: y <= k.
+  (* Invariant *)
+  Have: x_4 <= 0.
+  (* Invariant *)
+  Have: 0 <= (x_3 + x_4).
+  (* Invariant *)
+  Have: ((y = k) -> (x_5 = 0)).
+  (* Invariant *)
+  Have: 0 <= x_5.
+  (* Invariant *)
+  Have: ((x_4 = 0) -> (y = 0)).
+  (* Invariant *)
+  Have: 0 <= (x_4 + (x / 3)).
+  (* Invariant *)
+  Have: (x_4 + ((y * x_1 * (1 + (2 * y))) / 6)) = 0.
+  (* Then *)
+  Have: y < k.
+  (* Invariant *)
+  Have: (-1) <= y.
+  (* Invariant *)
+  Have: 0 <= x_3.
+  (* Invariant *)
+  Have: ((x_1 = k) -> (x_2 = 0)).
+  (* Invariant *)
+  Have: (-5) <= x.
+}
+Prove: y = (-1).
+Prover Z3 4.13.3 returns Valid (Qed:7ms) (10ms) (2838)
+Prover Alt-Ergo 2.6.2 returns Valid (Qed:7ms) (20ms) (479)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 29):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 30):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 30):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 31):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 31):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 32):
+Let x = 1 + c.
+Let x_1 = c * x * (1 + (2 * c)).
+Let x_2 = x_1 / 6.
+Let x_3 = (x * x) + x_2.
+Let x_4 = k * (1 + k) * (1 + (2 * k)).
+Let x_5 = x_4 / 6.
+Let x_6 = k * k * k.
+Let x_7 = x_4 / 3.
+Let x_8 = k_1 * (1 + k_1) * (1 + (2 * k_1)).
+Assume {
+  Type: is_sint32(c) /\ is_sint32(k) /\ is_sint32(k_1) /\ is_sint32(x) /\
+      is_sint32(x_2) /\ is_sint32(x_3).
+  (* Pre-condition *)
+  Have: k_1 <= 30.
+  (* Invariant *)
+  Have: 0 <= (k_1 * k_1 * k_1).
+  (* Invariant *)
+  Have: ((k_1 = 0) -> ((x_8 / 6) = 0)).
+  (* Invariant *)
+  Have: (-5) <= x_8.
+  (* Invariant *)
+  Have: 0 <= k_1.
+  (* Invariant *)
+  Have: (-2) <= x_8.
+  (* Invariant *)
+  Have: 0 <= c.
+  (* Invariant *)
+  Have: c <= k.
+  (* Invariant *)
+  Have: (-5) <= x_1.
+  (* Invariant *)
+  Have: x_2 <= x_6.
+  (* Invariant *)
+  Have: ((k = c) -> (x_5 = x_2)).
+  (* Invariant *)
+  Have: x_2 <= x_5.
+  (* Invariant *)
+  Have: ((x_2 = 0) -> (c = 0)).
+  (* Invariant *)
+  Have: x_2 <= x_7.
+  (* Then *)
+  Have: c < k.
+  (* Invariant *)
+  Have: (-1) <= c.
+  (* Invariant *)
+  Have: 0 <= x_3.
+  (* Invariant *)
+  Have: x_3 <= x_6.
+  (* Invariant *)
+  Have: ((x = k) -> (x_5 = x_3)).
+  (* Invariant *)
+  Have: x_3 <= x_5.
+  (* Invariant *)
+  Have: ((x_3 = 0) -> (c = (-1))).
+}
+Prove: x_3 <= x_7.
+Prover Z3 4.13.3 returns Valid (Qed:10ms) (20ms) (34588)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 32):
+Let x = k * (1 + k) * (1 + (2 * k)).
+Assume {
+  Type: is_sint32(k).
+  (* Pre-condition *)
+  Have: k <= 30.
+  (* Invariant *)
+  Have: 0 <= (k * k * k).
+  (* Invariant *)
+  Have: ((k = 0) -> ((x / 6) = 0)).
+  (* Invariant *)
+  Have: (-5) <= x.
+  (* Invariant *)
+  Have: 0 <= k.
+}
+Prove: (-2) <= x.
+Prover Alt-Ergo 2.6.2 returns Valid (Qed:2ms) (13ms) (118)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 33):
+Let x = 1 + c.
+Let x_1 = 2 * c.
+Let x_2 = c * x * (1 + x_1).
+Let x_3 = x_2 / 6.
+Let x_4 = (x * x) + x_3.
+Let x_5 = k * (1 + k) * (1 + (2 * k)).
+Let x_6 = x_5 / 3.
+Let x_7 = x_5 / 6.
+Let x_8 = k * k * k.
+Let x_9 = k_1 * (1 + k_1) * (1 + (2 * k_1)).
+Assume {
+  Type: is_sint32(c) /\ is_sint32(k) /\ is_sint32(k_1) /\ is_sint32(x) /\
+      is_sint32(x_3) /\ is_sint32(x_4).
+  (* Pre-condition *)
+  Have: k_1 <= 30.
+  (* Invariant *)
+  Have: 0 <= (k_1 * k_1 * k_1).
+  (* Invariant *)
+  Have: ((k_1 = 0) -> ((x_9 / 6) = 0)).
+  (* Invariant *)
+  Have: (-5) <= x_9.
+  (* Invariant *)
+  Have: 0 <= k_1.
+  (* Invariant *)
+  Have: (-2) <= x_9.
+  (* Invariant *)
+  Have: 0 <= c.
+  (* Invariant *)
+  Have: c <= k.
+  (* Invariant *)
+  Have: (-5) <= x_2.
+  (* Invariant *)
+  Have: x_3 <= x_8.
+  (* Invariant *)
+  Have: ((k = c) -> (x_7 = x_3)).
+  (* Invariant *)
+  Have: x_3 <= x_7.
+  (* Invariant *)
+  Have: ((x_3 = 0) -> (c = 0)).
+  (* Invariant *)
+  Have: x_3 <= x_6.
+  (* Then *)
+  Have: c < k.
+  (* Invariant *)
+  Have: (-1) <= c.
+  (* Invariant *)
+  Have: 0 <= x_4.
+  (* Invariant *)
+  Have: x_4 <= x_8.
+  (* Invariant *)
+  Have: ((x = k) -> (x_7 = x_4)).
+  (* Invariant *)
+  Have: x_4 <= x_7.
+  (* Invariant *)
+  Have: ((x_4 = 0) -> (c = (-1))).
+  (* Invariant *)
+  Have: x_4 <= x_6.
+}
+Prove: ((x * (2 + c) * (3 + x_1)) / 6) = x_4.
+Prover Z3 4.13.3 returns Valid (Qed:17ms) (20ms) (37738)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 33):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 34):
+Prove: true.
+Prover Qed returns Valid (4ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 34):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Assertion (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 41):
+Let x = c * (1 + c) * (1 + (2 * c)).
+Let x_1 = x / 6.
+Let x_2 = k * (1 + k) * (1 + (2 * k)).
+Let x_3 = x_2 / 6.
+Let x_4 = k_1 * (1 + k_1) * (1 + (2 * k_1)).
+Assume {
+  Type: is_sint32(c) /\ is_sint32(k) /\ is_sint32(k_1) /\ is_sint32(x_1).
+  (* Pre-condition *)
+  Have: k_1 <= 30.
+  (* Invariant *)
+  Have: 0 <= (k_1 * k_1 * k_1).
+  (* Invariant *)
+  Have: ((k_1 = 0) -> ((x_4 / 6) = 0)).
+  (* Invariant *)
+  Have: (-5) <= x_4.
+  (* Invariant *)
+  Have: 0 <= k_1.
+  (* Invariant *)
+  Have: (-2) <= x_4.
+  (* Invariant *)
+  Have: 0 <= c.
+  (* Invariant *)
+  Have: c <= k.
+  (* Invariant *)
+  Have: (-5) <= x.
+  (* Invariant *)
+  Have: x_1 <= (k * k * k).
+  (* Invariant *)
+  Have: ((k = c) -> (x_3 = x_1)).
+  (* Invariant *)
+  Have: x_1 <= x_3.
+  (* Invariant *)
+  Have: ((x_1 = 0) -> (c = 0)).
+  (* Invariant *)
+  Have: x_1 <= (x_2 / 3).
+  (* Else *)
+  Have: k <= c.
+}
+Prove: (c + (3 * (c * c)) + (2 * (c * c * c))) = (6 * x_1).
+Prover Z3 4.13.3 returns Timeout (Qed:7ms) (5s)
+Prover Alt-Ergo 2.6.2 returns Timeout (Qed:7ms) (5s)
+
+------------------------------------------------------------
+[wp:pedantic-assigns] /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c:4: Warning: 
+  No 'assigns' specification for function 'main16'.
+  Callers assumptions might be imprecise.
+

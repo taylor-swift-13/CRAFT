@@ -1,0 +1,109 @@
+{
+  "key": "Loopy_89",
+  "suite": "Loopy",
+  "original_verified": false,
+  "survivor_count": 20,
+  "source_sha256": "d7fee70b8c9b6b83b68fdcc28c4b772ee48f8b3843448218f88e0e10659e6e86",
+  "verification_sha256": "b17b2bc6995d7e41196e50f98ae103c7d83a0314cd83ed0ceb20f7bda9ae48dd",
+  "strength": {
+    "classification": "incomparable",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "input": "0",
+        "lock__entry": "1",
+        "input__entry": "0",
+        "y__entry": "2147483647",
+        "y__pre": "2147483647",
+        "x": "0",
+        "x__entry": "2147483647",
+        "input__pre": "0",
+        "x__pre": "0",
+        "lock": "0",
+        "y": "0"
+      }
+    },
+    "I_not_target": {
+      "status": "sat",
+      "model": {
+        "input": "0",
+        "input__entry": "0",
+        "y__entry": "2147483647",
+        "x__entry": "2147483647",
+        "y__pre": "2147483647",
+        "x": "0",
+        "lock__entry": "1",
+        "input__pre": "0",
+        "x__pre": "0",
+        "y": "0",
+        "lock": "0"
+      }
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "input": "-1",
+        "input__entry": "0",
+        "lock__entry": "1",
+        "x__entry": "2147483647",
+        "y__pre": "2147483647",
+        "y__entry": "2147483647",
+        "input__pre": "0",
+        "x__pre": "0",
+        "y": "0",
+        "lock": "1",
+        "x": "0"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "input": "0",
+        "input__entry": "0",
+        "y__entry": "2147483647",
+        "x__entry": "2147483647",
+        "lock": "0",
+        "lock__entry": "1",
+        "y__pre": "2147483647",
+        "input__pre": "0",
+        "x__pre": "0",
+        "y": "0",
+        "x": "0"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_not_exact",
+    "inductive_lemma": "lock >= entry",
+    "unreachable_state": {
+      "input": "0",
+      "lock__entry": "1",
+      "input__entry": "0",
+      "y__entry": "2147483647",
+      "y__pre": "2147483647",
+      "x": "0",
+      "x__entry": "2147483647",
+      "input__pre": "0",
+      "x__pre": "0",
+      "lock": "0",
+      "y": "0"
+    }
+  },
+  "modeled_variables": {
+    "y": "i",
+    "x": "i",
+    "input": "i",
+    "lock": "i"
+  },
+  "frame_variables": [],
+  "seconds": 0.16768836975097656
+}

@@ -1,0 +1,79 @@
+{
+  "key": "Loopy_50",
+  "suite": "Loopy",
+  "original_verified": true,
+  "survivor_count": 35,
+  "source_sha256": "1b7b385fb350a0a42a7b54d2bd02ebbbf71998f9e2a1d51681ed7fe226b3be6a",
+  "verification_sha256": "a0996b8e9fc61493c79f503fed2136ab99974b8f264a9870c0a4e33465ce72e2",
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "x": "2",
+        "y": "2",
+        "x__entry": "1",
+        "y__entry": "0"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "y": "-1",
+        "x": "0",
+        "y__entry": "0",
+        "x__entry": "1"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "x": "999",
+        "y": "1000",
+        "x__entry": "1",
+        "y__entry": "0"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "y",
+    "rank_direction": 1,
+    "attempts": [
+      {
+        "variable": "x",
+        "direction": 1,
+        "status": "sat"
+      },
+      {
+        "variable": "x",
+        "direction": -1,
+        "status": "sat"
+      },
+      {
+        "variable": "y",
+        "direction": 1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "x": "i",
+    "y": "i"
+  },
+  "frame_variables": [],
+  "seconds": 1.3100337982177734
+}

@@ -1,0 +1,785 @@
+[kernel] Parsing /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c (with preprocessing)
+[wp] Running WP plugin...
+[kernel:annot:missing-spec] /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c:9: Warning: 
+  Neither code nor specification for function unknown_int, generating default assigns from the prototype
+[wp] Warning: Missing RTE guards
+[wp] /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c:74: Warning: 
+  Missing assigns clause (assigns 'everything' instead)
+[wp] Computing [100 goals...]
+[wp] 102 goals scheduled
+[wp] [Timeout] typed_loopy_367_assert_4 (Qed 13ms) (Z3)
+[wp] Proved goals:  101 / 102
+  Qed:              98
+  Alt-Ergo 2.6.2:    3 (11ms-17ms)
+  Timeout:           1
+------------------------------------------------------------
+  Function loopy_367
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 26):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 26):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 27):
+Prove: true.
+Prover Qed returns Valid (4ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 27):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 28):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 28):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 29):
+Let x = 2 + buf_0.
+Let x_1 = 3 + buf_0.
+Assume {
+  Type: is_sint32(buf_0) /\ is_sint32(bufferlen_0) /\ is_sint32(buflim_0) /\
+      is_sint32(inlen_0) /\ is_sint32(inlen_1) /\ is_sint32(tmp_0) /\
+      is_sint32(bufferlen_0 - 2) /\ is_sint32(1 + buf_0) /\
+      is_sint32(2 + buflim_0).
+  (* Pre-condition *)
+  Have: 0 < inlen_1.
+  (* Pre-condition *)
+  Have: (3 + buflim_0) <= inlen_1.
+  (* Invariant *)
+  Have: (-1) <= buflim_0.
+  (* Invariant *)
+  Have: (-2) <= buflim_0.
+  (* Invariant *)
+  Have: 0 <= buflim_0.
+  (* Invariant *)
+  Have: 0 <= (buflim_0 + inlen_1).
+  (* Invariant *)
+  Have: 0 <= buf_0.
+  (* Invariant *)
+  Have: buf_0 < bufferlen_0.
+  (* Invariant *)
+  Have: x <= bufferlen_0.
+  (* Invariant *)
+  Have: 2 <= bufferlen_0.
+  (* Invariant *)
+  Have: ((x_1 <= bufferlen_0) -> (3 <= bufferlen_0)).
+  (* Invariant *)
+  Have: 0 < inlen_0.
+  (* Invariant *)
+  Have: buf_0 <= inlen_0.
+  (* Invariant *)
+  Have: x <= (bufferlen_0 + inlen_0).
+  (* Then *)
+  Have: tmp_0 != 0.
+  (* Else *)
+  Have: x != bufferlen_0.
+  (* Assertion *)
+  Have: (-1) <= buf_0.
+  (* Assertion *)
+  Have: x <= inlen_0.
+}
+Prove: x_1 <= bufferlen_0.
+Prover Z3 4.13.3 returns Valid (Qed:9ms) (20ms) (28314)
+Prover Alt-Ergo 2.6.2 returns Valid (Qed:9ms) (17ms) (29)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 29):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 30):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 30):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 31):
+Prove: true.
+Prover Qed returns Valid (8ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 31):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 32):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 32):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 33):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 33):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 34):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 34):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 35):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 35):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 36):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 36):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 37):
+Prove: true.
+Prover Qed returns Valid (6ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 37):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 38):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 38):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 39):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 39):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 40):
+Prove: true.
+Prover Qed returns Valid (6ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 40):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 41):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 41):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 42):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 42):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 43):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 43):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 44):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 44):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 45):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 45):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 46):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 46):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 47):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 47):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 48):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 48):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 49):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 49):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 50):
+Prove: true.
+Prover Qed returns Valid (6ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 50):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 51):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 51):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 52):
+Prove: true.
+Prover Qed returns Valid (7ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 52):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 53):
+Prove: true.
+Prover Qed returns Valid (6ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 53):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 54):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 54):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 55):
+Prove: true.
+Prover Qed returns Valid (4ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 55):
+Prove: true.
+Prover Qed returns Valid (0.79ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 56):
+Prove: true.
+Prover Qed returns Valid (4ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 56):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 57):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 57):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 58):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 58):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 59):
+Let x = buflim_0 + inlen_0.
+Let x_1 = 2 + buflim_0.
+Assume {
+  Type: is_sint32(buflim_0) /\ is_sint32(buflim_1) /\ is_sint32(in_0) /\
+      is_sint32(inlen_0) /\ is_sint32(inlen_1) /\ is_sint32(tmp_0) /\
+      is_sint32(1 + in_0) /\ is_sint32(x_1) /\ is_sint32(2 + buflim_1).
+  (* Pre-condition *)
+  Have: 0 < inlen_1.
+  (* Pre-condition *)
+  Have: (3 + buflim_1) <= inlen_1.
+  (* Invariant *)
+  Have: (-1) <= buflim_1.
+  (* Invariant *)
+  Have: (-2) <= buflim_1.
+  (* Invariant *)
+  Have: 0 <= buflim_1.
+  (* Invariant *)
+  Have: 0 <= (buflim_1 + inlen_1).
+  (* Invariant *)
+  Have: 0 <= in_0.
+  (* Invariant *)
+  Have: in_0 <= (1 + buflim_0).
+  (* Invariant *)
+  Have: in_0 <= buflim_0.
+  (* Invariant *)
+  Have: 0 <= buflim_0.
+  (* Invariant *)
+  Have: in_0 <= x_1.
+  (* Invariant *)
+  Have: 0 < buflim_0.
+  (* Invariant *)
+  Have: 0 < inlen_0.
+  (* Invariant *)
+  Have: in_0 <= inlen_0.
+  (* Invariant *)
+  Have: in_0 <= x.
+  (* Then *)
+  Have: tmp_0 != 0.
+  (* Else *)
+  Have: in_0 != buflim_0.
+  (* Assertion *)
+  Have: (-1) <= in_0.
+  (* Assertion *)
+  Have: (2 + in_0) <= inlen_0.
+  (* Invariant *)
+  Have: in_0 < buflim_0.
+}
+Prove: in_0 < x.
+Prover Z3 4.13.3 returns Valid (Qed:10ms) (10ms) (28359)
+Prover Alt-Ergo 2.6.2 returns Valid (Qed:10ms) (14ms) (27)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 59):
+Assume {
+  Type: is_sint32(buflim_0) /\ is_sint32(inlen_0) /\ is_sint32(2 + buflim_0).
+  (* Pre-condition *)
+  Have: 0 < inlen_0.
+  (* Pre-condition *)
+  Have: (3 + buflim_0) <= inlen_0.
+  (* Invariant *)
+  Have: (-1) <= buflim_0.
+  (* Invariant *)
+  Have: (-2) <= buflim_0.
+  (* Invariant *)
+  Have: 0 <= buflim_0.
+}
+Prove: 0 <= (buflim_0 + inlen_0).
+Prover Z3 4.13.3 returns Valid (Qed:3ms) (10ms) (25518)
+Prover Alt-Ergo 2.6.2 returns Valid (Qed:3ms) (11ms) (22)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 60):
+Prove: true.
+Prover Qed returns Valid (4ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 60):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 61):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 61):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 62):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 62):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 63):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 63):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 64):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 64):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 65):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 65):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 66):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 66):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 67):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 67):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 68):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 68):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 69):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 69):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 70):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 70):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 71):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 71):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 72):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 72):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Assertion (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 79):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Assertion (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 83):
+Prove: true.
+Prover Qed returns Valid (4ms)
+
+------------------------------------------------------------
+
+Goal Assertion (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 90):
+Prove: true.
+Prover Qed returns Valid (7ms)
+
+------------------------------------------------------------
+
+Goal Assertion (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 94):
+Let x = 2 + buf_0.
+Assume {
+  Type: is_sint32(buf_0) /\ is_sint32(bufferlen_0) /\ is_sint32(buflim_0) /\
+      is_sint32(inlen_0) /\ is_sint32(inlen_1) /\ is_sint32(tmp_0) /\
+      is_sint32(bufferlen_0 - 2) /\ is_sint32(1 + buf_0) /\
+      is_sint32(2 + buflim_0).
+  (* Pre-condition *)
+  Have: 0 < inlen_1.
+  (* Pre-condition *)
+  Have: (3 + buflim_0) <= inlen_1.
+  (* Invariant *)
+  Have: (-1) <= buflim_0.
+  (* Invariant *)
+  Have: (-2) <= buflim_0.
+  (* Invariant *)
+  Have: 0 <= buflim_0.
+  (* Invariant *)
+  Have: 0 <= (buflim_0 + inlen_1).
+  (* Invariant *)
+  Have: 0 <= buf_0.
+  (* Invariant *)
+  Have: buf_0 < bufferlen_0.
+  (* Invariant *)
+  Have: x <= bufferlen_0.
+  (* Invariant *)
+  Have: 2 <= bufferlen_0.
+  (* Invariant *)
+  Have: (((3 + buf_0) <= bufferlen_0) -> (3 <= bufferlen_0)).
+  (* Invariant *)
+  Have: 0 < inlen_0.
+  (* Invariant *)
+  Have: ((x <= inlen_0) -> (buf_0 <= inlen_0)).
+  (* Invariant *)
+  Have: x <= (bufferlen_0 + inlen_0).
+  (* Then *)
+  Have: tmp_0 != 0.
+  (* Else *)
+  Have: x != bufferlen_0.
+  (* Assertion *)
+  Have: (-1) <= buf_0.
+}
+Prove: x <= inlen_0.
+Prover Z3 4.13.3 returns Timeout (Qed:13ms) (5s)
+Prover Alt-Ergo 2.6.2 returns Timeout (Qed:13ms) (5s)
+
+------------------------------------------------------------
+
+Goal Assertion (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 100):
+Prove: true.
+Prover Qed returns Valid (6ms)
+
+------------------------------------------------------------
+
+Goal Assertion (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 104):
+Prove: true.
+Prover Qed returns Valid (9ms)
+
+------------------------------------------------------------
+
+Goal Assertion (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 110):
+Prove: true.
+Prover Qed returns Valid (11ms)
+
+------------------------------------------------------------
+
+Goal Assertion (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 114):
+Prove: true.
+Prover Qed returns Valid (9ms)
+
+------------------------------------------------------------
+[wp:pedantic-assigns] /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c:2: Warning: 
+  No 'assigns' specification for function 'unknown_int'.
+  Callers assumptions might be imprecise.
+[wp:pedantic-assigns] /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c:9: Warning: 
+  No 'assigns' specification for function 'loopy_367'.
+  Callers assumptions might be imprecise.
+

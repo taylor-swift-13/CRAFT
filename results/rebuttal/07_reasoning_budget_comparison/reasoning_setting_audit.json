@@ -1,0 +1,48 @@
+{
+  "checked_utc": "2026-11-08T05:30:28.336996+00:00",
+  "required_reasoning_effort": "none",
+  "automatic_fallback_allowed": false,
+  "interpretation": "Reported zero reasoning tokens does not establish equivalence to none.",
+  "runs": {
+    "craft16_minimal_v2": {
+      "requested_reasoning_effort": "minimal",
+      "eligible_as_none_experiment": false,
+      "disposition": "Preserve original data; exclude from the none-only primary comparison.",
+      "successful_requests": 3328,
+      "usage_missing": 0,
+      "reasoning_field_missing": 0,
+      "positive_reasoning_requests": 0,
+      "reasoning_tokens": 0
+    },
+    "loopy_compose_refine_20261107": {
+      "requested_reasoning_effort": "minimal",
+      "eligible_as_none_experiment": false,
+      "disposition": "Preserve original data; exclude from the none-only primary comparison.",
+      "successful_requests": 13980,
+      "usage_missing": 0,
+      "reasoning_field_missing": 0,
+      "positive_reasoning_requests": 0,
+      "reasoning_tokens": 0
+    }
+  },
+  "strict_none_probes": [
+    {
+      "requested_model": "gpt-5-nano",
+      "reasoning_effort": "none",
+      "n": 1,
+      "max_completion_tokens": 128,
+      "automatic_retries": 0,
+      "http_status": 400,
+      "error": "Error code: 400 - {'error': {'message': \"Unsupported value: 'reasoning_effort' does not support 'none' with this model. Supported values are: 'minimal', 'low', 'medium', and 'high'. (request id: 20261108133037130396117Vj3TgQSp)\", 'type': 'invalid_request_error', 'param': 'reasoning_effort', 'code': 'unsupported_value'}}"
+    },
+    {
+      "requested_model": "gpt-5-nano-2025-08-07",
+      "reasoning_effort": "none",
+      "n": 1,
+      "max_completion_tokens": 128,
+      "automatic_retries": 0,
+      "http_status": 503,
+      "error": "Error code: 503 - {'error': {'message': 'The model service is temporarily unavailable. Please try again later. (request id: 20261108133037897179958DoWeTxrk)', 'type': 'new_api_error', 'param': '', 'code': ''}}"
+    }
+  ]
+}

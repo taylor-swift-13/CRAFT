@@ -1,0 +1,139 @@
+{
+  "key": "linear_214",
+  "suite": "linear",
+  "original_verified": false,
+  "survivor_count": 2,
+  "source_sha256": "b51500e29fac6e7a6448f3239132e6ae1ac3852fe416c431114a4db176da0f07",
+  "verification_sha256": "2d3ada56a03ae92dbc742588ad86473e08c426e7a78c1b2e2c7fbe9fa0a1185b",
+  "strength": {
+    "classification": "strictly_weaker",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "choice_4": "0",
+        "RETURN__uninitialized": "0",
+        "choice_1": "0",
+        "choice_3": "0",
+        "invalid": "1",
+        "exclusive": "0",
+        "unowned": "1",
+        "choice_2": "0",
+        "nonexclusive": "0",
+        "exclusive__entry": "0",
+        "RETURN": "0",
+        "invalid__entry": "0",
+        "nonexclusive__entry": "0",
+        "RETURN__entry": "0",
+        "unowned__entry": "0"
+      }
+    },
+    "I_not_target": {
+      "status": "sat",
+      "model": {
+        "choice_4": "0",
+        "RETURN__uninitialized": "0",
+        "choice_1": "0",
+        "choice_3": "0",
+        "invalid": "1",
+        "exclusive": "0",
+        "unowned": "-1",
+        "choice_2": "0",
+        "nonexclusive": "2",
+        "exclusive__entry": "0",
+        "RETURN": "0",
+        "invalid__entry": "0",
+        "nonexclusive__entry": "0",
+        "RETURN__entry": "0",
+        "unowned__entry": "0"
+      }
+    },
+    "target_not_I": {
+      "status": "unsat"
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "choice_4": "0",
+        "RETURN__uninitialized": "0",
+        "choice_1": "0",
+        "choice_3": "0",
+        "invalid": "1",
+        "exclusive": "0",
+        "unowned": "-1",
+        "choice_2": "0",
+        "nonexclusive": "2",
+        "exclusive__entry": "0",
+        "RETURN": "0",
+        "invalid__entry": "0",
+        "nonexclusive__entry": "0",
+        "RETURN__entry": "0",
+        "unowned__entry": "0"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "unknown_reachability",
+    "attempts": [
+      {
+        "variable": "exclusive",
+        "direction": 1,
+        "status": "sat"
+      },
+      {
+        "variable": "exclusive",
+        "direction": -1,
+        "status": "sat"
+      },
+      {
+        "variable": "invalid",
+        "direction": 1,
+        "status": "sat"
+      },
+      {
+        "variable": "invalid",
+        "direction": -1,
+        "status": "sat"
+      },
+      {
+        "variable": "nonexclusive",
+        "direction": 1,
+        "status": "sat"
+      },
+      {
+        "variable": "nonexclusive",
+        "direction": -1,
+        "status": "sat"
+      },
+      {
+        "variable": "unowned",
+        "direction": 1,
+        "status": "sat"
+      },
+      {
+        "variable": "unowned",
+        "direction": -1,
+        "status": "sat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "invalid": "i",
+    "unowned": "i",
+    "nonexclusive": "i",
+    "exclusive": "i",
+    "RETURN": "i"
+  },
+  "frame_variables": [
+    "RETURN"
+  ],
+  "seconds": 1.4304873943328857
+}

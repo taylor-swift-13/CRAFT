@@ -1,0 +1,165 @@
+[kernel] Parsing Loopy_392.baseline.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Warning: Missing RTE guards
+[wp] Loopy_392.baseline.c:23: Warning: 
+  Missing assigns clause (assigns 'everything' instead)
+[wp] 19 goals scheduled
+[wp] [Timeout] typed_loopy_392_assert (Qed 1ms) (Z3)
+[wp] Proved goals:   18 / 19
+  Qed:              17
+  Alt-Ergo 2.6.2:    1 (9ms)
+  Timeout:           1
+------------------------------------------------------------
+  Function loopy_392
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_392.baseline.c, line 13):
+Let x = k + n.
+Let x_1 = -k.
+Assume {
+  Type: is_sint32(k_1) /\ is_sint32(k) /\ is_sint32(n) /\ is_sint32(n_1) /\
+      is_sint32(k_1 - k) /\ is_sint32(1 + k_1 - k).
+  (* Pre-condition *)
+  Have: (0 < n_1) /\ (n_1 <= k_1).
+  (* Invariant *)
+  Have: k <= k_1.
+  (* Invariant *)
+  Have: k_1 <= x.
+  (* Invariant *)
+  Have: 0 < n.
+  (* Then *)
+  Have: k_1 < x.
+}
+Prove: k <= (1 + k_1).
+Prover Z3 4.13.3 returns Valid (Qed:2ms) (26279)
+Prover Alt-Ergo 2.6.2 returns Valid (Qed:2ms) (9ms) (18)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_392.baseline.c, line 13):
+Prove: true.
+Prover Qed returns Valid (0.69ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_392.baseline.c, line 14):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_392.baseline.c, line 14):
+Prove: true.
+Prover Qed returns Valid (0.53ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_392.baseline.c, line 15):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_392.baseline.c, line 15):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_392.baseline.c, line 16):
+Prove: true.
+Prover Qed returns Valid (0.86ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_392.baseline.c, line 16):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_392.baseline.c, line 17):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_392.baseline.c, line 17):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_392.baseline.c, line 18):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_392.baseline.c, line 18):
+Prove: true.
+Prover Qed returns Valid (0.71ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_392.baseline.c, line 19):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_392.baseline.c, line 19):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_392.baseline.c, line 20):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_392.baseline.c, line 20):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_392.baseline.c, line 21):
+Prove: true.
+Prover Qed returns Valid (0.88ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_392.baseline.c, line 21):
+Prove: true.
+Prover Qed returns Valid (0.75ms)
+
+------------------------------------------------------------
+
+Goal Assertion (file Loopy_392.baseline.c, line 28):
+Let x = k + n.
+Assume {
+  Type: is_sint32(k_1) /\ is_sint32(k) /\ is_sint32(n) /\ is_sint32(n_1) /\
+      is_sint32(k_1 - k).
+  (* Pre-condition *)
+  Have: (0 < n_1) /\ (n_1 <= k_1).
+  (* Invariant *)
+  Have: k <= k_1.
+  (* Invariant *)
+  Have: k_1 <= x.
+  (* Invariant *)
+  Have: 0 < n.
+  (* Else *)
+  Have: x <= k_1.
+}
+Prove: 0 <= k.
+Prover Z3 4.13.3 returns Timeout (Qed:1ms) (5s)
+Prover Alt-Ergo 2.6.2 returns Timeout (Qed:1ms) (5s)
+
+------------------------------------------------------------
+[wp:pedantic-assigns] Loopy_392.baseline.c:6: Warning: 
+  No 'assigns' specification for function 'loopy_392'.
+  Callers assumptions might be imprecise.
+

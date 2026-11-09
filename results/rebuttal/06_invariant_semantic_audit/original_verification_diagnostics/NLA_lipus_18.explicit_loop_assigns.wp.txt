@@ -1,0 +1,337 @@
+[kernel] Parsing NLA_lipus_18.explicit_loop_assigns.c (with preprocessing)
+[kernel:CERT:MSC:37] NLA_lipus_18.explicit_loop_assigns.c:30: Warning: 
+  Body of function main18 falls-through. Adding a return statement
+[wp] Running WP plugin...
+[wp] Warning: Missing RTE guards
+[wp] 34 goals scheduled
+[wp] [Timeout] typed_main18_assert (Qed 4ms) (Z3)
+[wp] Proved goals:   33 / 34
+  Qed:            30
+  Z3 4.13.3:       3
+  Timeout:         1
+------------------------------------------------------------
+  Function main18
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 13):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 13):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 14):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 14):
+Prove: true.
+Prover Qed returns Valid (0.54ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 15):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 15):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 16):
+Let x = 1 + c.
+Let x_1 = c * c.
+Let x_2 = c * x * (1 + (2 * c)) * ((3 * c) + (3 * x_1) - 1).
+Let x_3 = x_2 / 30.
+Let x_4 = (x * x * x * x) + x_3.
+Assume {
+  Type: is_sint32(c) /\ is_sint32(k) /\ is_sint32(x) /\ is_sint32(x_3) /\
+      is_sint32(x_4).
+  (* Pre-condition *)
+  Have: k <= 30.
+  (* Invariant *)
+  Have: 0 <= k.
+  (* Invariant *)
+  Have: 0 <= c.
+  (* Invariant *)
+  Have: c <= k.
+  (* Invariant *)
+  Have: (-29) <= x_2.
+  (* Invariant *)
+  Have: 0 <= x_1.
+  (* Invariant *)
+  Have: (c * c * c * c) <= x_3.
+  (* Then *)
+  Have: c < k.
+  (* Invariant *)
+  Have: (-1) <= c.
+}
+Prove: 0 <= x_4.
+Prover Z3 4.13.3 returns Valid (Qed:4ms) (20ms) (53360)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 16):
+Prove: true.
+Prover Qed returns Valid (0.74ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 17):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 17):
+Prove: true.
+Prover Qed returns Valid (0.79ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 18):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 18):
+Prove: true.
+Prover Qed returns Valid (0.86ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 19):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 19):
+Prove: true.
+Prover Qed returns Valid (0.74ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 20):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 20):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 21):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 21):
+Prove: true.
+Prover Qed returns Valid (0.56ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 22):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 22):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 23):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 23):
+Prove: true.
+Prover Qed returns Valid (0.95ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 24):
+Let x = 1 + y.
+Let x_1 = y * y.
+Let x_2 = y * x * (1 + (2 * y)) * ((3 * y) + (3 * x_1) - 1).
+Let x_3 = x_2 / 30.
+Let x_4 = (x * x * x * x) + x_3.
+Assume {
+  Type: is_sint32(k) /\ is_sint32(y) /\ is_sint32(x) /\ is_sint32(x_3) /\
+      is_sint32(x_4).
+  (* Pre-condition *)
+  Have: k <= 30.
+  (* Invariant *)
+  Have: 0 <= k.
+  (* Invariant *)
+  Have: 0 <= y.
+  (* Invariant *)
+  Have: y <= k.
+  (* Invariant *)
+  Have: (-29) <= x_2.
+  (* Invariant *)
+  Have: 0 <= x_1.
+  (* Invariant *)
+  Have: (y * y * y * y) <= x_3.
+  (* Then *)
+  Have: y < k.
+  (* Invariant *)
+  Have: (-1) <= y.
+  (* Invariant *)
+  Have: 0 <= x_4.
+}
+Prove: 0 <= (x * x).
+Prover Z3 4.13.3 returns Valid (Qed:5ms) (27543)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 24):
+Prove: true.
+Prover Qed returns Valid (0.92ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 25):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 25):
+Prove: true.
+Prover Qed returns Valid (0.62ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 26):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 26):
+Prove: true.
+Prover Qed returns Valid (0.56ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 27):
+Let x = 1 + c.
+Let x_1 = x * x.
+Let x_2 = 2 * c.
+Let x_3 = 3 * c.
+Let x_4 = c * c.
+Let x_5 = c * x * (1 + x_2) * (x_3 + (3 * x_4) - 1).
+Let x_6 = x_5 / 30.
+Let x_7 = (x * x * x * x) + x_6.
+Assume {
+  Type: is_sint32(c) /\ is_sint32(k) /\ is_sint32(x) /\ is_sint32(x_6) /\
+      is_sint32(x_7).
+  (* Pre-condition *)
+  Have: k <= 30.
+  (* Invariant *)
+  Have: 0 <= k.
+  (* Invariant *)
+  Have: 0 <= c.
+  (* Invariant *)
+  Have: c <= k.
+  (* Invariant *)
+  Have: (-29) <= x_5.
+  (* Invariant *)
+  Have: 0 <= x_4.
+  (* Invariant *)
+  Have: (c * c * c * c) <= x_6.
+  (* Then *)
+  Have: c < k.
+  (* Invariant *)
+  Have: (-1) <= c.
+  (* Invariant *)
+  Have: 0 <= x_7.
+  (* Invariant *)
+  Have: 0 <= x_1.
+}
+Prove: ((x * (2 + c) * (3 + x_2) * (2 + x_3 + (3 * x_1))) / 30) = x_7.
+Prover Z3 4.13.3 returns Valid (Qed:5ms) (30ms) (104973)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 27):
+Prove: true.
+Prover Qed returns Valid (0.69ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 28):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file NLA_lipus_18.explicit_loop_assigns.c, line 28):
+Prove: true.
+Prover Qed returns Valid (0.83ms)
+
+------------------------------------------------------------
+
+Goal Assertion (file NLA_lipus_18.explicit_loop_assigns.c, line 36):
+Let x = c * c * c * c.
+Let x_1 = c * c.
+Let x_2 = c * (1 + c) * (1 + (2 * c)) * ((3 * c) + (3 * x_1) - 1).
+Let x_3 = x_2 / 30.
+Assume {
+  Type: is_sint32(c) /\ is_sint32(k) /\ is_sint32(x_3).
+  (* Pre-condition *)
+  Have: k <= 30.
+  (* Invariant *)
+  Have: 0 <= k.
+  (* Invariant *)
+  Have: 0 <= c.
+  (* Invariant *)
+  Have: c <= k.
+  (* Invariant *)
+  Have: (-29) <= x_2.
+  (* Invariant *)
+  Have: 0 <= x_1.
+  (* Invariant *)
+  Have: x <= x_3.
+  (* Else *)
+  Have: k <= c.
+}
+Prove: (c + (30 * x_3))
+         = ((10 * (c * c * c)) + (15 * x) + (6 * (c * c * c * c * c))).
+Prover Z3 4.13.3 returns Timeout (Qed:4ms) (5s)
+Prover Alt-Ergo 2.6.2 returns Timeout (Qed:4ms) (5s)
+
+------------------------------------------------------------
+
+Goal Loop assigns (file NLA_lipus_18.explicit_loop_assigns.c, line 12):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+[wp:pedantic-assigns] NLA_lipus_18.explicit_loop_assigns.c:4: Warning: 
+  No 'assigns' specification for function 'main18'.
+  Callers assumptions might be imprecise.
+

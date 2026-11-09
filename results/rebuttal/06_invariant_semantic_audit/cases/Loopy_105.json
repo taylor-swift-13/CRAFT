@@ -1,0 +1,92 @@
+{
+  "key": "Loopy_105",
+  "suite": "Loopy",
+  "original_verified": true,
+  "survivor_count": 27,
+  "source_sha256": "70da8edf68f5c154332cc01ef8a914a43af0a6bafac4310f81bd5a60f865b823",
+  "verification_sha256": "c6b9a035c54bf7b7041c81e61ff602e121a7c81d0849a7e411daffb53bf98a40",
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "x": "1",
+        "n1__pre": "0",
+        "loop1__pre": "0",
+        "x__entry": "0",
+        "n1__entry": "0",
+        "loop1": "0",
+        "sn": "1",
+        "n1": "0",
+        "sn__entry": "0",
+        "loop1__entry": "0"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "x": "1",
+        "sn": "-1",
+        "n1__pre": "0",
+        "loop1__pre": "0",
+        "x__entry": "0",
+        "n1__entry": "0",
+        "loop1": "0",
+        "n1": "0",
+        "sn__entry": "0",
+        "loop1__entry": "0"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "x": "4294967295",
+        "sn": "-2",
+        "n1__pre": "0",
+        "loop1__pre": "0",
+        "x__entry": "0",
+        "n1__entry": "0",
+        "loop1": "0",
+        "n1": "0",
+        "sn__entry": "0",
+        "loop1__entry": "0"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "sn",
+    "rank_direction": 1,
+    "attempts": [
+      {
+        "variable": "sn",
+        "direction": 1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "loop1": "u",
+    "n1": "u",
+    "sn": "i",
+    "x": "u"
+  },
+  "frame_variables": [
+    "loop1",
+    "n1"
+  ],
+  "seconds": 0.20568418502807617
+}

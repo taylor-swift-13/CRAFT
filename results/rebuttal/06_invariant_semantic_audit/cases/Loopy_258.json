@@ -1,0 +1,79 @@
+{
+  "key": "Loopy_258",
+  "suite": "Loopy",
+  "original_verified": true,
+  "survivor_count": 20,
+  "source_sha256": "e934d4fe4a8c40288ec5927debb15862064b5de36167dff92bce2f8641efd75c",
+  "verification_sha256": "2f445ecd286f98cfe10cafe190668f379960da2eb40b598988045183c50cf962",
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "x": "499501",
+        "x__entry": "1",
+        "y__entry": "0",
+        "y": "1000"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "y__entry": "0",
+        "x": "1001",
+        "x__entry": "1",
+        "y": "1001"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "x": "0",
+        "y": "1000",
+        "x__entry": "1",
+        "y__entry": "0"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "y",
+    "rank_direction": 1,
+    "attempts": [
+      {
+        "variable": "x",
+        "direction": 1,
+        "status": "sat"
+      },
+      {
+        "variable": "x",
+        "direction": -1,
+        "status": "sat"
+      },
+      {
+        "variable": "y",
+        "direction": 1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "x": "i",
+    "y": "i"
+  },
+  "frame_variables": [],
+  "seconds": 0.5104918479919434
+}

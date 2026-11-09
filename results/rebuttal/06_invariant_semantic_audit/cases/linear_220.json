@@ -1,0 +1,100 @@
+{
+  "key": "linear_220",
+  "suite": "linear",
+  "original_verified": true,
+  "survivor_count": 50,
+  "source_sha256": "94fb0d7fe5c64c7ed1b67701b3fe367025bda33a376f5b1d330cc7f23e05d5c5",
+  "verification_sha256": "2c5fa6ee504d45e3e25a8102cf88f1a183377d4f2d7154de4f27eacf32c7837c",
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "y__entry": "1",
+        "x": "1",
+        "z__entry": "1",
+        "x__pre": "1",
+        "z": "0",
+        "z__pre": "1",
+        "x__entry": "1",
+        "y": "0",
+        "y__pre": "1",
+        "w__entry": "1",
+        "w": "1",
+        "w__pre": "1"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "z": "0",
+        "w__entry": "1",
+        "w__pre": "1",
+        "x": "0",
+        "x__entry": "1",
+        "x__pre": "1",
+        "z__pre": "1",
+        "z__entry": "1",
+        "y": "0",
+        "w": "0",
+        "y__entry": "1",
+        "y__pre": "1"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "y": "0",
+        "z": "0",
+        "x__entry": "1",
+        "x": "-1",
+        "x__pre": "1",
+        "z__pre": "1",
+        "w": "0",
+        "z__entry": "1",
+        "y__entry": "1",
+        "y__pre": "1",
+        "w__entry": "1",
+        "w__pre": "1"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_not_exact",
+    "inductive_lemma": "y <= entry",
+    "unreachable_state": {
+      "z__pre": "1",
+      "x": "1",
+      "z__entry": "1",
+      "y__entry": "1",
+      "z": "2",
+      "x__pre": "1",
+      "x__entry": "1",
+      "y": "2",
+      "y__pre": "1",
+      "w__entry": "1",
+      "w": "1",
+      "w__pre": "1"
+    }
+  },
+  "modeled_variables": {
+    "w": "i",
+    "x": "i",
+    "y": "i",
+    "z": "i"
+  },
+  "frame_variables": [],
+  "seconds": 0.2960677146911621
+}

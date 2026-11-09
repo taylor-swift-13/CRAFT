@@ -1,0 +1,57 @@
+{
+  "key": "Loopy_361",
+  "suite": "Loopy",
+  "original_verified": false,
+  "survivor_count": 6,
+  "source_sha256": "c4efe57445e13a8acca1115300004d175028bad652cc219b902e16cddf6b8341",
+  "verification_sha256": "218b0cf2cd359c6b8196e858203bc43afb038e8949ec818bd4dab726df1ee89b",
+  "strength": {
+    "classification": "strictly_weaker",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "x": "0",
+        "x__entry": "0"
+      }
+    },
+    "I_not_target": {
+      "status": "sat",
+      "model": {
+        "x": "1",
+        "x__entry": "0"
+      }
+    },
+    "target_not_I": {
+      "status": "unsat"
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "x": "1",
+        "x__entry": "0"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_not_exact",
+    "inductive_lemma": "x == 0 || (x - 0) % 2 == 0",
+    "unreachable_state": {
+      "x__entry": "0",
+      "x": "1"
+    }
+  },
+  "modeled_variables": {
+    "x": "u"
+  },
+  "frame_variables": [],
+  "seconds": 0.10347580909729004
+}

@@ -1,0 +1,92 @@
+{
+  "key": "NLA_lipus_40",
+  "suite": "NLA_lipus",
+  "original_verified": true,
+  "survivor_count": 31,
+  "source_sha256": "6c9ab3ded55021f4f8c1970b8976b3b2aeba9021c8e2c445ad9bd2afa92b7c45",
+  "verification_sha256": "09994007dc8c275ee76755b1da6945ea5242ec1227d5d24fb2f035eb27e92eda",
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "product__entry": "0",
+        "a__entry": "1",
+        "i": "1",
+        "b": "1",
+        "a__pre": "1",
+        "b__pre": "1",
+        "i__entry": "0",
+        "product": "1",
+        "b__entry": "1",
+        "a": "1"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "a__entry": "1",
+        "product__entry": "0",
+        "i": "1",
+        "b": "1",
+        "a__pre": "1",
+        "b__pre": "1",
+        "product": "-1",
+        "i__entry": "0",
+        "b__entry": "1",
+        "a": "1"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "a__entry": "2",
+        "i": "3",
+        "b": "2",
+        "i__entry": "0",
+        "a__pre": "2",
+        "b__pre": "2",
+        "product": "5",
+        "b__entry": "2",
+        "product__entry": "0",
+        "a": "2"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "i",
+    "rank_direction": 1,
+    "attempts": [
+      {
+        "variable": "i",
+        "direction": 1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "a": "i",
+    "b": "i",
+    "product": "i",
+    "i": "i"
+  },
+  "frame_variables": [
+    "a",
+    "b"
+  ],
+  "seconds": 3.116518020629883
+}

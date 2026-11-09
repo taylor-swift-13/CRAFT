@@ -1,0 +1,376 @@
+[kernel] Parsing /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c (with preprocessing)
+[kernel:typing:no-proto] /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c:10: Warning: 
+  Calling function unknown that is declared without prototype.
+  Its formals will be inferred from actual arguments
+[wp] Running WP plugin...
+[kernel:annot:missing-spec] /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c:3: Warning: 
+  Neither code nor specification for function unknown, generating default assigns from the prototype
+[wp] Warning: Missing RTE guards
+[wp] /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c:37: Warning: 
+  Missing assigns clause (assigns 'everything' instead)
+[wp] 47 goals scheduled
+[wp] [Timeout] typed_foo193_assert (Qed 6ms) (Z3)
+[wp] Proved goals:   46 / 47
+  Qed:              43
+  Alt-Ergo 2.6.2:    3 (17ms-20ms-26ms)
+  Timeout:           1
+------------------------------------------------------------
+  Function foo193
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 13):
+Prove: true.
+Prover Qed returns Valid (4ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 13):
+Prove: true.
+Prover Qed returns Valid (0.99ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 14):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 14):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 15):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 15):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 16):
+Assume {
+  Type: is_sint32(b) /\ is_sint32(b_1) /\ is_sint32(i) /\ is_sint32(i_1) /\
+      is_sint32(n) /\ is_sint32(n_1) /\ is_sint32(1 + i).
+  (* Pre-condition *)
+  Have: i_1 < n_1.
+  (* Invariant *)
+  Have: ((b_1 != 0) -> ((0 <= n_1) -> ((n_1 = 0) \/ (0 < n_1)))).
+  (* Invariant *)
+  Have: ((n_1 = 0) -> ((b_1 = 0) \/ (n_1 <= 0))).
+  (* Invariant *)
+  Have: 0 <= i.
+  (* Invariant *)
+  Have: ((0 < i) -> (i <= n)).
+  (* Invariant *)
+  Have: (i = 0) \/ (i = 1) \/ (2 <= i).
+  (* Invariant *)
+  Have: ((i != 0) -> (0 < i)).
+  (* Invariant *)
+  Have: n != i.
+  (* Then *)
+  Have: i < n.
+  (* Then *)
+  Have: b != 0.
+  (* Invariant *)
+  Have: (-1) <= i.
+}
+Prove: (i = (-1)) \/ (i = 0) \/ (0 < i).
+Prover Z3 4.13.3 returns Valid (Qed:5ms) (4874)
+Prover Alt-Ergo 2.6.2 returns Valid (Qed:5ms) (17ms) (34)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 16):
+Prove: true.
+Prover Qed returns Valid (0.98ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 17):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 17):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 18):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 18):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 19):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 19):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 20):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 20):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 21):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 21):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 22):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 22):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 23):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 23):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 24):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 24):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 25):
+Prove: true.
+Prover Qed returns Valid (0.81ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 25):
+Prove: true.
+Prover Qed returns Valid (0.63ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 26):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 26):
+Prove: true.
+Prover Qed returns Valid (0.78ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 27):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 27):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 28):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 28):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 29):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 29):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 30):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 30):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 31):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 31):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 32):
+Prove: true.
+Prover Qed returns Valid (0.82ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 32):
+Prove: true.
+Prover Qed returns Valid (0.50ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 33):
+Let x = 1 + i.
+Assume {
+  Type: is_sint32(b) /\ is_sint32(b_1) /\ is_sint32(i) /\ is_sint32(i_1) /\
+      is_sint32(n) /\ is_sint32(n_1) /\ is_sint32(x).
+  (* Goal *)
+  When: (b != 0) /\ (i < n).
+  (* Pre-condition *)
+  Have: i_1 < n_1.
+  (* Invariant *)
+  Have: ((b_1 != 0) -> ((0 <= n_1) -> ((n_1 = 0) \/ (0 < n_1)))).
+  (* Invariant *)
+  Have: ((n_1 = 0) -> ((b_1 = 0) \/ (n_1 <= 0))).
+  (* Invariant *)
+  Have: 0 <= i.
+  (* Invariant *)
+  Have: (i = 0) \/ (i = 1) \/ (2 <= i).
+  (* Invariant *)
+  Have: ((i != 0) -> (0 < i)).
+  (* Invariant *)
+  Have: (-1) <= i.
+  (* Invariant *)
+  Have: (i = (-1)) \/ (i = 0) \/ (0 < i).
+}
+Prove: (x = n) \/ ((2 + i) <= n).
+Prover Z3 4.13.3 returns Valid (Qed:5ms) (20ms) (27702)
+Prover Alt-Ergo 2.6.2 returns Valid (Qed:5ms) (26ms) (23)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 33):
+Assume {
+  Type: is_sint32(b) /\ is_sint32(i) /\ is_sint32(n).
+  (* Goal *)
+  When: (b != 0) /\ (0 <= n).
+  (* Pre-condition *)
+  Have: i < n.
+}
+Prove: (n = 0) \/ (0 < n).
+Prover Z3 4.13.3 returns Valid (Qed:2ms) (10ms) (25337)
+Prover Alt-Ergo 2.6.2 returns Valid (Qed:2ms) (17ms) (20)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 34):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 34):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 35):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 35):
+Prove: true.
+Prover Qed returns Valid (0.95ms)
+
+------------------------------------------------------------
+
+Goal Assertion (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 41):
+Assume {
+  Type: is_sint32(b) /\ is_sint32(i) /\ is_sint32(n) /\ is_sint32(n_1).
+  (* Residual *)
+  When: n <= 0.
+  (* Pre-condition *)
+  Have: i < n_1.
+  (* Invariant *)
+  Have: ((b != 0) -> ((0 <= n_1) -> ((n_1 = 0) \/ (0 < n_1)))).
+  (* Invariant *)
+  Have: ((n_1 = 0) -> ((b = 0) \/ (n_1 <= 0))).
+}
+Prove: false.
+Prover Z3 4.13.3 returns Timeout (Qed:6ms) (5s)
+Prover Alt-Ergo 2.6.2 returns Timeout (Qed:6ms) (5s)
+
+------------------------------------------------------------
+[wp:pedantic-assigns] /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c:3: Warning: 
+  No 'assigns' specification for function 'foo193'.
+  Callers assumptions might be imprecise.
+

@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "run": "gpt5nano_full832",
+  "ks": [
+    1,
+    4,
+    8
+  ],
+  "compose": {
+    "1": {
+      "linear": 180,
+      "all": 483,
+      "scored_linear": 316,
+      "scored": 832,
+      "NLA_lipus": 27,
+      "scored_NLA_lipus": 50,
+      "Loopy": 276,
+      "scored_Loopy": 466
+    },
+    "4": {
+      "linear": 243,
+      "all": 640,
+      "scored_linear": 316,
+      "scored": 832,
+      "NLA_lipus": 34,
+      "scored_NLA_lipus": 50,
+      "Loopy": 363,
+      "scored_Loopy": 466
+    },
+    "8": {
+      "linear": 250,
+      "all": 669,
+      "scored_linear": 316,
+      "scored": 832,
+      "NLA_lipus": 35,
+      "scored_NLA_lipus": 50,
+      "Loopy": 384,
+      "scored_Loopy": 466
+    }
+  },
+  "pass_estimate": {
+    "1": {
+      "all": 0.0
+    },
+    "4": {
+      "all": 0.0
+    },
+    "8": {
+      "all": 0.0
+    }
+  },
+  "pass_rows": 0,
+  "policy": "compose@k = union of the FIRST k archived rollouts -> inference filter chain -> target judge; pass@k = unbiased estimator over the archived per-rollout verdicts"
+}

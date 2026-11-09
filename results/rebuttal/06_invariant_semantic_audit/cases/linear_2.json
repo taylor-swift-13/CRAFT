@@ -1,0 +1,79 @@
+{
+  "key": "linear_2",
+  "suite": "linear",
+  "original_verified": true,
+  "survivor_count": 28,
+  "source_sha256": "f9814b9211e82b9ee73add219d7274135fcb6db9e2d815d82e63adb9952f9289",
+  "verification_sha256": "5ab1d316a5dfbb3b94349c658a53f8418ef157b9fa97bdb85331063932eea6e5",
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "x__entry": "1",
+        "y__entry": "0",
+        "x": "499501",
+        "y": "1000"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "x": "499502",
+        "x__entry": "1",
+        "y__entry": "0",
+        "y": "1000"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "x": "0",
+        "y": "1000",
+        "x__entry": "1",
+        "y__entry": "0"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "y",
+    "rank_direction": 1,
+    "attempts": [
+      {
+        "variable": "x",
+        "direction": 1,
+        "status": "sat"
+      },
+      {
+        "variable": "x",
+        "direction": -1,
+        "status": "sat"
+      },
+      {
+        "variable": "y",
+        "direction": 1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "x": "i",
+    "y": "i"
+  },
+  "frame_variables": [],
+  "seconds": 0.44953370094299316
+}

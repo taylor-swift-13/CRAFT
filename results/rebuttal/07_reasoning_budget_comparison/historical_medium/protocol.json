@@ -1,0 +1,72 @@
+{
+  "common_judge": {
+    "source": "untouched original program with generated loop invariants inserted",
+    "success": "syntax valid, every generated invariant inductive, and every original assertion goal proved",
+    "tool": "Frama-C/WP"
+  },
+  "dataset": {
+    "root": "src/input",
+    "suites": {
+      "Loopy": 466,
+      "NLA_lipus": 50,
+      "linear": 316
+    },
+    "total": 832
+  },
+  "generation": {
+    "max_completion_tokens": 16384,
+    "max_invariants_per_response": 20,
+    "temperature": 1.0,
+    "top_p": 1.0
+  },
+  "methods": {
+    "autospec": {
+      "definition": "native AutoSpec one-shot pipeline on a target-hidden source"
+    },
+    "clause2inv": {
+      "definition": "native Clause2Inv generate-combine-check pipeline with target-free pre/transition checks"
+    },
+    "loopgym_r1_houdini": {
+      "definition": "one target-hidden response using the LoopGym generation prompt, followed by Frama-C/WP Houdini",
+      "max_rerolls": 0,
+      "refine_rounds": 0,
+      "rollouts": 1
+    },
+    "loopgym_r1_no_houdini": {
+      "definition": "one target-hidden response using the LoopGym generation prompt; no candidate pruning, reroll, or refinement",
+      "max_rerolls": 0,
+      "refine_rounds": 0,
+      "rollouts": 1
+    },
+    "loopgym_r4_houdini": {
+      "definition": "four target-hidden responses per attempt; union then Frama-C/WP Houdini",
+      "max_rerolls": 1,
+      "refine_rounds": 0,
+      "rollouts": 4
+    },
+    "naive": {
+      "definition": "one target-hidden response using only the trivial baseline prompt; no LoopGym system prompt, inference framework, pruning, reroll, or refinement",
+      "rollouts": 1
+    },
+    "sespec": {
+      "definition": "native SESpec default pipeline on a target-hidden source"
+    }
+  },
+  "model": "gpt-5-nano",
+  "name": "loopgym-gpt5nano-full832-v2",
+  "negative_rejection": {
+    "no_negative_policy": "negative_rejection_score is null; binary_frama_c_validation is recorded separately",
+    "sampler_runs": 12,
+    "sampler_seed": 0,
+    "score": "fraction of synthetic negative trace groups rejected by standalone Houdini-surviving generated invariants"
+  },
+  "target_hiding": {
+    "final_judge_uses_original_source": true,
+    "hide_acsl_assert": true,
+    "hide_acsl_ensures": true,
+    "hide_c_assert": true,
+    "hide_verifier_assert": true,
+    "keep_requires": true,
+    "neutralize_error_label": true
+  }
+}

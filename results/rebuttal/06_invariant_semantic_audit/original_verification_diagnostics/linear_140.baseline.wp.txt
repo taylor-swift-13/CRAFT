@@ -1,0 +1,630 @@
+[kernel] Parsing linear_140.baseline.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Warning: Missing RTE guards
+[wp] linear_140.baseline.c:42: Warning: 
+  Missing assigns clause (assigns 'everything' instead)
+[wp] 51 goals scheduled
+[wp] [Timeout] typed_foo140_assert (Qed 11ms) (Z3)
+[wp] Proved goals:   50 / 51
+  Qed:              43
+  Alt-Ergo 2.6.2:    7 (7ms-10ms-15ms)
+  Timeout:           1
+------------------------------------------------------------
+  Function foo140
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file linear_140.baseline.c, line 16):
+Let x = -x1_1.
+Let x_1 = -x3_1.
+Let x_2 = x3_0 - x3_1.
+Let x_3 = x1_0 - x1_1.
+Let x_4 = 2 * v2_0.
+Let x_5 = 1 + t.
+Assume {
+  Type: is_sint32(t) /\ is_sint32(v2_0) /\ is_sint32(v3_0) /\
+      is_sint32(x1_0) /\ is_sint32(x1_1) /\ is_sint32(x2_0) /\
+      is_sint32(x2_1) /\ is_sint32(x3_0) /\ is_sint32(x3_1) /\
+      is_sint32(x_5) /\ is_sint32(x_3) /\ is_sint32(x2_0 - x2_1) /\
+      is_sint32(x_2) /\ is_sint32(x_4 - v3_0).
+  (* Pre-condition *)
+  Have: (v3_0 <= v2_0) /\ (0 <= v3_0) /\ ((-5) <= v2_0) /\ (v2_0 <= 5) /\
+      (x_4 <= (5 + v3_0)).
+  (* Invariant *)
+  Have: v3_0 <= x_4.
+  (* Invariant *)
+  Have: (100 + (t * x_3)) = x1_1.
+  (* Invariant *)
+  Have: (t * x_2) = (50 + x3_1).
+  (* Invariant *)
+  Have: 0 <= t.
+  (* Invariant *)
+  Have: (50 + (t * (x1_0 + x3_0 - x1_1 - x3_1))) = (x1_1 + x3_1).
+  (* Invariant *)
+  Have: (-100) <= x1_1.
+  (* Invariant *)
+  Have: (150 + x3_1 + (t * (x1_0 + x3_1 - x1_1 - x3_0))) = x1_1.
+  (* Invariant *)
+  Have: x1_1 <= x1_0.
+  (* Then *)
+  Have: x2_1 <= (5 + x2_0).
+  (* Then *)
+  Have: x2_0 <= (5 + x2_1).
+}
+Prove: (100 + (x_5 * x_3)) = x1_0.
+Prover Z3 4.13.3 returns Valid (Qed:6ms) (6690)
+Prover Alt-Ergo 2.6.2 returns Valid (Qed:6ms) (9ms) (528)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file linear_140.baseline.c, line 16):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file linear_140.baseline.c, line 17):
+Let x = 1 + t.
+Let x_1 = v1_0 * x.
+Let x_2 = -x3_1.
+Let x_3 = x3_0 - x3_1.
+Let x_4 = 2 * v2_0.
+Assume {
+  Type: is_sint32(t) /\ is_sint32(v1_0) /\ is_sint32(v2_0) /\
+      is_sint32(v3_0) /\ is_sint32(x2_0) /\ is_sint32(x2_1) /\
+      is_sint32(x3_0) /\ is_sint32(x3_1) /\ is_sint32(x) /\
+      is_sint32(x2_0 - x2_1) /\ is_sint32(x_3) /\ is_sint32(x_4 - v3_0) /\
+      is_sint32(100 + x_1) /\ is_sint32(100 + x_1 - v1_0).
+  (* Pre-condition *)
+  Have: (v3_0 <= v2_0) /\ (0 <= v3_0) /\ ((-5) <= v2_0) /\ (v2_0 <= 5) /\
+      (x_4 <= (5 + v3_0)).
+  (* Invariant *)
+  Have: v3_0 <= x_4.
+  (* Invariant *)
+  Have: x_1 = (v1_0 + (t * v1_0)).
+  (* Invariant *)
+  Have: (t * x_3) = (50 + x3_1).
+  (* Invariant *)
+  Have: 0 <= t.
+  (* Invariant *)
+  Have: (v1_0 + (t * (v1_0 + x3_0 - x3_1))) = (50 + x3_1 + x_1).
+  (* Invariant *)
+  Have: v1_0 <= (200 + x_1).
+  (* Invariant *)
+  Have: x_1 = (50 + v1_0 + x3_1 + (t * (v1_0 + x3_1 - x3_0))).
+  (* Invariant *)
+  Have: 0 <= v1_0.
+  (* Then *)
+  Have: x2_1 <= (5 + x2_0).
+  (* Then *)
+  Have: x2_0 <= (5 + x2_1).
+}
+Prove: (x * x_3) = (50 + x3_0).
+Prover Z3 4.13.3 returns Valid (Qed:7ms) (10ms) (6706)
+Prover Alt-Ergo 2.6.2 returns Valid (Qed:7ms) (8ms) (471)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file linear_140.baseline.c, line 17):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file linear_140.baseline.c, line 18):
+Prove: true.
+Prover Qed returns Valid (7ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file linear_140.baseline.c, line 18):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file linear_140.baseline.c, line 19):
+Let x = 1 + t.
+Let x_1 = v3_0 * x.
+Let x_2 = -v3_0.
+Let x_3 = v1_0 * x.
+Let x_4 = v1_0 + v3_0.
+Let x_5 = x_3 + x_1.
+Let x_6 = 2 * v2_0.
+Assume {
+  Type: is_sint32(t) /\ is_sint32(v1_0) /\ is_sint32(v2_0) /\
+      is_sint32(v3_0) /\ is_sint32(v3_1) /\ is_sint32(x2_0) /\
+      is_sint32(x2_1) /\ is_sint32(x) /\ is_sint32(x2_0 - x2_1) /\
+      is_sint32(x_6 - v3_1) /\ is_sint32(x_1 - 50) /\ is_sint32(100 + x_3) /\
+      is_sint32(x_1 - 50 - v3_0) /\ is_sint32(100 + x_3 - v1_0).
+  (* Pre-condition *)
+  Have: (v3_1 <= v2_0) /\ (0 <= v3_1) /\ ((-5) <= v2_0) /\ (v2_0 <= 5) /\
+      (x_6 <= (5 + v3_1)).
+  (* Invariant *)
+  Have: v3_1 <= x_6.
+  (* Invariant *)
+  Have: x_3 = (v1_0 + (t * v1_0)).
+  (* Invariant *)
+  Have: x_1 = (v3_0 + (t * v3_0)).
+  (* Invariant *)
+  Have: 0 <= t.
+  (* Invariant *)
+  Have: (v1_0 + v3_0 + (t * x_4)) = x_5.
+  (* Invariant *)
+  Have: v1_0 <= (200 + x_3).
+  (* Invariant *)
+  Have: (v1_0 + x_1 + (t * (v1_0 - v3_0))) = (v3_0 + x_3).
+  (* Invariant *)
+  Have: 0 <= v1_0.
+  (* Then *)
+  Have: x2_1 <= (5 + x2_0).
+  (* Then *)
+  Have: x2_0 <= (5 + x2_1).
+  (* Invariant *)
+  Have: (-1) <= t.
+}
+Prove: (x * x_4) = x_5.
+Prover Z3 4.13.3 returns Valid (Qed:7ms) (10ms) (6712)
+Prover Alt-Ergo 2.6.2 returns Valid (Qed:7ms) (8ms) (295)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file linear_140.baseline.c, line 19):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file linear_140.baseline.c, line 20):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file linear_140.baseline.c, line 20):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file linear_140.baseline.c, line 21):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file linear_140.baseline.c, line 21):
+Prove: true.
+Prover Qed returns Valid (0.83ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file linear_140.baseline.c, line 22):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file linear_140.baseline.c, line 22):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file linear_140.baseline.c, line 23):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file linear_140.baseline.c, line 23):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file linear_140.baseline.c, line 24):
+Let x = 1 + t.
+Let x_1 = v1_0 + v3_0.
+Let x_2 = x * x_1.
+Let x_3 = v3_0 * x.
+Let x_4 = -v3_0.
+Let x_5 = 200 + x_2.
+Let x_6 = 2 * v2_0.
+Let x_7 = -x_3.
+Assume {
+  Type: is_sint32(t) /\ is_sint32(v1_0) /\ is_sint32(v2_0) /\
+      is_sint32(v3_0) /\ is_sint32(v3_1) /\ is_sint32(x2_0) /\
+      is_sint32(x2_1) /\ is_sint32(x) /\ is_sint32(x2_0 - x2_1) /\
+      is_sint32(x_6 - v3_1) /\ is_sint32(x_3 - 50) /\
+      is_sint32(x_3 - 50 - v3_0) /\ is_sint32(100 + x_2 - x_3) /\
+      is_sint32(100 + x_2 - v1_0 - x_3).
+  (* Pre-condition *)
+  Have: (v3_1 <= v2_0) /\ (0 <= v3_1) /\ ((-5) <= v2_0) /\ (v2_0 <= 5) /\
+      (x_6 <= (5 + v3_1)).
+  (* Invariant *)
+  Have: v3_1 <= x_6.
+  (* Invariant *)
+  Have: x_2 = (v1_0 + (t * v1_0) + x_3).
+  (* Invariant *)
+  Have: x_3 = (v3_0 + (t * v3_0)).
+  (* Invariant *)
+  Have: 0 <= t.
+  (* Invariant *)
+  Have: x_2 = (v1_0 + v3_0 + (t * x_1)).
+  (* Invariant *)
+  Have: (v1_0 + x_3) <= x_5.
+  (* Invariant *)
+  Have: (v1_0 + (2 * x_3) + (t * (v1_0 - v3_0))) = (v3_0 + x_2).
+  (* Invariant *)
+  Have: 0 <= v1_0.
+  (* Then *)
+  Have: x2_1 <= (5 + x2_0).
+  (* Then *)
+  Have: x2_0 <= (5 + x2_1).
+  (* Invariant *)
+  Have: x_2 = ((v1_0 * x) + x_3).
+  (* Invariant *)
+  Have: (-1) <= t.
+}
+Prove: x_3 <= x_5.
+Prover Z3 4.13.3 returns Valid (Qed:8ms) (10ms) (29161)
+Prover Alt-Ergo 2.6.2 returns Valid (Qed:8ms) (8ms) (459)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file linear_140.baseline.c, line 24):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file linear_140.baseline.c, line 25):
+Prove: true.
+Prover Qed returns Valid (4ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file linear_140.baseline.c, line 25):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file linear_140.baseline.c, line 26):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file linear_140.baseline.c, line 26):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file linear_140.baseline.c, line 27):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file linear_140.baseline.c, line 27):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file linear_140.baseline.c, line 28):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file linear_140.baseline.c, line 28):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file linear_140.baseline.c, line 29):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file linear_140.baseline.c, line 29):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file linear_140.baseline.c, line 30):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file linear_140.baseline.c, line 30):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file linear_140.baseline.c, line 31):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file linear_140.baseline.c, line 31):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file linear_140.baseline.c, line 32):
+Let x = 1 + t.
+Let x_1 = v3_0 * x.
+Let x_2 = v1_0 + v3_0.
+Let x_3 = x * x_2.
+Let x_4 = 200 + x_3.
+Let x_5 = -v3_0.
+Let x_6 = 2 * v2_0.
+Let x_7 = -x2_1.
+Let x_8 = -x_1.
+Assume {
+  Type: is_sint32(t) /\ is_sint32(v1_0) /\ is_sint32(v2_0) /\
+      is_sint32(v3_0) /\ is_sint32(v3_1) /\ is_sint32(x2_0) /\
+      is_sint32(x2_1) /\ is_sint32(x) /\ is_sint32(x2_0 - x2_1) /\
+      is_sint32(x_6 - v3_1) /\ is_sint32(x2_0 - 1 - x2_1) /\
+      is_sint32(x_1 - 50) /\ is_sint32(x_1 - 50 - v3_0) /\
+      is_sint32(100 + x_3 - x_1) /\ is_sint32(100 + x_3 - v1_0 - x_1).
+  (* Goal *)
+  When: (50 + x_3) <= (2 * x2_0).
+  (* Pre-condition *)
+  Have: (v3_1 <= v2_0) /\ (0 <= v3_1) /\ ((-5) <= v2_0) /\ (v2_0 <= 5) /\
+      (x_6 <= (5 + v3_1)).
+  (* Invariant *)
+  Have: v3_1 <= x_6.
+  (* Invariant *)
+  Have: x_3 = (v1_0 + (t * v1_0) + x_1).
+  (* Invariant *)
+  Have: x_1 = (v3_0 + (t * v3_0)).
+  (* Invariant *)
+  Have: 0 <= t.
+  (* Invariant *)
+  Have: x_3 = (v1_0 + v3_0 + (t * x_2)).
+  (* Invariant *)
+  Have: (v1_0 + x_1) <= x_4.
+  (* Invariant *)
+  Have: (v1_0 + (2 * x_1) + (t * (v1_0 - v3_0))) = (v3_0 + x_3).
+  (* Invariant *)
+  Have: 0 <= v1_0.
+  (* Then *)
+  Have: x2_1 <= (5 + x2_0).
+  (* Then *)
+  Have: x2_0 <= (5 + x2_1).
+  (* Invariant *)
+  Have: x_3 = ((v1_0 * x) + x_1).
+  (* Invariant *)
+  Have: (-1) <= t.
+  (* Invariant *)
+  Have: x_1 <= x_4.
+}
+Prove: x2_0 <= (6 + x2_1).
+Prover Z3 4.13.3 returns Valid (Qed:13ms) (10ms) (29801)
+Prover Alt-Ergo 2.6.2 returns Valid (Qed:13ms) (13ms) (490)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file linear_140.baseline.c, line 32):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file linear_140.baseline.c, line 33):
+Let x = 1 + t.
+Let x_1 = v1_0 + v3_0.
+Let x_2 = x * x_1.
+Let x_3 = 50 + x_2.
+Let x_4 = 2 * x2_0.
+Let x_5 = v3_0 * x.
+Let x_6 = 200 + x_2.
+Let x_7 = 2 * x_5.
+Let x_8 = -v3_0.
+Let x_9 = v1_0 - v3_0.
+Let x_10 = 2 * v2_3.
+Let x_11 = -x_5.
+Assume {
+  Type: is_sint32(t) /\ is_sint32(v1_0) /\ is_sint32(v2_0) /\
+      is_sint32(v2_1) /\ is_sint32(v2_2) /\ is_sint32(v2_3) /\
+      is_sint32(v3_0) /\ is_sint32(v3_1) /\ is_sint32(x2_0) /\
+      is_sint32(x2_1) /\ is_sint32(x) /\ is_sint32(x2_0 - x2_1) /\
+      is_sint32(x_10 - v3_1) /\ is_sint32(x_5 - 50) /\
+      is_sint32(x_5 - 50 - v3_0) /\ is_sint32(100 + x_2 - x_5) /\
+      is_sint32(100 + x_2 - v1_0 - x_5).
+  (* Pre-condition *)
+  Have: (v3_1 <= v2_3) /\ (0 <= v3_1) /\ ((-5) <= v2_3) /\ (v2_3 <= 5) /\
+      (x_10 <= (5 + v3_1)).
+  (* Invariant *)
+  Have: v3_1 <= x_10.
+  (* Invariant *)
+  Have: x_2 = (v1_0 + (t * v1_0) + x_5).
+  (* Invariant *)
+  Have: x_5 = (v3_0 + (t * v3_0)).
+  (* Invariant *)
+  Have: 0 <= t.
+  (* Invariant *)
+  Have: x_2 = (v1_0 + v3_0 + (t * x_1)).
+  (* Invariant *)
+  Have: (v1_0 + x_5) <= x_6.
+  (* Invariant *)
+  Have: (v1_0 + x_7 + (t * x_9)) = (v3_0 + x_2).
+  (* Invariant *)
+  Have: 0 <= v1_0.
+  (* Then *)
+  Have: x2_1 <= (5 + x2_0).
+  (* Then *)
+  Have: x2_0 <= (5 + x2_1).
+  If x_3 <= x_4
+  Then { Have: (v2_1 + x2_1) = x2_0. Have: (1 + v2_0) = v2_1. }
+  Else {
+    Have: (v2_4 + x2_1) = x2_0.
+    If ((2 * v2_4) + (2 * x2_1)) <= x_3
+    Then { Have: v2_4 = v2_2. Have: (1 + v2_2) = v2_0. }
+    Else { Have: v2_4 = v2_0. }
+  }
+  (* Invariant *)
+  Have: x_2 = ((v1_0 * x) + x_5).
+  (* Invariant *)
+  Have: (-1) <= t.
+  (* Invariant *)
+  Have: x_5 <= x_6.
+  (* Invariant *)
+  Have: ((x_3 <= x_4) -> (v2_0 <= 5)).
+}
+Prove: x_2 = (x_7 + (x * x_9)).
+Prover Z3 4.13.3 returns Valid (Qed:63ms) (7180)
+Prover Alt-Ergo 2.6.2 returns Valid (Qed:63ms) (15ms) (548)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file linear_140.baseline.c, line 33):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file linear_140.baseline.c, line 34):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file linear_140.baseline.c, line 34):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file linear_140.baseline.c, line 35):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file linear_140.baseline.c, line 35):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file linear_140.baseline.c, line 36):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file linear_140.baseline.c, line 36):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file linear_140.baseline.c, line 37):
+Prove: true.
+Prover Qed returns Valid (4ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file linear_140.baseline.c, line 37):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file linear_140.baseline.c, line 38):
+Prove: true.
+Prover Qed returns Valid (4ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file linear_140.baseline.c, line 38):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file linear_140.baseline.c, line 39):
+Prove: true.
+Prover Qed returns Valid (4ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file linear_140.baseline.c, line 39):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file linear_140.baseline.c, line 40):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file linear_140.baseline.c, line 40):
+Let x = 2 * v2_0.
+Assume {
+  Type: is_sint32(v2_0) /\ is_sint32(v3_0) /\ is_sint32(x - v3_0).
+  (* Pre-condition *)
+  Have: (v3_0 <= v2_0) /\ (0 <= v3_0) /\ ((-5) <= v2_0) /\ (v2_0 <= 5) /\
+      (x <= (5 + v3_0)).
+}
+Prove: v3_0 <= x.
+Prover Z3 4.13.3 returns Valid (Qed:2ms) (10ms) (25566)
+Prover Alt-Ergo 2.6.2 returns Valid (Qed:2ms) (7ms) (15)
+
+------------------------------------------------------------
+
+Goal Assertion (file linear_140.baseline.c, line 56):
+Let x = t * v3_0.
+Let x_1 = 2 * x.
+Let x_2 = t * (v1_0 - v3_0).
+Let x_3 = x + x_2.
+Let x_4 = 2 * v2_1.
+Assume {
+  Type: is_sint32(t) /\ is_sint32(v1_0) /\ is_sint32(v2_0) /\
+      is_sint32(v2_1) /\ is_sint32(v3_0) /\ is_sint32(v3_1) /\
+      is_sint32(x2_0) /\ is_sint32(x_4 - v3_1) /\ is_sint32(x - 50) /\
+      is_sint32(100 + x + x_2).
+  (* Pre-condition *)
+  Have: (v3_1 <= v2_1) /\ (0 <= v3_1) /\ ((-5) <= v2_1) /\ (v2_1 <= 5) /\
+      (x_4 <= (5 + v3_1)).
+  (* Invariant *)
+  Have: v3_1 <= x_4.
+  (* Invariant *)
+  Have: (t * v1_0) = x_3.
+  (* Invariant *)
+  Have: 0 <= t.
+  (* Invariant *)
+  Have: (t * (v1_0 + v3_0)) = (x_1 + x_2).
+  (* Invariant *)
+  Have: (-200) <= x_3.
+  (* Invariant *)
+  Have: (((50 + x_1 + x_2) <= (2 * x2_0)) -> (v2_0 <= 5)).
+  (* Invariant *)
+  Have: 0 <= v1_0.
+  If (-5) <= v2_0
+  Then { (* Else *) Have: 6 <= v2_0. }
+}
+Prove: 0 <= v3_0.
+Prover Z3 4.13.3 returns Timeout (Qed:11ms) (5s)
+Prover Alt-Ergo 2.6.2 returns Timeout (Qed:11ms) (5s)
+
+------------------------------------------------------------
+[wp:pedantic-assigns] linear_140.baseline.c:2: Warning: 
+  No 'assigns' specification for function 'foo140'.
+  Callers assumptions might be imprecise.
+

@@ -1,0 +1,97 @@
+{
+  "key": "linear_191",
+  "suite": "linear",
+  "original_verified": true,
+  "survivor_count": 42,
+  "source_sha256": "54c09b6c1975f4a56014159772662604440278ee2909174eced1fa3cf3466ad6",
+  "verification_sha256": "374684a1fee04c3c8100f5d122870cef444fd22f198ee392819bd7d0cdf77252",
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "res__entry": "0",
+        "cnt__entry": "0",
+        "a": "0",
+        "b__entry": "0",
+        "b__pre": "0",
+        "a__pre": "0",
+        "cnt": "0",
+        "b": "0",
+        "res": "0",
+        "a__entry": "0"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "res__entry": "0",
+        "cnt__entry": "0",
+        "cnt": "-1",
+        "res": "0",
+        "a": "0",
+        "b": "0",
+        "b__entry": "0",
+        "a__entry": "0",
+        "a__pre": "0",
+        "b__pre": "0"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "res": "1",
+        "res__entry": "0",
+        "cnt__entry": "0",
+        "cnt": "0",
+        "a": "0",
+        "b": "0",
+        "b__entry": "0",
+        "a__entry": "0",
+        "b__pre": "0",
+        "a__pre": "0"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "cnt",
+    "rank_direction": -1,
+    "attempts": [
+      {
+        "variable": "cnt",
+        "direction": 1,
+        "status": "sat"
+      },
+      {
+        "variable": "cnt",
+        "direction": -1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "a": "i",
+    "b": "i",
+    "res": "i",
+    "cnt": "i"
+  },
+  "frame_variables": [
+    "a",
+    "b"
+  ],
+  "seconds": 0.2683396339416504
+}

@@ -2,7 +2,8 @@
 
 `results/` is the single source of truth for manuscript experiments. Data are
 grouped by the research questions in `paper/sections/experiments.tex`; paper
-figures read their inputs directly from these directories.
+figures read their inputs directly from these directories. Rebuttal additions
+are archived separately in `rebuttal/` and do not replace the original results.
 
 | Directory | Paper scope | Contents |
 | --- | --- | --- |
@@ -11,6 +12,7 @@ figures read their inputs directly from these directories.
 | `03_rq3_training_stages/` | RQ3 | SFT composition, RL data, and stage-comparison summaries |
 | `04_rq4_ablations/` | RQ4 | Reward, sampler, coverage, clause-cap, and target-visibility experiments |
 | `05_appendix_audits/` | Appendix | Data/protocol audits and formal case-study artifacts |
+| [`rebuttal/`](rebuttal/) | ICLR 2027 rebuttal | New experiments, offline analyses, costs, protocols, and evidence |
 
 Each section contains a local README. `paper_summaries/` stores compact,
 paper-facing tables and plotting inputs; model/run directories retain raw

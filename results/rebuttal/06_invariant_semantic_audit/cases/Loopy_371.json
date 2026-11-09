@@ -1,0 +1,84 @@
+{
+  "key": "Loopy_371",
+  "suite": "Loopy",
+  "original_verified": true,
+  "survivor_count": 23,
+  "source_sha256": "06236c48cd86b353d6c077a50a9d7245d427c9304832fac3c2000b71fc850834",
+  "verification_sha256": "68ea273ccc5cf620530a811f78e992e71039af04b4c6f45a64397f9d9ae736a2",
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "mid__pre": "1",
+        "lo": "1",
+        "hi": "1",
+        "lo__entry": "0",
+        "mid__entry": "1",
+        "hi__entry": "2",
+        "mid": "0"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "mid": "0",
+        "mid__pre": "1",
+        "hi": "1000001",
+        "lo": "1000001",
+        "lo__entry": "0",
+        "mid__entry": "1",
+        "hi__entry": "2"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "mid": "0",
+        "mid__pre": "1",
+        "lo": "0",
+        "hi": "-1",
+        "lo__entry": "0",
+        "mid__entry": "1",
+        "hi__entry": "2"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "hi",
+    "rank_direction": -1,
+    "attempts": [
+      {
+        "variable": "hi",
+        "direction": 1,
+        "status": "sat"
+      },
+      {
+        "variable": "hi",
+        "direction": -1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "mid": "i",
+    "lo": "i",
+    "hi": "i"
+  },
+  "frame_variables": [],
+  "seconds": 0.3165593147277832
+}

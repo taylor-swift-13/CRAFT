@@ -1,0 +1,1196 @@
+{
+  "strict_group": [
+    "Loopy_197",
+    "Loopy_36",
+    "Loopy_367",
+    "Loopy_392",
+    "NLA_lipus_16",
+    "NLA_lipus_18",
+    "linear_140"
+  ],
+  "exact_group": [
+    "Loopy_36",
+    "Loopy_367",
+    "Loopy_392",
+    "NLA_lipus_16",
+    "NLA_lipus_18",
+    "linear_192",
+    "linear_193",
+    "linear_248"
+  ],
+  "overlap": [
+    "Loopy_36",
+    "Loopy_367",
+    "Loopy_392",
+    "NLA_lipus_16",
+    "NLA_lipus_18"
+  ],
+  "unique_programs": 10,
+  "new_model_calls": 0,
+  "training_runs": 0,
+  "original_inputs_changed": false,
+  "scope": "Read-only original logs and audit certificates. Fresh WP baseline/frame diagnostics use isolated C copies; counterexamples use the audit semantics.",
+  "records": [
+    {
+      "key": "Loopy_197",
+      "in_strict_group": true,
+      "in_exact_group": false,
+      "original_verified": false,
+      "strength": "strictly_stronger",
+      "exact": "unknown_reachability",
+      "original_wp": {
+        "returncode": 0,
+        "summary": [
+          "Proved goals:   83 / 84"
+        ],
+        "failed": [
+          {
+            "header": "Assertion (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_197/rlinfer_xvh_wwlt/prog.c, line 86):",
+            "prove": "x <= inlen_0.",
+            "statuses": [
+              "Prover Z3 4.13.3 returns Timeout (Qed:10ms) (5s)",
+              "Prover Alt-Ergo 2.6.2 returns Timeout (Qed:10ms) (5s)"
+            ]
+          }
+        ],
+        "frame_warnings": [
+          "  Missing assigns clause (assigns 'everything' instead)",
+          "  No 'assigns' specification for function 'loopy_197'."
+        ]
+      },
+      "frame_variables": [
+        "__BLAST_NONDET",
+        "bufferlen",
+        "buflim",
+        "inlen"
+      ],
+      "original_source": "/tmp/craft16_minimal_20261107_v2/sources/Loopy_197.original.c",
+      "original_verification": "/tmp/craft16_minimal_20261107_v2/verification/Loopy_197.json",
+      "original_log": "/tmp/craft16_minimal_20261107_v2/logs/Loopy_197.jsonl.gz",
+      "source_sha256": "e014bf88cfc1c95350a09ff9d7e2f51b4154642d8a7e96886aedd0e8c80fe731",
+      "verification_sha256": "e246a769abdf6289436741a57e1b3c06e51cc90cb9e5258319b5780c3243453a",
+      "original_log_sha256": "840909a6c0e7c4eae4e4722277faba216bf77691f2b633fbcd2592fba274afd1",
+      "audit_certificate_replay": {
+        "key": "Loopy_197",
+        "queries": {
+          "strength_nonvacuity": {
+            "expected": "sat",
+            "actual": "sat"
+          },
+          "strength_forward": {
+            "expected": "unsat",
+            "actual": "unsat"
+          },
+          "strength_reverse": {
+            "expected": "sat",
+            "actual": "sat"
+          }
+        },
+        "pass": true
+      },
+      "diagnostic_loop_assigns": "buf, in",
+      "local_wp_diagnostics": {
+        "baseline": {
+          "seconds": 10.770250674977433,
+          "command": [
+            "frama-c",
+            "-wp",
+            "-wp-print",
+            "-wp-timeout",
+            "5",
+            "-wp-par",
+            "2",
+            "-wp-prover",
+            "alt-ergo,z3",
+            "-wp-model",
+            "Typed",
+            "-wp-prop=-@terminates,-missing_return",
+            "/mnt/c/Users/50635/Documents/Codex/2026-11-06/rebuttal-x20/outputs/semantic_original_discrepancy_audit/Loopy_197.baseline.c"
+          ],
+          "returncode": 0,
+          "summary": [
+            "Proved goals:   83 / 84"
+          ],
+          "failed": [
+            {
+              "header": "Assertion (file Loopy_197.baseline.c, line 86):",
+              "prove": "x <= inlen_0.",
+              "statuses": [
+                "Prover Z3 4.13.3 returns Timeout (Qed:6ms) (5s)",
+                "Prover Alt-Ergo 2.6.2 returns Timeout (Qed:6ms) (5s)"
+              ]
+            }
+          ],
+          "frame_warnings": [
+            "  Missing assigns clause (assigns 'everything' instead)",
+            "  No 'assigns' specification for function 'loopy_197'."
+          ]
+        },
+        "explicit_loop_assigns": {
+          "seconds": 5.8303843479952775,
+          "command": [
+            "frama-c",
+            "-wp",
+            "-wp-print",
+            "-wp-timeout",
+            "5",
+            "-wp-par",
+            "2",
+            "-wp-prover",
+            "alt-ergo,z3",
+            "-wp-model",
+            "Typed",
+            "-wp-prop=-@terminates,-missing_return",
+            "/mnt/c/Users/50635/Documents/Codex/2026-11-06/rebuttal-x20/outputs/semantic_original_discrepancy_audit/Loopy_197.explicit_loop_assigns.c"
+          ],
+          "returncode": 0,
+          "summary": [
+            "Proved goals:   85 / 85"
+          ],
+          "failed": [],
+          "frame_warnings": [
+            "  No 'assigns' specification for function 'loopy_197'."
+          ]
+        }
+      }
+    },
+    {
+      "key": "Loopy_36",
+      "in_strict_group": true,
+      "in_exact_group": true,
+      "original_verified": false,
+      "strength": "strictly_stronger",
+      "exact": "proven_exact",
+      "original_wp": {
+        "returncode": 0,
+        "summary": [
+          "Proved goals:   79 / 80"
+        ],
+        "failed": [
+          {
+            "header": "Assertion (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_36/rlinfer_v6ufra1g/prog.c, line 86):",
+            "prove": "x <= inlen_0.",
+            "statuses": [
+              "Prover Z3 4.13.3 returns Timeout (Qed:9ms) (5s)",
+              "Prover Alt-Ergo 2.6.2 returns Timeout (Qed:9ms) (5s)"
+            ]
+          }
+        ],
+        "frame_warnings": [
+          "  Missing assigns clause (assigns 'everything' instead)",
+          "  No 'assigns' specification for function 'unknown'.",
+          "  No 'assigns' specification for function 'loopy_36'."
+        ]
+      },
+      "frame_variables": [
+        "bufferlen",
+        "buflim",
+        "inlen"
+      ],
+      "original_source": "/tmp/craft16_minimal_20261107_v2/sources/Loopy_36.original.c",
+      "original_verification": "/tmp/craft16_minimal_20261107_v2/verification/Loopy_36.json",
+      "original_log": "/tmp/craft16_minimal_20261107_v2/logs/Loopy_36.jsonl.gz",
+      "source_sha256": "a9bc3cb35ee62cfd83699bb60be601ba5572c6ee7516517f52dade6958aeaab0",
+      "verification_sha256": "4ec0ebe85fe84c186a09fbd28053703dbcfee02da8017485699d8f48c43bfc76",
+      "original_log_sha256": "ed306c6106bfc65265686a9f454191abc32c0d1f683e70c571822135160c0748",
+      "audit_certificate_replay": {
+        "key": "Loopy_36",
+        "queries": {
+          "strength_nonvacuity": {
+            "expected": "sat",
+            "actual": "sat"
+          },
+          "strength_forward": {
+            "expected": "unsat",
+            "actual": "unsat"
+          },
+          "strength_reverse": {
+            "expected": "sat",
+            "actual": "sat"
+          },
+          "initialization": {
+            "expected": "unsat",
+            "actual": "unsat"
+          },
+          "preservation": {
+            "expected": "unsat",
+            "actual": "unsat"
+          },
+          "exact_completeness": {
+            "expected": "unsat",
+            "actual": "unsat"
+          }
+        },
+        "pass": true
+      },
+      "diagnostic_loop_assigns": "buf, in",
+      "local_wp_diagnostics": {
+        "baseline": {
+          "seconds": 10.572351115988567,
+          "command": [
+            "frama-c",
+            "-wp",
+            "-wp-print",
+            "-wp-timeout",
+            "5",
+            "-wp-par",
+            "2",
+            "-wp-prover",
+            "alt-ergo,z3",
+            "-wp-model",
+            "Typed",
+            "-wp-prop=-@terminates,-missing_return",
+            "/mnt/c/Users/50635/Documents/Codex/2026-11-06/rebuttal-x20/outputs/semantic_original_discrepancy_audit/Loopy_36.baseline.c"
+          ],
+          "returncode": 0,
+          "summary": [
+            "Proved goals:   79 / 80"
+          ],
+          "failed": [
+            {
+              "header": "Assertion (file Loopy_36.baseline.c, line 86):",
+              "prove": "x <= inlen_0.",
+              "statuses": [
+                "Prover Z3 4.13.3 returns Timeout (Qed:6ms) (5s)",
+                "Prover Alt-Ergo 2.6.2 returns Timeout (Qed:6ms) (5s)"
+              ]
+            }
+          ],
+          "frame_warnings": [
+            "  Missing assigns clause (assigns 'everything' instead)",
+            "  No 'assigns' specification for function 'unknown'.",
+            "  No 'assigns' specification for function 'loopy_36'."
+          ]
+        },
+        "explicit_loop_assigns": {
+          "seconds": 5.726988819020335,
+          "command": [
+            "frama-c",
+            "-wp",
+            "-wp-print",
+            "-wp-timeout",
+            "5",
+            "-wp-par",
+            "2",
+            "-wp-prover",
+            "alt-ergo,z3",
+            "-wp-model",
+            "Typed",
+            "-wp-prop=-@terminates,-missing_return",
+            "/mnt/c/Users/50635/Documents/Codex/2026-11-06/rebuttal-x20/outputs/semantic_original_discrepancy_audit/Loopy_36.explicit_loop_assigns.c"
+          ],
+          "returncode": 0,
+          "summary": [
+            "Proved goals:   82 / 82"
+          ],
+          "failed": [],
+          "frame_warnings": [
+            "  No 'assigns' specification for function 'unknown'.",
+            "  No 'assigns' specification for function 'loopy_36'."
+          ]
+        }
+      }
+    },
+    {
+      "key": "Loopy_367",
+      "in_strict_group": true,
+      "in_exact_group": true,
+      "original_verified": false,
+      "strength": "strictly_stronger",
+      "exact": "proven_exact",
+      "original_wp": {
+        "returncode": 0,
+        "summary": [
+          "Proved goals:  101 / 102"
+        ],
+        "failed": [
+          {
+            "header": "Assertion (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_367/rlinfer_8w5b2_fs/prog.c, line 94):",
+            "prove": "x <= inlen_0.",
+            "statuses": [
+              "Prover Z3 4.13.3 returns Timeout (Qed:13ms) (5s)",
+              "Prover Alt-Ergo 2.6.2 returns Timeout (Qed:13ms) (5s)"
+            ]
+          }
+        ],
+        "frame_warnings": [
+          "  Missing assigns clause (assigns 'everything' instead)",
+          "  No 'assigns' specification for function 'unknown_int'.",
+          "  No 'assigns' specification for function 'loopy_367'."
+        ]
+      },
+      "frame_variables": [
+        "bufferlen",
+        "buflim",
+        "inlen"
+      ],
+      "original_source": "/tmp/craft16_minimal_20261107_v2/sources/Loopy_367.original.c",
+      "original_verification": "/tmp/craft16_minimal_20261107_v2/verification/Loopy_367.json",
+      "original_log": "/tmp/craft16_minimal_20261107_v2/logs/Loopy_367.jsonl.gz",
+      "source_sha256": "53798d1266684dd4775a2213dc464f3ac8f0f8718d6f1584984cc359ee805f0e",
+      "verification_sha256": "f129360bd54ef9fbd7cb15acf26566326685ccf223a536f42ac8fc9968f54ce4",
+      "original_log_sha256": "bcdf8cc301ef4c51aaa79f4c33a6ddbc2af059cdd00dfad85f36f12b019320b9",
+      "audit_certificate_replay": {
+        "key": "Loopy_367",
+        "queries": {
+          "strength_nonvacuity": {
+            "expected": "sat",
+            "actual": "sat"
+          },
+          "strength_forward": {
+            "expected": "unsat",
+            "actual": "unsat"
+          },
+          "strength_reverse": {
+            "expected": "sat",
+            "actual": "sat"
+          },
+          "initialization": {
+            "expected": "unsat",
+            "actual": "unsat"
+          },
+          "preservation": {
+            "expected": "unsat",
+            "actual": "unsat"
+          },
+          "exact_completeness": {
+            "expected": "unsat",
+            "actual": "unsat"
+          }
+        },
+        "pass": true
+      },
+      "diagnostic_loop_assigns": "buf, in",
+      "local_wp_diagnostics": {
+        "baseline": {
+          "seconds": 11.354904078005347,
+          "command": [
+            "frama-c",
+            "-wp",
+            "-wp-print",
+            "-wp-timeout",
+            "5",
+            "-wp-par",
+            "2",
+            "-wp-prover",
+            "alt-ergo,z3",
+            "-wp-model",
+            "Typed",
+            "-wp-prop=-@terminates,-missing_return",
+            "/mnt/c/Users/50635/Documents/Codex/2026-11-06/rebuttal-x20/outputs/semantic_original_discrepancy_audit/Loopy_367.baseline.c"
+          ],
+          "returncode": 0,
+          "summary": [
+            "Proved goals:  101 / 102"
+          ],
+          "failed": [
+            {
+              "header": "Assertion (file Loopy_367.baseline.c, line 94):",
+              "prove": "x <= inlen_0.",
+              "statuses": [
+                "Prover Z3 4.13.3 returns Timeout (Qed:5ms) (5s)",
+                "Prover Alt-Ergo 2.6.2 returns Timeout (Qed:5ms) (5s)"
+              ]
+            }
+          ],
+          "frame_warnings": [
+            "  Missing assigns clause (assigns 'everything' instead)",
+            "  No 'assigns' specification for function 'unknown_int'.",
+            "  No 'assigns' specification for function 'loopy_367'."
+          ]
+        },
+        "explicit_loop_assigns": {
+          "seconds": 6.493486110994127,
+          "command": [
+            "frama-c",
+            "-wp",
+            "-wp-print",
+            "-wp-timeout",
+            "5",
+            "-wp-par",
+            "2",
+            "-wp-prover",
+            "alt-ergo,z3",
+            "-wp-model",
+            "Typed",
+            "-wp-prop=-@terminates,-missing_return",
+            "/mnt/c/Users/50635/Documents/Codex/2026-11-06/rebuttal-x20/outputs/semantic_original_discrepancy_audit/Loopy_367.explicit_loop_assigns.c"
+          ],
+          "returncode": 0,
+          "summary": [
+            "Proved goals:  104 / 104"
+          ],
+          "failed": [],
+          "frame_warnings": [
+            "  No 'assigns' specification for function 'unknown_int'.",
+            "  No 'assigns' specification for function 'loopy_367'."
+          ]
+        }
+      }
+    },
+    {
+      "key": "Loopy_392",
+      "in_strict_group": true,
+      "in_exact_group": true,
+      "original_verified": false,
+      "strength": "strictly_stronger",
+      "exact": "proven_exact",
+      "original_wp": {
+        "returncode": 0,
+        "summary": [
+          "Proved goals:   18 / 19"
+        ],
+        "failed": [
+          {
+            "header": "Assertion (file /tmp/craft16_minimal_20261107_v2/scratch/Loopy_392/rlinfer_duzbbwd7/prog.c, line 28):",
+            "prove": "0 <= k.",
+            "statuses": [
+              "Prover Z3 4.13.3 returns Timeout (Qed:2ms) (5s)",
+              "Prover Alt-Ergo 2.6.2 returns Timeout (Qed:2ms) (5s)"
+            ]
+          }
+        ],
+        "frame_warnings": [
+          "  Missing assigns clause (assigns 'everything' instead)",
+          "  No 'assigns' specification for function 'loopy_392'."
+        ]
+      },
+      "frame_variables": [
+        "n"
+      ],
+      "original_source": "/tmp/craft16_minimal_20261107_v2/sources/Loopy_392.original.c",
+      "original_verification": "/tmp/craft16_minimal_20261107_v2/verification/Loopy_392.json",
+      "original_log": "/tmp/craft16_minimal_20261107_v2/logs/Loopy_392.jsonl.gz",
+      "source_sha256": "dc0b58c402ed41ec91b744a1c98440319b94257cb4e7d288dd9a9bced378da65",
+      "verification_sha256": "d963ced1fe4d06253fc46b12c4f3bebb2d417f786d254866eb552d3a01073583",
+      "original_log_sha256": "43fd0e7b79527c386626b406e3d125e82cf5bd3fff75b5e9fc455b7b139dafc8",
+      "audit_certificate_replay": {
+        "key": "Loopy_392",
+        "queries": {
+          "strength_nonvacuity": {
+            "expected": "sat",
+            "actual": "sat"
+          },
+          "strength_forward": {
+            "expected": "unsat",
+            "actual": "unsat"
+          },
+          "strength_reverse": {
+            "expected": "sat",
+            "actual": "sat"
+          },
+          "initialization": {
+            "expected": "unsat",
+            "actual": "unsat"
+          },
+          "preservation": {
+            "expected": "unsat",
+            "actual": "unsat"
+          },
+          "exact_completeness": {
+            "expected": "unsat",
+            "actual": "unsat"
+          }
+        },
+        "pass": true
+      },
+      "diagnostic_loop_assigns": "j, k",
+      "local_wp_diagnostics": {
+        "baseline": {
+          "seconds": 6.764479257981293,
+          "command": [
+            "frama-c",
+            "-wp",
+            "-wp-print",
+            "-wp-timeout",
+            "5",
+            "-wp-par",
+            "2",
+            "-wp-prover",
+            "alt-ergo,z3",
+            "-wp-model",
+            "Typed",
+            "-wp-prop=-@terminates,-missing_return",
+            "/mnt/c/Users/50635/Documents/Codex/2026-11-06/rebuttal-x20/outputs/semantic_original_discrepancy_audit/Loopy_392.baseline.c"
+          ],
+          "returncode": 0,
+          "summary": [
+            "Proved goals:   18 / 19"
+          ],
+          "failed": [
+            {
+              "header": "Assertion (file Loopy_392.baseline.c, line 28):",
+              "prove": "0 <= k.",
+              "statuses": [
+                "Prover Z3 4.13.3 returns Timeout (Qed:1ms) (5s)",
+                "Prover Alt-Ergo 2.6.2 returns Timeout (Qed:1ms) (5s)"
+              ]
+            }
+          ],
+          "frame_warnings": [
+            "  Missing assigns clause (assigns 'everything' instead)",
+            "  No 'assigns' specification for function 'loopy_392'."
+          ]
+        },
+        "explicit_loop_assigns": {
+          "seconds": 1.7072095129988156,
+          "command": [
+            "frama-c",
+            "-wp",
+            "-wp-print",
+            "-wp-timeout",
+            "5",
+            "-wp-par",
+            "2",
+            "-wp-prover",
+            "alt-ergo,z3",
+            "-wp-model",
+            "Typed",
+            "-wp-prop=-@terminates,-missing_return",
+            "/mnt/c/Users/50635/Documents/Codex/2026-11-06/rebuttal-x20/outputs/semantic_original_discrepancy_audit/Loopy_392.explicit_loop_assigns.c"
+          ],
+          "returncode": 0,
+          "summary": [
+            "Proved goals:   20 / 20"
+          ],
+          "failed": [],
+          "frame_warnings": [
+            "  No 'assigns' specification for function 'loopy_392'."
+          ]
+        }
+      }
+    },
+    {
+      "key": "NLA_lipus_16",
+      "in_strict_group": true,
+      "in_exact_group": true,
+      "original_verified": false,
+      "strength": "strictly_stronger",
+      "exact": "proven_exact",
+      "original_wp": {
+        "returncode": 0,
+        "summary": [
+          "Proved goals:   44 / 45"
+        ],
+        "failed": [
+          {
+            "header": "Assertion (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_16/rlinfer_herthpbc/prog.c, line 41):",
+            "prove": "(c + (3 * (c * c)) + (2 * (c * c * c))) = (6 * x_1).",
+            "statuses": [
+              "Prover Z3 4.13.3 returns Timeout (Qed:7ms) (5s)",
+              "Prover Alt-Ergo 2.6.2 returns Timeout (Qed:7ms) (5s)"
+            ]
+          }
+        ],
+        "frame_warnings": [
+          "  Missing assigns clause (assigns 'everything' instead)",
+          "  No 'assigns' specification for function 'main16'."
+        ]
+      },
+      "frame_variables": [
+        "k"
+      ],
+      "original_source": "/tmp/craft16_minimal_20261107_v2/sources/NLA_lipus_16.original.c",
+      "original_verification": "/tmp/craft16_minimal_20261107_v2/verification/NLA_lipus_16.json",
+      "original_log": "/tmp/craft16_minimal_20261107_v2/logs/NLA_lipus_16.jsonl.gz",
+      "source_sha256": "909d5020a912b81a46bf9a17b5190560a60086a869099a930b100ddd1f9fade2",
+      "verification_sha256": "b8126c2a44df100bdc92e635f785925d11e7d10519df288b7a8b0abfd020c8a4",
+      "original_log_sha256": "6c73b571062e981b50a747af74c2118253b9d6f65672da39b806b307201c3475",
+      "audit_certificate_replay": {
+        "key": "NLA_lipus_16",
+        "queries": {
+          "strength_nonvacuity": {
+            "expected": "sat",
+            "actual": "sat"
+          },
+          "strength_forward": {
+            "expected": "unsat",
+            "actual": "unsat"
+          },
+          "strength_reverse": {
+            "expected": "sat",
+            "actual": "sat"
+          },
+          "initialization": {
+            "expected": "unsat",
+            "actual": "unsat"
+          },
+          "preservation": {
+            "expected": "unsat",
+            "actual": "unsat"
+          },
+          "exact_completeness": {
+            "expected": "unsat",
+            "actual": "unsat"
+          }
+        },
+        "pass": true
+      },
+      "diagnostic_loop_assigns": "c, x, y",
+      "local_wp_diagnostics": {
+        "baseline": {
+          "seconds": 9.614218092989177,
+          "command": [
+            "frama-c",
+            "-wp",
+            "-wp-print",
+            "-wp-timeout",
+            "5",
+            "-wp-par",
+            "2",
+            "-wp-prover",
+            "alt-ergo,z3",
+            "-wp-model",
+            "Typed",
+            "-wp-prop=-@terminates,-missing_return",
+            "/mnt/c/Users/50635/Documents/Codex/2026-11-06/rebuttal-x20/outputs/semantic_original_discrepancy_audit/NLA_lipus_16.baseline.c"
+          ],
+          "returncode": 0,
+          "summary": [
+            "Proved goals:   44 / 45"
+          ],
+          "failed": [
+            {
+              "header": "Assertion (file NLA_lipus_16.baseline.c, line 41):",
+              "prove": "(c + (3 * (c * c)) + (2 * (c * c * c))) = (6 * x_1).",
+              "statuses": [
+                "Prover Z3 4.13.3 returns Timeout (Qed:5ms) (5s)",
+                "Prover Alt-Ergo 2.6.2 returns Timeout (Qed:5ms) (5s)"
+              ]
+            }
+          ],
+          "frame_warnings": [
+            "  Missing assigns clause (assigns 'everything' instead)",
+            "  No 'assigns' specification for function 'main16'."
+          ]
+        },
+        "explicit_loop_assigns": {
+          "seconds": 5.202488254988566,
+          "command": [
+            "frama-c",
+            "-wp",
+            "-wp-print",
+            "-wp-timeout",
+            "5",
+            "-wp-par",
+            "2",
+            "-wp-prover",
+            "alt-ergo,z3",
+            "-wp-model",
+            "Typed",
+            "-wp-prop=-@terminates,-missing_return",
+            "/mnt/c/Users/50635/Documents/Codex/2026-11-06/rebuttal-x20/outputs/semantic_original_discrepancy_audit/NLA_lipus_16.explicit_loop_assigns.c"
+          ],
+          "returncode": 0,
+          "summary": [
+            "Proved goals:   46 / 46"
+          ],
+          "failed": [],
+          "frame_warnings": [
+            "  No 'assigns' specification for function 'main16'."
+          ]
+        }
+      }
+    },
+    {
+      "key": "NLA_lipus_18",
+      "in_strict_group": true,
+      "in_exact_group": true,
+      "original_verified": false,
+      "strength": "strictly_stronger",
+      "exact": "proven_exact",
+      "original_wp": {
+        "returncode": 0,
+        "summary": [
+          "Proved goals:   32 / 33"
+        ],
+        "failed": [
+          {
+            "header": "Assertion (file /tmp/craft16_minimal_20261107_v2/scratch/NLA_lipus_18/rlinfer_4ahm4pof/prog.c, line 35):",
+            "prove": "(c + (30 * x_3))\n         = ((10 * (c * c * c)) + (15 * x) + (6 * (c * c * c * c * c))).",
+            "statuses": [
+              "Prover Z3 4.13.3 returns Timeout (Qed:6ms) (5s)",
+              "Prover Alt-Ergo 2.6.2 returns Timeout (Qed:6ms) (5s)"
+            ]
+          }
+        ],
+        "frame_warnings": [
+          "  Missing assigns clause (assigns 'everything' instead)",
+          "  No 'assigns' specification for function 'main18'."
+        ]
+      },
+      "frame_variables": [
+        "k"
+      ],
+      "original_source": "/tmp/craft16_minimal_20261107_v2/sources/NLA_lipus_18.original.c",
+      "original_verification": "/tmp/craft16_minimal_20261107_v2/verification/NLA_lipus_18.json",
+      "original_log": "/tmp/craft16_minimal_20261107_v2/logs/NLA_lipus_18.jsonl.gz",
+      "source_sha256": "552e98495eebea5cc6df6c3b7221f8b9b6b76800ce4803d4e6197b73c4ba6eb5",
+      "verification_sha256": "42163857b002842ef5a625e2a72acc9d04f13067dd8b925130dc08e9e753ee29",
+      "original_log_sha256": "2f6937dc2793723cacfe2530648e0bff1622d9561f9d9884b6f17925a842f06a",
+      "audit_certificate_replay": {
+        "key": "NLA_lipus_18",
+        "queries": {
+          "strength_nonvacuity": {
+            "expected": "sat",
+            "actual": "sat"
+          },
+          "strength_forward": {
+            "expected": "unsat",
+            "actual": "unsat"
+          },
+          "strength_reverse": {
+            "expected": "sat",
+            "actual": "sat"
+          },
+          "initialization": {
+            "expected": "unsat",
+            "actual": "unsat"
+          },
+          "preservation": {
+            "expected": "unsat",
+            "actual": "unsat"
+          },
+          "exact_completeness": {
+            "expected": "unsat",
+            "actual": "unsat"
+          }
+        },
+        "pass": true
+      },
+      "diagnostic_loop_assigns": "c, x, y",
+      "local_wp_diagnostics": {
+        "baseline": {
+          "seconds": 7.688622417976148,
+          "command": [
+            "frama-c",
+            "-wp",
+            "-wp-print",
+            "-wp-timeout",
+            "5",
+            "-wp-par",
+            "2",
+            "-wp-prover",
+            "alt-ergo,z3",
+            "-wp-model",
+            "Typed",
+            "-wp-prop=-@terminates,-missing_return",
+            "/mnt/c/Users/50635/Documents/Codex/2026-11-06/rebuttal-x20/outputs/semantic_original_discrepancy_audit/NLA_lipus_18.baseline.c"
+          ],
+          "returncode": 0,
+          "summary": [
+            "Proved goals:   32 / 33"
+          ],
+          "failed": [
+            {
+              "header": "Assertion (file NLA_lipus_18.baseline.c, line 35):",
+              "prove": "(c + (30 * x_3))\n         = ((10 * (c * c * c)) + (15 * x) + (6 * (c * c * c * c * c))).",
+              "statuses": [
+                "Prover Z3 4.13.3 returns Timeout (Qed:4ms) (5s)",
+                "Prover Alt-Ergo 2.6.2 returns Timeout (Qed:4ms) (5s)"
+              ]
+            }
+          ],
+          "frame_warnings": [
+            "  Missing assigns clause (assigns 'everything' instead)",
+            "  No 'assigns' specification for function 'main18'."
+          ]
+        },
+        "explicit_loop_assigns": {
+          "seconds": 7.684486401965842,
+          "command": [
+            "frama-c",
+            "-wp",
+            "-wp-print",
+            "-wp-timeout",
+            "5",
+            "-wp-par",
+            "2",
+            "-wp-prover",
+            "alt-ergo,z3",
+            "-wp-model",
+            "Typed",
+            "-wp-prop=-@terminates,-missing_return",
+            "/mnt/c/Users/50635/Documents/Codex/2026-11-06/rebuttal-x20/outputs/semantic_original_discrepancy_audit/NLA_lipus_18.explicit_loop_assigns.c"
+          ],
+          "returncode": 0,
+          "summary": [
+            "Proved goals:   33 / 34"
+          ],
+          "failed": [
+            {
+              "header": "Assertion (file NLA_lipus_18.explicit_loop_assigns.c, line 36):",
+              "prove": "(c + (30 * x_3))\n         = ((10 * (c * c * c)) + (15 * x) + (6 * (c * c * c * c * c))).",
+              "statuses": [
+                "Prover Z3 4.13.3 returns Timeout (Qed:4ms) (5s)",
+                "Prover Alt-Ergo 2.6.2 returns Timeout (Qed:4ms) (5s)"
+              ]
+            }
+          ],
+          "frame_warnings": [
+            "  No 'assigns' specification for function 'main18'."
+          ]
+        },
+        "explicit_loop_assigns_timeout30": {
+          "command": [
+            "frama-c",
+            "-wp",
+            "-wp-print",
+            "-wp-timeout",
+            "30",
+            "-wp-par",
+            "2",
+            "-wp-prover",
+            "alt-ergo,z3",
+            "-wp-model",
+            "Typed",
+            "-wp-prop=-@terminates,-missing_return",
+            "/mnt/c/Users/50635/Documents/Codex/2026-11-06/rebuttal-x20/outputs/semantic_original_discrepancy_audit/NLA_lipus_18.explicit_loop_assigns.c"
+          ],
+          "seconds": 32.40162059001159,
+          "returncode": 0,
+          "summary": [
+            "Proved goals:   34 / 34"
+          ],
+          "failed": []
+        }
+      }
+    },
+    {
+      "key": "linear_140",
+      "in_strict_group": true,
+      "in_exact_group": false,
+      "original_verified": false,
+      "strength": "strictly_stronger",
+      "exact": "unknown_reachability",
+      "original_wp": {
+        "returncode": 0,
+        "summary": [
+          "Proved goals:   50 / 51"
+        ],
+        "failed": [
+          {
+            "header": "Assertion (file /tmp/craft16_minimal_20261107_v2/scratch/linear_140/rlinfer_jjcx8ci6/prog.c, line 56):",
+            "prove": "0 <= v3_0.",
+            "statuses": [
+              "Prover Z3 4.13.3 returns Timeout (Qed:23ms) (5s)",
+              "Prover Alt-Ergo 2.6.2 returns Timeout (Qed:23ms) (5s)"
+            ]
+          }
+        ],
+        "frame_warnings": [
+          "  Missing assigns clause (assigns 'everything' instead)",
+          "  No 'assigns' specification for function 'foo140'."
+        ]
+      },
+      "frame_variables": [
+        "v1",
+        "v3"
+      ],
+      "original_source": "/tmp/craft16_minimal_20261107_v2/sources/linear_140.original.c",
+      "original_verification": "/tmp/craft16_minimal_20261107_v2/verification/linear_140.json",
+      "original_log": "/tmp/craft16_minimal_20261107_v2/logs/linear_140.jsonl.gz",
+      "source_sha256": "441e3c9c83dddb5e6b29d0f9de6921bc7cda8269c100a982205a7398208278c9",
+      "verification_sha256": "494256a85c00a378a8e66038551e27c88a2b66c668f3e5116e4f393f8dee7557",
+      "original_log_sha256": "5189996ab13f3b3dc6e1230533e3c63a223843978dbf7edb7df08846b1f6f4c9",
+      "audit_certificate_replay": {
+        "key": "linear_140",
+        "queries": {
+          "strength_nonvacuity": {
+            "expected": "sat",
+            "actual": "sat"
+          },
+          "strength_forward": {
+            "expected": "unsat",
+            "actual": "unsat"
+          },
+          "strength_reverse": {
+            "expected": "sat",
+            "actual": "sat"
+          }
+        },
+        "pass": true
+      },
+      "diagnostic_loop_assigns": "t, v2, x1, x2, x3",
+      "local_wp_diagnostics": {
+        "baseline": {
+          "seconds": 9.24038901500171,
+          "command": [
+            "frama-c",
+            "-wp",
+            "-wp-print",
+            "-wp-timeout",
+            "5",
+            "-wp-par",
+            "2",
+            "-wp-prover",
+            "alt-ergo,z3",
+            "-wp-model",
+            "Typed",
+            "-wp-prop=-@terminates,-missing_return",
+            "/mnt/c/Users/50635/Documents/Codex/2026-11-06/rebuttal-x20/outputs/semantic_original_discrepancy_audit/linear_140.baseline.c"
+          ],
+          "returncode": 0,
+          "summary": [
+            "Proved goals:   50 / 51"
+          ],
+          "failed": [
+            {
+              "header": "Assertion (file linear_140.baseline.c, line 56):",
+              "prove": "0 <= v3_0.",
+              "statuses": [
+                "Prover Z3 4.13.3 returns Timeout (Qed:11ms) (5s)",
+                "Prover Alt-Ergo 2.6.2 returns Timeout (Qed:11ms) (5s)"
+              ]
+            }
+          ],
+          "frame_warnings": [
+            "  Missing assigns clause (assigns 'everything' instead)",
+            "  No 'assigns' specification for function 'foo140'."
+          ]
+        },
+        "explicit_loop_assigns": {
+          "seconds": 4.179171965981368,
+          "command": [
+            "frama-c",
+            "-wp",
+            "-wp-print",
+            "-wp-timeout",
+            "5",
+            "-wp-par",
+            "2",
+            "-wp-prover",
+            "alt-ergo,z3",
+            "-wp-model",
+            "Typed",
+            "-wp-prop=-@terminates,-missing_return",
+            "/mnt/c/Users/50635/Documents/Codex/2026-11-06/rebuttal-x20/outputs/semantic_original_discrepancy_audit/linear_140.explicit_loop_assigns.c"
+          ],
+          "returncode": 0,
+          "summary": [
+            "Proved goals:   52 / 52"
+          ],
+          "failed": [],
+          "frame_warnings": [
+            "  No 'assigns' specification for function 'foo140'."
+          ]
+        }
+      }
+    },
+    {
+      "key": "linear_192",
+      "in_strict_group": false,
+      "in_exact_group": true,
+      "original_verified": false,
+      "strength": "incomparable",
+      "exact": "proven_exact",
+      "original_wp": {
+        "returncode": 0,
+        "summary": [
+          "Proved goals:   32 / 33"
+        ],
+        "failed": [
+          {
+            "header": "Assertion (file /tmp/craft16_minimal_20261107_v2/scratch/linear_192/rlinfer_vvunc5lm/prog.c, line 34):",
+            "prove": "(b != 0) /\\ (n = i).",
+            "statuses": [
+              "Prover Z3 4.13.3 returns Timeout (Qed:8ms) (5s)",
+              "Prover Alt-Ergo 2.6.2 returns Timeout (Qed:8ms) (5s)"
+            ]
+          }
+        ],
+        "frame_warnings": [
+          "  Missing assigns clause (assigns 'everything' instead)",
+          "  No 'assigns' specification for function 'foo192'."
+        ]
+      },
+      "frame_variables": [
+        "b",
+        "n"
+      ],
+      "original_source": "/tmp/craft16_minimal_20261107_v2/sources/linear_192.original.c",
+      "original_verification": "/tmp/craft16_minimal_20261107_v2/verification/linear_192.json",
+      "original_log": "/tmp/craft16_minimal_20261107_v2/logs/linear_192.jsonl.gz",
+      "source_sha256": "6df16044632e84e044dc0b1f15596e35aeca78d95c60b1d87c0ab9bedf5b56cc",
+      "verification_sha256": "5d744a2f6ef1abfa59f46a855b119a62858a8d4a8da99f22fe2818b5185fddbe",
+      "original_log_sha256": "5e5aaefdb81e9325f863d131f3bb44767f6b8321d8497124f00e1d888d1ddfd4",
+      "audit_certificate_replay": {
+        "key": "linear_192",
+        "queries": {
+          "initialization": {
+            "expected": "unsat",
+            "actual": "unsat"
+          },
+          "preservation": {
+            "expected": "unsat",
+            "actual": "unsat"
+          },
+          "exact_completeness": {
+            "expected": "unsat",
+            "actual": "unsat"
+          }
+        },
+        "pass": true
+      },
+      "concrete_target_counterexample": {
+        "pre": {
+          "i": -1,
+          "n": 0
+        },
+        "loop_entry": {
+          "i": 0,
+          "n": 0,
+          "b": 0
+        },
+        "loop_iterations": 0,
+        "status": "sat",
+        "reason": "Original target is false on this legal zero-iteration execution; exact loop-head reachability does not imply target truth."
+      }
+    },
+    {
+      "key": "linear_193",
+      "in_strict_group": false,
+      "in_exact_group": true,
+      "original_verified": false,
+      "strength": "incomparable",
+      "exact": "proven_exact",
+      "original_wp": {
+        "returncode": 0,
+        "summary": [
+          "Proved goals:   46 / 47"
+        ],
+        "failed": [
+          {
+            "header": "Assertion (file /tmp/craft16_minimal_20261107_v2/scratch/linear_193/rlinfer_1rwptufa/prog.c, line 41):",
+            "prove": "false.",
+            "statuses": [
+              "Prover Z3 4.13.3 returns Timeout (Qed:6ms) (5s)",
+              "Prover Alt-Ergo 2.6.2 returns Timeout (Qed:6ms) (5s)"
+            ]
+          }
+        ],
+        "frame_warnings": [
+          "  Missing assigns clause (assigns 'everything' instead)",
+          "  No 'assigns' specification for function 'foo193'."
+        ]
+      },
+      "frame_variables": [
+        "b",
+        "n"
+      ],
+      "original_source": "/tmp/craft16_minimal_20261107_v2/sources/linear_193.original.c",
+      "original_verification": "/tmp/craft16_minimal_20261107_v2/verification/linear_193.json",
+      "original_log": "/tmp/craft16_minimal_20261107_v2/logs/linear_193.jsonl.gz",
+      "source_sha256": "e00da7444695d55a4ad50e709cf05154134079e5f99b0ab79474ef89b5abba33",
+      "verification_sha256": "04130c048779adef1a22f03ef9543074347f16dad79e6dcb3e93ffe4a261396b",
+      "original_log_sha256": "3920f22d43ecc9891e5038a953772a7fbad8afc8b1b37f9503d1d2cbf16f4a68",
+      "audit_certificate_replay": {
+        "key": "linear_193",
+        "queries": {
+          "initialization": {
+            "expected": "unsat",
+            "actual": "unsat"
+          },
+          "preservation": {
+            "expected": "unsat",
+            "actual": "unsat"
+          },
+          "exact_completeness": {
+            "expected": "unsat",
+            "actual": "unsat"
+          }
+        },
+        "pass": true
+      },
+      "concrete_target_counterexample": {
+        "pre": {
+          "i": -1,
+          "n": 0
+        },
+        "loop_entry": {
+          "i": 0,
+          "n": 0,
+          "b": 0
+        },
+        "loop_iterations": 0,
+        "status": "sat",
+        "reason": "Original target is false on this legal zero-iteration execution; exact loop-head reachability does not imply target truth."
+      }
+    },
+    {
+      "key": "linear_248",
+      "in_strict_group": false,
+      "in_exact_group": true,
+      "original_verified": false,
+      "strength": "incomparable",
+      "exact": "proven_exact",
+      "original_wp": {
+        "returncode": 0,
+        "summary": [
+          "Proved goals:   66 / 67"
+        ],
+        "failed": [
+          {
+            "header": "Assertion (file /tmp/craft16_minimal_20261107_v2/scratch/linear_248/rlinfer_b2dte9no/prog.c, line 49):",
+            "prove": "(j / 4) != 0.",
+            "statuses": [
+              "Prover Z3 4.13.3 returns Timeout (Qed:15ms) (5s)",
+              "Prover Alt-Ergo 2.6.2 returns Timeout (Qed:15ms) (5s)"
+            ]
+          }
+        ],
+        "frame_warnings": [
+          "  Missing assigns clause (assigns 'everything' instead)",
+          "  No 'assigns' specification for function 'foo248'."
+        ]
+      },
+      "frame_variables": [
+        "idBitLength",
+        "k",
+        "material_length",
+        "nlen"
+      ],
+      "original_source": "/tmp/craft16_minimal_20261107_v2/sources/linear_248.original.c",
+      "original_verification": "/tmp/craft16_minimal_20261107_v2/verification/linear_248.json",
+      "original_log": "/tmp/craft16_minimal_20261107_v2/logs/linear_248.jsonl.gz",
+      "source_sha256": "e60f806b3528e2e138b07cbabd47b3e2aa2e8e8ab9462346a3d6ebbbea9f08b7",
+      "verification_sha256": "4f09084de451e6f103d986cc48340484ea8c4ed2d791ee682381c959d4a6cdac",
+      "original_log_sha256": "588de06803eedeefaef57a4c39dafc2d77a7c40b5beb5e75402668174ef3e79f",
+      "audit_certificate_replay": {
+        "key": "linear_248",
+        "queries": {
+          "initialization": {
+            "expected": "unsat",
+            "actual": "unsat"
+          },
+          "preservation": {
+            "expected": "unsat",
+            "actual": "unsat"
+          },
+          "exact_completeness": {
+            "expected": "unsat",
+            "actual": "unsat"
+          }
+        },
+        "pass": true
+      },
+      "concrete_target_counterexample": {
+        "pre": {
+          "idBitLength": 0,
+          "material_length": 0,
+          "nlen": 0
+        },
+        "loop_entry": {
+          "idBitLength": 0,
+          "material_length": 0,
+          "nlen": 0,
+          "j": 0,
+          "k": 0
+        },
+        "loop_iterations": 0,
+        "status": "sat",
+        "reason": "Original target is false on this legal zero-iteration execution; exact loop-head reachability does not imply target truth."
+      }
+    }
+  ]
+}

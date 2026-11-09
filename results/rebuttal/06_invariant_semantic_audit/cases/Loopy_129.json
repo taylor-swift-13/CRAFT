@@ -1,0 +1,95 @@
+{
+  "key": "Loopy_129",
+  "suite": "Loopy",
+  "original_verified": true,
+  "survivor_count": 20,
+  "source_sha256": "66d84833931f00ecb6bf3438adea4e29e84d47c90bac89ee3f0fcba44ed6124f",
+  "verification_sha256": "cc15d3fe9075e2ad9a2aecb35164647703cbb872cba607a2e1bff0bf23c613aa",
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "a__pre": "0",
+        "b__pre": "0",
+        "flag__pre": "-1",
+        "b": "100",
+        "j": "100",
+        "a": "0",
+        "flag": "-1",
+        "b__entry": "0",
+        "a__entry": "0",
+        "flag__entry": "-1",
+        "j__entry": "0"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "a__pre": "0",
+        "b__pre": "0",
+        "flag__pre": "-1",
+        "b": "101",
+        "a": "0",
+        "flag": "-1",
+        "b__entry": "0",
+        "a__entry": "0",
+        "flag__entry": "-1",
+        "j": "100",
+        "j__entry": "0"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "a__pre": "0",
+        "b__pre": "0",
+        "flag__pre": "-1",
+        "b": "100",
+        "j": "0",
+        "a": "0",
+        "flag": "-1",
+        "b__entry": "0",
+        "a__entry": "0",
+        "flag__entry": "-1",
+        "j__entry": "0"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "b",
+    "rank_direction": 1,
+    "attempts": [
+      {
+        "variable": "b",
+        "direction": 1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "flag": "i",
+    "a": "i",
+    "b": "i",
+    "j": "i"
+  },
+  "frame_variables": [
+    "a",
+    "flag"
+  ],
+  "seconds": 0.7766735553741455
+}

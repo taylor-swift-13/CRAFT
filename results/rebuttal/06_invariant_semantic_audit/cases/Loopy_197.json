@@ -1,0 +1,123 @@
+{
+  "key": "Loopy_197",
+  "suite": "Loopy",
+  "original_verified": false,
+  "survivor_count": 38,
+  "source_sha256": "e014bf88cfc1c95350a09ff9d7e2f51b4154642d8a7e96886aedd0e8c80fe731",
+  "verification_sha256": "e246a769abdf6289436741a57e1b3c06e51cc90cb9e5258319b5780c3243453a",
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "__BLAST_NONDET__pre": "0",
+        "buf": "0",
+        "bufferlen__entry": "2",
+        "inlen__pre": "3",
+        "__BLAST_NONDET__entry": "0",
+        "bufferlen__pre": "2",
+        "bufferlen": "2",
+        "buflim__entry": "0",
+        "in": "0",
+        "buflim": "0",
+        "inlen": "3",
+        "inlen__entry": "3",
+        "__BLAST_NONDET": "0",
+        "buf__entry": "0",
+        "in__entry": "0"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "__BLAST_NONDET__pre": "-1",
+        "buflim": "2",
+        "in": "4",
+        "buf": "1",
+        "inlen__pre": "6",
+        "buf__entry": "0",
+        "bufferlen__pre": "4",
+        "buflim__entry": "2",
+        "in__entry": "0",
+        "inlen": "6",
+        "bufferlen__entry": "4",
+        "inlen__entry": "6",
+        "bufferlen": "4",
+        "__BLAST_NONDET": "-1",
+        "__BLAST_NONDET__entry": "-1"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "__BLAST_NONDET__pre": "0",
+        "buflim": "0",
+        "in": "0",
+        "buf": "-2",
+        "inlen__pre": "3",
+        "buf__entry": "0",
+        "bufferlen__pre": "2",
+        "buflim__entry": "0",
+        "in__entry": "0",
+        "inlen": "3",
+        "bufferlen__entry": "2",
+        "inlen__entry": "3",
+        "bufferlen": "2",
+        "__BLAST_NONDET": "0",
+        "__BLAST_NONDET__entry": "0"
+      }
+    },
+    "target_sites": 8,
+    "target_paths": 12
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "unknown_reachability",
+    "attempts": [
+      {
+        "variable": "buf",
+        "direction": 1,
+        "status": "sat"
+      },
+      {
+        "variable": "buf",
+        "direction": -1,
+        "status": "sat"
+      },
+      {
+        "variable": "in",
+        "direction": 1,
+        "status": "sat"
+      },
+      {
+        "variable": "in",
+        "direction": -1,
+        "status": "sat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "__BLAST_NONDET": "i",
+    "inlen": "i",
+    "bufferlen": "i",
+    "in": "i",
+    "buf": "i",
+    "buflim": "i"
+  },
+  "frame_variables": [
+    "__BLAST_NONDET",
+    "bufferlen",
+    "buflim",
+    "inlen"
+  ],
+  "seconds": 0.2876014709472656
+}

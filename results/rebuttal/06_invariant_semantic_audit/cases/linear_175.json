@@ -1,0 +1,91 @@
+{
+  "key": "linear_175",
+  "suite": "linear",
+  "original_verified": true,
+  "survivor_count": 27,
+  "source_sha256": "134588d02079f96a29047585b1d0464c51b23c8ed5346dbffcc43f558c8ec276",
+  "verification_sha256": "8b189bcae4e89267dc41d5e5392b2f6ceab1f4988414e4113a44def4423410ec",
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "n": "2",
+        "c__entry": "0",
+        "i__entry": "0",
+        "i": "2",
+        "n__entry": "2",
+        "n__pre": "2",
+        "c": "1"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "n": "2",
+        "i__entry": "0",
+        "c__entry": "0",
+        "i": "3",
+        "n__entry": "2",
+        "n__pre": "2",
+        "c": "1"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "n__pre": "1",
+        "i": "1",
+        "c": "-1",
+        "i__entry": "0",
+        "n__entry": "1",
+        "n": "1",
+        "c__entry": "0"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "i",
+    "rank_direction": 1,
+    "attempts": [
+      {
+        "variable": "c",
+        "direction": 1,
+        "status": "sat"
+      },
+      {
+        "variable": "c",
+        "direction": -1,
+        "status": "sat"
+      },
+      {
+        "variable": "i",
+        "direction": 1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "n": "i",
+    "i": "i",
+    "c": "i"
+  },
+  "frame_variables": [
+    "n"
+  ],
+  "seconds": 0.49707913398742676
+}

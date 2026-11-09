@@ -1,0 +1,100 @@
+{
+  "key": "Loopy_49",
+  "suite": "Loopy",
+  "original_verified": true,
+  "survivor_count": 58,
+  "source_sha256": "b4ba63fc744520d7022d9014ef9081af6d7eec726e59d130f64670af16268112",
+  "verification_sha256": "a5fe8032f27c2b683c6e51d57f35e4358c86b42ddd1c69cc014b2d0ee2bbf29c",
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "buf": "1",
+        "bufferlen__entry": "4",
+        "inlen__pre": "5",
+        "buf__entry": "0",
+        "bufferlen__pre": "4",
+        "bufferlen": "4",
+        "buflim__entry": "2",
+        "in": "1",
+        "buflim": "2",
+        "inlen": "5",
+        "inlen__entry": "5",
+        "in__entry": "0"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "inlen__pre": "5",
+        "buf": "1",
+        "in": "2147483647",
+        "buflim": "2",
+        "buf__entry": "0",
+        "in__entry": "0",
+        "bufferlen__pre": "4",
+        "buflim__entry": "2",
+        "bufferlen__entry": "4",
+        "inlen": "5",
+        "inlen__entry": "5",
+        "bufferlen": "4"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "buflim": "0",
+        "in": "2",
+        "buf": "-2",
+        "inlen__pre": "3",
+        "buf__entry": "0",
+        "in__entry": "0",
+        "bufferlen__pre": "2",
+        "buflim__entry": "0",
+        "bufferlen__entry": "2",
+        "inlen": "3",
+        "inlen__entry": "3",
+        "bufferlen": "2"
+      }
+    },
+    "target_sites": 8,
+    "target_paths": 12
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "buf",
+    "rank_direction": 1,
+    "attempts": [
+      {
+        "variable": "buf",
+        "direction": 1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "inlen": "i",
+    "bufferlen": "i",
+    "in": "i",
+    "buf": "i",
+    "buflim": "i"
+  },
+  "frame_variables": [
+    "bufferlen",
+    "buflim",
+    "inlen"
+  ],
+  "seconds": 0.2818436622619629
+}

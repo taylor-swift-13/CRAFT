@@ -1,0 +1,119 @@
+{
+  "key": "linear_195",
+  "suite": "linear",
+  "original_verified": true,
+  "survivor_count": 47,
+  "source_sha256": "0597f6dc2a67550e0d97c7513658eb1409de69df5c20d20a30217290a932357f",
+  "verification_sha256": "ec2dd2e6b5e94e331f902fbfd4619edbf866ff1c1272d2a6bcd3bcab9b334ecf",
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "j__entry": "0",
+        "i": "0",
+        "x__entry": "0",
+        "i__entry": "0",
+        "j": "0",
+        "x": "0",
+        "y__entry": "0",
+        "y": "0"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "y": "2",
+        "i__entry": "0",
+        "i": "0",
+        "j": "0",
+        "y__entry": "0",
+        "x": "1",
+        "j__entry": "0",
+        "x__entry": "0"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "y": "0",
+        "x": "0",
+        "i": "1",
+        "j": "0",
+        "x__entry": "0",
+        "y__entry": "0",
+        "j__entry": "0",
+        "i__entry": "0"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "unknown_reachability",
+    "attempts": [
+      {
+        "variable": "i",
+        "direction": 1,
+        "status": "unknown",
+        "reason": "smt tactic failed to show goal to be sat/unsat (incomplete (theory arithmetic))"
+      },
+      {
+        "variable": "i",
+        "direction": -1,
+        "status": "sat"
+      },
+      {
+        "variable": "j",
+        "direction": 1,
+        "status": "unknown",
+        "reason": "smt tactic failed to show goal to be sat/unsat (incomplete (theory arithmetic))"
+      },
+      {
+        "variable": "j",
+        "direction": -1,
+        "status": "sat"
+      },
+      {
+        "variable": "x",
+        "direction": 1,
+        "status": "unknown",
+        "reason": "timeout"
+      },
+      {
+        "variable": "x",
+        "direction": -1,
+        "status": "sat"
+      },
+      {
+        "variable": "y",
+        "direction": 1,
+        "status": "unknown",
+        "reason": "timeout"
+      },
+      {
+        "variable": "y",
+        "direction": -1,
+        "status": "sat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "x": "i",
+    "y": "i",
+    "i": "i",
+    "j": "i"
+  },
+  "frame_variables": [],
+  "seconds": 3.568660259246826
+}

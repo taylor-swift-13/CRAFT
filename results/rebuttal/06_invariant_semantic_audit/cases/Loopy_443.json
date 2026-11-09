@@ -1,0 +1,91 @@
+{
+  "key": "Loopy_443",
+  "suite": "Loopy",
+  "original_verified": true,
+  "survivor_count": 48,
+  "source_sha256": "9119ac849b9ae83810f44c065367da283070a2d74e6796bc0bcaf80328479eaa",
+  "verification_sha256": "ba59c420fbf0c136811b6c96a7c6bd0ac4bac055dc9c37ddece77416af4d4d28",
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "x": "10000000",
+        "z": "10000000",
+        "y": "10000000",
+        "x__entry": "0",
+        "z__entry": "5000000",
+        "y__entry": "10000000"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "x": "4294967295",
+        "y": "10000000",
+        "x__entry": "0",
+        "z__entry": "5000000",
+        "y__entry": "10000000",
+        "z": "4294967295"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "x": "10000000",
+        "z": "10000001",
+        "x__entry": "0",
+        "z__entry": "5000000",
+        "y__entry": "10000000",
+        "y": "10000000"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "unknown_reachability",
+    "attempts": [
+      {
+        "variable": "x",
+        "direction": 1,
+        "status": "unknown",
+        "reason": "timeout"
+      },
+      {
+        "variable": "x",
+        "direction": -1,
+        "status": "sat"
+      },
+      {
+        "variable": "z",
+        "direction": 1,
+        "status": "sat"
+      },
+      {
+        "variable": "z",
+        "direction": -1,
+        "status": "sat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "x": "u",
+    "y": "u",
+    "z": "u"
+  },
+  "frame_variables": [
+    "y"
+  ],
+  "seconds": 1.043586015701294
+}

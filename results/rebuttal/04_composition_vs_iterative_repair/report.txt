@@ -1,0 +1,23 @@
+Loopy empirical study: independent composition vs verifier-guided refinement
+State: complete; phase: finished; updated UTC: 2026-11-07T14:13:37.198769+00:00
+466 programs; hidden/visible targets; n=1,4,8; one answer/request; common first answer.
+Refinement uses raw syntax/WP feedback only; checkpoint Houdini results never enter its trajectory.
+Incomplete items are unresolved, not proof failures. Partial rates are conditional.
+Unique successful requests: 13980/13980; tokens: 15178334
+visibility | strategy | n | scored | success | unresolved | conditional rate
+hidden | compose | 1 | 466 | 217 | 0 | 46.57%
+hidden | compose | 4 | 466 | 277 | 0 | 59.44%
+hidden | compose | 8 | 466 | 304 | 0 | 65.24%
+hidden | refine | 1 | 466 | 217 | 0 | 46.57%
+hidden | refine | 4 | 466 | 226 | 0 | 48.50%
+hidden | refine | 8 | 466 | 235 | 0 | 50.43%
+visible | compose | 1 | 466 | 248 | 0 | 53.22%
+visible | compose | 4 | 466 | 317 | 0 | 68.03%
+visible | compose | 8 | 466 | 345 | 0 | 74.03%
+visible | refine | 1 | 466 | 248 | 0 | 53.22%
+visible | refine | 4 | 466 | 254 | 0 | 54.51%
+visible | refine | 8 | 466 | 249 | 0 | 53.43%
+
+Cost definitions: Per-method checkpoint costs include its first n model calls, n-1 raw feedback verifications for refine, and only its own final Houdini/judge; exclude other offline checkpoint evaluations. Physical totals deduplicate the shared initial response and n=1 score.
+USD fields are public price scenarios, not observed account debits; provider failed-request billing may be unavailable
+Run directory: /home/yangfp/craft_empirical_runs/loopy_compose_refine_20261107

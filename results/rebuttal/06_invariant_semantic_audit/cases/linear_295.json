@@ -1,0 +1,57 @@
+{
+  "key": "linear_295",
+  "suite": "linear",
+  "original_verified": false,
+  "survivor_count": 27,
+  "source_sha256": "448da1c1dcc4c7eaa1330084730be63eaf04a949e054aefa189f18beca8a2dc7",
+  "verification_sha256": "ff140396ccae7b6e502b35c78becf37c902b2aff7b709c04a05ef80f3d604089",
+  "strength": {
+    "classification": "strictly_weaker",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "x__entry": "0",
+        "x": "100000000"
+      }
+    },
+    "I_not_target": {
+      "status": "sat",
+      "model": {
+        "x__entry": "0",
+        "x": "100000001"
+      }
+    },
+    "target_not_I": {
+      "status": "unsat"
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "x": "100000001",
+        "x__entry": "0"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_not_exact",
+    "inductive_lemma": "!(x < 10000000) ==> (x == \\at(x, LoopEntry) + 2 * ((x - \\at(x, LoopEntry)) / 2))",
+    "unreachable_state": {
+      "x": "10000001",
+      "x__entry": "0"
+    }
+  },
+  "modeled_variables": {
+    "x": "u"
+  },
+  "frame_variables": [],
+  "seconds": 0.5622012615203857
+}

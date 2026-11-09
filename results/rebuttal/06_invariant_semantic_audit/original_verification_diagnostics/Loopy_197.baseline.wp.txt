@@ -1,0 +1,588 @@
+[kernel] Parsing Loopy_197.baseline.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Warning: Missing RTE guards
+[wp] Loopy_197.baseline.c:66: Warning: 
+  Missing assigns clause (assigns 'everything' instead)
+[wp] 84 goals scheduled
+[wp] [Timeout] typed_loopy_197_assert_4 (Qed 6ms) (Z3)
+[wp] Proved goals:   83 / 84
+  Qed:              82
+  Alt-Ergo 2.6.2:    1 (11ms)
+  Timeout:           1
+------------------------------------------------------------
+  Function loopy_197
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 27):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 27):
+Prove: true.
+Prover Qed returns Valid (0.64ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 28):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 28):
+Prove: true.
+Prover Qed returns Valid (0.56ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 29):
+Let x = 2 + buf_0.
+Assume {
+  Type: is_sint32(BLAST_NONDET_0) /\ is_sint32(buf_0) /\
+      is_sint32(bufferlen_0) /\ is_sint32(buflim_0) /\ is_sint32(inlen_0) /\
+      is_sint32(inlen_1) /\ is_sint32(bufferlen_0 - 2) /\
+      is_sint32(1 + buf_0) /\ is_sint32(2 + buflim_0).
+  (* Pre-condition *)
+  Have: 0 < inlen_1.
+  (* Pre-condition *)
+  Have: (3 + buflim_0) <= inlen_1.
+  (* Invariant *)
+  Have: 0 <= buflim_0.
+  (* Invariant *)
+  Have: (-2) <= buflim_0.
+  (* Invariant *)
+  Have: (-1) <= buflim_0.
+  (* Invariant *)
+  Have: 0 <= buf_0.
+  (* Invariant *)
+  Have: x <= bufferlen_0.
+  (* Invariant *)
+  Have: buf_0 < bufferlen_0.
+  (* Invariant *)
+  Have: 2 <= bufferlen_0.
+  (* Then *)
+  Have: BLAST_NONDET_0 != 0.
+  (* Else *)
+  Have: x != bufferlen_0.
+  (* Assertion *)
+  Have: (-1) <= buf_0.
+  (* Assertion *)
+  Have: x <= inlen_0.
+}
+Prove: (3 + buf_0) <= bufferlen_0.
+Prover Z3 4.13.3 returns Valid (Qed:5ms) (20ms) (27804)
+Prover Alt-Ergo 2.6.2 returns Valid (Qed:5ms) (11ms) (23)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 29):
+Prove: true.
+Prover Qed returns Valid (0.95ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 30):
+Prove: true.
+Prover Qed returns Valid (4ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 30):
+Prove: true.
+Prover Qed returns Valid (0.81ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 31):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 31):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 32):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 32):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 33):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 33):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 34):
+Prove: true.
+Prover Qed returns Valid (4ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 34):
+Prove: true.
+Prover Qed returns Valid (0.88ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 35):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 35):
+Prove: true.
+Prover Qed returns Valid (0.89ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 36):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 36):
+Prove: true.
+Prover Qed returns Valid (0.78ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 37):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 37):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 38):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 38):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 39):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 39):
+Prove: true.
+Prover Qed returns Valid (0.85ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 40):
+Prove: true.
+Prover Qed returns Valid (4ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 40):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 41):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 41):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 42):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 42):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 43):
+Prove: true.
+Prover Qed returns Valid (4ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 43):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 44):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 44):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 45):
+Prove: true.
+Prover Qed returns Valid (4ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 45):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 46):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 46):
+Prove: true.
+Prover Qed returns Valid (0.85ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 47):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 47):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 48):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 48):
+Prove: true.
+Prover Qed returns Valid (0.84ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 49):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 49):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 50):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 50):
+Prove: true.
+Prover Qed returns Valid (0.75ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 51):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 51):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 52):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 52):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 53):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 53):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 54):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 54):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 55):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 55):
+Prove: true.
+Prover Qed returns Valid (0.95ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 56):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 56):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 57):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 57):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 58):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 58):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 59):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 59):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 60):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 60):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 61):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 61):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 62):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 62):
+Prove: true.
+Prover Qed returns Valid (1ms)
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 63):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 63):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file Loopy_197.baseline.c, line 64):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file Loopy_197.baseline.c, line 64):
+Prove: true.
+Prover Qed returns Valid
+
+------------------------------------------------------------
+
+Goal Assertion (file Loopy_197.baseline.c, line 71):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Assertion (file Loopy_197.baseline.c, line 75):
+Prove: true.
+Prover Qed returns Valid (2ms)
+
+------------------------------------------------------------
+
+Goal Assertion (file Loopy_197.baseline.c, line 82):
+Prove: true.
+Prover Qed returns Valid (4ms)
+
+------------------------------------------------------------
+
+Goal Assertion (file Loopy_197.baseline.c, line 86):
+Let x = 2 + buf_0.
+Assume {
+  Type: is_sint32(BLAST_NONDET_0) /\ is_sint32(buf_0) /\
+      is_sint32(bufferlen_0) /\ is_sint32(buflim_0) /\ is_sint32(inlen_0) /\
+      is_sint32(inlen_1) /\ is_sint32(bufferlen_0 - 2) /\
+      is_sint32(1 + buf_0) /\ is_sint32(2 + buflim_0).
+  (* Pre-condition *)
+  Have: 0 < inlen_1.
+  (* Pre-condition *)
+  Have: (3 + buflim_0) <= inlen_1.
+  (* Invariant *)
+  Have: 0 <= buflim_0.
+  (* Invariant *)
+  Have: (-2) <= buflim_0.
+  (* Invariant *)
+  Have: (-1) <= buflim_0.
+  (* Invariant *)
+  Have: 0 <= buf_0.
+  (* Invariant *)
+  Have: x <= bufferlen_0.
+  (* Invariant *)
+  Have: buf_0 < bufferlen_0.
+  (* Invariant *)
+  Have: 2 <= bufferlen_0.
+  (* Then *)
+  Have: BLAST_NONDET_0 != 0.
+  (* Else *)
+  Have: x != bufferlen_0.
+  (* Assertion *)
+  Have: (-1) <= buf_0.
+}
+Prove: x <= inlen_0.
+Prover Z3 4.13.3 returns Timeout (Qed:6ms) (5s)
+Prover Alt-Ergo 2.6.2 returns Timeout (Qed:6ms) (5s)
+
+------------------------------------------------------------
+
+Goal Assertion (file Loopy_197.baseline.c, line 92):
+Prove: true.
+Prover Qed returns Valid (3ms)
+
+------------------------------------------------------------
+
+Goal Assertion (file Loopy_197.baseline.c, line 96):
+Prove: true.
+Prover Qed returns Valid (4ms)
+
+------------------------------------------------------------
+
+Goal Assertion (file Loopy_197.baseline.c, line 102):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+
+Goal Assertion (file Loopy_197.baseline.c, line 106):
+Prove: true.
+Prover Qed returns Valid (5ms)
+
+------------------------------------------------------------
+[wp:pedantic-assigns] Loopy_197.baseline.c:8: Warning: 
+  No 'assigns' specification for function 'loopy_197'.
+  Callers assumptions might be imprecise.
+

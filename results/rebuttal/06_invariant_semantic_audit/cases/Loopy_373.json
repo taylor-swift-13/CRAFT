@@ -1,0 +1,103 @@
+{
+  "key": "Loopy_373",
+  "suite": "Loopy",
+  "original_verified": false,
+  "survivor_count": 18,
+  "source_sha256": "9011405addfe8503113d8d5c4f8bbc87a2cca8ed52a09040c65fe96433891306",
+  "verification_sha256": "661a645575f726bd8333f23c64d6d709e71baec8e9670addd23f0f48081038e8",
+  "strength": {
+    "classification": "strictly_weaker",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "j__entry": "1",
+        "i__entry": "0",
+        "a__entry": "0",
+        "i": "1",
+        "b": "0",
+        "j": "0",
+        "flag__pre": "-1",
+        "flag__entry": "-1",
+        "b__entry": "0",
+        "i__pre": "0",
+        "a": "0",
+        "flag": "-1"
+      }
+    },
+    "I_not_target": {
+      "status": "sat",
+      "model": {
+        "j__entry": "1",
+        "i__entry": "0",
+        "a__entry": "0",
+        "i": "1",
+        "b": "0",
+        "j": "0",
+        "flag__pre": "-1",
+        "flag__entry": "-1",
+        "b__entry": "0",
+        "i__pre": "0",
+        "a": "1",
+        "flag": "-1"
+      }
+    },
+    "target_not_I": {
+      "status": "unsat"
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "j__entry": "1",
+        "i__entry": "0",
+        "a__entry": "0",
+        "i": "0",
+        "b": "0",
+        "j": "0",
+        "flag__pre": "-1",
+        "flag__entry": "-1",
+        "i__pre": "0",
+        "b__entry": "0",
+        "a": "1",
+        "flag": "-1"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_not_exact",
+    "inductive_lemma": "(i % 2 == 0) ==> (j == 1 + (i/2) * 2)",
+    "unreachable_state": {
+      "j__entry": "1",
+      "i__entry": "0",
+      "a__entry": "0",
+      "i": "2",
+      "b": "0",
+      "j": "0",
+      "flag": "-1",
+      "flag__pre": "-1",
+      "flag__entry": "-1",
+      "b__entry": "0",
+      "i__pre": "0",
+      "a": "0"
+    }
+  },
+  "modeled_variables": {
+    "i": "u",
+    "flag": "i",
+    "j": "u",
+    "a": "u",
+    "b": "u"
+  },
+  "frame_variables": [
+    "flag"
+  ],
+  "seconds": 1.3526062965393066
+}

@@ -1,0 +1,78 @@
+{
+  "pid": 3884516,
+  "started_utc": "2026-11-10T04:17:53.275106+00:00",
+  "stages": [
+    {
+      "name": "compose16",
+      "started_utc": "2026-11-10T04:17:53.282279+00:00",
+      "argv": [
+        "/usr/bin/python3",
+        "-u",
+        "-B",
+        "/mnt/c/Users/50635/Documents/Codex/2026-11-06/rebuttal-x20/work/verify_visible_nonpilot.py",
+        "verify",
+        "--workers",
+        "24",
+        "--watch"
+      ],
+      "pid": 3884517,
+      "returncode": 0,
+      "finished_utc": "2026-11-10T06:24:32.936160+00:00",
+      "wall_seconds": 7599.652841397969
+    },
+    {
+      "name": "prefixes",
+      "started_utc": "2026-11-10T06:24:33.192476+00:00",
+      "argv": [
+        "/usr/bin/python3",
+        "-u",
+        "-B",
+        "/mnt/c/Users/50635/Documents/Codex/2026-11-06/rebuttal-x20/work/craft_visible_prefixes.py",
+        "--workers",
+        "24",
+        "--allow-partial"
+      ],
+      "pid": 63921,
+      "returncode": 0,
+      "finished_utc": "2026-11-10T09:16:14.513043+00:00",
+      "wall_seconds": 10301.298206486972
+    },
+    {
+      "name": "semantics",
+      "started_utc": "2026-11-10T09:16:14.540541+00:00",
+      "argv": [
+        "/usr/bin/python3",
+        "-u",
+        "-B",
+        "/mnt/c/Users/50635/Documents/Codex/2026-11-06/rebuttal-x20/work/audit_visible_prefix_semantics.py",
+        "--out",
+        "/home/yangfp/craft_empirical_runs/craft16_target_visible_semantics_20261110",
+        "--jobs",
+        "8",
+        "--replay-jobs",
+        "12",
+        "--allow-partial"
+      ],
+      "pid": 667356,
+      "returncode": 0,
+      "finished_utc": "2026-11-10T09:23:13.664794+00:00",
+      "wall_seconds": 419.1119047459797
+    },
+    {
+      "name": "accounting",
+      "started_utc": "2026-11-10T09:23:13.682174+00:00",
+      "argv": [
+        "/usr/bin/python3",
+        "-u",
+        "-B",
+        "/mnt/c/Users/50635/Documents/Codex/2026-11-06/rebuttal-x20/work/export_craft_visible.py"
+      ],
+      "pid": 680623,
+      "returncode": 0,
+      "finished_utc": "2026-11-10T09:23:14.303952+00:00",
+      "wall_seconds": 0.6105674200225621
+    }
+  ],
+  "state": "available_results_evaluated",
+  "finished_utc": "2026-11-10T09:23:14.315267+00:00"
+}

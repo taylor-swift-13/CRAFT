@@ -14,6 +14,7 @@ the original paper tables or experimental records.
 | [05_best_single_vs_composition](05_best_single_vs_composition/) | Matched candidate pool, highest-coverage single versus composition | R1/R3 Q1 |
 | [06_invariant_semantic_audit](06_invariant_semantic_audit/) | Strength, reachability exactness, SMT rechecks | R1/R2 Q4 |
 | [07_reasoning_budget_comparison](07_reasoning_budget_comparison/) | Medium-prefix cost audit and similar-token minimal/medium comparison | R2 Q3 |
+| [08_target_visibility_matched](08_target_visibility_matched/) | Matched target-visible/hidden generation and prefix semantic audits | R1/R2 reuse and visibility analysis |
 
 ## Evidence and reproduction
 

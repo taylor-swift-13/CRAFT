@@ -15,6 +15,8 @@ the original paper tables or experimental records.
 | [06_invariant_semantic_audit](06_invariant_semantic_audit/) | Strength, reachability exactness, SMT rechecks | R1/R2 Q4 |
 | [07_reasoning_budget_comparison](07_reasoning_budget_comparison/) | Medium-prefix cost audit and similar-token minimal/medium comparison | R2 Q3 |
 | [08_target_visibility_matched](08_target_visibility_matched/) | Matched target-visible/hidden generation and prefix semantic audits | R1/R2 reuse and visibility analysis |
+| [09_loopy_cumulative_success](09_loopy_cumulative_success/) | Cumulative success at every iteration (running snapshot) | Rebuttal supporting evidence |
+| [10_additional_artifacts_and_coverage](10_additional_artifacts_and_coverage/) | Additional pilots, probes, diagnostics and complete artifact coverage | Rebuttal supporting evidence |
 
 ## Evidence and reproduction
 
@@ -45,3 +47,8 @@ The semantic audit retains all 832 records for traceability; the rebuttal denomi
 is the 602 originally verified programs. Loopy repair results reuse existing replies;
 costs describe accessed cached calls. The reasoning-budget comparison uses different
 prompt/batch configurations. See each experiment's README/ARCHIVE and protocol files.
+
+The supplemental archive 10 additionally preserves non-final pilots, probes and diagnostics
+previously omitted from 01–08. Its source inventory maps every scoped file to an
+existing hash-identical archive member or a new supplemental member. These records
+are historical evidence, not replacements for final experiment results.

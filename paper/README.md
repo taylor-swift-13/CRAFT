@@ -35,11 +35,8 @@ are retained in
 Qwen3-8B + SFT + RL (Full) uses **69.23% compose@1** throughout the
 main results and reward comparisons; Clause-decomposed uses **67.91%**.
 The complete corresponding Full pass/compose row is used consistently.
-The comparison is not labeled as paired retraining. The superseded evaluation
-is preserved in
-`results/01_rq1_main_verification/paper_summaries/full_superseded_evaluation_20260912.tex`
-and the
-original reports, and is no longer a separate manuscript table.
+The comparison is not labeled as paired retraining. Superseded evaluation
+summaries are retained in Git history rather than the current result directory.
 The author also confirmed that Qwen3-4B and Llama post-SFT models use Full;
 `results/04_rq4_ablations/paper_summaries/reward_label_mapping_current.json`
 supersedes the earlier mapping.
@@ -55,8 +52,7 @@ python3 paper/figures/plot_reward_training_curves.py
 make -C paper
 ```
 
-Raw evaluation reports remain unchanged. Current author corrections and
-checkpoint provenance are stored in
+Current author corrections and checkpoint provenance are stored in
 `results/04_rq4_ablations/paper_summaries/reward_definition_confirmation_20260912.json`
 and
 `results/01_rq1_main_verification/paper_summaries/result_alignment_20260911.json`.

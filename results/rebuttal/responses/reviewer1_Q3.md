@@ -1,0 +1,11 @@
+### Q3 — What practical circumstances motivate withholding targets during training as well as inference? A multi-goal verification reward would introduce additional supervision and therefore change the setting, but a comparison or discussion could help clarify the practical trade-off of fully target-independent training.
+
+Thank you for this suggestion. A practical example is legacy code without accompanying formal specifications, such as assertions or postconditions. Here, a useful task is property discovery: finding and verifying properties of the code before a particular verification goal has been supplied. CRAFT produces verified loop summaries that, together with exit conditions and program context, can help establish properties after the loop terminates. These summaries can support later analyses and specification writing.
+
+The reason for withholding targets during training is the difficulty and cost of preparing them for a large training corpus. This requires understanding programs, writing suitable specifications, and checking that those specifications are correct and meaningful. Our training procedure can use code without first adding these goals. In our experiments, we withhold existing targets to test whether the method can learn and generate useful invariants without relying on them; the targets are used for evaluation.
+
+Beyond the preparation cost discussed above, goal quality also determines the usefulness of target-based supervision. Suitable existing goals can naturally provide additional direct supervision, but deriving correct, informative goals from source code requires discovering useful program properties and validating them. This difficulty is central to the problem we study and motivates our target-hidden setting.
+
+We train on code without prewritten verification specifications using inductiveness checks to verify that the retained clauses jointly form a valid loop invariant, and negative-trace coverage as a target-independent strength signal for SFT-label construction and RL rewards.
+
+Our supplementary inference comparison illustrates the benefit of available goals: with GPT-5-nano/minimal and 16 responses on the same 832 programs, target-visible generation verifies 80.77%, versus 72.36% with targets hidden.

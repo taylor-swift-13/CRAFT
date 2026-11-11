@@ -1,0 +1,5 @@
+### Q4 — Moreover, the trained 8B model still reaches only 12% on the nonlinear subset, indicating that the overall improvement does not yet extend to such difficult tasks.
+
+Thank you for highlighting the limited performance on the nonlinear subset. Before our training, Qwen3-8B achieves only 10% even when composing 32 responses; after training aligned with compositional inference, it reaches 12% with a single response. In comparison, the same CRAFT framework with GPT-5-nano/minimal achieves 34% at compose@1 and 44% at compose@16 on this subset.
+
+Our training relies on model-generated candidates. When these candidates lack the necessary nonlinear relations, both the information available for composition and the useful supervision available for training are limited. These results are consistent with the explanation that the current model struggles to generate the required nonlinear relations. They also show that CRAFT can use candidates from a stronger model to solve more nonlinear tasks. Using models with stronger nonlinear reasoning capabilities is an important direction for further improvement.

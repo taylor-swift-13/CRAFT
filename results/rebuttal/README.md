@@ -18,6 +18,14 @@ the original paper tables or experimental records.
 | [09_loopy_cumulative_success](09_loopy_cumulative_success/) | Cumulative success at every iteration (running snapshot) | Rebuttal supporting evidence |
 | [10_additional_artifacts_and_coverage](10_additional_artifacts_and_coverage/) | Additional pilots, probes, diagnostics and complete artifact coverage | Rebuttal supporting evidence |
 
+## Current response draft
+
+The latest response is [rebuttal.md](../../rebuttal.md) at the repository root.
+[Individual comments](responses/) are exported from that draft and checked against
+the 5,000-character per-comment limit. The label-construction comparison now also
+includes [recorded filtering times](05_best_single_vs_composition/cost_audit/REPORT.md)
+and the explicitly extrapolated training-scale estimate.
+
 ## Evidence and reproduction
 
 Every copied source is listed in `provenance.json`. `manifest.json` records SHA-256

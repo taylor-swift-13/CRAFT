@@ -1,0 +1,66 @@
+--- paper/main.tex
++++ blue_revision/main.tex
+@@ -13,6 +13,8 @@
+ \usepackage{colortbl}
+ \usepackage{listings}
+ \usepackage{xcolor}
++% Writing-only rebuttal revision: changed prose/cells are blue.
++\newcommand{\revision}[1]{{\color{blue}#1}}
+ \usepackage{subcaption}
+ \usepackage{amsmath}
+ \usepackage{amssymb}
+--- paper/sections/appendix.tex
++++ blue_revision/sections/appendix.tex
+@@ -1226,6 +1226,10 @@
+ programs. The two SFT datasets contain approximately equal numbers of
+ training examples. Single-response labels are independently filtered responses;
+ composed labels pool discoveries across responses.
++\revision{Both datasets start from the same program pool, and over 93\% of the distinct
++prompts in the composed-label dataset also appear in the single-response dataset.
++SFT (single) generates one response per loop, removes incorrect clauses, and skips
++examples with none remaining, without applying a coverage threshold.\par}
+ 
+ SFT (single) lowers compose over Base at every reported budget, although it
+ improves pass.  Composed-label SFT exceeds both models on both metrics: relative
+@@ -1786,7 +1790,7 @@
+ \sam{} (compose@8) & \acc{175}{55.38\%} & \acc{22}{44.00\%} & \acc{265}{56.87\%}
+   & \acc{462/832}{55.53\%}
+   & 2,929.47 & 69.99\,s \\
+-\sam{} (pass@1) & \acc{8/316}{2.53\%} & \acc{0/50}{0.00\%} & \acc{22/466}{4.72\%}
++\sam{} (pass@1) & \revision{\acc{12/316}{3.80\%}} & \acc{0/50}{0.00\%} & \revision{\acc{18/466}{3.86\%}}
+   & \acc{30/832}{3.61\%}
+   & 1,136.82 & 7.86\,s \\
+ \bottomrule
+@@ -1820,8 +1824,7 @@
+ exact-usage tasks, excluding 154 tokenizer-estimated and four missing-usage
+ records. Its eight-choice request counts the prompt once and all completions.
+ Four timed-out LORIS runs lack final usage records but remain verification
+-failures. CRAFT uses the same ten-response pools as
+-Table~\ref{tab:cross-model-main}.
++failures. \revision{GPT-5-nano pass@1 in Tables~\ref{tab:cross-model-main} and~\ref{tab:tools-complete} is reported from the same evaluation run.}
+ 
+ \subsubsection{Tool-by-Tool Analysis}
+ 
+@@ -1879,8 +1882,9 @@
+ candidate invariants and using Houdini to filter them.
+ Loopy's initial responses contain invariant annotations in 98.8\% of cases,
+ but its native extractor passes only 1.75\% of initial responses to Houdini.
+-Generating annotations therefore does not ensure that they reach the
+-verifier.
++\revision{Its extractor requires paired Markdown fences and drops unfenced
++ACSL annotations. After correcting extraction and re-verifying the saved
++initial and repair responses, Loopy reaches 68.03\% verification.}
+ 
+ \paragraph{Daikon.}
+ Daikon provides a non-LLM reference, verifying 20.91\% without model calls
+--- paper/sections/experiments.tex
++++ blue_revision/sections/experiments.tex
+@@ -194,7 +194,7 @@
+ \end{minipage}
+ \end{figure}
+ 
+-Having examined how SFT and RL reshape compositional search, we now isolate
++Having examined how SFT and RL reshape compositional search, we now \revision{examine}
+ the effects of SFT label construction and RL credit assignment through ablations.
+ 
+ \tightparagraph{Composition turns broader exploration into supervision.}

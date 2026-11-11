@@ -1,0 +1,58 @@
+%% ============================================================
+\section{Related Work}\label{sec:related}
+%% ============================================================
+
+\tightparagraph{Invariant generation and verified filtering.}
+Classical invariant synthesis uses abstract interpretation, algebraic relations,
+constraint solving, interpolation, recurrences, syntax-guided search, or
+counterexamples~\citep{cousot1977abstract,cousot1978automatic,karr1976affine,
+colon2003linear,sankaranarayanan2004non,gulwani2008program,gupta2009invgen,
+mcmillan2003interpolation,kincaid2017compositional,alur2013sygus,garg2014ice};
+dynamic approaches mine likely invariants from executions~\citep{daikon}.
+Verified filtering retains an inductive subset of proposed
+clauses~\citep{flanagan2001houdini}.  Neural and LLM systems learn construction
+policies or combine generation with solver feedback, static analysis,
+filtering, and repair
+~\citep{si2018learning,si2020code2inv,ryan2020cln2inv,yao2020gcln,
+yu2023lipus,kamath2024leveraging,chakraborty2023ranking,
+liu2026acinv,
+wu2024lemur}. Baldur instead generates and repairs whole proofs
+~\citep{first2023baldur}. LaM4Inv conjoins BMC-filtered predicates
+from candidate invariants~\citep{wu2024lam4inv}; Clause2Inv searches
+conjunctions and disjunctions of clauses~\citep{cao2025clause2inv}.
+Both iteratively refine candidates using verification feedback; LORIS repairs
+local reasoning errors~\citep{li2026loris}. Quokka uses UAutomizer
+to evaluate invariant correctness and verification speedups
+~\citep{wei2026quokka}.  These workflows rely on visible targets or
+target-derived feedback unavailable under target hiding.
+CRAFT jointly filters clauses from independent responses without verifier
+feedback to the generator, and aligns SFT and RL with this composition.
+
+Broader specification-generation frameworks also synthesize loop invariants
+by combining LLM generation with
+program analysis or symbolic verification
+~\citep{wen2024enchanting,yang2025sespec,ma2025specgen}.
+
+\tightparagraph{Training from formal and behavioral feedback.}
+Verified data and execution or prover feedback have been used to train
+invariant, code, and proof models
+~\citep{wei2026quokka,pinto2026notall,le2022coderl,yan2026reform}.
+Wonda curates verifier-generated invariants through AST normalization,
+LLM-driven semantic rewriting, and augmentation to train small language
+models~\citep{pinto2026notall}.
+COINS and SpecRL further use positive and negative behaviors to distinguish
+weak valid specifications from stronger ones
+~\citep{yang2026coins,huang2026specrl}; SpecRL rewards verified candidates
+according to the fraction of negative tests their specifications reject.
+CRAFT instead uses target-hidden behavioral evidence to train on verified
+multi-response compositions and reward retained clauses from failed responses.
+
+\tightparagraph{Credit assignment in RLVR.}
+Related RLVR and RLHF methods study group-relative advantages and
+fine-grained credit~\citep{shao2024deepseekmath,li2026ssvpo,cao2025scar}.
+Recent methods optimize pass@\(k\) or up-weight rare correct responses
+~\citep{walder2025pkpo,chen2025passktraining,he2025unlikeliness}, and
+per-response RL can improve pass@1 without expanding large-\(k\) coverage
+~\citep{yue2025rlcapacity,he2025unlikeliness}. CRAFT can combine
+clauses from multiple failed responses into a proof. Its clause-based coverage
+and Shapley credit produce response-level advantages for policy updates.

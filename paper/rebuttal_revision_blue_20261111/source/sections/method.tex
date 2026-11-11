@@ -1,0 +1,212 @@
+%% ============================================================
+\section{Method}\label{sec:method}
+%% ============================================================
+
+CRAFT aligns training with compositional inference: verified multi-response
+compositions become SFT labels, and retained clauses determine each response's
+RL credit, including useful parts of failed responses (Figure~\ref{fig:overview}).
+Appendix~\ref{app:formal-method} gives the complete formal definition.
+
+\begin{definition}[Target-hidden loop-verification task]
+\label{def:method-task}
+Let \(\mathcal L=(\mathsf{Init},B,S)\) describe loop-entry states, the guard,
+and one loop step.  A task \(\mathcal T=(\mathcal L,\mathcal G)\) additionally
+specifies verification targets \(\mathcal G\) at their program locations.
+For a clause set \(C\), the composed invariant is
+\(I(C)=\bigwedge_{c\in C}c\), with \(I(\varnothing)=\mathsf{true}\).
+Its establishment and preservation conditions are
+\begin{align*}
+\operatorname{Est}_{\mathcal L}(I(C))
+  &\iff \forall\sigma:\ \mathsf{Init}(\sigma)\Rightarrow I(C)(\sigma),\\
+\operatorname{Pres}_{\mathcal L}(I(C))
+  &\iff \forall\sigma,\sigma':\
+  I(C)(\sigma)\land B(\sigma)\land S(\sigma,\sigma')
+  \Rightarrow I(C)(\sigma').
+\end{align*}
+The invariant is valid exactly when both hold:
+\(\operatorname{ValidInv}_{\mathcal L}(I(C))\iff
+\operatorname{Est}_{\mathcal L}(I(C))\land
+\operatorname{Pres}_{\mathcal L}(I(C))\).
+In the \emph{target-hidden} setting, generation and intermediate scores see
+\(\mathcal L\) but not \(\mathcal G\); targets are used only for final
+verification.  Appendix~\ref{app:formal-loop-verification} gives the full
+proof obligations, and Appendix~\ref{app:scope-example} illustrates the
+numerical-loop setting through case studies.
+\end{definition}
+
+We use the notation of Definition~\ref{def:method-task} throughout the
+inference, SFT, and RL procedures below.
+Clause pools and filter outputs are ordered sequences in the algorithms;
+set notation denotes their members, and conjunction ignores order.
+We abbreviate the bounded filter as \(\operatorname{Filter}_{\mathcal L}\)
+and the final verifier as \(\operatorname{TaskVerify}\), suppressing the
+fixed budgets \(\delta,h_{\max}\) defined in Appendix~\ref{app:formal-houdini}.
+
+\subsection{Target-Hidden Composable Inference}
+\label{sec:method:core}
+\label{sec:method:inference}
+
+Clauses from different responses can provide complementary target
+constraints and support one another during inductive verification.
+We therefore pool them before filtering.  Let
+\(\operatorname{Admit}(y)\) extract the first \(m_{\max}\) invariant clauses
+from response \(y\) and remove duplicates, with \(m_{\max}\) specified in
+Table~\ref{tab:constants}.  Algorithm~\ref{alg:method-pipeline} gives the
+inference procedure; \(\Vert\) denotes concatenation and
+\(\operatorname{Unique}\) removes duplicates.
+
+\begin{algorithm}[H]
+\caption{Rollout--decompose--pool--filter--compose}
+\label{alg:method-pipeline}
+\begin{algorithmic}
+\alginput{task \(\mathcal T\) from Definition~\ref{def:method-task}, policy \(\pi\), number of responses \(n\)}
+\algoutput{filtered clause set \(C\), composed invariant \(I(C)\), final verdict \(v\)}
+\algline \(x\leftarrow\mathcal L\) by masking \(\mathcal G\) in \(\mathcal T\)\cmnt{hide target}\\
+\algline \(y_{1:n}\sim\pi(\cdot\mid x)\)\cmnt{rollout}\\
+\algline \(A_i\leftarrow\operatorname{Admit}(y_i)\) for \(i=1,\ldots,n\)
+  \cmnt{decompose and cap}\\
+\algline \(P\leftarrow\operatorname{Unique}(A_1\Vert\cdots\Vert A_n)\)
+  \cmnt{pool in response order}\\
+\algline \(C\leftarrow\operatorname{Filter}_{\mathcal L}(P)\)\cmnt{filter}\\
+\algline form \(I(C)\) as in Definition~\ref{def:method-task}\cmnt{compose}\\
+\algline \(v\leftarrow\operatorname{TaskVerify}(\mathcal T,C)\)\cmnt{restore target}\\
+\algline \kw{return} \((C,I(C),v)\)\\
+\end{algorithmic}
+\end{algorithm}
+
+\tightparagraph{Joint verification and deletion.}
+Houdini checks each clause for establishment at loop entry and preservation
+under the current conjunction.  It repeatedly deletes unproved clauses and
+rechecks the survivors, since they may have depended on removed clauses.
+Only a proved fixed point is returned, ensuring an inductive conjunction
+under a sound verifier.  Budget and failure handling are specified in
+Appendix~\ref{app:formal-houdini}.
+
+\tightparagraph{Why pooling precedes filtering.}
+Let \(\mathsf H_{\mathcal L}\) denote ideal Houdini with exact logical
+decisions.  Filtering the union retains every clause obtainable by separately
+filtering the responses:
+\begin{equation}
+ \bigcup_i\mathsf H_{\mathcal L}(A_i)
+ \subseteq\mathsf H_{\mathcal L}\!\left(\bigcup_i A_i\right).
+ \label{eq:main-pooling-inclusion}
+\end{equation}
+The inclusion can be strict when supporting clauses occur in different
+responses; its derivation is in Appendix~\ref{app:composition-proofs}.
+Finite prover budgets can break this inclusion, so measured compose@\(k\)
+need not be monotonic (Appendix~\ref{app:houdini-order}).
+
+\subsection{Target-Independent Strength Signal}
+\label{sec:method:sampler}
+
+Inductive validity alone cannot distinguish useful invariants from weak
+ones such as \(\mathsf{true}\).  We execute the masked loop and construct
+candidate negative traces \(\mathcal N\): off-trajectory perturbations probe
+constraints among variables, continuations beyond witnessed exits probe
+boundary constraints, and local perturbations fill unused capacity.  Sampling
+and cleaning are detailed in Appendix~\ref{app:negative-sampling}.
+
+For a verified clause set \(C\), the state evaluator returns
+\(\operatorname{Eval}(c,s)\in\{\mathsf{true},\mathsf{false},\mathsf{unknown}\}\).
+A negative trace is rejected only by a definite false evaluation:
+\begin{equation}
+ \operatorname{rej}_{\mathcal N}(C)=\{\nu\in\mathcal N:\exists s\in\nu,\exists c\in C,
+   \operatorname{Eval}(c,s)=\mathsf{false}\}.
+ \label{eq:main-negative-rejection}
+\end{equation}
+An unknown evaluation contributes no rejection.  Perturbations form
+singleton traces; each cleaned post-exit continuation remains one trace.
+The trajectory-level coverage is
+\begin{equation}
+  \operatorname{cov}_{\mathcal N}(C)=
+  \frac{|\operatorname{rej}_{\mathcal N}(C)|}{|\mathcal N|},
+  \qquad |\mathcal N|>0.
+  \label{eq:method-coverage}
+\end{equation}
+Each trace contributes one unit regardless of its length.
+
+\tightparagraph{Empirical alignment.}
+The verifier supplies soundness, while coverage provides an empirical strength
+signal, achieving a within-program macro AUROC of 0.842 for final
+verification (Appendix~\ref{app:coverage-predictiveness}).
+
+\subsection{Distilling Multi-Response Search}
+\label{sec:method:sft}
+
+SFT distills accepted multi-response compositions into single-response
+supervision, aiming to make a richer set of useful clauses available with
+fewer samples.  Starting with \(P_0=\langle\rangle\), each round samples \(g_{\mathrm{sft}}\) responses
+from a fixed generator policy \(\pi_0\) (instantiated in
+Section~\ref{sec:exp:setup}), adds their clauses
+to the accumulated pool, and jointly filters it:
+\begin{equation}
+  P_t=\operatorname{Unique}\!\left(P_{t-1}\Vert
+    \operatorname{Admit}(y_1^{(t)})\Vert\cdots\Vert
+    \operatorname{Admit}(y_{g_{\mathrm{sft}}}^{(t)})\right),
+  \qquad
+  C_t=\operatorname{Filter}_{\mathcal L}(P_t).
+  \label{eq:method-sft}
+\end{equation}
+Accumulating all admitted clauses in \(P_t\) allows a removed clause to return
+when a later response supplies support.
+The label can therefore combine discoveries across responses and rounds.
+
+\tightparagraph{Acceptance and serialization.}
+For nonempty \(\mathcal N\), the first composition satisfying
+\(\operatorname{cov}_{\mathcal N}(C_t)\ge\tau\) within \(t_{\mathrm{sft}}\) rounds is
+serialized as the SFT label; otherwise no training pair is produced.
+Standard autoregressive cross-entropy trains the model on this label,
+conditioned on the masked loop.  Algorithm~\ref{alg:formal-sft} gives the
+complete procedure.
+
+\subsection{Rewarding Decomposed Contributions}
+\label{sec:method:reward}
+
+A failed response should not erase the contributions of its useful clauses.
+RL therefore assigns credit to the parts retained by joint filtering.
+For a group sampled from the current policy, let
+\(A_i=\operatorname{Admit}(y_i)\).  Executions yield reachable loop-head
+states \(\mathcal E\).  The order-preserving screen
+\(\operatorname{Screen}_{\mathcal E}\) removes malformed or out-of-scope
+clauses and clauses that evaluate to false on any \(s\in\mathcal E\);
+unknown evaluations cause no removal.  We screen the pooled clauses, filter
+once, and map survivors back to their proposing responses:
+\begin{align}
+  P^*&=\operatorname{Unique}\!\left(A_1\Vert\cdots\Vert A_{g_{\mathrm{rl}}}\right),
+  &&\nonumber\\
+  P_{\mathcal E}&=\operatorname{Screen}_{\mathcal E}(P^*),
+  &C^*&=\operatorname{Filter}_{\mathcal L}(P_{\mathcal E}),\nonumber\\
+  V_i&=\langle c\in A_i\mid\operatorname{key}(c)\in\operatorname{keys}(C^*)\rangle,
+  &R_i&=\operatorname{rej}_{\mathcal N}(V_i).
+  \label{eq:method-credit-pool}
+\end{align}
+Canonical keys identify which clauses each response proposed;
+\(V_i\) preserves their order in \(A_i\). Thus \(V_i\)
+retains its surviving contributions even when other clauses fail, with
+mutually supporting clauses checked in the pooled context used at inference.
+
+For nonempty \(\mathcal N\), Full, our default reward, adds Shapley credit
+to Clause-decomposed coverage:
+\begin{equation}
+\label{eq:generation-reward}
+  r_i=\frac{|R_i|}{|\mathcal N|}+0.3\phi_i.
+\end{equation}
+With the survivor bundles fixed, let \(f(\nu)=|\{j:\nu\in R_j\}|\) count
+the responses rejecting trace \(\nu\).  The Shapley credit is
+\begin{equation}
+  \phi_i=\frac{1}{|\mathcal N|}\sum_{\nu\in R_i}\frac{1}{f(\nu)}.
+  \label{eq:method-shapley}
+\end{equation}
+Each rejected trace's credit is divided among the responses covering it.
+At equal coverage, Full rewards responses more when their rejected traces
+are covered by fewer other responses, encouraging complementary effective
+coverage within the group.
+The coverage game and proof are in Appendix~\ref{app:formal-shapley};
+Appendix~\ref{app:full-credit-analysis} analyzes the empirical effect.
+
+GRPO standardizes rewards within each group and applies each response's
+scalar advantage to its tokens; clauses determine credit, while policy
+updates remain response-level.  A clause that only supports another clause
+receives no direct coverage credit.  Update details and the empty-negative
+fallback are in Appendix~\ref{app:grpo-details} and
+Algorithm~\ref{alg:formal-rl-reward}.

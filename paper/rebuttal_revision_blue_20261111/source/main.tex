@@ -1,0 +1,302 @@
+%%
+%% Clause-Compositional Inference and Aligned Training for Target-Hidden Loop Verification
+%% ICLR 2027 submission format
+%%
+\documentclass{article}
+
+%% Official ICLR style; keep \iclrfinalcopy disabled for anonymous review.
+\usepackage{iclr2027_conference,times}
+\usepackage[scaled=.92]{helvet}  % match sans x-height to Times (figure text)
+
+%% Packages
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{listings}
+\usepackage{xcolor}
+% Writing-only rebuttal revision: changed prose/cells are blue.
+\newcommand{\revision}[1]{{\color{blue}#1}}
+\usepackage{subcaption}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{pifont}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{microtype}
+\usepackage{tcolorbox}
+\usepackage{enumitem}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage{wrapfig}
+% End a short wrapped discussion below the figure before starting another block.
+\newcommand{\finishfigurewrap}{%
+  \par\ifnum\value{WF@wrappedlines}>1
+    \vspace{\dimexpr\value{WF@wrappedlines}\baselineskip-\baselineskip\relax}%
+  \fi\WFclear}
+
+\usepackage{needspace}
+\usepackage{etoolbox}
+\usepackage{tikz}
+\usetikzlibrary{calc,arrows.meta,positioning,shapes.geometric}
+
+%% tcolorbox setup
+\tcbuselibrary{skins,breakable}
+
+%% Theorem environments
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+
+%% ---- Compact algorithm environment ----
+\floatstyle{ruled}
+\newfloat{algorithm}{tbp}{loa}
+\floatname{algorithm}{Algorithm}
+
+\newcounter{alglinenum}
+\newenvironment{algorithmic}{%
+  \setcounter{alglinenum}{0}%
+  \par\small\noindent
+  \begin{tabbing}%
+  \hspace{1.8em}\=\hspace{1.2em}\=\kill
+}{%
+  \end{tabbing}%
+}
+\newcommand{\algline}{\stepcounter{alglinenum}{\scriptsize\makebox[1.8em][r]{\arabic{alglinenum}:\;}}\>}
+\newcommand{\algind}{\>}
+\newcommand{\kw}[1]{\textbf{#1}}
+\newcommand{\cmnt}[1]{\hfill{\color{codegray}\itshape$\triangleright$ #1}}
+\newcommand{\alginput}[1]{\hspace{1.8em}\textbf{Input:} #1\\}
+\newcommand{\algoutput}[1]{\hspace{1.8em}\textbf{Output:} #1\\}
+
+%% Shared figure/table palette (figures/paper_style.py).
+\definecolor{codeblue}{HTML}{147D68}
+\definecolor{codegray}{HTML}{64748B}
+\definecolor{codepurple}{HTML}{3D6EA6}
+\definecolor{codered}{HTML}{3D6EA6}
+\definecolor{codegreen}{HTML}{147D68}
+\definecolor{promptbg}{HTML}{F7FAF8}
+\definecolor{promptframe}{HTML}{DCE7E2}
+\definecolor{algobg}{HTML}{EAF4F0}
+\definecolor{algoframe}{HTML}{9FBFB6}
+\definecolor{paperink}{HTML}{243247}
+\definecolor{wrongred}{HTML}{BDD2E8}
+\definecolor{codeolive}{HTML}{3D6EA6}
+\definecolor{codeslate}{HTML}{526477}
+
+%% Green primary, blue secondary, and slate neutral; typography comes from the ICLR style.
+\hypersetup{
+  hidelinks
+}
+\setlist[itemize]{leftmargin=1.35em,itemsep=2pt,topsep=3pt,parsep=0pt}
+\setlist[enumerate]{leftmargin=1.45em,itemsep=2pt,topsep=3pt,parsep=0pt}
+\renewcommand{\arraystretch}{1.08}
+\arrayrulecolor{promptframe}
+\raggedbottom
+
+%% One table font, spacing, and rule system; no scaled table text.
+\newcommand{\papertablestyle}{%
+  \fontsize{9}{10.5}\selectfont
+  \setlength{\tabcolsep}{2.4pt}%
+  \renewcommand{\arraystretch}{1.0}%
+  \arrayrulecolor{codegray}%
+  \setlength{\heavyrulewidth}{0.6pt}%
+  \setlength{\lightrulewidth}{0.4pt}%
+  \setlength{\cmidrulewidth}{0.4pt}%
+}
+\AtBeginEnvironment{tabular}{\papertablestyle}
+\AtBeginEnvironment{tabular*}{\papertablestyle}
+\captionsetup[table]{font=small}
+% Shared native type and node scale for the full-width TikZ diagrams.
+\newcommand{\paperdiagramfont}{\fontsize{8.5}{9.8}\selectfont}
+\tikzset{paper state/.style={circle, minimum size=4.75pt, inner sep=0pt},
+  paper edge/.style={line width=0.75pt},
+  paper frame/.style={line width=0.6pt}}
+% Consecutive shaded header rows share one continuous background.
+% Partial booktabs rules reserve an unpainted band in the other columns.
+\newcommand{\headercmidrules}[1]{}
+
+%% Listings style for C / ACSL
+\lstdefinestyle{cstyle}{
+  language=C,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{codeblue}\bfseries,
+  commentstyle=\color{codegray}\itshape,
+  stringstyle=\color{codered},
+  numbers=left,
+  numberstyle=\tiny\color{codegray},
+  stepnumber=1,
+  numbersep=6pt,
+  backgroundcolor=\color{promptbg},
+  showspaces=false,
+  showstringspaces=false,
+  showtabs=false,
+  frame=single,
+  rulecolor=\color{promptframe},
+  framesep=4pt,
+  framerule=0.45pt,
+  xleftmargin=0.2em,
+  xrightmargin=0.2em,
+  framexleftmargin=0.35em,
+  framexrightmargin=0.35em,
+  tabsize=2,
+  captionpos=b,
+  breaklines=true,
+  breakatwhitespace=false,
+  escapeinside={(*@}{@*)},
+  morekeywords={loop,invariant,assigns,variant,requires,assert},
+  literate={\\at}{{{\color{codeblue}\textbackslash at}}}3
+           {\\forall}{{{\color{codeblue}\textbackslash forall}}}7
+           {\\exists}{{{\color{codeblue}\textbackslash exists}}}7,
+  aboveskip=0.8em,
+  belowskip=0.5em,
+}
+\lstset{style=cstyle}
+
+%% Listings style for prompts
+\lstdefinestyle{promptstyle}{
+  language=,
+  basicstyle=\ttfamily\fontsize{6.2}{6.9}\selectfont,
+  keywordstyle=\color{codeblue}\bfseries,
+  commentstyle=\color{codegray}\itshape,
+  numbers=none,
+  frame=none,
+  breaklines=true,
+  columns=fullflexible,
+  keepspaces=true,
+  morekeywords={},
+  aboveskip=0pt,
+  belowskip=0pt,
+}
+
+%% Prompt box environment
+\newtcolorbox{promptbox}[1][]{
+  enhanced,
+  colback=promptbg,
+  colframe=promptframe,
+  boxrule=0.5pt,
+  arc=3pt,
+  left=6pt,
+  right=6pt,
+  top=5pt,
+  bottom=5pt,
+  fonttitle=\small\bfseries\sffamily,
+  title={#1},
+  coltitle=black,
+  colbacktitle=promptframe!30,
+  attach boxed title to top left={yshift=-2mm,xshift=4mm},
+  boxed title style={arc=2pt,boxrule=0pt},
+}
+
+%% Pipeline step box
+\newtcolorbox{stepbox}[1][]{
+  enhanced,
+  colback=white,
+  colframe=codeblue!60,
+  boxrule=0.6pt,
+  arc=2pt,
+  left=5pt,
+  right=5pt,
+  top=4pt,
+  bottom=4pt,
+  fontupper=\small,
+  title={#1},
+  fonttitle=\small\bfseries\sffamily,
+  coltitle=white,
+  colbacktitle=codeblue!70,
+  attach boxed title to top left={yshift=-2mm,xshift=4mm},
+  boxed title style={arc=2pt,boxrule=0pt},
+}
+
+%% Compact experimental insight box
+\newtcolorbox{insightbox}{
+  enhanced,
+  colback=codegreen!5,
+  colframe=codegreen!48,
+  boxrule=0.45pt,
+  arc=2pt,
+  left=3pt,
+  right=3pt,
+  top=2pt,
+  bottom=2pt,
+  boxsep=0pt,
+  before skip=2pt,
+  after skip=2pt,
+}
+
+%% Shorthand commands
+\newcommand{\cmark}{\ding{51}}
+\newcommand{\xmark}{\ding{55}}
+\newcommand{\sam}{CRAFT}
+\newcommand{\denote}[1]{\left[\!\left[#1\right]\!\right]}
+\newcommand{\acc}[2]{#2}
+\newcommand{\wangsl}[1]{{\color{codegray} #1}}
+\newcommand{\tightparagraph}[1]{\par\addvspace{2pt}\noindent\textbf{#1}\hspace{0.45em}}
+
+%% Meta
+\title{Clause-Compositional Inference and Aligned Training
+for Target-Hidden Loop Verification}
+
+\author{
+  Anonymous authors\\
+  Paper under double-blind review
+}
+
+% \iclrfinalcopy % Uncomment only for the camera-ready version.
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Loop invariants reduce unbounded executions to finite proof obligations.
+For legacy programs with unknown verification goals,
+target-specific verifier feedback is unavailable, making invariant generation
+especially challenging.  Meanwhile, LLM-generated invariants often fail
+as complete responses even when they contain useful clauses, and complementary
+clauses may be scattered across different responses.  We introduce CRAFT, a framework that aligns invariant
+generation and training with clause composition under hidden verification
+targets.  At inference, CRAFT decomposes responses
+into clauses, pools and jointly filters clauses across responses, and composes
+the survivors into an invariant.  This recovers useful proof material without
+requiring any response to prove the hidden target independently.
+The same filtered compositions supply SFT labels and determine which clauses
+receive RL credit.  Because target assertions and postconditions remain hidden
+throughout generation and training, CRAFT estimates invariant strength by
+measuring how many candidate negative traces constructed from executions an
+invariant rejects.  Supervised fine-tuning (SFT) distills accepted compositions
+from multiple responses into labels for one response, while reinforcement
+learning (RL) credits coverage contributed by retained clauses even when their
+original responses fail as wholes.  On 832 C programs, SFT raises Qwen3-8B's
+compose@1 (the verification rate after filtering and composing one response)
+from 37.86\% to 63.94\%, exceeding the untrained model's 57.81\%
+compose@32.  Subsequent RL raises compose@1 to 69.23\%.  Reward ablations show
+that whole-response credit can improve standalone success while degrading
+compositional verification, whereas clause-level credit preserves useful
+contributions from failed responses.
+\end{abstract}
+
+%% ============================================================
+\input{sections/introduction}
+\input{sections/method}
+\input{sections/experiments}
+\input{sections/related}
+\input{sections/conclusion}
+
+%% ============================================================
+%% References
+%% ============================================================
+\clearpage
+\bibliographystyle{iclr2027_conference}
+\bibliography{references}
+
+\input{sections/statements}
+
+%% ============================================================
+%% Appendix
+%% ============================================================
+\newpage
+\appendix
+\input{sections/appendix}
+
+\end{document}

@@ -1,0 +1,244 @@
+%% ============================================================
+\section{Experiments}\label{sec:experiments}
+%% ============================================================
+
+We organize the evaluation around four questions: how much do compositional
+inference and aligned training improve verification (RQ1); can CRAFT improve verification
+while reducing token use relative to specialized tools (RQ2); do SFT and RL
+contribute differently (RQ3); and which design choices enable these gains
+(RQ4)?  Appendix~\ref{app:complete-results} collects the complete raw results;
+the independent analyses are in Appendix~\ref{app:independent-experiments}.
+
+\subsection{Experimental Setup}
+\label{sec:exp:setup}
+
+\tightparagraph{Data and judge.}
+Training data comprise 9,024 RL records and 33,346 SFT records (31,865
+distinct sources) of target-masked scalar-integer single-loop programs.
+The raw training-program pool is drawn primarily from SV-COMP and SyGuS
+\citep{svcomp,alur2013sygus}; Appendix~\ref{app:data-curation} describes
+program selection and verified SFT-label construction.  The SFT corpus is
+synthesized once with Qwen3-8B as the generator in the procedure of
+Section~\ref{sec:method:sft} and is shared unchanged by all trained
+backbones; RL rewards are computed online from each trained model's own
+rollouts.  Program execution and Frama-C/WP verification supply every
+acceptance and scoring decision; no closed model, human labeler, or external
+reward model is involved at any stage.  The
+evaluation combines 832 programs from Code2Inv, SyGuS, SV-COMP, LIPuS,
+Clause2Inv, and Loopy: 316 linear, 50 nonlinear-arithmetic, and 466 Loopy
+instances~\citep{si2020code2inv,alur2013sygus,svcomp,yu2023lipus,
+cao2025clause2inv,kamath2024leveraging}.  No training program matches an
+evaluation program under exact, alpha-renamed, or constant-abstracted matching
+(Appendix~\ref{app:data-leakage}). The judge is Frama-C/WP~\citep{framac}.
+Success requires it to prove induction and every restored
+target; all other outcomes count as zero.
+
+\tightparagraph{Inference protocol.}
+All \sam{} evaluation runs share target masking, the canonical prompt, clause
+processing, Houdini, stochastic decoding, and no re-roll or target feedback;
+external tools retain their own target-hidden orchestration.  Each probe curve reuses one
+saved pool of \(n_{\mathrm{probe}}\) responses per task.  Appendix~\ref{app:experimental-protocol}
+gives decoding, serving, prover, and training details.
+
+\tightparagraph{Metrics.}
+Throughout evaluation, success means \(\mathcal G\)-sufficiency under the final
+verifier. Our primary metric is compose@\(k\): success under CRAFT's
+filtering-and-composition pipeline on the first \(k\) saved responses. We report pass@\(k\)
+as a standalone baseline: success when at least one of the same responses
+independently verifies the targets. Appendix~\ref{app:experimental-protocol}
+gives the definitions.
+
+
+% ---------------------------------------------------------------------------
+\subsection{RQ1: How Much Do Compositional Inference and Aligned Training Improve Verification?}
+\label{sec:exp:main}
+
+Table~\ref{tab:rcf-paired} compares three local backbones across training
+stages, with four API models as references. It reports the primary compose
+metric and the standalone pass baseline at one- and eight-response budgets.
+RL denotes training from Base;
+SFT+RL starts from SFT. API models receive no additional training.
+
+\input{sections/main_results_table}
+
+\tightparagraph{Compositional inference alone substantially improves verification.}
+For Base Qwen3-8B, compose@1 reaches 37.86\%, versus pass@1 at 6.37\%,
+or \(5.94\times\) the standalone rate.
+Both rates concern a one-response inference budget, showing that the framework can recover
+clauses sufficient for a proof from an answer that fails as a whole.
+
+\tightparagraph{Two-stage training aligned with inference further improves verification.}
+SFT constructs supervision from composed valid clause sets, while RL assigns
+credit based on the contributions of clauses retained after filtering.
+Qwen3-8B compose@1 rises from 37.86\% to 63.94\% after SFT and then to
+69.23\% after RL.  All three local backbones show this progressive
+improvement in compose@1; Qwen3-4B SFT+RL reaches 67.55\%, exceeding
+Sonnet-4.6's 56.97\% under the evaluated protocol.
+
+\begin{insightbox}
+\textbf{Finding.}
+Compositional inference improves verification both before and after training.
+Aligning SFT labels and RL rewards with this inference process further improves
+verification, while trained models continue to benefit from inference-time
+composition.
+\end{insightbox}
+
+% ---------------------------------------------------------------------------
+\Needspace{22\baselineskip}
+\subsection{RQ2: Can CRAFT Verify More While Spending Fewer Tokens?}
+\label{sec:exp:tools}
+
+\begin{figure}[!t]
+\centering
+\begin{minipage}[t]{0.333333\textwidth}
+\vspace{0pt}
+\includegraphics[width=\linewidth]{figures/tool_pareto_row.pdf}
+\captionsetup{font=small,margin={0pt,7pt}}
+\caption{Verification versus token use. Dashed: trained CRAFT reference.}
+\label{fig:tool-pareto}
+\end{minipage}%
+\begin{minipage}[t]{0.666667\textwidth}
+\vspace{0pt}
+\includegraphics[width=\linewidth]{figures/training_stages_row.pdf}
+\captionsetup{font=small,margin={7pt,0pt}}
+\caption{Qwen3-8B verification across sampling budgets, with RL initialized from (a) Base and (b) SFT. SFT reduces the sampling budget needed for verification; RL exhibits a sharpening effect, with larger gains at smaller \(k\).}
+\label{fig:rl-panels}
+\end{minipage}
+\end{figure}
+We compare \sam{} with AutoSpec, SESpec, Clause2Inv, LORIS, LaM4Inv, Loopy,
+and Daikon~\citep{wen2024enchanting,yang2025sespec,cao2025clause2inv,
+li2026loris,wu2024lam4inv,kamath2024leveraging,daikon}.  LLM-based comparisons
+hold GPT-5-nano, disabled reasoning, target hiding, and the final judge fixed.
+Comparison protocols, supported subsets, and matched-subset results are
+reported in Appendix~\ref{app:tools-comparison}.
+
+\tightparagraph{Clause reuse improves the verification--cost frontier.}
+With GPT-5-nano fixed, all three \sam{} budgets lie on the verification--token
+Pareto frontier (Figure~\ref{fig:tool-pareto}). On all 832 tasks, four
+responses verify \textbf{49.04\%} using \textbf{1,905 tokens per task},
+exceeding all compared tools in verification rate while costing less than four of
+the six LLM-based baselines.
+Eight responses raise verification to 55.53\% at 2,929 tokens.
+The trained model further improves the verification--token trade-off.
+
+\begin{insightbox}
+\textbf{Finding.}
+For invariant generation with hidden verification targets and limited
+informative feedback, reusable clauses improve the verification--token
+trade-off. Compared with iterative repair pipelines, parallel sampling and
+composition verify more programs with fewer tokens.
+\end{insightbox}
+
+% ---------------------------------------------------------------------------
+\subsection{RQ3: How Do SFT and RL Reshape Compositional Search?}
+\label{sec:exp:rl}
+
+Prior work suggests that RLVR can increase the sampling frequency of existing
+behaviors~\citep{yue2025rlcapacity}.
+Figure~\ref{fig:rl-panels} compares Qwen3-8B from Base and SFT initializations
+to examine whether this pattern also appears in compositional verification.
+
+\tightparagraph{SFT expands coverage and compresses the sampling budget.}
+SFT reaches 63.94\% compose@1, exceeding Base compose@32 (57.81\%).
+After RL, SFT initialization raises compose@1 from 51.80\% to 69.23\%
+under the same one-response budget.
+It also raises compose@32 from 70.67\% to 79.93\%: SFT both makes
+useful candidates accessible with fewer responses and expands verification
+coverage within the measured range.
+
+\tightparagraph{After SFT, RL mainly makes useful candidates available earlier.}
+From Base, RL improves compose@1 and compose@32 by 13.94 and 12.86
+points, respectively, retaining a substantial gain even at the largest budget.
+After three SFT epochs, its gains shrink to \textbf{5.29 points at compose@1
+and 2.05 at compose@32}. After SFT, RL mainly improves sampling
+efficiency: useful candidates appear with fewer responses, while
+coverage at the largest tested budget improves more modestly.
+Appendix~\ref{app:reward-sharpening} further examines this sharpening pattern
+and shows that finer credit assignment through compositional rewards helps
+mitigate it.
+
+\tightparagraph{RL reveals a tension between pass and compose.}
+Table~\ref{tab:rcf-paired} shows that RL's compositional gains can coincide
+with lower standalone success.  For Qwen3-8B, pass@1/8 falls from
+6.37\%/17.31\% to 2.88\%/7.81\% when RL starts from Base, and from
+41.95\%/61.18\% to 36.78\%/56.49\% when RL starts from SFT.  The appendix
+clause-cap ablation shows the same pattern: admitting more clauses improves
+compose@1/8 while lowering pass@1 (Appendix~\ref{app:clause-cap}).
+
+\begin{insightbox}
+\textbf{Finding.}
+SFT broadens verification coverage and compresses compositional search into
+fewer responses.  Post-SFT RL mainly improves sampling efficiency, making
+useful candidates available earlier even after substantial supervised training.
+\end{insightbox}
+
+% ---------------------------------------------------------------------------
+\subsection{RQ4: Why Do Composed SFT Labels and Decomposed Rewards Help?}
+\label{sec:exp:ablations}
+
+\begin{figure}[H]
+\centering
+\begin{minipage}[t]{0.333333\textwidth}
+\vspace{0pt}
+\includegraphics[width=\linewidth]{figures/sft_composition_compose_row.pdf}
+\captionsetup{font=small,margin={0pt,7pt}}
+\caption{Effect of SFT label construction on Qwen3-8B compose@\(k\).}
+\label{fig:sft-composition-compose}
+\end{minipage}%
+\begin{minipage}[t]{0.666667\textwidth}
+\vspace{0pt}
+\includegraphics[width=\linewidth]{figures/reward_ablation_row.pdf}
+\captionsetup{font=small,margin={7pt,0pt}}
+\caption{Qwen3-8B reward ablation from Base: (a) compose@\(k\); (b) pass@\(k\). Vertical scales differ.}
+\label{fig:reward-ablation}
+\end{minipage}
+\end{figure}
+
+Having examined how SFT and RL reshape compositional search, we now \revision{examine}
+the effects of SFT label construction and RL credit assignment through ablations.
+
+\tightparagraph{Composition turns broader exploration into supervision.}
+SFT (single) uses independently filtered responses; composed labels pool
+valid clauses across responses, giving supervision access to more candidate
+invariants and complementary constraints.  With approximately equal numbers
+of training examples, composed-label SFT raises Qwen3-8B compose@1 from
+23.20\% to 63.94\% and pass@1 from 19.95\% to 41.95\%, relative to
+SFT (single) (Figure~\ref{fig:sft-composition-compose}).  Composition exposes
+SFT to the results of multi-response exploration, which the trained model
+can exploit with a single response.
+
+\tightparagraph{One rejected clause should not erase the others' credit.}
+With verification targets hidden, RL uses inductiveness and negative-trace
+coverage as its reward signal (Figure~\ref{fig:reward-ablation}).  Binary
+reward reaches only 4.45\% compose@32.  Whole-rollout adds a coverage reward,
+but pays it only when every clause in a response survives filtering.  Thus,
+one rejected clause can withhold credit from other useful surviving clauses,
+making the signal sparse.  Consistent with this, Whole-rollout reaches only
+23.32\% compose@32, below Base's 57.81\%.  Clause-decomposed removes this
+all-or-nothing gate and rewards retained clause contributions, reaching
+66.35\% compose@32.  Relative to Base, this gain comes with a decrease in
+pass@32 from 25.96\% to 21.63\%.  This reflects our training alignment:
+RL rewards clause contributions that serve CRAFT's composition pipeline,
+rather than standalone pass.
+
+\tightparagraph{Group credit adds most from Base.}
+Full adds Shapley credit with weight 0.3.  From Base, it raises compose@32
+from 66.35\% to 70.67\%; after SFT, the selected Full model reaches
+69.23\% compose@1 versus Clause-decomposed's 67.91\%, while compose@32 improves by
+1.68 points.  Thus, the compose@32 gain from Shapley credit is 4.32 points
+from Base but only 1.68 points after SFT.  This smaller marginal benefit may
+indicate that SFT already enables sufficiently broad exploration of useful
+clauses.  The full comparison is in Appendix~\ref{app:full-credit-analysis}.
+
+\label{sec:exp:probe}
+Appendix~\ref{app:independent-experiments} reports the complete ablations,
+including inference, clause cap, filtering order,
+and target visibility.
+
+\begin{insightbox}
+\textbf{Finding.}
+Composed labels turn useful clauses from broader exploration into supervision;
+clause-level rewards preserve useful contributions within failed responses.
+Together, they let training exploit more of the candidates that compositional
+verification can use.
+\end{insightbox}

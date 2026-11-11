@@ -1,0 +1,38 @@
+[
+  {
+    "file": "main.tex",
+    "reason": "蓝色标记命令；不改变原稿",
+    "old": "\\usepackage{xcolor}",
+    "new": "\\usepackage{xcolor}\n% Writing-only rebuttal revision: changed prose/cells are blue.\n\\newcommand{\\revision}[1]{{\\color{blue}#1}}"
+  },
+  {
+    "file": "sections/experiments.tex",
+    "reason": "用户逐条确认：仅将 isolate 改为 examine",
+    "old": "Having examined how SFT and RL reshape compositional search, we now isolate\nthe effects of SFT label construction and RL credit assignment through ablations.",
+    "new": "Having examined how SFT and RL reshape compositional search, we now \\revision{examine}\nthe effects of SFT label construction and RL credit assignment through ablations."
+  },
+  {
+    "file": "sections/appendix.tex",
+    "reason": "用户逐条确认：保留 K.2 原文，仅补充同源输入、93% 重合与 single 筛选规则",
+    "old": "We compare Base, SFT (single), and composed-label SFT on the same 832\nprograms. The two SFT datasets contain approximately equal numbers of\ntraining examples. Single-response labels are independently filtered responses;\ncomposed labels pool discoveries across responses.",
+    "new": "We compare Base, SFT (single), and composed-label SFT on the same 832\nprograms. The two SFT datasets contain approximately equal numbers of\ntraining examples. Single-response labels are independently filtered responses;\ncomposed labels pool discoveries across responses.\n\\revision{Both datasets start from the same program pool, and over 93\\% of the distinct\nprompts in the composed-label dataset also appear in the single-response dataset.\nSFT (single) generates one response per loop, removes incorrect clauses, and skips\nexamples with none remaining, without applying a coverage threshold.\\par}"
+  },
+  {
+    "file": "sections/appendix.tex",
+    "reason": "Table 25 的两个 pass@1 单元格统一为 Table 23 第一批运行",
+    "old": "\\sam{} (pass@1) & \\acc{8/316}{2.53\\%} & \\acc{0/50}{0.00\\%} & \\acc{22/466}{4.72\\%}",
+    "new": "\\sam{} (pass@1) & \\revision{\\acc{12/316}{3.80\\%}} & \\acc{0/50}{0.00\\%} & \\revision{\\acc{18/466}{3.86\\%}}"
+  },
+  {
+    "file": "sections/appendix.tex",
+    "reason": "用户逐条确认：仅说明 Tables 23/25 的 pass@1 来自同一次评估",
+    "old": "failures. CRAFT uses the same ten-response pools as\nTable~\\ref{tab:cross-model-main}.",
+    "new": "failures. \\revision{GPT-5-nano pass@1 in Tables~\\ref{tab:cross-model-main} and~\\ref{tab:tools-complete} is reported from the same evaluation run.}"
+  },
+  {
+    "file": "sections/appendix.tex",
+    "reason": "说明提取器失败原因，并仅用一句补充修复后 68.03% 的结果",
+    "old": "Loopy follows a similar high-level strategy to AutoSpec: generating multiple\ncandidate invariants and using Houdini to filter them.\nLoopy's initial responses contain invariant annotations in 98.8\\% of cases,\nbut its native extractor passes only 1.75\\% of initial responses to Houdini.\nGenerating annotations therefore does not ensure that they reach the\nverifier.",
+    "new": "Loopy follows a similar high-level strategy to AutoSpec: generating multiple\ncandidate invariants and using Houdini to filter them.\nLoopy's initial responses contain invariant annotations in 98.8\\% of cases,\nbut its native extractor passes only 1.75\\% of initial responses to Houdini.\n\\revision{Its extractor requires paired Markdown fences and drops unfenced\nACSL annotations. After correcting extraction and re-verifying the saved\ninitial and repair responses, Loopy reaches 68.03\\% verification.}"
+  }
+]

@@ -6,10 +6,12 @@ Source-only template pools are frozen first; correctness is then curated
 symmetrically with both frozen summaries. This is not an independent held-out
 goal benchmark, and the goals need not be logically independent.
 
-| Jointly resolved targets | Hidden supports | Visible supports |
+The comparison uses the same 446 programs, each with eight targets fully resolved in both arms.
+
+| Metric | Hidden | Visible |
 |---|---:|---:|
-| All 3616 paired exit targets | 3533 | 3501 |
-| 3440 targets requiring invariant information | 3357 | 3325 |
+| Target-level support | 3487/3568 (97.73%) | 3461/3568 (97.00%) |
+| Programs supporting all eight targets | 424/446 (95.07%) | 411/446 (92.15%) |
 
 Eight slots per program were planned. 477 programs have eight confirmed targets;
 3,863 correct targets were obtained in total. Of these, 247 remain unconfirmed in

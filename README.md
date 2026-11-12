@@ -294,10 +294,6 @@ measurement.
 The two supported corpora also share upstream sources, including Code2Inv, so
 `366 + 466` must not be reported as a count of distinct semantic tasks.
 
-## Formal documentation
-
-- [Exact loop invariants: definitions and well-founded predecessor proof (Chinese)](docs/exact_invariant_formalization_zh.md) — integer-state semantics, invariants, exactness, certification theorem and proof, SMT obligations, and symbolic inputs.
-
 ## Verification
 
 ```bash

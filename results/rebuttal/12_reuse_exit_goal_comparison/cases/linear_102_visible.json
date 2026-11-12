@@ -1,0 +1,149 @@
+{
+  "key": "linear_102",
+  "arm": "visible",
+  "source": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/linear_102.original.c",
+  "source_sha256": "6d79d9f43211af3931823ad90732e500d777a2f3d23025c29db53075cfebffab",
+  "verification": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/linear_102.json",
+  "verification_sha256": "e0897bb8466f225c5723504cbfc9631d1408e5713c6cecb590a9b90786155c67",
+  "survivor_count": 27,
+  "goals": [
+    {
+      "id": 1,
+      "goal": "n < 0 ==> x == 0",
+      "classification": "not_entailed",
+      "proof": {
+        "status": "sat",
+        "seconds": 0.003668550998554565,
+        "smt2": "queries/linear_102/visible/goal_01.smt2",
+        "sha256": "925de83fe16afdfa7440ec1cf0900d0927703b286ea93f3f1a1069f94e13f544",
+        "model": {
+          "x": "1",
+          "n__pre": "-1",
+          "x__entry": "0",
+          "n__entry": "-1",
+          "n": "-1"
+        }
+      }
+    },
+    {
+      "id": 2,
+      "goal": "x >= 0",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.0006167869942146353,
+        "smt2": "queries/linear_102/visible/goal_02.smt2",
+        "sha256": "14175ce9edbdeec6a2eb9857fbf6023023a6d019d7f1276dddaae9bbe636da18"
+      }
+    },
+    {
+      "id": 3,
+      "goal": "x >= n",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.003225081993150525,
+        "smt2": "queries/linear_102/visible/goal_03.smt2",
+        "sha256": "41cb572e4e2835d65f832be71609be10080a0dbeacf54a0a252fa8e4201c1653"
+      }
+    },
+    {
+      "id": 4,
+      "goal": "x == 0 || x == n",
+      "classification": "not_entailed",
+      "proof": {
+        "status": "sat",
+        "seconds": 0.0037943190036457963,
+        "smt2": "queries/linear_102/visible/goal_04.smt2",
+        "sha256": "2869df832b2d167c6638883a5c1ef2dad06a58b2610e5fbc8fe8312e536ef861",
+        "model": {
+          "x": "1",
+          "n__pre": "-1",
+          "x__entry": "0",
+          "n__entry": "-1",
+          "n": "-1"
+        }
+      }
+    },
+    {
+      "id": 5,
+      "goal": "((x == 0) <==> (n <= 0))",
+      "classification": "not_entailed",
+      "proof": {
+        "status": "sat",
+        "seconds": 0.003784871005336754,
+        "smt2": "queries/linear_102/visible/goal_05.smt2",
+        "sha256": "20e70cab675f1b4c33266d529e3b6684454a646dafb2d7b73cfca66142b9a27d",
+        "model": {
+          "x": "1",
+          "n__pre": "-1",
+          "x__entry": "0",
+          "n__entry": "-1",
+          "n": "-1"
+        }
+      }
+    },
+    {
+      "id": 6,
+      "goal": "n > 0 ==> x > 0",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.002521718997741118,
+        "smt2": "queries/linear_102/visible/goal_06.smt2",
+        "sha256": "c4c2d0a93b1cff4fa3abf653126752c1f624b1a8c6a0fb0dba10b9f1b0ed2933"
+      }
+    },
+    {
+      "id": 7,
+      "goal": "x <= abs(n)",
+      "classification": "not_entailed",
+      "proof": {
+        "status": "sat",
+        "seconds": 0.003970924000896048,
+        "smt2": "queries/linear_102/visible/goal_07.smt2",
+        "sha256": "b6690881bc69ced6f17e773d9e1a50dcaec30e60ab8e657d4c0c889011a8c130",
+        "model": {
+          "x": "2",
+          "n__pre": "-1",
+          "x__entry": "0",
+          "n__entry": "-1",
+          "n": "-1"
+        }
+      }
+    },
+    {
+      "id": 8,
+      "goal": "x*(x-n) == 0",
+      "classification": "not_entailed",
+      "proof": {
+        "status": "sat",
+        "seconds": 0.34703112600254826,
+        "smt2": "queries/linear_102/visible/goal_08.smt2",
+        "sha256": "c2d001a8f15fa8797e2d1df4f5e0a35200e1bf96990fd312fdc57003da6d2df3",
+        "model": {
+          "x__entry": "0",
+          "x": "1074790401",
+          "n__entry": "-1206549413",
+          "n__pre": "-1206549413",
+          "n": "-1206549413"
+        }
+      }
+    }
+  ],
+  "unsupported_clause_redundancy": [],
+  "nonvacuity": {
+    "status": "sat",
+    "seconds": 0.003800410995609127,
+    "smt2": "queries/linear_102/visible/nonvacuity.smt2",
+    "sha256": "3564da17731ffc267cee4118ab55993abd34627ebc0b51421e683fef98459b74",
+    "model": {
+      "x": "0",
+      "n__pre": "-1",
+      "x__entry": "0",
+      "n__entry": "-1",
+      "n": "-1"
+    }
+  },
+  "exit_path_count": 1
+}

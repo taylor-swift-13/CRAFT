@@ -18,6 +18,7 @@ the original paper tables or experimental records.
 | [09_loopy_cumulative_success](09_loopy_cumulative_success/) | Cumulative success at every iteration (running snapshot) | Rebuttal supporting evidence |
 | [10_additional_artifacts_and_coverage](10_additional_artifacts_and_coverage/) | Additional pilots, probes, diagnostics and complete artifact coverage | Rebuttal supporting evidence |
 | [11_reuse_examples_readonly](11_reuse_examples_readonly/) | 30 existing certified programs; manually derived reuse goals | Read-only illustrative reuse analysis |
+| [12_reuse_exit_goal_comparison](12_reuse_exit_goal_comparison/) | Paired offline checks of 240 post-loop goals on 30 frozen summaries per arm | Illustrative multi-goal reuse comparison |
 
 ## Current response draft
 

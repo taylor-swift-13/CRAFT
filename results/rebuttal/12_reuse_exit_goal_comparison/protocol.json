@@ -1,0 +1,316 @@
+{
+  "scope": "immediate normal loop exit, including break",
+  "programs": 30,
+  "goals_per_program": 8,
+  "goals": {
+    "Loopy_135": [
+      "i == 1000",
+      "c == 499500",
+      "2*c == i*(i-1)",
+      "c < 500000",
+      "c % 1000 == 500",
+      "c >= i",
+      "c + i == 500500",
+      "c / 1000 == 499"
+    ],
+    "linear_255": [
+      "v == 51",
+      "v < 52",
+      "v % 2 == 1",
+      "(v-1)/2 == 25",
+      "v >= 51",
+      "v*v == 2601",
+      "v % 3 == 0",
+      "100 <= 2*v && 2*v <= 102"
+    ],
+    "linear_146": [
+      "y == 1024",
+      "x == 0 && y == 1024",
+      "x+y == 1024",
+      "y-x == 1024",
+      "y > x",
+      "y % 1024 == 0",
+      "x*y == 0",
+      "x+y <= 1024"
+    ],
+    "linear_278": [
+      "i == j",
+      "k == \\at(k,Pre)+j-\\at(i,Pre)",
+      "k > \\at(k,Pre)",
+      "i > \\at(i,Pre)",
+      "k-i == \\at(k,Pre)-\\at(i,Pre)",
+      "k-\\at(k,Pre) == i-\\at(i,Pre)",
+      "k >= \\at(k,Pre)+1",
+      "\\at(k,Pre) == \\at(i,Pre)-j+1 ==> k == 1"
+    ],
+    "linear_284": [
+      "x == 0",
+      "y == 0",
+      "x+y == 0",
+      "x == 4*y",
+      "x <= y",
+      "y <= x",
+      "x*x+y*y == 0",
+      "x <= 0 && y <= 0"
+    ],
+    "linear_298": [
+      "x == 10000000",
+      "x+z == 10000000",
+      "x-z == 10000000",
+      "x > z",
+      "x*z == 0",
+      "x % 10000000 == 0",
+      "x >= 10000000 && z <= 0",
+      "x <= 10000000 && z >= 0"
+    ],
+    "NLA_lipus_32": [
+      "sn == x*a",
+      "0 <= x && x <= 10",
+      "a > 0 ==> sn >= 0",
+      "a < 0 ==> sn <= 0",
+      "a == 0 ==> sn == 0",
+      "a != 0 ==> ((sn == 0) <==> (x == 0))",
+      "a >= 0 ==> sn <= 10*a",
+      "a <= 0 ==> sn >= 10*a"
+    ],
+    "linear_209": [
+      "y == 2*x",
+      "z == 3*x",
+      "z == x+y",
+      "3*y == 2*z",
+      "x <= y && y <= z",
+      "y % 2 == 0",
+      "z % 3 == 0",
+      "z-y == x"
+    ],
+    "linear_16": [
+      "n > 0 ==> x == n",
+      "n <= 0 ==> x == 0",
+      "n > 0 ==> m < n",
+      "n <= 0 ==> m == 0",
+      "0 <= m && m <= x",
+      "m != 0 ==> m < x",
+      "x >= n",
+      "m <= x && x >= 0"
+    ],
+    "linear_267": [
+      "j == n",
+      "k == \\at(k,Pre)-n",
+      "k+j == \\at(k,Pre)",
+      "k < \\at(k,Pre)",
+      "j >= 1",
+      "\\at(k,Pre) == n ==> k == 0",
+      "\\at(k,Pre) > n ==> k > 0",
+      "k <= \\at(k,Pre)-1"
+    ],
+    "linear_277": [
+      "i == 2*((n+1)/2)",
+      "k == n/2",
+      "n <= i && i <= n+1",
+      "2*k <= n",
+      "i % 2 == 0",
+      "2*k+i == 2*n",
+      "n % 2 == 0 ==> i == n",
+      "n % 2 == 1 ==> i == n+1"
+    ],
+    "linear_287": [
+      "x-y == \\at(x,Pre)-\\at(y,Pre)",
+      "x <= 100 && y <= 100",
+      "x > \\at(x,Pre)",
+      "y > \\at(y,Pre)",
+      "\\at(x,Pre) == \\at(y,Pre) ==> (x == 100 && y == 100)",
+      "\\at(x,Pre) > \\at(y,Pre) ==> x == 100",
+      "\\at(x,Pre) < \\at(y,Pre) ==> y == 100",
+      "x+y == 200-abs(\\at(x,Pre)-\\at(y,Pre))"
+    ],
+    "Loopy_58": [
+      "y == -1",
+      "x == 100 && y == -1",
+      "x+y == 99",
+      "x-y == 101",
+      "y < 0",
+      "x*y == -100",
+      "x+100*y == 0",
+      "x > y"
+    ],
+    "Loopy_128": [
+      "y == j-i",
+      "x == 0",
+      "((y == 0) <==> (i == j))",
+      "i >= 0",
+      "y <= j",
+      "i > j ==> y < 0",
+      "i < j ==> y > 0",
+      "y+i == j"
+    ],
+    "linear_194": [
+      "z == i",
+      "y == -i",
+      "x == 0",
+      "x+z == i",
+      "y+2*z == i",
+      "0 <= z && z <= i",
+      "y <= 0",
+      "i > 0 ==> z > 0"
+    ],
+    "linear_94": [
+      "i == n+1",
+      "2*j == (n+1)*(n+2)",
+      "j >= i",
+      "j >= n+1",
+      "2*j == i*(i+1)",
+      "n == 0 ==> j == 1",
+      "n > 0 ==> j > i",
+      "j >= 1"
+    ],
+    "Loopy_390": [
+      "n <= l ==> i == l",
+      "n > l ==> i == n",
+      "i >= n",
+      "i >= l",
+      "i == l || i == n",
+      "i-l >= 0",
+      "i-l <= abs(n-l)",
+      "i <= abs(n)+l"
+    ],
+    "linear_145": [
+      "lo == \\at(mid,Pre)",
+      "hi == \\at(mid,Pre)",
+      "mid == 0",
+      "lo > 0",
+      "hi > 0",
+      "lo+hi == 2*\\at(mid,Pre)",
+      "lo-mid == \\at(mid,Pre)",
+      "hi+mid == \\at(mid,Pre)"
+    ],
+    "linear_39": [
+      "c >= 0",
+      "c <= n",
+      "c*(n-c) >= 0",
+      "c < n ==> c+1 <= n",
+      "c > 0 ==> c >= 1",
+      "n == 1 ==> (c == 0 || c == 1)",
+      "c == 0 || 1 <= c && c <= n",
+      "c*c <= n*n"
+    ],
+    "linear_263": [
+      "i == 2*k",
+      "i == 2*n",
+      "i % 2 == 0",
+      "2*n-i == 0",
+      "i >= n",
+      "0 <= n && n <= k",
+      "k == 0 ==> i == 0",
+      "k > 0 ==> i > n"
+    ],
+    "linear_78": [
+      "0 <= i && i <= y",
+      "i <= x",
+      "y == 0 ==> i == 0",
+      "i*(i-y) <= 0",
+      "i < y ==> i+1 <= y",
+      "i == 0 || 1 <= i && i <= y",
+      "x == 0 ==> i == 0",
+      "i*i <= y*y"
+    ],
+    "Loopy_123": [
+      "0 <= x && x <= 1",
+      "0 <= y && y <= 1",
+      "x+w == 1",
+      "y == z",
+      "w+z == 1",
+      "x == 0 ==> w == 1",
+      "x == 1 ==> w == 0",
+      "(x == 0 && y == 0 && w == 1 && z == 0) || (x == 1 && y == 1 && w == 0 && z == 1)"
+    ],
+    "linear_10": [
+      "x-y == \\at(x,Pre)-\\at(y,Pre)",
+      "x >= \\at(x,Pre)",
+      "y >= \\at(y,Pre)",
+      "x % 2 == \\at(x,Pre) % 2",
+      "y % 2 == \\at(y,Pre) % 2",
+      "-2 <= x-y && x-y <= 2",
+      "x >= 0 && y >= 0",
+      "\\at(x,Pre) == \\at(y,Pre) ==> x == y"
+    ],
+    "linear_35": [
+      "c <= 40",
+      "0 <= c && c <= 40",
+      "c < 40 ==> c+1 <= 40",
+      "((c == 0) <==> (c <= 0))",
+      "c*(40-c) >= 0",
+      "c*c <= 1600",
+      "c > 0 ==> c >= 1",
+      "c == 40 || c <= 39"
+    ],
+    "NLA_lipus_43": [
+      "a <= r*(r+1)",
+      "r*(r-1) < a",
+      "0 <= x && x <= r",
+      "r >= 1",
+      "2*x == a-r*(r-1)",
+      "r <= a/2",
+      "x <= a/2",
+      "a == 2 ==> (r == 1 && x == 1)"
+    ],
+    "linear_27": [
+      "n <= 0 ==> x == n",
+      "x <= 1",
+      "x <= n",
+      "x == n || x == 1",
+      "n-x >= 0",
+      "n > 1 ==> n-x == n-1",
+      "n <= 1 ==> n-x == 0",
+      "((x < 0) <==> (n < 0))"
+    ],
+    "linear_102": [
+      "n < 0 ==> x == 0",
+      "x >= 0",
+      "x >= n",
+      "x == 0 || x == n",
+      "((x == 0) <==> (n <= 0))",
+      "n > 0 ==> x > 0",
+      "x <= abs(n)",
+      "x*(x-n) == 0"
+    ],
+    "linear_72": [
+      "z == 36*y+c",
+      "0 <= c && c <= 36",
+      "36*y <= z && z <= 36*y+36",
+      "z <= 4608",
+      "z >= 0",
+      "c == 36 ==> z == 36*(y+1)",
+      "c == 0 ==> z == 36*y",
+      "z-36*y >= 0"
+    ],
+    "Loopy_185": [
+      "i == k",
+      "j == k-from",
+      "i == from+j",
+      "j <= k",
+      "from == k ==> j == 0",
+      "from < k ==> j > 0",
+      "j >= 0",
+      "i >= from"
+    ],
+    "linear_93": [
+      "i == n",
+      "n <= x && x <= 2*n",
+      "n <= y && y <= 2*n",
+      "abs(x-y) <= n",
+      "x-y <= n",
+      "y-x <= n",
+      "n == 0 ==> (x == 0 && y == 0)",
+      "n > 0 ==> (x > 0 && y > 0)"
+    ]
+  },
+  "timeout_ms_per_query": 5000,
+  "solver_seed": 0,
+  "selection": "Existing hidden strict-and-exact case set; not an unbiased or independently held-out sample.",
+  "goal_dependence": "Goals can imply each other; 240 checks are not 240 logically independent properties.",
+  "semantics": "Existing defined 32-bit scalar-integer program model; ACSL mathematical-integer postconditions.",
+  "generation_calls": 0,
+  "Frama_C_calls": 0,
+  "Houdini_calls": 0,
+  "new_invariant_search": false
+}

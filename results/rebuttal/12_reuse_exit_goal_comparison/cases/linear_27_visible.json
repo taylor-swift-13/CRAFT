@@ -1,0 +1,142 @@
+{
+  "key": "linear_27",
+  "arm": "visible",
+  "source": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/linear_27.original.c",
+  "source_sha256": "b5fce24fee5f3d54ed4699c07213765cc88b6e2a4ffd3723c1cff3485724832b",
+  "verification": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/linear_27.json",
+  "verification_sha256": "67e4e39f0d0a654d65f413ed83a54cea29443f93d15fc1f9ecdf68dd1131da4f",
+  "survivor_count": 23,
+  "goals": [
+    {
+      "id": 1,
+      "goal": "n <= 0 ==> x == n",
+      "classification": "not_entailed",
+      "proof": {
+        "status": "sat",
+        "seconds": 0.0031208650034386665,
+        "smt2": "queries/linear_27/visible/goal_01.smt2",
+        "sha256": "9a677ad36a461e3be7161456ca5a1feecff995e97acadde5d0dbce4d0cc6b7f1",
+        "model": {
+          "x": "-1",
+          "x__entry": "0",
+          "n__entry": "0",
+          "n__pre": "0",
+          "n": "0"
+        }
+      }
+    },
+    {
+      "id": 2,
+      "goal": "x <= 1",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.0019249620017944835,
+        "smt2": "queries/linear_27/visible/goal_02.smt2",
+        "sha256": "3a77a222295e5f577a0d3312e550007c653d6831b2e5d6330f696d53361cb8e2"
+      }
+    },
+    {
+      "id": 3,
+      "goal": "x <= n",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.0004515649998211302,
+        "smt2": "queries/linear_27/visible/goal_03.smt2",
+        "sha256": "3263d7c3007d4967bb9a3ca2f3be422f99dc0e32a05c6f8fa42efdcfcc8bf414"
+      }
+    },
+    {
+      "id": 4,
+      "goal": "x == n || x == 1",
+      "classification": "not_entailed",
+      "proof": {
+        "status": "sat",
+        "seconds": 0.003265267994720489,
+        "smt2": "queries/linear_27/visible/goal_04.smt2",
+        "sha256": "b00b5024cd94997d5d0e77646512551a3b72c04448c113ed87fe67679161a7ee",
+        "model": {
+          "x": "-1",
+          "x__entry": "0",
+          "n__entry": "0",
+          "n__pre": "0",
+          "n": "0"
+        }
+      }
+    },
+    {
+      "id": 5,
+      "goal": "n-x >= 0",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.0004777330032084137,
+        "smt2": "queries/linear_27/visible/goal_05.smt2",
+        "sha256": "fe17ae6a96bb9ab8ad920736f9206dc74df1f12debbff3dc141c10b47367f6c2"
+      }
+    },
+    {
+      "id": 6,
+      "goal": "n > 1 ==> n-x == n-1",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.0032373150024795905,
+        "smt2": "queries/linear_27/visible/goal_06.smt2",
+        "sha256": "871249ccde289466e67228bd6a28fc2a912f157f8990ba5899a8816272892645"
+      }
+    },
+    {
+      "id": 7,
+      "goal": "n <= 1 ==> n-x == 0",
+      "classification": "not_entailed",
+      "proof": {
+        "status": "sat",
+        "seconds": 0.0032988219973049127,
+        "smt2": "queries/linear_27/visible/goal_07.smt2",
+        "sha256": "a5d40c1e2fc3b0ca4e126dc5e3de37020e1ab875328df960b49bac39bbaa009c",
+        "model": {
+          "x": "-1",
+          "x__entry": "0",
+          "n__entry": "0",
+          "n__pre": "0",
+          "n": "0"
+        }
+      }
+    },
+    {
+      "id": 8,
+      "goal": "((x < 0) <==> (n < 0))",
+      "classification": "not_entailed",
+      "proof": {
+        "status": "sat",
+        "seconds": 0.004076471006555948,
+        "smt2": "queries/linear_27/visible/goal_08.smt2",
+        "sha256": "854a43b522ca39c4cb513a1f9307b576e03200dc0484ce184b87ff14b14caab1",
+        "model": {
+          "x": "-1",
+          "x__entry": "0",
+          "n__entry": "0",
+          "n__pre": "0",
+          "n": "0"
+        }
+      }
+    }
+  ],
+  "unsupported_clause_redundancy": [],
+  "nonvacuity": {
+    "status": "sat",
+    "seconds": 0.003374836000148207,
+    "smt2": "queries/linear_27/visible/nonvacuity.smt2",
+    "sha256": "5f2dd56048a64191a9423e58c91a145800f447f3d57b4fcb81864c082768681a",
+    "model": {
+      "x": "1",
+      "x__entry": "1",
+      "n__entry": "1",
+      "n__pre": "1",
+      "n": "1"
+    }
+  },
+  "exit_path_count": 1
+}

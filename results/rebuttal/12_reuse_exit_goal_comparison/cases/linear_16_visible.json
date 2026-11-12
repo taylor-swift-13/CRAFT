@@ -1,0 +1,134 @@
+{
+  "key": "linear_16",
+  "arm": "visible",
+  "source": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/linear_16.original.c",
+  "source_sha256": "11c03d8ec53d622f8c9e346914fc402ee4d47ab8294a783c911a5dbaa50eb6b4",
+  "verification": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/linear_16.json",
+  "verification_sha256": "77e772b9b7ddf1bf73ec7d92cc7021ddbd0bfcbc39ac3389ab7d00da4783a639",
+  "survivor_count": 34,
+  "goals": [
+    {
+      "id": 1,
+      "goal": "n > 0 ==> x == n",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.004263828996045049,
+        "smt2": "queries/linear_16/visible/goal_01.smt2",
+        "sha256": "6428137f5d9692616c67a2bbd06db312dca0bd7115194896100fdd0fd268ff50"
+      }
+    },
+    {
+      "id": 2,
+      "goal": "n <= 0 ==> x == 0",
+      "classification": "not_entailed",
+      "proof": {
+        "status": "sat",
+        "seconds": 0.003605312005674932,
+        "smt2": "queries/linear_16/visible/goal_02.smt2",
+        "sha256": "dd610d31f977498290becb201a3fed5f8a80cef53c307a476db947b5d31e3414",
+        "model": {
+          "x": "1",
+          "m": "0",
+          "n__pre": "-1",
+          "x__entry": "0",
+          "m__entry": "0",
+          "n__entry": "-1",
+          "n": "-1"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "goal": "n > 0 ==> m < n",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.0034822279994841665,
+        "smt2": "queries/linear_16/visible/goal_03.smt2",
+        "sha256": "1309ebc30aa584cad8b546083909467552feaa91e4dcf1aaf00f1bdbe675b13f"
+      }
+    },
+    {
+      "id": 4,
+      "goal": "n <= 0 ==> m == 0",
+      "classification": "not_entailed",
+      "proof": {
+        "status": "sat",
+        "seconds": 0.003982725000241771,
+        "smt2": "queries/linear_16/visible/goal_04.smt2",
+        "sha256": "5d2627723e7497a36659627353844df4f041e81f85302a39b351ca87bcbd1135",
+        "model": {
+          "x": "2",
+          "m": "1",
+          "n__pre": "-1",
+          "x__entry": "0",
+          "m__entry": "0",
+          "n__entry": "-1",
+          "n": "-1"
+        }
+      }
+    },
+    {
+      "id": 5,
+      "goal": "0 <= m && m <= x",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.0017021509993355721,
+        "smt2": "queries/linear_16/visible/goal_05.smt2",
+        "sha256": "24bd8b7f8ac9f3e08f312c898d056035c57ae4abbb2cd5e05dd00e6eab3767ac"
+      }
+    },
+    {
+      "id": 6,
+      "goal": "m != 0 ==> m < x",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.0023597070030518807,
+        "smt2": "queries/linear_16/visible/goal_06.smt2",
+        "sha256": "d00e91922f9b5c94022e906b621b0aa2f52a1e19cc62970ea600b7267d7ba7cb"
+      }
+    },
+    {
+      "id": 7,
+      "goal": "x >= n",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.0031548080005450174,
+        "smt2": "queries/linear_16/visible/goal_07.smt2",
+        "sha256": "86e2f561e93b7ea39cfc2f4aa34b53e79e9d4f99b33762788dc8547414242aa7"
+      }
+    },
+    {
+      "id": 8,
+      "goal": "m <= x && x >= 0",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.0015337820004788227,
+        "smt2": "queries/linear_16/visible/goal_08.smt2",
+        "sha256": "56577eee851e14732f860f2202686752105d8722aabfae96eed0b07a2b8a16ab"
+      }
+    }
+  ],
+  "unsupported_clause_redundancy": [],
+  "nonvacuity": {
+    "status": "sat",
+    "seconds": 0.004700232995674014,
+    "smt2": "queries/linear_16/visible/nonvacuity.smt2",
+    "sha256": "2d40ce41490df2b5b293f1212f43e525ebc1c12c288f42779a9b40fe5cc67826",
+    "model": {
+      "x": "0",
+      "m": "0",
+      "n__pre": "-1",
+      "x__entry": "0",
+      "m__entry": "0",
+      "n__entry": "-1",
+      "n": "-1"
+    }
+  },
+  "exit_path_count": 1
+}

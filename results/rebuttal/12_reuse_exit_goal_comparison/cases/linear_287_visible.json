@@ -1,0 +1,115 @@
+{
+  "key": "linear_287",
+  "arm": "visible",
+  "source": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/linear_287.original.c",
+  "source_sha256": "af19b1f8368746950d852095408e3249707748e3c268ad9f115790365b6c75af",
+  "verification": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/linear_287.json",
+  "verification_sha256": "500b253d27a5bcbdf86216bcad566a5d8cd9fb037c7639f64447e25bda4d43f2",
+  "survivor_count": 17,
+  "goals": [
+    {
+      "id": 1,
+      "goal": "x-y == \\at(x,Pre)-\\at(y,Pre)",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.00036562199966283515,
+        "smt2": "queries/linear_287/visible/goal_01.smt2",
+        "sha256": "e4d9965bab5dbddf1f6a16f3cc7518699863ca83ca8fb767d9698354157b33e1"
+      }
+    },
+    {
+      "id": 2,
+      "goal": "x <= 100 && y <= 100",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.0015411760032293387,
+        "smt2": "queries/linear_287/visible/goal_02.smt2",
+        "sha256": "bf7504689d84e79840092968be6e02e8314c2c727bed69be50ed1c0c75adb9f4"
+      }
+    },
+    {
+      "id": 3,
+      "goal": "x > \\at(x,Pre)",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.0035416399987298064,
+        "smt2": "queries/linear_287/visible/goal_03.smt2",
+        "sha256": "b1bccd87bf9d2e16b58e7cdf014a55a0ae7a37800e64f79f286a9dea0f682472"
+      }
+    },
+    {
+      "id": 4,
+      "goal": "y > \\at(y,Pre)",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.004168314000708051,
+        "smt2": "queries/linear_287/visible/goal_04.smt2",
+        "sha256": "11411b7f74effeca515900baf65dc0f895436b4fc278a6b08503b5d579104950"
+      }
+    },
+    {
+      "id": 5,
+      "goal": "\\at(x,Pre) == \\at(y,Pre) ==> (x == 100 && y == 100)",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.0034505690055084415,
+        "smt2": "queries/linear_287/visible/goal_05.smt2",
+        "sha256": "8557a9f317435ee74d3364c4b1aceab2db3e78f3cd070e5e8fe9c0acdf60d4e0"
+      }
+    },
+    {
+      "id": 6,
+      "goal": "\\at(x,Pre) > \\at(y,Pre) ==> x == 100",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.0034961749988724478,
+        "smt2": "queries/linear_287/visible/goal_06.smt2",
+        "sha256": "2084259ed51e5738c7d1d2dd5c93ed7e8d0a183e34423e3188d1ea5a64c5cbc2"
+      }
+    },
+    {
+      "id": 7,
+      "goal": "\\at(x,Pre) < \\at(y,Pre) ==> y == 100",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.003621602001658175,
+        "smt2": "queries/linear_287/visible/goal_07.smt2",
+        "sha256": "d21c64b08b46c5b3de006d94fec57e50ec1f97bf720ba978463df83ad8edba75"
+      }
+    },
+    {
+      "id": 8,
+      "goal": "x+y == 200-abs(\\at(x,Pre)-\\at(y,Pre))",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.0040723140045884065,
+        "smt2": "queries/linear_287/visible/goal_08.smt2",
+        "sha256": "9a61ed6a28c971d6252569df78404cbe6efcde6fc0b879d7674f987cdd9a1e8e"
+      }
+    }
+  ],
+  "unsupported_clause_redundancy": [],
+  "nonvacuity": {
+    "status": "sat",
+    "seconds": 0.0040518770038033836,
+    "smt2": "queries/linear_287/visible/nonvacuity.smt2",
+    "sha256": "2c9528b1575143af2b7408078dc907effdbd0dd7512fc1a3cc6e915584c4e9f2",
+    "model": {
+      "x__entry": "-1",
+      "y__entry": "0",
+      "y": "100",
+      "y__pre": "0",
+      "x__pre": "-1",
+      "x": "99"
+    }
+  },
+  "exit_path_count": 1
+}

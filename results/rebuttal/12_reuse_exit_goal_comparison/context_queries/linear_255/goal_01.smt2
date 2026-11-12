@@ -1,0 +1,16 @@
+; benchmark generated from python API
+(set-info :status unknown)
+(declare-fun v () Int)
+(declare-fun v__entry () Int)
+(assert
+ (let (($x270 (>= 50 v)))
+(let (($x134644 (not $x270)))
+(let (($x149 (and $x134644 (not (= 51 v)))))
+(let (($x134839 (<= v 2147483647)))
+(let (($x1764 (>= v (- 2147483648))))
+(let (($x134654 (<= v__entry 2147483647)))
+(let (($x134800 (>= v__entry (- 2147483648))))
+(let (($x1995 (= 1 v__entry)))
+(let (($x134542 (and $x1995 $x134800 $x134654 $x1764 $x134839)))
+(and $x134542 $x149)))))))))))
+(check-sat)

@@ -1,0 +1,118 @@
+{
+  "key": "linear_93",
+  "arm": "visible",
+  "source": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/linear_93.original.c",
+  "source_sha256": "f7d0cc91c126b06a739d14b384e78cb3a50fe8e4bb608628315f996854930a4f",
+  "verification": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/linear_93.json",
+  "verification_sha256": "7d2617139f5db24793e81ddf22d7de661107e7da1637dc2c7401a1cfa46dc1d2",
+  "survivor_count": 39,
+  "goals": [
+    {
+      "id": 1,
+      "goal": "i == n",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.007071439998981077,
+        "smt2": "queries/linear_93/visible/goal_01.smt2",
+        "sha256": "0c911c6cd3b37d32e144b9e28d378a9a587b55deb63a40751f10db45811db0dc"
+      }
+    },
+    {
+      "id": 2,
+      "goal": "n <= x && x <= 2*n",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.005535894000786357,
+        "smt2": "queries/linear_93/visible/goal_02.smt2",
+        "sha256": "32ee4799a5d7320be6b6ab48f1613d8ea5684e23baf9c7505944db3f5040f6f4"
+      }
+    },
+    {
+      "id": 3,
+      "goal": "n <= y && y <= 2*n",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.006050198993762024,
+        "smt2": "queries/linear_93/visible/goal_03.smt2",
+        "sha256": "ce9399467c9b6b60da515239dbf0d65678c46edba7949cd475c72aadeafe659e"
+      }
+    },
+    {
+      "id": 4,
+      "goal": "abs(x-y) <= n",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.004680366000684444,
+        "smt2": "queries/linear_93/visible/goal_04.smt2",
+        "sha256": "e1cdd665de4d55a3576d176993f0efffbe0dba9de50fc72a0e76ed3d8e278444"
+      }
+    },
+    {
+      "id": 5,
+      "goal": "x-y <= n",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.00482162299886113,
+        "smt2": "queries/linear_93/visible/goal_05.smt2",
+        "sha256": "9829798385834a61f56c648ce17d28dafba4f2c5631fc5f939a4439e013fb71f"
+      }
+    },
+    {
+      "id": 6,
+      "goal": "y-x <= n",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.005026550003094599,
+        "smt2": "queries/linear_93/visible/goal_06.smt2",
+        "sha256": "ecc4fa2d92943581f297b10b0a1847896a089063c478b9bd1a9a5e859843d6b7"
+      }
+    },
+    {
+      "id": 7,
+      "goal": "n == 0 ==> (x == 0 && y == 0)",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.0028766830000677146,
+        "smt2": "queries/linear_93/visible/goal_07.smt2",
+        "sha256": "2590b83488590242b889af96d78bb6c4aa8651a0e045f6d24f04be8456b40724"
+      }
+    },
+    {
+      "id": 8,
+      "goal": "n > 0 ==> (x > 0 && y > 0)",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.004943574000208173,
+        "smt2": "queries/linear_93/visible/goal_08.smt2",
+        "sha256": "ae338e01d7a8f53c1953a54dfdff453ec773fa8bee47be663795314bdf828485"
+      }
+    }
+  ],
+  "unsupported_clause_redundancy": [],
+  "nonvacuity": {
+    "status": "sat",
+    "seconds": 0.0062448770040646195,
+    "smt2": "queries/linear_93/visible/nonvacuity.smt2",
+    "sha256": "0b0543236dc73590d6f78ec2c279da4d3e027a7678abe2f39822819255bfd578",
+    "model": {
+      "n__pre": "1",
+      "i": "1",
+      "y": "1",
+      "i__entry": "0",
+      "y__entry": "0",
+      "n__entry": "1",
+      "n": "1",
+      "x": "2",
+      "x__entry": "0"
+    }
+  },
+  "exit_path_count": 1
+}

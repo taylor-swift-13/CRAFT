@@ -1,0 +1,179 @@
+{
+  "key": "linear_10",
+  "arm": "visible",
+  "source": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/linear_10.original.c",
+  "source_sha256": "b602224cb700a43a9e6b5b11cf8d80b31a3d8d6ecd2b272fe3a5dcd9cd365fdc",
+  "verification": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/linear_10.json",
+  "verification_sha256": "46d50adcdf563ed1012c22d7fadd9ca4dbb9625ad7f48dda81d5232d8fd50a7d",
+  "survivor_count": 12,
+  "goals": [
+    {
+      "id": 1,
+      "goal": "x-y == \\at(x,Pre)-\\at(y,Pre)",
+      "classification": "not_entailed",
+      "proof": {
+        "status": "sat",
+        "seconds": 0.0037113969956408255,
+        "smt2": "queries/linear_10/visible/goal_01.smt2",
+        "sha256": "04d07f5a8fad76d91136b37146f9bfdc5d3aed51716141dc5c560a10612c07ac",
+        "model": {
+          "x": "0",
+          "x__pre": "0",
+          "y__pre": "0",
+          "y": "1",
+          "x__entry": "0",
+          "y__entry": "0",
+          "choice_1": "0"
+        }
+      }
+    },
+    {
+      "id": 2,
+      "goal": "x >= \\at(x,Pre)",
+      "classification": "not_entailed",
+      "proof": {
+        "status": "sat",
+        "seconds": 0.003976976004196331,
+        "smt2": "queries/linear_10/visible/goal_02.smt2",
+        "sha256": "c6ef8249a43fc7ff736f5742fa757e99109c4b2443eddf962577106447d4fb98",
+        "model": {
+          "x": "0",
+          "x__pre": "1",
+          "y__pre": "0",
+          "y": "1",
+          "x__entry": "1",
+          "y__entry": "0",
+          "choice_1": "0"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "goal": "y >= \\at(y,Pre)",
+      "classification": "not_entailed",
+      "proof": {
+        "status": "sat",
+        "seconds": 0.00423074999707751,
+        "smt2": "queries/linear_10/visible/goal_03.smt2",
+        "sha256": "d7480af8c38d812860f6e4ac6eb3244746dd8a391483e7bbbc1c64953a9bcd0f",
+        "model": {
+          "x": "0",
+          "x__pre": "0",
+          "y__pre": "2",
+          "y": "1",
+          "x__entry": "0",
+          "y__entry": "2",
+          "choice_1": "0"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "goal": "x % 2 == \\at(x,Pre) % 2",
+      "classification": "not_entailed",
+      "proof": {
+        "status": "sat",
+        "seconds": 0.0032213740050792694,
+        "smt2": "queries/linear_10/visible/goal_04.smt2",
+        "sha256": "aba9f9dfaeb33426578e828cd283fbb15ff3cdb80e35210293e2f5ea6e62bf21",
+        "model": {
+          "choice_1": "0",
+          "x": "2",
+          "x__pre": "1",
+          "y__pre": "0",
+          "y__entry": "0",
+          "y": "2",
+          "x__entry": "1"
+        }
+      }
+    },
+    {
+      "id": 5,
+      "goal": "y % 2 == \\at(y,Pre) % 2",
+      "classification": "not_entailed",
+      "proof": {
+        "status": "sat",
+        "seconds": 0.0031266660007531755,
+        "smt2": "queries/linear_10/visible/goal_05.smt2",
+        "sha256": "9a9d33ad2031d8684fc1f9c7e3532f1aeed97fc0fcafbb906ed2d963c8968a60",
+        "model": {
+          "y": "6",
+          "x": "6",
+          "x__pre": "0",
+          "choice_1": "0",
+          "y__pre": "1",
+          "y__entry": "1",
+          "x__entry": "0"
+        }
+      }
+    },
+    {
+      "id": 6,
+      "goal": "-2 <= x-y && x-y <= 2",
+      "classification": "not_entailed",
+      "proof": {
+        "status": "sat",
+        "seconds": 0.0036066039974684827,
+        "smt2": "queries/linear_10/visible/goal_06.smt2",
+        "sha256": "b1721b071b12b45131f063fbb45c535343589d186838c925380b588a23e14fd2",
+        "model": {
+          "x": "0",
+          "x__pre": "0",
+          "y__pre": "0",
+          "y": "3",
+          "x__entry": "0",
+          "y__entry": "0",
+          "choice_1": "0"
+        }
+      }
+    },
+    {
+      "id": 7,
+      "goal": "x >= 0 && y >= 0",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.0017372169968439266,
+        "smt2": "queries/linear_10/visible/goal_07.smt2",
+        "sha256": "f831dfab71b67db0686c2371cbc56bac3f2d4d25356e4a1ea9cf2ca4ff2afd76"
+      }
+    },
+    {
+      "id": 8,
+      "goal": "\\at(x,Pre) == \\at(y,Pre) ==> x == y",
+      "classification": "not_entailed",
+      "proof": {
+        "status": "sat",
+        "seconds": 0.0035943210023106076,
+        "smt2": "queries/linear_10/visible/goal_08.smt2",
+        "sha256": "195f6d7ae917a86f098a6bf0566ee9fe48221bb59034cdb2c50315dcf5ecd90b",
+        "model": {
+          "x": "0",
+          "y__entry": "0",
+          "y": "1",
+          "x__entry": "0",
+          "choice_1": "0",
+          "y__pre": "0",
+          "x__pre": "0"
+        }
+      }
+    }
+  ],
+  "unsupported_clause_redundancy": [],
+  "nonvacuity": {
+    "status": "sat",
+    "seconds": 0.0041085830016527325,
+    "smt2": "queries/linear_10/visible/nonvacuity.smt2",
+    "sha256": "234153fd467c7ced05b128f896790a1364ac4e4febc59b8d4ea29a8bdcd1b283",
+    "model": {
+      "x": "0",
+      "x__pre": "0",
+      "y__pre": "0",
+      "y": "1",
+      "x__entry": "0",
+      "y__entry": "0",
+      "choice_1": "0"
+    }
+  },
+  "exit_path_count": 1
+}

@@ -1,0 +1,128 @@
+{
+  "key": "NLA_lipus_32",
+  "arm": "visible",
+  "source": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/NLA_lipus_32.original.c",
+  "source_sha256": "d181c4ac87dbf0930409fdbba1b7d1be13a1ea3e5a0c14cf130b913fdec88628",
+  "verification": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/NLA_lipus_32.json",
+  "verification_sha256": "3f14c9e18cb3259e96b7555a533098a3230b1f40f9e2f411aa19e69d6d1098e6",
+  "survivor_count": 37,
+  "goals": [
+    {
+      "id": 1,
+      "goal": "sn == x*a",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.0004147540021222085,
+        "smt2": "queries/NLA_lipus_32/visible/goal_01.smt2",
+        "sha256": "791cdb2d6c76bb04830787e1a50ee6dbf44d3aef6b8ec1538a1536f8c0c51b0d"
+      }
+    },
+    {
+      "id": 2,
+      "goal": "0 <= x && x <= 10",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.001234796000062488,
+        "smt2": "queries/NLA_lipus_32/visible/goal_02.smt2",
+        "sha256": "91f3b4127d6cfbdff8edde2044d1c35fcd386c6b2ba24a8c71abd2cd7aec9863"
+      }
+    },
+    {
+      "id": 3,
+      "goal": "a > 0 ==> sn >= 0",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.025571901998773683,
+        "smt2": "queries/NLA_lipus_32/visible/goal_03.smt2",
+        "sha256": "6aad0aafa5dcaf550ca2fffa629eaa512522388f83cd15f65b80806215aa761a"
+      }
+    },
+    {
+      "id": 4,
+      "goal": "a < 0 ==> sn <= 0",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.34093414599919925,
+        "smt2": "queries/NLA_lipus_32/visible/goal_04.smt2",
+        "sha256": "0679a944d93a2fb452f2237f21b787e1e906c25460e64f0e1d342b4bd82c60bc"
+      }
+    },
+    {
+      "id": 5,
+      "goal": "a == 0 ==> sn == 0",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.0012869650017819367,
+        "smt2": "queries/NLA_lipus_32/visible/goal_05.smt2",
+        "sha256": "bd8b45a185789f2601620616c89d69d2bafd04e608e97fbdd5d059065afb554b"
+      }
+    },
+    {
+      "id": 6,
+      "goal": "a != 0 ==> ((sn == 0) <==> (x == 0))",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.0012774569986504503,
+        "smt2": "queries/NLA_lipus_32/visible/goal_06.smt2",
+        "sha256": "773185eda6ceb9dc87652f0200a15d5bf62655d76dd9489e2d0986cb904a6e6f"
+      }
+    },
+    {
+      "id": 7,
+      "goal": "a >= 0 ==> sn <= 10*a",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.15408531000139192,
+        "smt2": "queries/NLA_lipus_32/visible/goal_07.smt2",
+        "sha256": "f074f624f31907c0ce43d1c74bfdf98d7f013905625d13b011c097fd246c5fc2"
+      }
+    },
+    {
+      "id": 8,
+      "goal": "a <= 0 ==> sn >= 10*a",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.26914214299904415,
+        "smt2": "queries/NLA_lipus_32/visible/goal_08.smt2",
+        "sha256": "5bf736510b52b88433c891e98a533be23f2c19dd7b3006cf72d912dd5749cc5b"
+      }
+    }
+  ],
+  "unsupported_clause_redundancy": [
+    {
+      "clause": "(sn % a) == 0 ==> sn == x * a",
+      "translation_error": "nonconstant ACSL divisor",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.00046408799971686676,
+        "smt2": "queries/NLA_lipus_32/visible/redundancy_0.smt2",
+        "sha256": "79e789e012d317f60a151aee07645e9043b0bc80e1d7dab105783aa8daabcc97"
+      }
+    }
+  ],
+  "nonvacuity": {
+    "status": "sat",
+    "seconds": 0.23406353400059743,
+    "smt2": "queries/NLA_lipus_32/visible/nonvacuity.smt2",
+    "sha256": "85ede2b3f4f56deda14cecabb0db8d41da80cf3c1ed0c0180d6f75cf0be7f9c4",
+    "model": {
+      "sn": "-704446464",
+      "choice_1": "0",
+      "a__entry": "-704446464",
+      "a__pre": "-704446464",
+      "sn__entry": "0",
+      "x": "1",
+      "x__entry": "0",
+      "a": "-704446464"
+    }
+  },
+  "exit_path_count": 1
+}

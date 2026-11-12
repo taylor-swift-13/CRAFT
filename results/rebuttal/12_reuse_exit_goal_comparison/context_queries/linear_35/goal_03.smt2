@@ -1,0 +1,18 @@
+; benchmark generated from python API
+(set-info :status unknown)
+(declare-fun c () Int)
+(declare-fun choice_1 () Int)
+(declare-fun c__entry () Int)
+(assert
+ (let (($x2056 (= choice_1 0)))
+(let (($x151 (<= choice_1 2147483647)))
+(let (($x22 (>= choice_1 (- 2147483648))))
+(let (($x138721 (and $x22 $x151 $x2056 (not (or (<= 40 c) (>= 39 c))))))
+(let (($x50 (<= c 2147483647)))
+(let (($x121 (>= c (- 2147483648))))
+(let (($x560 (<= c__entry 2147483647)))
+(let (($x771 (>= c__entry (- 2147483648))))
+(let (($x326 (= 0 c__entry)))
+(let (($x988 (and $x326 $x771 $x560 $x121 $x50)))
+(and $x988 $x138721))))))))))))
+(check-sat)

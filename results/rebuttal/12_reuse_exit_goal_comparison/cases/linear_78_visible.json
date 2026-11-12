@@ -1,0 +1,129 @@
+{
+  "key": "linear_78",
+  "arm": "visible",
+  "source": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/linear_78.original.c",
+  "source_sha256": "9e5e02de464a4e10307672b967df781d5e79902b2b75b876734601456191b62d",
+  "verification": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/linear_78.json",
+  "verification_sha256": "b71f3eb711c1020f6210456d30f0013193cda45b5550a26b373d9b39c0be288c",
+  "survivor_count": 35,
+  "goals": [
+    {
+      "id": 1,
+      "goal": "0 <= i && i <= y",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.001788093002687674,
+        "smt2": "queries/linear_78/visible/goal_01.smt2",
+        "sha256": "b24f2a9f61931eae33c3e50e874d22292e038d787393e2c2219cceac61af9bdd"
+      }
+    },
+    {
+      "id": 2,
+      "goal": "i <= x",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.008616351995442528,
+        "smt2": "queries/linear_78/visible/goal_02.smt2",
+        "sha256": "20189de9530dddfc46cc52edd5839749a489e53c76b5703855b800f527f9cc07"
+      }
+    },
+    {
+      "id": 3,
+      "goal": "y == 0 ==> i == 0",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.0016871530024218373,
+        "smt2": "queries/linear_78/visible/goal_03.smt2",
+        "sha256": "b8d4e8c07f54da5c71744f3f17978c39821fc535cc64a277360eea39e65d3a39"
+      }
+    },
+    {
+      "id": 4,
+      "goal": "i*(i-y) <= 0",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.6178011649972177,
+        "smt2": "queries/linear_78/visible/goal_04.smt2",
+        "sha256": "08875e5707b3a79484e2d4662d9b292243de4739bdc96ff2b40b26d2fe15037a"
+      }
+    },
+    {
+      "id": 5,
+      "goal": "i < y ==> i+1 <= y",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.0018860579948523082,
+        "smt2": "queries/linear_78/visible/goal_05.smt2",
+        "sha256": "a0e09bc6ea5090c7d7467a9c4bf09f626da1561a058f0c83bf888be3ddc924e9"
+      }
+    },
+    {
+      "id": 6,
+      "goal": "i == 0 || 1 <= i && i <= y",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.004102054001123179,
+        "smt2": "queries/linear_78/visible/goal_06.smt2",
+        "sha256": "5b61de17360ca1bfc706d3564db35ed548f46083e610bbc9585f415882d5f491"
+      }
+    },
+    {
+      "id": 7,
+      "goal": "x == 0 ==> i == 0",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.005055255001934711,
+        "smt2": "queries/linear_78/visible/goal_07.smt2",
+        "sha256": "8755ed7c2caad6b6b820345f771216568295873a91e5c10497b085782a4f5884"
+      }
+    },
+    {
+      "id": 8,
+      "goal": "i*i <= y*y",
+      "classification": "supported",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.5849331470017205,
+        "smt2": "queries/linear_78/visible/goal_08.smt2",
+        "sha256": "9f8374aeb18acc2041e9312d88a8473c2d6144b6838f689b17171449deb96b0a"
+      }
+    }
+  ],
+  "unsupported_clause_redundancy": [
+    {
+      "clause": "i == (i % y) + ((i / y) * y) ==> (i <= y * (i / y) + (i % y))",
+      "translation_error": "nonconstant ACSL divisor",
+      "proof": {
+        "status": "unsat",
+        "seconds": 0.36914356499619316,
+        "smt2": "queries/linear_78/visible/redundancy_0.smt2",
+        "sha256": "34b4157b84e92425ec8a10bcdf6de9c9dc34a3d7ed694fd9ddfe032ab73472cb"
+      }
+    }
+  ],
+  "nonvacuity": {
+    "status": "sat",
+    "seconds": 0.003610626998124644,
+    "smt2": "queries/linear_78/visible/nonvacuity.smt2",
+    "sha256": "a5f087535deb3e6f844f820cb69065bd6f64cd4bc666ff77c38f1e1b7affe559",
+    "model": {
+      "x__pre": "2",
+      "y__pre": "2",
+      "i": "2",
+      "x__entry": "2",
+      "y__entry": "2",
+      "choice_1": "0",
+      "y": "2",
+      "x": "2",
+      "i__entry": "0"
+    }
+  },
+  "exit_path_count": 1
+}

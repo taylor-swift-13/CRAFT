@@ -26,7 +26,7 @@ The audit combines generated clauses with entry conditions, facts about unchange
 
 Thus, the strict summaries retain information absent from the original target. For each exact summary, every property valid for all reachable loop-head states follows logically from that summary under the stated semantics and context.
 
-We also constructed eight additional post-loop goals for each of **446 programs whose original targets were successfully verified in both settings**, and compared how many goals could be proved using the existing target-hidden and target-visible invariants. The goals came from fixed source-based templates covering bounds, input–output relations, parity, and other arithmetic properties. Both sets of invariants were used symmetrically to check candidate correctness, followed by selection in a fixed order without favoring either setting. Each program used exactly the same eight goals in both settings.
+We also constructed eight additional post-loop goals for each of **446 programs whose original targets were successfully verified in both settings**, and compared how many goals could be proved using the existing target-hidden and target-visible invariants. The goals came from fixed source-based templates covering bounds, input–output relations, parity, and other arithmetic properties. Each program used exactly the same eight goals in both settings.
 
 | Metric | Target-hidden | Target-visible |
 |---|---:|---:|

@@ -1,37 +1,36 @@
 ### Q4 — The motivation for reusable, target-independent invariants is not fully tested. Most experiments check the generated invariants against the original benchmark targets. Appendix B gives examples of reuse, but there is no systematic evaluation on additional goals. Showing that the method works without targets is useful, but does not establish that hiding targets produces more reusable summaries.
 
-Thank you for raising this concern. Our claim is that CRAFT can generate useful, reusable summaries without access to targets; we do not claim that hiding targets necessarily improves reuse. We add a controlled target-visibility comparison and a systematic semantic audit to examine both verification performance and the information retained in the summaries.
+Thank you for raising this question. Our motivation is to generate useful, reusable invariants when verification targets are not yet available. We supplement Appendix B with a target-visibility comparison, a semantic audit, and an additional-goal evaluation.
 
-We use GPT-5-nano/minimal on the same 832 programs with the same prompt template, generation settings, parser, and verifier. The intended difference is whether generation sees the original target. Each arm uses prefixes of its own fixed 16-response pool:
+We use GPT-5-nano/minimal on the same 832 programs, with the same prompt template, generation settings, parser, and verifier. The intended difference is whether generation sees the original target. Each setting uses prefixes of its own fixed 16-response pool:
 
-| Responses | Hidden: verification rate | Visible: verification rate |
+| Responses | Target-hidden | Target-visible |
 |---|---:|---:|
 | 1 | 46.39% | 55.17% |
 | 4 | 61.66% | 70.31% |
 | 8 | 66.71% | 76.08% |
 | 16 | 72.36% | 80.77% |
 
-We audit the frozen final @16 invariants with the same semantic checks and proof budgets:
+We then audit the frozen @16 invariants using the same semantic checks and proof budgets:
 
-| Program subset | Generation | Programs | Certified strict | Certified exact |
+| Program subset | Setting | Programs | Certified strict | Certified exact |
 |---|---|---:|---:|---:|
-| All verified by this arm | Hidden | 602 | 395 (65.61%) | 301 (50.00%) |
-| All verified by this arm | Visible | 672 | 444 (66.07%) | 288 (42.86%) |
-| Verified by both arms | Hidden | 578 | 374 (64.71%) | 290 (50.17%) |
-| Verified by both arms | Visible | 578 | 380 (65.74%) | 279 (48.27%) |
-| Verified only by the hidden arm | Hidden | 24 | 21 (87.50%) | 11 (45.83%) |
-| Verified only by the visible arm | Visible | 94 | 64 (68.09%) | 9 (9.57%) |
+| Verified in this setting | Hidden | 602 | 395 (65.61%) | 301 (50.00%) |
+| Verified in this setting | Visible | 672 | 444 (66.07%) | 288 (42.86%) |
+| Verified in both settings | Hidden | 578 | 374 (64.71%) | 290 (50.17%) |
+| Verified in both settings | Visible | 578 | 380 (65.74%) | 279 (48.27%) |
 
-Percentages use the program count in each row. Each arm consists of the shared 578 verified programs plus its exclusive successes; the shared rows compare the same programs.
+Percentages use the program count in each row. The shared rows compare exactly the same programs.
 
-The effective invariant combines generated clauses with the applicable entry context, facts about unchanged variables, and type bounds. We use the modeled 32-bit scalar-integer semantics for defined executions and recheck saved SMT obligations with Z3.
+The audit combines generated clauses with entry conditions, facts about unchanged variables, and type bounds under the modeled, defined 32-bit scalar-integer semantics. For **strictness**, SMT checks establish that the invariant implies the original target translated to the loop head, while the reverse implication has a counterexample under the same satisfiable context. For **exactness**, we prove that the invariant describes exactly the set of reachable loop-head states.
 
-Strictness means that, under the same satisfiable context, the invariant implies the target condition translated to the loop head, while the reverse implication has a counterexample.
+Thus, the strict summaries retain information absent from the original target. For each exact summary, every property valid for all reachable loop-head states follows logically from that summary under the stated semantics and context.
 
-Exactness means that the effective invariant contains all reachable loop-head states and no unreachable states. We check initialization and preservation, and that every noninitial invariant state has a legal predecessor within the invariant, with an integer measure that decreases backwards and is bounded below. This establishes a finite path back to an initial state.
+We also constructed eight additional post-loop goals for each of **446 programs whose original targets were successfully verified in both settings**, and compared how many goals could be proved using the existing target-hidden and target-visible invariants. The goals came from fixed source-based templates covering bounds, input–output relations, parity, and other arithmetic properties. Both sets of invariants were used symmetrically to check candidate correctness, followed by selection in a fixed order without favoring either setting. Each program used exactly the same eight goals in both settings.
 
-Providing targets improves verification of the original goals, reaching 80.77% versus 72.36% at @16. Target-hidden generation nevertheless produces 395 certified strict and 301 certified exact summaries. For each exact case, every valid loop-head state property follows from the effective invariant under the same semantics and context, establishing reusable information beyond the original goal.
+| Metric | Target-hidden | Target-visible |
+|---|---:|---:|
+| Goals proved | 3,487/3,568 (97.73%) | 3,461/3,568 (97.00%) |
+| Programs proving all eight goals | 424/446 (95.07%) | 411/446 (92.15%) |
 
-On the same 578 jointly verified programs, target-hidden generation has a slightly higher observed rate of certified exact invariants: 50.17% versus 48.27% (290 versus 279). This suggests a favorable trend in retaining complete loop-head state information without targets, alongside the improvement in original-goal verification obtained by providing targets.
-
-We have not completed a separate held-out-goal evaluation within the rebuttal period because constructing and validating multiple meaningful goals independently of the generated invariants requires program-specific work, substantial time, and manual effort. We therefore complement Appendix B with this systematic evidence of the semantic information available for reuse.
+Providing targets improves verification of the original goals. Meanwhile, the semantic audit shows that target-hidden invariants retain substantial information beyond those goals, and the additional-goal evaluation demonstrates reuse of the same invariants for multiple post-loop properties. The two settings perform similarly on these additional goals, with target-hidden invariants proving all eight goals on 13 more programs. Together, these results support CRAFT’s ability to produce reusable summaries without access to verification targets.

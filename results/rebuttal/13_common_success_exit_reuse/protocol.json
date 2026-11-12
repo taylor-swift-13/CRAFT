@@ -1,0 +1,23 @@
+{
+  "sample": "Every program with verified=true in both original @16 runs; 578 programs. No strength/exactness selection.",
+  "candidate_construction": "Unchanged source-only pools shared by both stages and both model arms.",
+  "selection": "First retain all stage-1 non-contextual selections in their fixed family order. If fewer than eight, append stage-2 exit-context-only targets in their fixed order. No criterion depends on the winning arm.",
+  "target_correctness": "At least one fully represented, nonvacuous frozen summary confirms the target. Both arms are evaluated against exactly the same target.",
+  "context_only": "An exit-context goal is entailed by entry/frame/type/exit conditions without any invariant, but not by entry/frame/type conditions alone.",
+  "missing": "All programs remain in the inventory with eight slots. Unfilled slots are explicit, not fabricated goals or automatic failures.",
+  "scope": "Immediate modeled loop exit, including updates before break. No original assertion is assumed.",
+  "dependence": "Correctness curation uses both summaries. This is a symmetric template probe, not independently authored held-out goals. Goals can imply each other.",
+  "stages": {
+    "non_contextual_protocol_sha256": "3855390ab2e41cb7c9c46e01539ae01caaeae7ba2b3810bb3b0e7d7c37cce829",
+    "exit_context_protocol_sha256": "9941879592a8c753cd9b86faed3e6a81be890f835f8ca02c2bd30f44a836d67e"
+  },
+  "scope_note": "In the stage-2 protocol, the inherited words non-contextual in selection_order mean non-entry-implied; its context_filter field and implementation explicitly retain exit-context goals.",
+  "generation_calls": 0,
+  "training_runs": 0,
+  "Houdini_runs": 0,
+  "Frama_C_runs": 0,
+  "final_query_timeout_ms": 5000,
+  "screen_timeout_ms": 250,
+  "solver_seed": 0,
+  "z3_version": "4.13.3"
+}

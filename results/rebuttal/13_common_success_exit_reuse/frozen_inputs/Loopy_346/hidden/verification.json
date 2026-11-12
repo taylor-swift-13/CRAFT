@@ -1,0 +1,206 @@
+{
+  "key": "Loopy_346",
+  "suite": "Loopy",
+  "case_id": "346",
+  "fingerprint": "ee1b18f11b01b79a1975a5b57a68eb9fe0aa04221156326cff4a24de32500589",
+  "generation_sha256": "ae7ddae16c4cb794a47c71e4dcd1115baf7b88e235c19a6bab409668bda6d954",
+  "status": "complete",
+  "started_utc": "2026-11-07T07:47:44.496151+00:00",
+  "verified": true,
+  "rollouts": [
+    [
+      "x <= 0x0fffffff",
+      "x >= 0",
+      "x == \\at(x, LoopEntry) + (/* delta */ 0)",
+      "(x - 0) <= 0x0fffffff",
+      "(0 <= x) ==> (x <= 0x0fffffff)",
+      "x == x"
+    ],
+    [
+      "x >= 0",
+      "x <= 0x0fffffff",
+      "x == \\at(x, Pre) + 0",
+      "0 <= x",
+      "x >= 0 && x <= 0x0fffffff",
+      "x <= 0x0fffffff"
+    ],
+    [
+      "x >= 0 && x <= 0x0fffffff",
+      "x <= 0x0fffffff",
+      "x == 0 || x > 0",
+      "x == x"
+    ],
+    [
+      "x <= 0x0fffffff",
+      "0 <= x",
+      "x == unknown_uint() ? x : x",
+      "x == x",
+      "x <= 0x0fffffff && x >= 0",
+      "x <= 268435455",
+      "x - 0 <= x",
+      "x == x",
+      "x % 1 == 0",
+      "0 <= x && x <= 0x0fffffff",
+      "x <= 0x0fffffff && x >= 0",
+      "x <= 268435455",
+      "(x <= 0x0fffffff)"
+    ],
+    [
+      "x <= 0x0fffffff",
+      "0 <= x",
+      "x == initial_x + (unsigned int)(iteration_count)",
+      "iteration_count >= 0",
+      "iteration_count <= 0x0fffffff - initial_x",
+      "initial_x <= x",
+      "(x % 1) == 0"
+    ],
+    [
+      "x <= 0x0fffffff",
+      "x >= 0",
+      "x == \\at(x, Pre) + 0",
+      "x == x"
+    ],
+    [
+      "x <= 0x0fffffff",
+      "x == x",
+      "0 <= x",
+      "x >= 0",
+      "x < 0x10000000"
+    ],
+    [
+      "x <= 0x0fffffff",
+      "__static_invariant_1: x == x",
+      "x >= 0",
+      "x < 0x0fffffff ==> x == x",
+      "x >= 0x0 ===> x <= 0x0fffffff"
+    ],
+    [
+      "x <= 0x0fffffff",
+      "x >= 0",
+      "x == \\at(x, Pre) + (unsigned int)((0x0fffffff - \\at(x, Pre)) - (0x0fffffff - x))",
+      "x - \\at(x, Pre) >= 0",
+      "x <= 0x0fffffff && x >= \\at(x, Pre)",
+      "(x & 0xFFFFFFFF) == x",
+      "x <= 0x0fffffff",
+      "x - (\\at(x, Pre)) >= 0",
+      "x == \\at(x, LoopEntry) + (unsigned int)(x - \\at(x, LoopEntry))",
+      "(\\at(x, LoopEntry)) <= x",
+      "x - \\at(x, LoopEntry) >= 0",
+      "0 <= x - \\at(x, LoopEntry)",
+      "x <= 0x0fffffff && x >= 0",
+      "\\true"
+    ],
+    [
+      "x <= 0x0fffffff",
+      "x >= 0",
+      "x == x",
+      "\\true"
+    ],
+    [
+      "x >= 0",
+      "x <= 0x0fffffff",
+      "x == \\at(x, Pre) + (__phi ? 0 : 0)"
+    ],
+    [
+      "x <= 0x0fffffff",
+      "x == 0 || x > 0",
+      "x <= 0x0fffffff",
+      "x >= 0",
+      "x >= 0 && x <= 0x0fffffff",
+      "x - 0 <= 0x0fffffff - 0",
+      "x - x == 0"
+    ],
+    [
+      "x >= 0",
+      "x <= 0x0fffffff",
+      "x == x_original + k",
+      "0 <= x - x_original",
+      "x <= 268435455",
+      "x - x_original >= 0",
+      "x == x"
+    ],
+    [
+      "x <= 0x0fffffff",
+      "x == \\at(x, Pre) + (unsigned int)(/* increment until bound */ 0)",
+      "0 <= x",
+      "x <= 0x0fffffff",
+      "x >= 0"
+    ],
+    [
+      "x <= 0x0fffffff",
+      "x >= 0",
+      "x == __builtin_preserve_unused__"
+    ],
+    [
+      "x <= 0x0fffffff",
+      "x >= 0",
+      "x == \\at(x, Pre) + 1 * (/* loop increment per iteration */ 1)",
+      "x - 0x0fffffff < 1 + 0",
+      "0 <= x"
+    ]
+  ],
+  "union": [
+    "x <= 0x0fffffff",
+    "x >= 0",
+    "x == \\at(x, LoopEntry) + (/* delta */ 0)",
+    "(0 <= x) ==> (x <= 0x0fffffff)",
+    "x == x",
+    "x == \\at(x, Pre) + 0",
+    "x >= 0 && x <= 0x0fffffff",
+    "x == 0 || x > 0",
+    "x == unknown_uint() ? x : x",
+    "x <= 0x0fffffff && x >= 0",
+    "x - 0 <= x",
+    "x % 1 == 0",
+    "x == initial_x + (unsigned int)(iteration_count)",
+    "iteration_count >= 0",
+    "iteration_count <= 0x0fffffff - initial_x",
+    "initial_x <= x",
+    "x < 0x10000000",
+    "__static_invariant_1: x == x",
+    "x < 0x0fffffff ==> x == x",
+    "x >= 0x0 ===> x <= 0x0fffffff",
+    "x == \\at(x, Pre) + (unsigned int)((0x0fffffff - \\at(x, Pre)) - (0x0fffffff - x))",
+    "x - \\at(x, Pre) >= 0",
+    "x <= 0x0fffffff && x >= \\at(x, Pre)",
+    "(x & 0xFFFFFFFF) == x",
+    "x == \\at(x, LoopEntry) + (unsigned int)(x - \\at(x, LoopEntry))",
+    "(\\at(x, LoopEntry)) <= x",
+    "x - \\at(x, LoopEntry) >= 0",
+    "\\true",
+    "x == \\at(x, Pre) + (__phi ? 0 : 0)",
+    "x - x == 0",
+    "x == x_original + k",
+    "0 <= x - x_original",
+    "x == \\at(x, Pre) + (unsigned int)(/* increment until bound */ 0)",
+    "x == __builtin_preserve_unused__",
+    "x == \\at(x, Pre) + 1 * (/* loop increment per iteration */ 1)",
+    "x - 0x0fffffff < 1 + 0"
+  ],
+  "survivors": [
+    "x >= 0",
+    "x == x",
+    "x == 0 || x > 0",
+    "x - 0 <= x",
+    "x % 1 == 0",
+    "x - \\at(x, Pre) >= 0",
+    "x - x == 0"
+  ],
+  "judgment": {
+    "verified": true,
+    "judge_error": null,
+    "judge_seconds": 2.3375804440001957,
+    "invariants": [
+      "x >= 0",
+      "x == x",
+      "x == 0 || x > 0",
+      "x - 0 <= x",
+      "x % 1 == 0",
+      "x - \\at(x, Pre) >= 0",
+      "x - x == 0"
+    ],
+    "invariant_count": 7
+  },
+  "seconds": 12.443279130995506,
+  "updated_utc": "2026-11-07T07:47:56.939628+00:00"
+}

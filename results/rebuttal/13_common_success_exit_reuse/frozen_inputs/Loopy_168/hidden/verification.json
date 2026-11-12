@@ -1,0 +1,175 @@
+{
+  "key": "Loopy_168",
+  "suite": "Loopy",
+  "case_id": "168",
+  "fingerprint": "ee1b18f11b01b79a1975a5b57a68eb9fe0aa04221156326cff4a24de32500589",
+  "generation_sha256": "7544f952bf6f590171b407dd629a2d4a06610dd430958eb41514598234fb71fa",
+  "status": "complete",
+  "started_utc": "2026-11-07T06:34:49.268002+00:00",
+  "verified": true,
+  "rollouts": [
+    [
+      "x < 0x0fffffff",
+      "x >= 0",
+      "x == x"
+    ],
+    [
+      "x <= 0x0fffffff",
+      "0 <= x",
+      "x == x"
+    ],
+    [
+      "0 <= x",
+      "x <= 0x0fffffff",
+      "x == \\at(x, Pre) + 0"
+    ],
+    [
+      "x >= 0",
+      "x <= 0x0fffffff",
+      "x == \\at(x, Pre) + 1 * ( (unsigned int)1 ) ? false : true"
+    ],
+    [
+      "0 <= x",
+      "x <= 0x0fffffff",
+      "x == \\at(x, Pre) + 1 * (/* iteration count */)",
+      "x - \\old(x) == 1",
+      "x >= 0",
+      "x <= 268435455",
+      "x == 0x0fffffff * 1 - (0x0fffffff - x)",
+      "x - x == 0",
+      "(x & 0xFFFFFFFFu) == x",
+      "x - \\at(x, LoopEntry) == (unsigned int)(/* iterations */)",
+      "x <= 0x0fffffff && x >= 0",
+      "\\true"
+    ],
+    [
+      "x <= 0x0fffffff",
+      "0 <= x",
+      "x == \\at(x, Pre) + k",
+      "k >= 0",
+      "\\old(x) <= x",
+      "x < 0x0fffffff ==> x == x"
+    ],
+    [
+      "x <= 0x0fffffff",
+      "0 <= x",
+      "x == x"
+    ],
+    [
+      "x <= 0x0fffffff",
+      "x >= 0",
+      "0 <= x",
+      "x == __builtin_expect(x, x)",
+      "x == x"
+    ],
+    [
+      "x >= 0",
+      "x <= 268435455U",
+      "x % 1 == 0",
+      "0 <= x",
+      "x == x",
+      "x < 0x0fffffff + 1",
+      "x <= 0x0fffffff"
+    ],
+    [
+      "0 <= x",
+      "x == x"
+    ],
+    [
+      "x >= 0",
+      "x <= 0x0fffffff",
+      "x == x_pre + k where 0 <= k <= 0x0fffffff"
+    ],
+    [
+      "x <= 0x0fffffff",
+      "x >= 0",
+      "x == x"
+    ],
+    [
+      "x <= 0x0fffffff",
+      "x >= 0",
+      "x == old_x + k ==> k >= 0",
+      "0 <= x && x <= 0x0fffffff",
+      "x == 0x0fffffff ==> x <= 0x0fffffff",
+      "x < 0x0fffffff ==> x <= 0x0fffffff",
+      "x >= 0 && x <= 0x0fffffff",
+      "0 <= x",
+      "x <= 0x0fffffff",
+      "x == x"
+    ],
+    [
+      "x < 0x10000000",
+      "x >= 0",
+      "0 <= x",
+      "x == initial_x + k",
+      "k >= 0",
+      "initial_x <= x",
+      "x <= 0x10000000"
+    ],
+    [
+      "x < 0x0fffffff",
+      "x >= 0",
+      "0 <= x",
+      "x == __induction_x__"
+    ],
+    [
+      "x >= 0",
+      "x <= 0x0fffffff",
+      "x == x"
+    ]
+  ],
+  "union": [
+    "x < 0x0fffffff",
+    "x >= 0",
+    "x == x",
+    "x <= 0x0fffffff",
+    "x == \\at(x, Pre) + 0",
+    "x == \\at(x, Pre) + 1 * ( (unsigned int)1 ) ? false : true",
+    "x == \\at(x, Pre) + 1 * (/* iteration count */)",
+    "x - \\old(x) == 1",
+    "x == 0x0fffffff * 1 - (0x0fffffff - x)",
+    "x - x == 0",
+    "(x & 0xFFFFFFFFu) == x",
+    "x - \\at(x, LoopEntry) == (unsigned int)(/* iterations */)",
+    "x <= 0x0fffffff && x >= 0",
+    "\\true",
+    "x == \\at(x, Pre) + k",
+    "k >= 0",
+    "\\old(x) <= x",
+    "x < 0x0fffffff ==> x == x",
+    "x == __builtin_expect(x, x)",
+    "x <= 268435455U",
+    "x % 1 == 0",
+    "x < 0x0fffffff + 1",
+    "x == x_pre + k where 0 <= k <= 0x0fffffff",
+    "x == old_x + k ==> k >= 0",
+    "0 <= x && x <= 0x0fffffff",
+    "x == 0x0fffffff ==> x <= 0x0fffffff",
+    "x < 0x0fffffff ==> x <= 0x0fffffff",
+    "x < 0x10000000",
+    "x == initial_x + k",
+    "initial_x <= x",
+    "x <= 0x10000000",
+    "x == __induction_x__"
+  ],
+  "survivors": [
+    "x >= 0",
+    "x == x",
+    "x - x == 0",
+    "x % 1 == 0"
+  ],
+  "judgment": {
+    "verified": true,
+    "judge_error": null,
+    "judge_seconds": 1.2197107530082576,
+    "invariants": [
+      "x >= 0",
+      "x == x",
+      "x - x == 0",
+      "x % 1 == 0"
+    ],
+    "invariant_count": 4
+  },
+  "seconds": 9.480286023986991,
+  "updated_utc": "2026-11-07T06:34:58.748504+00:00"
+}

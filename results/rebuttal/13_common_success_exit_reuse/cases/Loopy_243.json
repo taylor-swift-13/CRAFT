@@ -1,0 +1,253 @@
+{
+  "key": "Loopy_243",
+  "program_included": true,
+  "planned_goal_count": 8,
+  "inputs": {
+    "hidden": {
+      "source_path": "/home/yangfp/craft_empirical_runs/recovered_hidden_evidence_20261110/craft16/sources/Loopy_243.original.c",
+      "source_sha256": "5548309e09c5f3f3ddd4a31e1bff86704f1f92ee2cba6ef2ccef5241c5dabb44",
+      "verification_path": "/home/yangfp/craft_empirical_runs/recovered_hidden_evidence_20261110/craft16/verification/Loopy_243.json",
+      "verification_sha256": "875330990858f945a2cbf31d253f8e602cbbe93ced20be1be27ec7dfe1194329",
+      "audit_path": "/home/yangfp/craft_empirical_runs/craft16_hidden_prefix_semantics_control_20261110/k16/cases/Loopy_243.json",
+      "audit_sha256": "1d887abe3ac6040c64545e5181db5013703cb2cd0663ef0a9f0d415d3d7aeabe",
+      "survivor_count": 24
+    },
+    "visible": {
+      "source_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/Loopy_243.original.c",
+      "source_sha256": "5548309e09c5f3f3ddd4a31e1bff86704f1f92ee2cba6ef2ccef5241c5dabb44",
+      "verification_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/Loopy_243.json",
+      "verification_sha256": "ed4511a8b50c6965a54b64866c2bf9624ec233cb303f9c2c6ea05c99c177dbf1",
+      "audit_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_semantics_20261110/k16/cases/Loopy_243.json",
+      "audit_sha256": "d4b2e4aa0f5a7c03b722b9424c2cfd5b6a8dbffa7ac0c7f8dc9f5bc284c513f9",
+      "survivor_count": 10
+    }
+  },
+  "candidate_pool_sha256": "d0ecabf2e48e3d549497e856889d1203b7476b952e50bc782a849557e06d19fa",
+  "selected_goals": [
+    {
+      "slot": 1,
+      "id": "range_01",
+      "family": "range",
+      "formula": "0 <= x && x <= i",
+      "arms": {
+        "hidden": {
+          "classification": "supported",
+          "query": "non_contextual/goal_01_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "non_contextual/goal_01_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "non_contextual/goal_01_context",
+      "source_stage": "non_contextual",
+      "source_slot": 1,
+      "exit_context_alone": false
+    },
+    {
+      "slot": 2,
+      "id": "input_relation_03",
+      "family": "input_relation",
+      "formula": "x <= \\at(x,Pre)",
+      "arms": {
+        "hidden": {
+          "classification": "supported",
+          "query": "non_contextual/goal_02_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "non_contextual/goal_02_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "non_contextual/goal_02_context",
+      "source_stage": "non_contextual",
+      "source_slot": 2,
+      "exit_context_alone": false
+    },
+    {
+      "slot": 3,
+      "id": "pair_relation_23",
+      "family": "pair_relation",
+      "formula": "i >= x",
+      "arms": {
+        "hidden": {
+          "classification": "supported",
+          "query": "non_contextual/goal_03_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "non_contextual/goal_03_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "non_contextual/goal_03_context",
+      "source_stage": "non_contextual",
+      "source_slot": 3,
+      "exit_context_alone": false
+    },
+    {
+      "slot": 4,
+      "id": "conservation_01",
+      "family": "conservation",
+      "formula": "x-y == \\at(x,Pre)-\\at(y,Pre)",
+      "arms": {
+        "hidden": {
+          "classification": "supported",
+          "query": "non_contextual/goal_04_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "non_contextual/goal_04_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "non_contextual/goal_04_context",
+      "source_stage": "non_contextual",
+      "source_slot": 4,
+      "exit_context_alone": false
+    },
+    {
+      "slot": 5,
+      "id": "conditional_07",
+      "family": "conditional",
+      "formula": "i <= 0 ==> x == i",
+      "arms": {
+        "hidden": {
+          "classification": "supported",
+          "query": "non_contextual/goal_05_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "non_contextual/goal_05_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "non_contextual/goal_05_context",
+      "source_stage": "non_contextual",
+      "source_slot": 5,
+      "exit_context_alone": false
+    },
+    {
+      "slot": 6,
+      "id": "range_04",
+      "family": "range",
+      "formula": "x <= i",
+      "arms": {
+        "hidden": {
+          "classification": "supported",
+          "query": "non_contextual/goal_06_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "non_contextual/goal_06_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "non_contextual/goal_06_context",
+      "source_stage": "non_contextual",
+      "source_slot": 6,
+      "exit_context_alone": false
+    },
+    {
+      "slot": 7,
+      "id": "pair_relation_26",
+      "family": "pair_relation",
+      "formula": "j >= y",
+      "arms": {
+        "hidden": {
+          "classification": "supported",
+          "query": "non_contextual/goal_07_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "non_contextual/goal_07_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "non_contextual/goal_07_context",
+      "source_stage": "non_contextual",
+      "source_slot": 7,
+      "exit_context_alone": false
+    },
+    {
+      "slot": 8,
+      "id": "conditional_13",
+      "family": "conditional",
+      "formula": "i < 0 ==> y <= 0",
+      "arms": {
+        "hidden": {
+          "classification": "supported",
+          "query": "non_contextual/goal_08_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "non_contextual/goal_08_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "non_contextual/goal_08_context",
+      "source_stage": "non_contextual",
+      "source_slot": 8,
+      "exit_context_alone": false
+    }
+  ],
+  "unfilled_slots": 0,
+  "arm_support": {
+    "non_contextual": {
+      "hidden": {
+        "full_summary_represented": true,
+        "nonvacuity": {
+          "query": "hidden_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [],
+        "eligible_for_confirmation": true
+      },
+      "visible": {
+        "full_summary_represented": true,
+        "nonvacuity": {
+          "query": "visible_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [],
+        "eligible_for_confirmation": true
+      }
+    },
+    "exit_context": {
+      "hidden": {
+        "full_summary_represented": true,
+        "nonvacuity": {
+          "query": "hidden_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [],
+        "eligible_for_confirmation": true
+      },
+      "visible": {
+        "full_summary_represented": true,
+        "nonvacuity": {
+          "query": "visible_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [],
+        "eligible_for_confirmation": true
+      }
+    }
+  },
+  "error": null,
+  "screening_stage_files": {
+    "non_contextual": "history/non_contextual/cases/Loopy_243.json",
+    "exit_context": "history/exit_context/cases/Loopy_243.json"
+  },
+  "proof_queries_sha256": "a59dfd8f14ed1a89e6748da289fa38689fdfdad58d88b9f6bd130636d9518b77"
+}

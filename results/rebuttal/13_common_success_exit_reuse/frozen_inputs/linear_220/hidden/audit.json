@@ -1,0 +1,108 @@
+{
+  "key": "linear_220",
+  "k": 16,
+  "source_path": "/tmp/craft16_minimal_20261107_v2/sources/linear_220.original.c",
+  "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/linear_220.json",
+  "source_sha256": "94fb0d7fe5c64c7ed1b67701b3fe367025bda33a376f5b1d330cc7f23e05d5c5",
+  "verification_sha256": "2c5fa6ee504d45e3e25a8102cf88f1a183377d4f2d7154de4f27eacf32c7837c",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "linear",
+  "original_verified": true,
+  "survivor_count": 50,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "z__entry": "1",
+        "x": "1",
+        "y__entry": "1",
+        "x__pre": "1",
+        "z": "0",
+        "z__pre": "1",
+        "x__entry": "1",
+        "y": "0",
+        "y__pre": "1",
+        "w__entry": "1",
+        "w": "1",
+        "w__pre": "1"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "w__pre": "1",
+        "w__entry": "1",
+        "z": "0",
+        "x__entry": "1",
+        "x": "-1",
+        "x__pre": "1",
+        "z__pre": "1",
+        "z__entry": "1",
+        "y": "0",
+        "w": "-1",
+        "y__entry": "1",
+        "y__pre": "1"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "y": "0",
+        "z": "0",
+        "x__entry": "1",
+        "x": "-1",
+        "x__pre": "1",
+        "z__pre": "1",
+        "w": "0",
+        "z__entry": "1",
+        "y__entry": "1",
+        "y__pre": "1",
+        "w__entry": "1",
+        "w__pre": "1"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_not_exact",
+    "inductive_lemma": "y <= entry",
+    "unreachable_state": {
+      "z__entry": "1",
+      "y__entry": "1",
+      "x": "1",
+      "x__pre": "1",
+      "z": "2",
+      "z__pre": "1",
+      "x__entry": "1",
+      "y": "2",
+      "y__pre": "1",
+      "w__entry": "1",
+      "w": "1",
+      "w__pre": "1"
+    }
+  },
+  "modeled_variables": {
+    "w": "i",
+    "x": "i",
+    "y": "i",
+    "z": "i"
+  },
+  "frame_variables": [],
+  "proof_queries_sha256": "01ff6934b65d0d0e8d6ee47e15fdd5a6244773f54b760b19584bbc71cc2d18e6",
+  "seconds": 0.5963495629839599
+}

@@ -1,0 +1,336 @@
+{
+  "key": "Loopy_172",
+  "program_included": true,
+  "planned_goal_count": 8,
+  "inputs": {
+    "hidden": {
+      "source_path": "/home/yangfp/craft_empirical_runs/recovered_hidden_evidence_20261110/craft16/sources/Loopy_172.original.c",
+      "source_sha256": "34261989bf36036a637348fce3ab14d074f0ac059dec3e01a93e9c89d92192e3",
+      "verification_path": "/home/yangfp/craft_empirical_runs/recovered_hidden_evidence_20261110/craft16/verification/Loopy_172.json",
+      "verification_sha256": "1f05286e257c55eb627b1033678ea9df60cb8daf27b90a757f1ac3b71259dfa4",
+      "audit_path": "/home/yangfp/craft_empirical_runs/craft16_hidden_prefix_semantics_control_20261110/k16/cases/Loopy_172.json",
+      "audit_sha256": "a233a4c3307cdd30fd0dfad63554d65a7b8b926d2731784ff4a0965f289f5651",
+      "survivor_count": 19
+    },
+    "visible": {
+      "source_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/Loopy_172.original.c",
+      "source_sha256": "34261989bf36036a637348fce3ab14d074f0ac059dec3e01a93e9c89d92192e3",
+      "verification_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/Loopy_172.json",
+      "verification_sha256": "569847fd2aacc789d19dc8fafb7d673354ee29da08aca4d6229a9ddda9f11ab9",
+      "audit_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_semantics_20261110/k16/cases/Loopy_172.json",
+      "audit_sha256": "d398db3d54ee71f48eacd7b9187da63530e2b4f87a01eb317c7ea1ddbce9e153",
+      "survivor_count": 24
+    }
+  },
+  "candidate_pool_sha256": "c3d758120514b71c048ef0bf1542d43d5aa65e20996e7e13c183556b2d3f0276",
+  "selected_goals": [],
+  "unfilled_slots": 8,
+  "arm_support": {
+    "non_contextual": {
+      "hidden": {
+        "full_summary_represented": false,
+        "nonvacuity": {
+          "query": "hidden_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [
+          {
+            "clause": "y == 2 * (1 << x) / 2",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "query": "hidden_redundancy_00",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "(x < 6) ==> (y == (1 << (x)) * 1)",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          },
+          {
+            "clause": "y == (1 << x)",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          },
+          {
+            "clause": "x > 0 ==> y == (1 << x)",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          },
+          {
+            "clause": "0 <= x <= 6 && y == (1 << x)",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          },
+          {
+            "clause": "x <= 6 && y == (1 << (x))",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          },
+          {
+            "clause": "y == 2 * (1 << (x - 1)) ==> x >= 1",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          }
+        ],
+        "eligible_for_confirmation": false
+      },
+      "visible": {
+        "full_summary_represented": false,
+        "nonvacuity": {
+          "query": "visible_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [
+          {
+            "clause": "y == (1 << x)",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          },
+          {
+            "clause": "x <= 6 ==> y == (1 << x)",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          },
+          {
+            "clause": "x < 6 ==> y * 2 == (1 << (x + 1))",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          },
+          {
+            "clause": "(x >= 0) ==> (y == (1 << x))",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          },
+          {
+            "clause": "x < 6 ==> y == (1 << x)",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          },
+          {
+            "clause": "y == (1 << x) && x <= 6",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          },
+          {
+            "clause": "x <= 6 && y == (1 << x)",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          },
+          {
+            "clause": "y == (1 << x) ==> x <= 6",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          },
+          {
+            "clause": "x > 0 ==> y == (1 << x)",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          }
+        ],
+        "eligible_for_confirmation": false
+      }
+    },
+    "exit_context": {
+      "hidden": {
+        "full_summary_represented": false,
+        "nonvacuity": {
+          "query": "hidden_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [
+          {
+            "clause": "y == 2 * (1 << x) / 2",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "query": "hidden_redundancy_00",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "(x < 6) ==> (y == (1 << (x)) * 1)",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          },
+          {
+            "clause": "y == (1 << x)",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          },
+          {
+            "clause": "x > 0 ==> y == (1 << x)",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          },
+          {
+            "clause": "0 <= x <= 6 && y == (1 << x)",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          },
+          {
+            "clause": "x <= 6 && y == (1 << (x))",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          },
+          {
+            "clause": "y == 2 * (1 << (x - 1)) ==> x >= 1",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          }
+        ],
+        "eligible_for_confirmation": false
+      },
+      "visible": {
+        "full_summary_represented": false,
+        "nonvacuity": {
+          "query": "visible_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [
+          {
+            "clause": "y == (1 << x)",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          },
+          {
+            "clause": "x <= 6 ==> y == (1 << x)",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          },
+          {
+            "clause": "x < 6 ==> y * 2 == (1 << (x + 1))",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          },
+          {
+            "clause": "(x >= 0) ==> (y == (1 << x))",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          },
+          {
+            "clause": "x < 6 ==> y == (1 << x)",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          },
+          {
+            "clause": "y == (1 << x) && x <= 6",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          },
+          {
+            "clause": "x <= 6 && y == (1 << x)",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          },
+          {
+            "clause": "y == (1 << x) ==> x <= 6",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          },
+          {
+            "clause": "x > 0 ==> y == (1 << x)",
+            "translation_error": "variable ACSL shift",
+            "proof": {
+              "status": "unsupported",
+              "reason": "variable ACSL shift"
+            }
+          }
+        ],
+        "eligible_for_confirmation": false
+      }
+    }
+  },
+  "error": "neither arm has a fully represented, confirmed feasible exit summary",
+  "screening_stage_files": {
+    "non_contextual": "history/non_contextual/cases/Loopy_172.json",
+    "exit_context": "history/exit_context/cases/Loopy_172.json"
+  },
+  "proof_queries_sha256": "79cbbc6154eace949888628f6d842c70b5be1340be7f2d005dac106fbc09eaad"
+}

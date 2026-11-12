@@ -1,0 +1,82 @@
+{
+  "key": "Loopy_282",
+  "k": 16,
+  "source_path": "/tmp/craft16_minimal_20261107_v2/sources/Loopy_282.original.c",
+  "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/Loopy_282.json",
+  "source_sha256": "58e74066f40497f9d9150c35fb0bed6cc4b99953ecc5f5d1468338b72ed5a86d",
+  "verification_sha256": "b1143b7627e65f6e76e7939e4193aa36a952225971554fab2ff504d78a13e9b1",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "Loopy",
+  "original_verified": true,
+  "survivor_count": 48,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "n__pre": "3",
+        "c": "2",
+        "c__entry": "0",
+        "n__entry": "3",
+        "n": "3"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "n__pre": "1",
+        "c": "2",
+        "c__entry": "0",
+        "n__entry": "1",
+        "n": "1"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "n__pre": "1",
+        "c": "-1",
+        "c__entry": "0",
+        "n__entry": "1",
+        "n": "1"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "c",
+    "rank_direction": 1,
+    "attempts": [
+      {
+        "variable": "c",
+        "direction": 1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "n": "i",
+    "c": "i"
+  },
+  "frame_variables": [
+    "n"
+  ],
+  "proof_queries_sha256": "ff0a8777c16fc886a20da93157c08dfe753f03337b767d676d71910f68238f97",
+  "seconds": 0.5563948989729397
+}

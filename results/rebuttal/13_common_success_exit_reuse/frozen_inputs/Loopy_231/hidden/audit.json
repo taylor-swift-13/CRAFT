@@ -1,0 +1,77 @@
+{
+  "key": "Loopy_231",
+  "k": 16,
+  "source_path": "/tmp/craft16_minimal_20261107_v2/sources/Loopy_231.original.c",
+  "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/Loopy_231.json",
+  "source_sha256": "8fcbda56fe80a8082417f53c8ab976ea891bf3be609cfa96782f5bfa3507d66b",
+  "verification_sha256": "364d9c28d2652996ceafe3ea940c744495c85ab8dc1361793918d24bc16d84d7",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "Loopy",
+  "original_verified": true,
+  "survivor_count": 24,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "x": "0",
+        "x__entry": "0",
+        "sn": "0",
+        "sn__entry": "0"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "x": "-8388608",
+        "x__entry": "0",
+        "sn": "-8388608",
+        "sn__entry": "0"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "x": "-1",
+        "sn": "-2",
+        "x__entry": "0",
+        "sn__entry": "0"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "sn",
+    "rank_direction": 1,
+    "attempts": [
+      {
+        "variable": "sn",
+        "direction": 1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "sn": "i",
+    "x": "i"
+  },
+  "frame_variables": [],
+  "proof_queries_sha256": "d461d1f1412db71afc9f0f0c353d860d4a8f422a7fa97a5380d978f8d553827e",
+  "seconds": 0.808631279040128
+}

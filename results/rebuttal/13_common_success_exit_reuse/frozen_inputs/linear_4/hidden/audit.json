@@ -1,0 +1,93 @@
+{
+  "key": "linear_4",
+  "k": 16,
+  "source_path": "/tmp/craft16_minimal_20261107_v2/sources/linear_4.original.c",
+  "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/linear_4.json",
+  "source_sha256": "beb19a553952c81b7a7ece424af6817abd25d30931c9095826c16470d2c3bf27",
+  "verification_sha256": "4fd511bf544262077c82c84c236caf08564814b031ea7ceb4930b00f5a970ddd",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "linear",
+  "original_verified": true,
+  "survivor_count": 29,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "x": "500",
+        "y__pre": "0",
+        "z__pre": "1",
+        "y": "0",
+        "x__entry": "0",
+        "z__entry": "1",
+        "y__entry": "0",
+        "z": "1"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "x": "501",
+        "y__pre": "0",
+        "z__pre": "0",
+        "y": "-1",
+        "x__entry": "0",
+        "z__entry": "0",
+        "y__entry": "0",
+        "z": "0"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "x": "500",
+        "y__pre": "0",
+        "z__pre": "-1",
+        "y": "0",
+        "x__entry": "0",
+        "z__entry": "-1",
+        "y__entry": "0",
+        "z": "-1"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_not_exact",
+    "inductive_lemma": "y <= entry",
+    "unreachable_state": {
+      "x": "1",
+      "y__pre": "-1",
+      "z__pre": "1",
+      "y": "0",
+      "x__entry": "0",
+      "z__entry": "1",
+      "y__entry": "-1",
+      "z": "1"
+    }
+  },
+  "modeled_variables": {
+    "y": "i",
+    "z": "i",
+    "x": "i"
+  },
+  "frame_variables": [
+    "z"
+  ],
+  "proof_queries_sha256": "3751afcaf2695220facb911f36abd327f36f43317a6f6257247ed7c99504d463",
+  "seconds": 0.5300447719637305
+}

@@ -1,0 +1,256 @@
+{
+  "key": "Loopy_190",
+  "program_included": true,
+  "planned_goal_count": 8,
+  "inputs": {
+    "hidden": {
+      "source_path": "/home/yangfp/craft_empirical_runs/recovered_hidden_evidence_20261110/craft16/sources/Loopy_190.original.c",
+      "source_sha256": "6932849cd8199d91e63d7263f4335e9553c28fe9b912c88e2ee42a51350d95fd",
+      "verification_path": "/home/yangfp/craft_empirical_runs/recovered_hidden_evidence_20261110/craft16/verification/Loopy_190.json",
+      "verification_sha256": "c281a62523896ffc6cba70967718bee30c3a37315e0f0ca487cbdb1333cc4021",
+      "audit_path": "/home/yangfp/craft_empirical_runs/craft16_hidden_prefix_semantics_control_20261110/k16/cases/Loopy_190.json",
+      "audit_sha256": "e263288c6daa19b97fa797dc1468af55441569c6baf6d38cf2480f4fa1529e06",
+      "survivor_count": 41
+    },
+    "visible": {
+      "source_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/Loopy_190.original.c",
+      "source_sha256": "6932849cd8199d91e63d7263f4335e9553c28fe9b912c88e2ee42a51350d95fd",
+      "verification_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/Loopy_190.json",
+      "verification_sha256": "185f4ccf084043738bfbc89069fc0fa934cb2d4bafef86b8d9896fb3e54c471a",
+      "audit_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_semantics_20261110/k16/cases/Loopy_190.json",
+      "audit_sha256": "2ed6228769a2bd9eb1898a69a4d5f175b7e231740b8ee9c8d4562b0ca9aee6c8",
+      "survivor_count": 24
+    }
+  },
+  "candidate_pool_sha256": "9feef0385e193d820ce235b9f8996241e4acf106873a724a1cbe4cdfaeff7d1c",
+  "selected_goals": [
+    {
+      "slot": 1,
+      "id": "range_02",
+      "family": "range",
+      "formula": "MAXPATHLEN <= glob2_p_off && glob2_p_off <= (MAXPATHLEN)+1",
+      "arms": {
+        "hidden": {
+          "classification": "supported",
+          "query": "non_contextual/goal_01_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "non_contextual/goal_01_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "non_contextual/goal_01_context",
+      "source_stage": "non_contextual",
+      "source_slot": 1,
+      "exit_context_alone": false
+    },
+    {
+      "slot": 2,
+      "id": "input_relation_07",
+      "family": "input_relation",
+      "formula": "glob2_p_off == (\\at(MAXPATHLEN,Pre))+(1)",
+      "arms": {
+        "hidden": {
+          "classification": "supported",
+          "query": "non_contextual/goal_02_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "non_contextual/goal_02_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "non_contextual/goal_02_context",
+      "source_stage": "non_contextual",
+      "source_slot": 2,
+      "exit_context_alone": false
+    },
+    {
+      "slot": 3,
+      "id": "range_06",
+      "family": "range",
+      "formula": "bound_off <= glob2_p_off && glob2_p_off <= (bound_off)+1",
+      "arms": {
+        "hidden": {
+          "classification": "supported",
+          "query": "non_contextual/goal_03_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "non_contextual/goal_03_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "non_contextual/goal_03_context",
+      "source_stage": "non_contextual",
+      "source_slot": 3,
+      "exit_context_alone": false
+    },
+    {
+      "slot": 4,
+      "id": "range_14",
+      "family": "range",
+      "formula": "glob2_pathlim_off <= glob2_p_off && glob2_p_off <= (glob2_pathlim_off)+1",
+      "arms": {
+        "hidden": {
+          "classification": "supported",
+          "query": "non_contextual/goal_04_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "non_contextual/goal_04_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "non_contextual/goal_04_context",
+      "source_stage": "non_contextual",
+      "source_slot": 4,
+      "exit_context_alone": false
+    },
+    {
+      "slot": 5,
+      "id": "range_22",
+      "family": "range",
+      "formula": "\\at(MAXPATHLEN,Pre) <= glob2_p_off && glob2_p_off <= (\\at(MAXPATHLEN,Pre))+1",
+      "arms": {
+        "hidden": {
+          "classification": "supported",
+          "query": "non_contextual/goal_05_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "non_contextual/goal_05_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "non_contextual/goal_05_context",
+      "source_stage": "non_contextual",
+      "source_slot": 5,
+      "exit_context_alone": false
+    },
+    {
+      "slot": 6,
+      "id": "input_relation_02",
+      "family": "input_relation",
+      "formula": "glob2_p_off >= \\at(MAXPATHLEN,Pre)",
+      "arms": {
+        "hidden": {
+          "classification": "supported",
+          "query": "exit_context/goal_02_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "exit_context/goal_02_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "exit_context/goal_02_context",
+      "exit_context_alone": true,
+      "entry_query": "exit_context/goal_02_entry",
+      "source_stage": "exit_context",
+      "source_slot": 2
+    },
+    {
+      "slot": 7,
+      "id": "pair_relation_06",
+      "family": "pair_relation",
+      "formula": "MAXPATHLEN <= glob2_p_off",
+      "arms": {
+        "hidden": {
+          "classification": "supported",
+          "query": "exit_context/goal_03_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "exit_context/goal_03_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "exit_context/goal_03_context",
+      "exit_context_alone": true,
+      "entry_query": "exit_context/goal_03_entry",
+      "source_stage": "exit_context",
+      "source_slot": 3
+    },
+    {
+      "slot": 8,
+      "id": "polynomial_08",
+      "family": "polynomial",
+      "formula": "MAXPATHLEN*MAXPATHLEN <= glob2_p_off*glob2_p_off",
+      "arms": {
+        "hidden": {
+          "classification": "supported",
+          "query": "exit_context/goal_04_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "exit_context/goal_04_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "exit_context/goal_04_context",
+      "exit_context_alone": true,
+      "entry_query": "exit_context/goal_04_entry",
+      "source_stage": "exit_context",
+      "source_slot": 4
+    }
+  ],
+  "unfilled_slots": 0,
+  "arm_support": {
+    "non_contextual": {
+      "hidden": {
+        "full_summary_represented": true,
+        "nonvacuity": {
+          "query": "hidden_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [],
+        "eligible_for_confirmation": true
+      },
+      "visible": {
+        "full_summary_represented": true,
+        "nonvacuity": {
+          "query": "visible_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [],
+        "eligible_for_confirmation": true
+      }
+    },
+    "exit_context": {
+      "hidden": {
+        "full_summary_represented": true,
+        "nonvacuity": {
+          "query": "hidden_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [],
+        "eligible_for_confirmation": true
+      },
+      "visible": {
+        "full_summary_represented": true,
+        "nonvacuity": {
+          "query": "visible_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [],
+        "eligible_for_confirmation": true
+      }
+    }
+  },
+  "error": null,
+  "screening_stage_files": {
+    "non_contextual": "history/non_contextual/cases/Loopy_190.json",
+    "exit_context": "history/exit_context/cases/Loopy_190.json"
+  },
+  "proof_queries_sha256": "844e5e76c8bc34b26dc47d995febe2b605ac45e19356a7932632dbc6872abd79"
+}

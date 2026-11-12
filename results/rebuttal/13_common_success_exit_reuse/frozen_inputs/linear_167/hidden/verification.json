@@ -1,0 +1,207 @@
+{
+  "key": "linear_167",
+  "suite": "linear",
+  "case_id": "167",
+  "fingerprint": "ee1b18f11b01b79a1975a5b57a68eb9fe0aa04221156326cff4a24de32500589",
+  "generation_sha256": "c27c0a86aac52b25da7bcabd160dd96f9e2094ed7f2339854a8b52d075004f1f",
+  "status": "complete",
+  "started_utc": "2026-11-07T08:28:05.545311+00:00",
+  "verified": true,
+  "rollouts": [
+    [
+      "0 <= j",
+      "j <= n",
+      "x + y == k",
+      "m == j || m == m",
+      "n == n",
+      "i >= 0",
+      "(j <= n) ==> (x - y) == (initial_x - initial_y) + (some function)"
+    ],
+    [
+      "0 <= j",
+      "j <= n",
+      "x + y == k",
+      "m == j || m == m"
+    ],
+    [
+      "0 <= j",
+      "j <= n",
+      "x + y == k",
+      "m == j || (m == m)",
+      "n == n",
+      "j <= n ==> x - y == x - y",
+      "x + y == k"
+    ],
+    [
+      "0 <= j",
+      "j <= n",
+      "x + y == k",
+      "m == j || m == \\old(m)"
+    ],
+    [
+      "0 <= j",
+      "j <= n",
+      "x + y == k",
+      "m == j ==> m >= 0",
+      "i >= 0",
+      "n >= 0",
+      "j == 0 ==> x + y == k",
+      "(j < n) ==> ( (j == i) ==> x - y == 2*x0 - k + (unknown_expected))"
+    ],
+    [
+      "0 <= j",
+      "0 <= i",
+      "0 <= n",
+      "0 <= m",
+      "j <= n",
+      "x + y == k",
+      "j == i ==> x == x_old + 1 && y == y_old - 1",
+      "lines must be valid"
+    ],
+    [
+      "0 <= j",
+      "j <= n",
+      "x + y == k",
+      "m == j || m == m",
+      "i >= 0",
+      "n >= 0",
+      "(j == i) ==> (x == x_before + (/* cannot reference before */ 0))",
+      "(j != i) ==> (x == x_before + (-1) ???)"
+    ],
+    [
+      "0 <= j",
+      "j <= n",
+      "x + y == k",
+      "m == j || m == unknown() ? (m == j) : true",
+      "i == i"
+    ],
+    [
+      "0 <= j",
+      "j <= n",
+      "x + y == k",
+      "m == j ==> m >= 0",
+      "j == i ==> x - y == 2*(x0 - y0) + ?"
+    ],
+    [
+      "0 <= j",
+      "j <= n",
+      "x + y == k",
+      "m == j || m == m"
+    ],
+    [
+      "0 <= j",
+      "j <= n",
+      "x + y == k",
+      "m >= 0 ==> m == j",
+      "i >= 0",
+      "n == unknown()",
+      "(x - y) == (k - k)",
+      "j <= n",
+      "x - y == (k - (n - j) * 0)",
+      "j <= n && n >= 0"
+    ],
+    [
+      "0 <= j",
+      "0 <= i",
+      "0 <= n",
+      "m == j ? m : m"
+    ],
+    [
+      "0 <= j",
+      "j <= n",
+      "x + y == k",
+      "m == j ==> m >= 0",
+      "i == unknown() || i == i"
+    ],
+    [
+      "j <= n",
+      "x + y == k",
+      "m == 0 || m == j",
+      "0 <= j",
+      "i >= 0",
+      "n >= 0",
+      "(j <= n) ==> (x - y == k - 0)",
+      "(j <= n) ==> (x + y == k)"
+    ],
+    [
+      "0 <= j",
+      "j <= n",
+      "x + y == k",
+      "m == j || m == unknown()"
+    ],
+    [
+      "0 <= j",
+      "j <= n",
+      "x + y == k",
+      "m == j ==> m >= 0",
+      "(j == i) ==> (x == x0 + (j) - (j))?"
+    ]
+  ],
+  "union": [
+    "0 <= j",
+    "j <= n",
+    "x + y == k",
+    "m == j || m == m",
+    "n == n",
+    "i >= 0",
+    "(j <= n) ==> (x - y) == (initial_x - initial_y) + (some function)",
+    "j <= n ==> x - y == x - y",
+    "m == j || m == \\old(m)",
+    "m == j ==> m >= 0",
+    "n >= 0",
+    "j == 0 ==> x + y == k",
+    "(j < n) ==> ( (j == i) ==> x - y == 2*x0 - k + (unknown_expected))",
+    "0 <= m",
+    "j == i ==> x == x_old + 1 && y == y_old - 1",
+    "lines must be valid",
+    "(j == i) ==> (x == x_before + (/* cannot reference before */ 0))",
+    "(j != i) ==> (x == x_before + (-1) ???)",
+    "m == j || m == unknown() ? (m == j) : true",
+    "i == i",
+    "j == i ==> x - y == 2*(x0 - y0) + ?",
+    "m >= 0 ==> m == j",
+    "n == unknown()",
+    "(x - y) == (k - k)",
+    "x - y == (k - (n - j) * 0)",
+    "j <= n && n >= 0",
+    "m == j ? m : m",
+    "i == unknown() || i == i",
+    "m == 0 || m == j",
+    "(j <= n) ==> (x - y == k - 0)",
+    "(j <= n) ==> (x + y == k)",
+    "m == j || m == unknown()",
+    "(j == i) ==> (x == x0 + (j) - (j))?"
+  ],
+  "survivors": [
+    "0 <= j",
+    "x + y == k",
+    "m == j || m == m",
+    "n == n",
+    "j <= n ==> x - y == x - y",
+    "m == j ==> m >= 0",
+    "j == 0 ==> x + y == k",
+    "0 <= m",
+    "i == i",
+    "(j <= n) ==> (x + y == k)"
+  ],
+  "judgment": {
+    "verified": true,
+    "judge_error": null,
+    "judge_seconds": 2.5533581470081117,
+    "invariants": [
+      "0 <= j",
+      "x + y == k",
+      "m == j || m == m",
+      "n == n",
+      "j <= n ==> x - y == x - y",
+      "m == j ==> m >= 0",
+      "j == 0 ==> x + y == k",
+      "0 <= m",
+      "i == i",
+      "(j <= n) ==> (x + y == k)"
+    ],
+    "invariant_count": 10
+  },
+  "seconds": 72.46234361000825,
+  "updated_utc": "2026-11-07T08:29:18.007934+00:00"
+}

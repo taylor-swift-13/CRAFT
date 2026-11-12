@@ -1,0 +1,87 @@
+{
+  "key": "Loopy_206",
+  "k": 16,
+  "source_path": "/tmp/craft16_minimal_20261107_v2/sources/Loopy_206.original.c",
+  "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/Loopy_206.json",
+  "source_sha256": "36380e768f858dd6e9408fb264f270bd304d21c1b91b7fda0d2a6e71079e07a5",
+  "verification_sha256": "05678f0e00296c09dba69fc5b0b0658baa300d155b5cbdec1395d60a261cba86",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "Loopy",
+  "original_verified": true,
+  "survivor_count": 28,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "n__pre": "1",
+        "i": "0",
+        "i__entry": "0",
+        "y__entry": "0",
+        "n__entry": "1",
+        "y": "0",
+        "x": "0",
+        "n": "1",
+        "x__entry": "0"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "n__pre": "1",
+        "i": "-1",
+        "i__entry": "0",
+        "y__entry": "0",
+        "n__entry": "1",
+        "y": "0",
+        "x": "0",
+        "n": "1",
+        "x__entry": "0"
+      }
+    },
+    "target_without_invariant": {
+      "status": "unsat"
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "i",
+    "rank_direction": 1,
+    "attempts": [
+      {
+        "variable": "i",
+        "direction": 1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "n": "i",
+    "i": "i",
+    "x": "i",
+    "y": "i"
+  },
+  "frame_variables": [
+    "n",
+    "x",
+    "y"
+  ],
+  "proof_queries_sha256": "49345ac54705289e18034e7335ff5bdd67ba56841df27c28ec5fcc0441074f18",
+  "seconds": 0.3047965720179491
+}

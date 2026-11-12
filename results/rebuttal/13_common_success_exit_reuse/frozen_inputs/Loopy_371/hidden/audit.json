@@ -1,0 +1,92 @@
+{
+  "key": "Loopy_371",
+  "k": 16,
+  "source_path": "/tmp/craft16_minimal_20261107_v2/sources/Loopy_371.original.c",
+  "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/Loopy_371.json",
+  "source_sha256": "06236c48cd86b353d6c077a50a9d7245d427c9304832fac3c2000b71fc850834",
+  "verification_sha256": "68ea273ccc5cf620530a811f78e992e71039af04b4c6f45a64397f9d9ae736a2",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "Loopy",
+  "original_verified": true,
+  "survivor_count": 23,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "mid__pre": "1",
+        "lo": "1",
+        "hi": "1",
+        "lo__entry": "0",
+        "mid__entry": "1",
+        "hi__entry": "2",
+        "mid": "0"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "mid": "-1",
+        "mid__pre": "1",
+        "hi": "0",
+        "lo": "0",
+        "lo__entry": "0",
+        "mid__entry": "1",
+        "hi__entry": "2"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "mid": "0",
+        "mid__pre": "1",
+        "lo": "0",
+        "hi": "-1",
+        "lo__entry": "0",
+        "mid__entry": "1",
+        "hi__entry": "2"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "hi",
+    "rank_direction": -1,
+    "attempts": [
+      {
+        "variable": "hi",
+        "direction": 1,
+        "status": "sat"
+      },
+      {
+        "variable": "hi",
+        "direction": -1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "mid": "i",
+    "lo": "i",
+    "hi": "i"
+  },
+  "frame_variables": [],
+  "proof_queries_sha256": "b697b36fcf6062048e09c5c859c476ab27a1f5addfa5bf2276f9287bc3530512",
+  "seconds": 0.9844975540181622
+}

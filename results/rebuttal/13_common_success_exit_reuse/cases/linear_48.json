@@ -1,0 +1,271 @@
+{
+  "key": "linear_48",
+  "program_included": true,
+  "planned_goal_count": 8,
+  "inputs": {
+    "hidden": {
+      "source_path": "/home/yangfp/craft_empirical_runs/recovered_hidden_evidence_20261110/craft16/sources/linear_48.original.c",
+      "source_sha256": "408bb075d60000206129c6eacae76fbeab40b72b1474ebb78b6bd81114c3b0aa",
+      "verification_path": "/home/yangfp/craft_empirical_runs/recovered_hidden_evidence_20261110/craft16/verification/linear_48.json",
+      "verification_sha256": "cc90be6deaa2349c2f530df29414bcd1f4ae6819f363160445b2c8e01ed4fdd0",
+      "audit_path": "/home/yangfp/craft_empirical_runs/craft16_hidden_prefix_semantics_control_20261110/k16/cases/linear_48.json",
+      "audit_sha256": "508af8e414428411a205980365442409970388f80919c35ebcf91273fef8b21f",
+      "survivor_count": 62
+    },
+    "visible": {
+      "source_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/linear_48.original.c",
+      "source_sha256": "408bb075d60000206129c6eacae76fbeab40b72b1474ebb78b6bd81114c3b0aa",
+      "verification_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/linear_48.json",
+      "verification_sha256": "1c5ad77589347209a8d5290e2fc1afd81cafc27f31ff177e1f2dd9ca08937086",
+      "audit_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_semantics_20261110/k16/cases/linear_48.json",
+      "audit_sha256": "59b32f23d1256ff72aabbab790ccbf02991685d590c9616b8aefd932f39ab68d",
+      "survivor_count": 52
+    }
+  },
+  "candidate_pool_sha256": "ffd46003d03fa83d3e718a083853c554cff71a14dda3c84eac964fc3f20044c8",
+  "selected_goals": [
+    {
+      "slot": 1,
+      "id": "range_01",
+      "family": "range",
+      "formula": "0 <= c && c <= n",
+      "arms": {
+        "hidden": {
+          "classification": "unconfirmed_summary",
+          "query": "non_contextual/goal_01_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "non_contextual/goal_01_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "non_contextual/goal_01_context",
+      "source_stage": "non_contextual",
+      "source_slot": 1,
+      "exit_context_alone": false
+    },
+    {
+      "slot": 2,
+      "id": "input_relation_03",
+      "family": "input_relation",
+      "formula": "c <= \\at(n,Pre)",
+      "arms": {
+        "hidden": {
+          "classification": "unconfirmed_summary",
+          "query": "non_contextual/goal_02_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "non_contextual/goal_02_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "non_contextual/goal_02_context",
+      "source_stage": "non_contextual",
+      "source_slot": 2,
+      "exit_context_alone": false
+    },
+    {
+      "slot": 3,
+      "id": "pair_relation_02",
+      "family": "pair_relation",
+      "formula": "c <= n",
+      "arms": {
+        "hidden": {
+          "classification": "unconfirmed_summary",
+          "query": "non_contextual/goal_03_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "non_contextual/goal_03_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "non_contextual/goal_03_context",
+      "source_stage": "non_contextual",
+      "source_slot": 3,
+      "exit_context_alone": false
+    },
+    {
+      "slot": 4,
+      "id": "polynomial_08",
+      "family": "polynomial",
+      "formula": "c*c <= n*n",
+      "arms": {
+        "hidden": {
+          "classification": "unconfirmed_summary",
+          "query": "non_contextual/goal_04_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "non_contextual/goal_04_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "non_contextual/goal_04_context",
+      "source_stage": "non_contextual",
+      "source_slot": 4,
+      "exit_context_alone": false
+    },
+    {
+      "slot": 5,
+      "id": "conditional_04",
+      "family": "conditional",
+      "formula": "n >= 0 ==> c >= 0",
+      "arms": {
+        "hidden": {
+          "classification": "unconfirmed_summary",
+          "query": "non_contextual/goal_05_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "non_contextual/goal_05_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "non_contextual/goal_05_context",
+      "source_stage": "non_contextual",
+      "source_slot": 5,
+      "exit_context_alone": false
+    },
+    {
+      "slot": 6,
+      "id": "polynomial_11",
+      "family": "polynomial",
+      "formula": "c*((n)-c) >= 0",
+      "arms": {
+        "hidden": {
+          "classification": "unconfirmed_summary",
+          "query": "non_contextual/goal_06_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "non_contextual/goal_06_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "non_contextual/goal_06_context",
+      "source_stage": "non_contextual",
+      "source_slot": 6,
+      "exit_context_alone": false
+    },
+    {
+      "slot": 7,
+      "id": "range_05",
+      "family": "range",
+      "formula": "0 <= c && c <= \\at(n,Pre)",
+      "arms": {
+        "hidden": {
+          "classification": "unconfirmed_summary",
+          "query": "non_contextual/goal_07_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "non_contextual/goal_07_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "non_contextual/goal_07_context",
+      "source_stage": "non_contextual",
+      "source_slot": 7,
+      "exit_context_alone": false
+    },
+    {
+      "slot": 8,
+      "id": "polynomial_13",
+      "family": "polynomial",
+      "formula": "c*((\\at(n,Pre))-c) >= 0",
+      "arms": {
+        "hidden": {
+          "classification": "unconfirmed_summary",
+          "query": "non_contextual/goal_08_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "non_contextual/goal_08_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "non_contextual/goal_08_context",
+      "source_stage": "non_contextual",
+      "source_slot": 8,
+      "exit_context_alone": false
+    }
+  ],
+  "unfilled_slots": 0,
+  "arm_support": {
+    "non_contextual": {
+      "hidden": {
+        "full_summary_represented": false,
+        "nonvacuity": {
+          "query": "hidden_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [
+          {
+            "clause": "c % (n+1) == c",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_00",
+              "status": "sat"
+            }
+          }
+        ],
+        "eligible_for_confirmation": false
+      },
+      "visible": {
+        "full_summary_represented": true,
+        "nonvacuity": {
+          "query": "visible_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [],
+        "eligible_for_confirmation": true
+      }
+    },
+    "exit_context": {
+      "hidden": {
+        "full_summary_represented": false,
+        "nonvacuity": {
+          "query": "hidden_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [
+          {
+            "clause": "c % (n+1) == c",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_00",
+              "status": "sat"
+            }
+          }
+        ],
+        "eligible_for_confirmation": false
+      },
+      "visible": {
+        "full_summary_represented": true,
+        "nonvacuity": {
+          "query": "visible_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [],
+        "eligible_for_confirmation": true
+      }
+    }
+  },
+  "error": null,
+  "screening_stage_files": {
+    "non_contextual": "history/non_contextual/cases/linear_48.json",
+    "exit_context": "history/exit_context/cases/linear_48.json"
+  },
+  "proof_queries_sha256": "da0c355ec225ec0570ddd717c86f5c75717bbf75fda00593c3f9c40cf5ddf788"
+}

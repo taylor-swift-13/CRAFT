@@ -1,0 +1,75 @@
+{
+  "key": "linear_48",
+  "k": 16,
+  "source_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/linear_48.original.c",
+  "verification_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/linear_48.json",
+  "source_sha256": "408bb075d60000206129c6eacae76fbeab40b72b1474ebb78b6bd81114c3b0aa",
+  "verification_sha256": "1c5ad77589347209a8d5290e2fc1afd81cafc27f31ff177e1f2dd9ca08937086",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "linear",
+  "original_verified": true,
+  "survivor_count": 52,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "n__pre": "4",
+        "c": "2",
+        "c__entry": "0",
+        "n__entry": "4",
+        "n": "4"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "n__pre": "1",
+        "c": "-1",
+        "c__entry": "0",
+        "n__entry": "1",
+        "n": "1"
+      }
+    },
+    "target_without_invariant": {
+      "status": "unsat"
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "c",
+    "rank_direction": 1,
+    "attempts": [
+      {
+        "variable": "c",
+        "direction": 1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "n": "i",
+    "c": "i"
+  },
+  "frame_variables": [
+    "n"
+  ],
+  "proof_queries_sha256": "776d6dc6aa2cac78f4944104efd0c98264727cbf45938905694bf37397f229b1",
+  "seconds": 0.9601678559556603
+}

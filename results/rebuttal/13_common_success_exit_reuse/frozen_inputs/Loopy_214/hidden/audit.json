@@ -1,0 +1,81 @@
+{
+  "key": "Loopy_214",
+  "k": 16,
+  "source_path": "/tmp/craft16_minimal_20261107_v2/sources/Loopy_214.original.c",
+  "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/Loopy_214.json",
+  "source_sha256": "8f033cf9a268eae054e0014447b2944b6444de7e753cd52edbb26d203dafcda9",
+  "verification_sha256": "5d07673e1b406823ffc8b65c3490adefe3072a8994a09f7a6e1af0cf9828b6e6",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "Loopy",
+  "original_verified": true,
+  "survivor_count": 22,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "invariant_target_context_unsatisfiable",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "unsat"
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "x": "100002",
+        "x__entry": "1",
+        "y__entry": "0",
+        "y": "100001"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "x": "0",
+        "y": "100000",
+        "x__entry": "1",
+        "y__entry": "0"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "y",
+    "rank_direction": 1,
+    "attempts": [
+      {
+        "variable": "x",
+        "direction": 1,
+        "status": "sat"
+      },
+      {
+        "variable": "x",
+        "direction": -1,
+        "status": "sat"
+      },
+      {
+        "variable": "y",
+        "direction": 1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "x": "i",
+    "y": "i"
+  },
+  "frame_variables": [],
+  "proof_queries_sha256": "4eed7f89dff7c9a3640c8828720cdd3aa16a1aa4dedf24bce62e5f668065aec4",
+  "seconds": 1.0803276830120012
+}

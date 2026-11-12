@@ -1,0 +1,207 @@
+{
+  "key": "Loopy_67",
+  "suite": "Loopy",
+  "case_id": "67",
+  "fingerprint": "ee1b18f11b01b79a1975a5b57a68eb9fe0aa04221156326cff4a24de32500589",
+  "generation_sha256": "cbb2870c153b5cbe13ce3f29dd5c511a52ff5a2a1037c58703b20827a866447b",
+  "status": "complete",
+  "started_utc": "2026-11-07T08:17:19.607112+00:00",
+  "verified": true,
+  "rollouts": [
+    [
+      "i >= 0",
+      "i <= LARGE_INT ? i <= LARGE_INT : 0",
+      "k >= 0",
+      "i + k >= 0",
+      "i <= LARGE_INT",
+      "k <= LARGE_INT",
+      "0 <= k",
+      "0 <= i",
+      "i == k * 0 + i",
+      "i == sum_{t=0}^{k-1} j_t where j_t are values returned by unknown_int() but we cannot quantify over j_t"
+    ],
+    [
+      "i >= 0",
+      "i <= LARGE_INT",
+      "k >= 0",
+      "i + k <= LARGE_INT * 2 - 0"
+    ],
+    [
+      "0 <= i",
+      "i <= LARGE_INT",
+      "k >= 0",
+      "i == k * 0 + i"
+    ],
+    [
+      "0 <= i",
+      "i <= LARGE_INT",
+      "k >= 0",
+      "0 <= j <= LARGE_INT-1",
+      "i + (LARGE_INT - 1 - j) >= 0",
+      "k == (i / (LARGE_INT - 1)) ? 0 : k"
+    ],
+    [
+      "i >= 0",
+      "k >= 0",
+      "i <= LARGE_INT * k",
+      "k >= 0 ==> i <= LARGE_INT * k",
+      "i == \\at(i, Pre) + 0"
+    ],
+    [
+      "0 <= i",
+      "i <= LARGE_INT",
+      "k >= 0",
+      "i == k * 1 + 0"
+    ],
+    [
+      "0 <= i",
+      "i <= LARGE_INT",
+      "k >= 0",
+      "i == k * 1 ? 0 : 0",
+      "i == k * something"
+    ],
+    [
+      "0 <= i",
+      "i <= LARGE_INT",
+      "k >= 0",
+      "i + (LARGE_INT - 1) * (k) <= LARGE_INT * k",
+      "i == 0 ==> k == 0",
+      "(k >= 0) && (i <= LARGE_INT)",
+      "k == 0 ==> i == 0",
+      "0 <= k",
+      "i == sum_{t=0}^{k-1} j_t where 0 <= j_t < LARGE_INT",
+      "0 <= i - k"
+    ],
+    [
+      "0 <= i",
+      "i <= LARGE_INT",
+      "k >= 0",
+      "i == k * 0 + i"
+    ],
+    [
+      "0 <= i",
+      "0 <= k",
+      "i <= LARGE_INT",
+      "k >= 0",
+      "i + (LARGE_INT - 1) * (k) <= LARGE_INT * (LARGE_INT)"
+    ],
+    [
+      "0 <= i",
+      "i <= LARGE_INT",
+      "k >= 0",
+      "0 <= i - k",
+      "i == k * (0) || true",
+      "k <= LARGE_INT",
+      "i == k * 0",
+      "0 <= k",
+      "i <= LARGE_INT",
+      "0 <= j <= LARGE_INT"
+    ],
+    [
+      "0 <= i",
+      "i <= LARGE_INT",
+      "k >= 0",
+      "i == k * ?"
+    ],
+    [
+      "0 <= i",
+      "0 <= k",
+      "i == k * (i / k)"
+    ],
+    [
+      "0 <= i",
+      "i <= LARGE_INT",
+      "0 <= k",
+      "k >= 0",
+      "i == k * 0 + i",
+      "0 <= i && i <= LARGE_INT ==> k <= LARGE_INT"
+    ],
+    [
+      "0 <= i",
+      "i <= LARGE_INT",
+      "0 <= k",
+      "i == k * 0 + i"
+    ],
+    [
+      "0 <= i",
+      "i <= LARGE_INT",
+      "k >= 0",
+      "i == k * 0 + i",
+      "i + (LARGE_INT * (0 - k)) <= LARGE_INT",
+      "i <= i + j * 0",
+      "0 <= k",
+      "k <= LARGE_INT"
+    ]
+  ],
+  "union": [
+    "i >= 0",
+    "i <= LARGE_INT ? i <= LARGE_INT : 0",
+    "k >= 0",
+    "i + k >= 0",
+    "i <= LARGE_INT",
+    "k <= LARGE_INT",
+    "i == k * 0 + i",
+    "i == sum_{t=0}^{k-1} j_t where j_t are values returned by unknown_int() but we cannot quantify over j_t",
+    "i + k <= LARGE_INT * 2 - 0",
+    "0 <= j <= LARGE_INT-1",
+    "i + (LARGE_INT - 1 - j) >= 0",
+    "k == (i / (LARGE_INT - 1)) ? 0 : k",
+    "i <= LARGE_INT * k",
+    "k >= 0 ==> i <= LARGE_INT * k",
+    "i == \\at(i, Pre) + 0",
+    "i == k * 1 + 0",
+    "i == k * 1 ? 0 : 0",
+    "i == k * something",
+    "i + (LARGE_INT - 1) * (k) <= LARGE_INT * k",
+    "i == 0 ==> k == 0",
+    "(k >= 0) && (i <= LARGE_INT)",
+    "k == 0 ==> i == 0",
+    "i == sum_{t=0}^{k-1} j_t where 0 <= j_t < LARGE_INT",
+    "0 <= i - k",
+    "i + (LARGE_INT - 1) * (k) <= LARGE_INT * (LARGE_INT)",
+    "i == k * (0) || true",
+    "i == k * 0",
+    "0 <= j <= LARGE_INT",
+    "i == k * ?",
+    "i == k * (i / k)",
+    "0 <= i && i <= LARGE_INT ==> k <= LARGE_INT",
+    "i + (LARGE_INT * (0 - k)) <= LARGE_INT",
+    "i <= i + j * 0"
+  ],
+  "survivors": [
+    "i >= 0",
+    "k >= 0",
+    "i + k >= 0",
+    "k <= LARGE_INT",
+    "i == k * 0 + i",
+    "i <= LARGE_INT * k",
+    "k >= 0 ==> i <= LARGE_INT * k",
+    "i == 0 ==> k == 0",
+    "k == 0 ==> i == 0",
+    "0 <= i - k",
+    "0 <= i && i <= LARGE_INT ==> k <= LARGE_INT",
+    "i + (LARGE_INT * (0 - k)) <= LARGE_INT"
+  ],
+  "judgment": {
+    "verified": true,
+    "judge_error": null,
+    "judge_seconds": 3.041178781015333,
+    "invariants": [
+      "i >= 0",
+      "k >= 0",
+      "i + k >= 0",
+      "k <= LARGE_INT",
+      "i == k * 0 + i",
+      "i <= LARGE_INT * k",
+      "k >= 0 ==> i <= LARGE_INT * k",
+      "i == 0 ==> k == 0",
+      "k == 0 ==> i == 0",
+      "0 <= i - k",
+      "0 <= i && i <= LARGE_INT ==> k <= LARGE_INT",
+      "i + (LARGE_INT * (0 - k)) <= LARGE_INT"
+    ],
+    "invariant_count": 12
+  },
+  "seconds": 61.37284714600537,
+  "updated_utc": "2026-11-07T08:18:20.980158+00:00"
+}

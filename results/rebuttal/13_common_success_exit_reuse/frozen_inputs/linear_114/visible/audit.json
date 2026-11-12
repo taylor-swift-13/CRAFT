@@ -1,0 +1,77 @@
+{
+  "key": "linear_114",
+  "k": 16,
+  "source_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/linear_114.original.c",
+  "verification_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/linear_114.json",
+  "source_sha256": "0026ef6e978a0d2253f8038f26e8d54dba5a3c62efefbe155324e2921cb8b8c5",
+  "verification_sha256": "6433583882efee2fd934119c8b58062dcac6ca6dc7912be91edc43a8a03e3711",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "linear",
+  "original_verified": true,
+  "survivor_count": 43,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "x": "1",
+        "x__entry": "0",
+        "sn": "1",
+        "sn__entry": "0"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "x": "0",
+        "sn": "-1",
+        "x__entry": "0",
+        "sn__entry": "0"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "x": "0",
+        "sn": "-2",
+        "x__entry": "0",
+        "sn__entry": "0"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "sn",
+    "rank_direction": 1,
+    "attempts": [
+      {
+        "variable": "sn",
+        "direction": 1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "sn": "i",
+    "x": "i"
+  },
+  "frame_variables": [],
+  "proof_queries_sha256": "3b401d60d94f0bce5d54c601dec5750255dfbe36a9a47aaa07e662f80f8c1e02",
+  "seconds": 0.7973003450315446
+}

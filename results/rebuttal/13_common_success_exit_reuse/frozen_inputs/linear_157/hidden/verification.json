@@ -1,0 +1,232 @@
+{
+  "key": "linear_157",
+  "suite": "linear",
+  "case_id": "157",
+  "fingerprint": "ee1b18f11b01b79a1975a5b57a68eb9fe0aa04221156326cff4a24de32500589",
+  "generation_sha256": "5ee386b3f3dbc2905d2881c3246fba46bb7b804111e3849d4346b60c0c08a148",
+  "status": "complete",
+  "started_utc": "2026-11-07T06:32:30.348094+00:00",
+  "verified": true,
+  "rollouts": [
+    [
+      "0 <= j",
+      "j <= m + 1",
+      "a + j == j * 0 + a"
+    ],
+    [
+      "0 <= j",
+      "j <= m + 1",
+      "a - (j - 1) == 0 ==> false",
+      "(a == (j - 1) || a == -(j - 1))",
+      "0 <= a <= j - 1",
+      "a == (number_of_true_unknowns - number_of_false_unknowns) within loop",
+      "j - 1 == (a + (a * 0))"
+    ],
+    [
+      "a == j - 1 - (unknown()?1: -1)",
+      "j >= 1",
+      "j <= m + 1",
+      "(j - 1) + (a) == (j - 1) * ( (unknown())?1:-1 )"
+    ],
+    [
+      "0 <= j",
+      "j <= m + 1",
+      "(a >= -(m) && a <= m)",
+      "(j - 1) == (a * 0)",
+      "(a + (j - 1)) == a + j - 1",
+      "(a - (j - 1)) == a - j + 1",
+      "(a == (j - 1) ? 0 : a)"
+    ],
+    [
+      "0 <= j",
+      "j <= m + 1",
+      "a == (j - 1) with unknown() ? 1 : -1",
+      "(j <= m + 1) ==> (a == (j - 1) - 2*(j - 1 - (j - 1)))?1:1"
+    ],
+    [
+      "0 <= j - 1",
+      "j >= 1",
+      "a == (j - 1) % 2 * 2 - 1?"
+    ],
+    [
+      "0 <= j",
+      "j <= m + 1",
+      "a == (j - 1) - ( (j - 1) >= 1 ? 0 : 0 )",
+      "j == 1 || j == 1 + (/* unknown */ 0)",
+      "a == 0 ==> j == 1",
+      "a <= j - 1",
+      "a >= -(j - 1)",
+      "(j - 1) >= 0",
+      "(j - 1) = (j - 1)"
+    ],
+    [
+      "0 <= j",
+      "j <= m + 1",
+      "a == (/* unknown */)",
+      "(/* placeholder to satisfy format */ true)"
+    ],
+    [
+      "0 <= j",
+      "j <= m + 1",
+      "a == (j - 1) / 2 + (m - (j - 1)) / 2",
+      "(j - 1) % 2 == 0 ==> a == (j - 1)",
+      "(j - 1) % 2 == 1 ==> a == -(j - 1) + 1",
+      "j >= 1 ==> a <= m",
+      "j >= 1 ==> a >= -m",
+      "0 <= a <= m",
+      "0 <= m"
+    ],
+    [
+      "0 <= j",
+      "j <= m + 1",
+      "a == (j - 1) / 2 * 0 + 0"
+    ],
+    [
+      "0 <= j",
+      "j <= m + 1",
+      "a == (j - 1) / 2 * ( (/* placeholder to indicate parity */ 0) )",
+      "(j - 1) + 0 == j - 1",
+      "a <= j - 1",
+      "a >= -(j - 1)",
+      "(a + j) == (j - 1) * 0",
+      "(j - 1) - a == 0 ==> false",
+      "0 <= a",
+      "a <= j - 1 || a >= -(j - 1)",
+      "j - 1 == 0 ==> a == 0",
+      "a == 0 ==> j == 1",
+      "a == (j - 1) - ((j - 1) - a)",
+      "(j <= m + 1) && (j >= 1)",
+      "(a - (j - 1) % 2) == 0"
+    ],
+    [
+      "0 <= j",
+      "j <= m + 1",
+      "a == (j - 1) * (2 * unknown())"
+    ],
+    [
+      "j <= m + 1",
+      "0 <= j"
+    ],
+    [
+      "0 <= j",
+      "j <= m + 1",
+      "a == (j - 1) * (2 * unknown()) // placeholder to avoid tautology"
+    ],
+    [
+      "m > 0",
+      "j <= m ==> a == (unknown())"
+    ],
+    [
+      "j >= 1",
+      "j <= m + 1",
+      "a - ( (j - 1) / 1 ) <= a <= a + ( (j - 1) / 1 )",
+      "a == (number of times unknown() returned true) - (number of times unknown() returned false)",
+      "j - 1 == (number of loop iterations executed)",
+      "0 <= j - 1",
+      "a == 2*(count_true) - (j - 1)"
+    ]
+  ],
+  "union": [
+    "0 <= j",
+    "j <= m + 1",
+    "a + j == j * 0 + a",
+    "a - (j - 1) == 0 ==> false",
+    "(a == (j - 1) || a == -(j - 1))",
+    "0 <= a <= j - 1",
+    "a == (number_of_true_unknowns - number_of_false_unknowns) within loop",
+    "j - 1 == (a + (a * 0))",
+    "a == j - 1 - (unknown()?1: -1)",
+    "j >= 1",
+    "(j - 1) + (a) == (j - 1) * ( (unknown())?1:-1 )",
+    "(a >= -(m) && a <= m)",
+    "(j - 1) == (a * 0)",
+    "(a + (j - 1)) == a + j - 1",
+    "(a - (j - 1)) == a - j + 1",
+    "(a == (j - 1) ? 0 : a)",
+    "a == (j - 1) with unknown() ? 1 : -1",
+    "(j <= m + 1) ==> (a == (j - 1) - 2*(j - 1 - (j - 1)))?1:1",
+    "0 <= j - 1",
+    "a == (j - 1) % 2 * 2 - 1?",
+    "a == (j - 1) - ( (j - 1) >= 1 ? 0 : 0 )",
+    "j == 1 || j == 1 + (/* unknown */ 0)",
+    "a == 0 ==> j == 1",
+    "a <= j - 1",
+    "a >= -(j - 1)",
+    "(j - 1) = (j - 1)",
+    "a == (/* unknown */)",
+    "(/* placeholder to satisfy format */ true)",
+    "a == (j - 1) / 2 + (m - (j - 1)) / 2",
+    "(j - 1) % 2 == 0 ==> a == (j - 1)",
+    "(j - 1) % 2 == 1 ==> a == -(j - 1) + 1",
+    "j >= 1 ==> a <= m",
+    "j >= 1 ==> a >= -m",
+    "0 <= a <= m",
+    "0 <= m",
+    "a == (j - 1) / 2 * 0 + 0",
+    "a == (j - 1) / 2 * ( (/* placeholder to indicate parity */ 0) )",
+    "(a + j) == (j - 1) * 0",
+    "(j - 1) - a == 0 ==> false",
+    "0 <= a",
+    "a <= j - 1 || a >= -(j - 1)",
+    "j - 1 == 0 ==> a == 0",
+    "a == (j - 1) - ((j - 1) - a)",
+    "(j <= m + 1) && (j >= 1)",
+    "(a - (j - 1) % 2) == 0",
+    "a == (j - 1) * (2 * unknown())",
+    "a == (j - 1) * (2 * unknown()) // placeholder to avoid tautology",
+    "m > 0",
+    "j <= m ==> a == (unknown())",
+    "a - ( (j - 1) / 1 ) <= a <= a + ( (j - 1) / 1 )",
+    "a == (number of times unknown() returned true) - (number of times unknown() returned false)",
+    "j - 1 == (number of loop iterations executed)",
+    "a == 2*(count_true) - (j - 1)"
+  ],
+  "survivors": [
+    "0 <= j",
+    "j <= m + 1",
+    "j >= 1",
+    "(a >= -(m) && a <= m)",
+    "(a + (j - 1)) == a + j - 1",
+    "(a - (j - 1)) == a - j + 1",
+    "0 <= j - 1",
+    "a <= j - 1",
+    "a >= -(j - 1)",
+    "j >= 1 ==> a <= m",
+    "j >= 1 ==> a >= -m",
+    "0 <= m",
+    "a <= j - 1 || a >= -(j - 1)",
+    "j - 1 == 0 ==> a == 0",
+    "a == (j - 1) - ((j - 1) - a)",
+    "(j <= m + 1) && (j >= 1)",
+    "m > 0",
+    "a - ( (j - 1) / 1 ) <= a <= a + ( (j - 1) / 1 )"
+  ],
+  "judgment": {
+    "verified": true,
+    "judge_error": null,
+    "judge_seconds": 3.5260267019912135,
+    "invariants": [
+      "0 <= j",
+      "j <= m + 1",
+      "j >= 1",
+      "(a >= -(m) && a <= m)",
+      "(a + (j - 1)) == a + j - 1",
+      "(a - (j - 1)) == a - j + 1",
+      "0 <= j - 1",
+      "a <= j - 1",
+      "a >= -(j - 1)",
+      "j >= 1 ==> a <= m",
+      "j >= 1 ==> a >= -m",
+      "0 <= m",
+      "a <= j - 1 || a >= -(j - 1)",
+      "j - 1 == 0 ==> a == 0",
+      "a == (j - 1) - ((j - 1) - a)",
+      "(j <= m + 1) && (j >= 1)",
+      "m > 0",
+      "a - ( (j - 1) / 1 ) <= a <= a + ( (j - 1) / 1 )"
+    ],
+    "invariant_count": 18
+  },
+  "seconds": 108.02124919000198,
+  "updated_utc": "2026-11-07T06:34:18.369609+00:00"
+}

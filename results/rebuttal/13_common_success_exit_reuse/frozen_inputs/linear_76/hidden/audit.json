@@ -1,0 +1,104 @@
+{
+  "key": "linear_76",
+  "k": 16,
+  "source_path": "/tmp/craft16_minimal_20261107_v2/sources/linear_76.original.c",
+  "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/linear_76.json",
+  "source_sha256": "8baf50942f3e9db5a069b5113753595c11b7aef9c351510217a6c8a0b7820837",
+  "verification_sha256": "6d8cb5692ba443c9e1bc957fd32df66a288d86f8aaacf21f5cc39605f8ec64f1",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "linear",
+  "original_verified": true,
+  "survivor_count": 36,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "x1": "0",
+        "x3": "0",
+        "z": "1",
+        "y__pre": "0",
+        "x2": "0",
+        "y": "0",
+        "c": "1",
+        "x3__entry": "0",
+        "x3__pre": "0",
+        "x1__pre": "0",
+        "x2__pre": "0",
+        "y__entry": "0",
+        "x1__entry": "0",
+        "x2__entry": "0",
+        "z__entry": "0",
+        "c__entry": "0"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "x1__pre": "0",
+        "x3__pre": "0",
+        "x2__pre": "0",
+        "z": "1",
+        "y__pre": "0",
+        "c": "0",
+        "y": "0",
+        "z__entry": "0",
+        "x3": "0",
+        "x3__entry": "0",
+        "x1": "0",
+        "x2": "0",
+        "y__entry": "0",
+        "x1__entry": "0",
+        "x2__entry": "0",
+        "c__entry": "0"
+      }
+    },
+    "target_without_invariant": {
+      "status": "unsat"
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "c",
+    "rank_direction": 1,
+    "attempts": [
+      {
+        "variable": "c",
+        "direction": 1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "y": "i",
+    "x1": "i",
+    "x2": "i",
+    "x3": "i",
+    "c": "i",
+    "z": "i"
+  },
+  "frame_variables": [
+    "x1",
+    "x2",
+    "x3",
+    "y"
+  ],
+  "proof_queries_sha256": "cdb7af266aa3eeeb724806383e8715ca9ed958593df3b1ea3fcd7185fe8be1e5",
+  "seconds": 0.9150337700266391
+}

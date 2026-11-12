@@ -1,0 +1,160 @@
+{
+  "key": "Loopy_335",
+  "program_included": true,
+  "planned_goal_count": 8,
+  "inputs": {
+    "hidden": {
+      "source_path": "/home/yangfp/craft_empirical_runs/recovered_hidden_evidence_20261110/craft16/sources/Loopy_335.original.c",
+      "source_sha256": "fc3183704ec2ed82d8c4d51841ff74493617191af5a2b2f96920c795b0fd40e3",
+      "verification_path": "/home/yangfp/craft_empirical_runs/recovered_hidden_evidence_20261110/craft16/verification/Loopy_335.json",
+      "verification_sha256": "861b98b75c1d7669f786b8cd0b9e729cf4cd400fc6990dae29be97db5b7cce46",
+      "audit_path": "/home/yangfp/craft_empirical_runs/craft16_hidden_prefix_semantics_control_20261110/k16/cases/Loopy_335.json",
+      "audit_sha256": "faf873d6099c8f14f6aadc391f144ca506b39332c893ef0d543325c6ba6e5763",
+      "survivor_count": 33
+    },
+    "visible": {
+      "source_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/Loopy_335.original.c",
+      "source_sha256": "fc3183704ec2ed82d8c4d51841ff74493617191af5a2b2f96920c795b0fd40e3",
+      "verification_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/Loopy_335.json",
+      "verification_sha256": "fcbbfe993b5da548b7c2e3d2e94b0c5d8571245197ac4c35db462ae629a66cb6",
+      "audit_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_semantics_20261110/k16/cases/Loopy_335.json",
+      "audit_sha256": "7b4c69475ca99a719b988c610e7befdb2f3c5ce17debdcdae740d67db5f401d9",
+      "survivor_count": 32
+    }
+  },
+  "candidate_pool_sha256": "1272a76cd9ca28a740b73049f043c802318275c18f8fb065eb26d9664fe35058",
+  "selected_goals": [],
+  "unfilled_slots": 8,
+  "arm_support": {
+    "non_contextual": {
+      "hidden": {
+        "full_summary_represented": false,
+        "nonvacuity": {
+          "query": "hidden_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [
+          {
+            "clause": "i == j / y",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_00",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "(j % y) == 0",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_01",
+              "status": "sat"
+            }
+          }
+        ],
+        "eligible_for_confirmation": false
+      },
+      "visible": {
+        "full_summary_represented": false,
+        "nonvacuity": {
+          "query": "visible_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [
+          {
+            "clause": "(i == j / y) ==> (j == i * y)",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "visible_redundancy_00",
+              "status": "unsat"
+            }
+          },
+          {
+            "clause": "i == j / y",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "visible_redundancy_01",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "(j % y) == 0",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "visible_redundancy_02",
+              "status": "sat"
+            }
+          }
+        ],
+        "eligible_for_confirmation": false
+      }
+    },
+    "exit_context": {
+      "hidden": {
+        "full_summary_represented": false,
+        "nonvacuity": {
+          "query": "hidden_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [
+          {
+            "clause": "i == j / y",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_00",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "(j % y) == 0",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_01",
+              "status": "sat"
+            }
+          }
+        ],
+        "eligible_for_confirmation": false
+      },
+      "visible": {
+        "full_summary_represented": false,
+        "nonvacuity": {
+          "query": "visible_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [
+          {
+            "clause": "(i == j / y) ==> (j == i * y)",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "visible_redundancy_00",
+              "status": "unsat"
+            }
+          },
+          {
+            "clause": "i == j / y",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "visible_redundancy_01",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "(j % y) == 0",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "visible_redundancy_02",
+              "status": "sat"
+            }
+          }
+        ],
+        "eligible_for_confirmation": false
+      }
+    }
+  },
+  "error": "neither arm has a fully represented, confirmed feasible exit summary",
+  "screening_stage_files": {
+    "non_contextual": "history/non_contextual/cases/Loopy_335.json",
+    "exit_context": "history/exit_context/cases/Loopy_335.json"
+  },
+  "proof_queries_sha256": "e7766d9c809d22e7574db72c086679ffc8500f01f41523d35c5d72f25baeb26c"
+}

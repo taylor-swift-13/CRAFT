@@ -1,0 +1,71 @@
+{
+  "key": "Loopy_264",
+  "k": 16,
+  "source_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/Loopy_264.original.c",
+  "verification_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/Loopy_264.json",
+  "source_sha256": "17c11441f9d85ea24e9f618d8b64628ee3cfc3b52a410693a0aaa0e0c6cc2147",
+  "verification_sha256": "eab3a51176cbc017c9c23293b26cafaf7ba22c8bff4d62c352e1518c19399c6e",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "Loopy",
+  "original_verified": true,
+  "survivor_count": 14,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "target_equivalent",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "x__entry": "10000",
+        "x": "0"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "unsat"
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "x": "-2147483648",
+        "x__entry": "10000"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "x",
+    "rank_direction": -1,
+    "attempts": [
+      {
+        "variable": "x",
+        "direction": 1,
+        "status": "sat"
+      },
+      {
+        "variable": "x",
+        "direction": -1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "x": "i"
+  },
+  "frame_variables": [],
+  "proof_queries_sha256": "605c18ce1522267cd8f18e0f845828e0d1e8c1981f409ff50716c6bf6d19e042",
+  "seconds": 0.1677226180327125
+}

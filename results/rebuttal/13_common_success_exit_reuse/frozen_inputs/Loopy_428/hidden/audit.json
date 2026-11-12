@@ -1,0 +1,95 @@
+{
+  "key": "Loopy_428",
+  "k": 16,
+  "source_path": "/tmp/craft16_minimal_20261107_v2/sources/Loopy_428.original.c",
+  "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/Loopy_428.json",
+  "source_sha256": "835c89ff17e8c066a51a0d2886cb048a6ed7ddd958eeee310a9f4d7ecc7d44b8",
+  "verification_sha256": "37a73a2893e6af670554b18e0b82422da4672c7bf4390207cce560597b371450",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "Loopy",
+  "original_verified": true,
+  "survivor_count": 47,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "y__entry": "0",
+        "z__entry": "0",
+        "x__entry": "0",
+        "y__pre": "0",
+        "z__pre": "0",
+        "x__pre": "0",
+        "x": "0",
+        "z": "0",
+        "y": "0"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "x": "-1",
+        "y__entry": "0",
+        "z": "-1",
+        "y": "-1",
+        "z__entry": "0",
+        "x__entry": "0",
+        "y__pre": "0",
+        "z__pre": "0",
+        "x__pre": "0"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "x": "0",
+        "y__entry": "0",
+        "z": "1",
+        "y": "0",
+        "z__entry": "0",
+        "x__entry": "0",
+        "y__pre": "0",
+        "z__pre": "0",
+        "x__pre": "0"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_not_exact",
+    "inductive_lemma": "x <= entry",
+    "unreachable_state": {
+      "x__entry": "0",
+      "y__entry": "0",
+      "x": "1",
+      "y": "1",
+      "z__entry": "0",
+      "z": "-2",
+      "y__pre": "0",
+      "z__pre": "0",
+      "x__pre": "0"
+    }
+  },
+  "modeled_variables": {
+    "x": "i",
+    "y": "i",
+    "z": "i"
+  },
+  "frame_variables": [],
+  "proof_queries_sha256": "83bc400553f65e9b13746aee2b5251427fcba0ee8f0968c1c9b94ab2f17f9f5b",
+  "seconds": 0.32914882100885734
+}

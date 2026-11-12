@@ -1,0 +1,95 @@
+{
+  "key": "Loopy_19",
+  "k": 16,
+  "source_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/Loopy_19.original.c",
+  "verification_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/Loopy_19.json",
+  "source_sha256": "191626dcda49dccf554241141a5797cf17dc0b28d6bc86289119006c87565ace",
+  "verification_sha256": "1dafed4917290bf9da0493b8fad2863ed08ff0a6d02a69e65dc0edece7f92f96",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "Loopy",
+  "original_verified": true,
+  "survivor_count": 35,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "i__entry": "0",
+        "N__pre": "-1",
+        "a__entry": "2",
+        "i": "0",
+        "N__entry": "-1",
+        "NONDET__entry": "0",
+        "NONDET__pre": "0",
+        "a": "2",
+        "N": "-1",
+        "x": "0",
+        "x__entry": "0",
+        "NONDET": "0"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "N__pre": "-2",
+        "a__entry": "1",
+        "N__entry": "-2",
+        "i": "-1",
+        "x__entry": "0",
+        "NONDET__entry": "1",
+        "NONDET__pre": "1",
+        "i__entry": "0",
+        "a": "1",
+        "N": "-2",
+        "x": "0",
+        "NONDET": "1"
+      }
+    },
+    "target_without_invariant": {
+      "status": "unsat"
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "i",
+    "rank_direction": 1,
+    "attempts": [
+      {
+        "variable": "i",
+        "direction": 1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "NONDET": "i",
+    "N": "i",
+    "i": "i",
+    "a": "i",
+    "x": "i"
+  },
+  "frame_variables": [
+    "N",
+    "NONDET",
+    "a",
+    "x"
+  ],
+  "proof_queries_sha256": "df21c2cafb569e2a5731fc83eb92e39914b3b4ebab099ea88301fba0bb3fd7c1",
+  "seconds": 0.37606126500759274
+}

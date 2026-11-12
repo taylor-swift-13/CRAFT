@@ -1,0 +1,89 @@
+{
+  "key": "NLA_lipus_36",
+  "k": 16,
+  "source_path": "/tmp/craft16_minimal_20261107_v2/sources/NLA_lipus_36.original.c",
+  "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/NLA_lipus_36.json",
+  "source_sha256": "b8addbfa38d94ea166c34112836ad5bdd982c6c3cff22c50308ff51140e6e364",
+  "verification_sha256": "a30b4991d11d159238aec7d23194552b7bc65b93a5a9cd5f02a17f976536f183",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "NLA_lipus",
+  "original_verified": true,
+  "survivor_count": 43,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "a__pre": "6",
+        "x": "2",
+        "r__entry": "0",
+        "a__entry": "6",
+        "r": "2",
+        "a": "6",
+        "x__entry": "3"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "a__pre": "2",
+        "x": "2",
+        "a": "2",
+        "a__entry": "2",
+        "r": "2",
+        "r__entry": "0",
+        "x__entry": "1"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "a__pre": "2",
+        "x": "0",
+        "a": "2",
+        "a__entry": "2",
+        "r": "3",
+        "r__entry": "0",
+        "x__entry": "1"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "r",
+    "rank_direction": 1,
+    "attempts": [
+      {
+        "variable": "r",
+        "direction": 1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "a": "i",
+    "r": "i",
+    "x": "i"
+  },
+  "frame_variables": [
+    "a"
+  ],
+  "proof_queries_sha256": "7f016991c7328308150af83ea73096fc02663f701a3d4b02524373fe72fd992c",
+  "seconds": 3.3159161299699917
+}

@@ -1,0 +1,344 @@
+{
+  "non_contextual/hidden_nonvacuity": {
+    "status": "sat",
+    "seconds": 0.0007092509986250661,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun lo () Int)\n(declare-fun mid__pre () Int)\n(declare-fun hi () Int)\n(declare-fun mid () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(assert\n (let (($x407 (= hi (+ (* 2 mid__pre) (* (- 1) lo)))))\n (let (($x346 (= lo (+ (* 2 mid__pre) (* (- 1) hi)))))\n (let ((?x381 (* 2 mid__pre)))\n (let (($x67 (<= lo ?x381)))\n (let (($x578 (<= mid mid__pre)))\n (let ((?x562 (* (- 1) lo)))\n (let ((?x421 (+ hi ?x562)))\n (let ((?x583 (div (ite (<= ?x421 0) (+ (* (- 1) hi) lo) ?x421) 2)))\n (let (($x536 (= mid (ite (>= ?x421 0) ?x583 (* (- 1) ?x583)))))\n (let (($x288 (>= mid 0)))\n (let (($x470 (<= lo 2000000)))\n (let (($x20 (<= (* 2 lo) ?x381)))\n (let (($x444 (= (+ hi lo) ?x381)))\n (let (($x471 (= hi (+ (* 2 mid) lo))))\n (let (($x287 (<= hi 2000000)))\n (let (($x406 (>= 1000000 lo)))\n (let (($x221 (<= 0 hi)))\n (let (($x179 (or (not (<= 0 mid)) $x221)))\n (let ((?x231 (* 2 mid)))\n (let (($x431 (= ?x421 ?x231)))\n (let (($x423 (>= hi lo)))\n (let (($x507 (>= 1000000 mid)))\n (let (($x529 (<= 0 lo)))\n (let (($x332 (<= 0 mid)))\n (let (($x449 (= 0 lo)))\n (let (($x424 (or (<= 1 lo) $x449)))\n (let (($x426 (<= hi 2147483647)))\n (let (($x508 (>= hi (- 2147483648))))\n (let (($x50 (<= lo 2147483647)))\n (let (($x259 (>= lo (- 2147483648))))\n (let (($x278 (<= mid 2147483647)))\n (let (($x345 (>= mid (- 2147483648))))\n (let (($x15 (<= hi__entry 2147483647)))\n (let (($x338 (>= hi__entry (- 2147483648))))\n (let (($x485 (<= lo__entry 2147483647)))\n (let (($x294 (>= lo__entry (- 2147483648))))\n (let (($x292 (<= mid__entry 2147483647)))\n (let (($x467 (>= mid__entry (- 2147483648))))\n (let (($x433 (= hi__entry ?x381)))\n (let (($x102 (= 0 lo__entry)))\n (let (($x344 (= mid__entry mid__pre)))\n (let (($x574 (<= mid__pre 1073741823)))\n (let (($x587 (>= mid__pre (- 1073741824))))\n (let (($x116 (>= 1000000 mid__pre)))\n (let (($x499 (not (<= mid__pre 0))))\n (let (($x216 (<= mid__pre 2147483647)))\n (let (($x317 (>= mid__pre (- 2147483648))))\n (and $x317 $x216 $x499 $x116 $x587 $x574 $x344 $x102 $x433 $x467 $x292 $x294 $x485 $x338 $x15 $x345 $x278 $x259 $x50 $x508 $x426 $x424 $x332 $x529 $x221 $x507 $x423 $x431 $x179 $x406 $x287 $x471 $x444 $x20 $x470 $x288 $x536 $x578 $x67 $x346 $x407)))))))))))))))))))))))))))))))))))))))))))))))))\n(assert\n (<= mid 0))\n(check-sat)\n",
+    "sha256": "89f42e2bc6149ce5926275d9d046950e486ac640c951674f8b506e5e461c0b75",
+    "model": {
+      "hi__entry": "2",
+      "mid": "0",
+      "lo__entry": "0",
+      "mid__pre": "1",
+      "hi": "1",
+      "mid__entry": "1",
+      "lo": "1"
+    }
+  },
+  "non_contextual/visible_nonvacuity": {
+    "status": "sat",
+    "seconds": 0.0002714239963097498,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun hi () Int)\n(declare-fun mid () Int)\n(declare-fun lo () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(declare-fun mid__pre () Int)\n(assert\n (let (($x221 (<= 0 hi)))\n (let (($x179 (or (not (<= 0 mid)) $x221)))\n (let (($x29 (= lo hi)))\n (let (($x436 (or (not (= 0 mid)) $x29)))\n (let ((?x480 (* (- 1) hi)))\n (let ((?x408 (+ lo ?x480)))\n (let (($x493 (= ?x408 (* (- 2) mid))))\n (let (($x172 (<= mid 0)))\n (let (($x279 (or $x172 (not (<= hi 0)))))\n (let (($x288 (>= mid 0)))\n (let (($x507 (>= 1000000 mid)))\n (let (($x309 (<= lo (+ hi (* 2 mid)))))\n (let ((?x231 (* 2 mid)))\n (let ((?x562 (* (- 1) lo)))\n (let ((?x421 (+ hi ?x562)))\n (let (($x431 (= ?x421 ?x231)))\n (let (($x47 (<= lo hi)))\n (let (($x332 (<= 0 mid)))\n (let (($x529 (<= 0 lo)))\n (let (($x426 (<= hi 2147483647)))\n (let (($x508 (>= hi (- 2147483648))))\n (let (($x50 (<= lo 2147483647)))\n (let (($x259 (>= lo (- 2147483648))))\n (let (($x278 (<= mid 2147483647)))\n (let (($x345 (>= mid (- 2147483648))))\n (let (($x15 (<= hi__entry 2147483647)))\n (let (($x338 (>= hi__entry (- 2147483648))))\n (let (($x485 (<= lo__entry 2147483647)))\n (let (($x294 (>= lo__entry (- 2147483648))))\n (let (($x292 (<= mid__entry 2147483647)))\n (let (($x467 (>= mid__entry (- 2147483648))))\n (let ((?x381 (* 2 mid__pre)))\n (let (($x433 (= hi__entry ?x381)))\n (let (($x102 (= 0 lo__entry)))\n (let (($x344 (= mid__entry mid__pre)))\n (let (($x574 (<= mid__pre 1073741823)))\n (let (($x587 (>= mid__pre (- 1073741824))))\n (let (($x116 (>= 1000000 mid__pre)))\n (let (($x499 (not (<= mid__pre 0))))\n (let (($x216 (<= mid__pre 2147483647)))\n (let (($x317 (>= mid__pre (- 2147483648))))\n (and $x317 $x216 $x499 $x116 $x587 $x574 $x344 $x102 $x433 $x467 $x292 $x294 $x485 $x338 $x15 $x345 $x278 $x259 $x50 $x508 $x426 $x529 $x332 $x221 $x47 $x431 $x309 $x507 $x288 $x279 $x493 $x436 $x179)))))))))))))))))))))))))))))))))))))))))))\n(assert\n (<= mid 0))\n(check-sat)\n",
+    "sha256": "468b9ae3da5cfc0f2d250ad4204f2ebe07ae6315e6ebbc5e3eff65d435fbc3cc",
+    "model": {
+      "hi__entry": "2",
+      "mid": "0",
+      "lo__entry": "0",
+      "mid__pre": "1",
+      "hi": "0",
+      "mid__entry": "1",
+      "lo": "0"
+    }
+  },
+  "non_contextual/context_nonvacuity": {
+    "status": "sat",
+    "seconds": 0.0002782969968393445,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun hi () Int)\n(declare-fun lo () Int)\n(declare-fun mid () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(declare-fun mid__pre () Int)\n(assert\n (let (($x426 (<= hi 2147483647)))\n (let (($x508 (>= hi (- 2147483648))))\n (let (($x50 (<= lo 2147483647)))\n (let (($x259 (>= lo (- 2147483648))))\n (let (($x278 (<= mid 2147483647)))\n (let (($x345 (>= mid (- 2147483648))))\n (let (($x15 (<= hi__entry 2147483647)))\n (let (($x338 (>= hi__entry (- 2147483648))))\n (let (($x485 (<= lo__entry 2147483647)))\n (let (($x294 (>= lo__entry (- 2147483648))))\n (let (($x292 (<= mid__entry 2147483647)))\n (let (($x467 (>= mid__entry (- 2147483648))))\n (let ((?x381 (* 2 mid__pre)))\n (let (($x433 (= hi__entry ?x381)))\n (let (($x102 (= 0 lo__entry)))\n (let (($x344 (= mid__entry mid__pre)))\n (let (($x574 (<= mid__pre 1073741823)))\n (let (($x587 (>= mid__pre (- 1073741824))))\n (let (($x116 (>= 1000000 mid__pre)))\n (let (($x499 (not (<= mid__pre 0))))\n (let (($x216 (<= mid__pre 2147483647)))\n (let (($x317 (>= mid__pre (- 2147483648))))\n (and $x317 $x216 $x499 $x116 $x587 $x574 $x344 $x102 $x433 $x467 $x292 $x294 $x485 $x338 $x15 $x345 $x278 $x259 $x50 $x508 $x426))))))))))))))))))))))))\n(assert\n (<= mid 0))\n(check-sat)\n",
+    "sha256": "52b0cb9e1e8d5bbc454ef1d5f12405f1b094f70206a1cb922c8ad9b24e57f1f7",
+    "model": {
+      "hi__entry": "2",
+      "mid": "0",
+      "lo__entry": "0",
+      "mid__pre": "1",
+      "hi": "0",
+      "mid__entry": "1",
+      "lo": "0"
+    }
+  },
+  "non_contextual/goal_01_hidden": {
+    "status": "unsat",
+    "seconds": 0.00019877599697792903,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun lo () Int)\n(declare-fun mid__pre () Int)\n(declare-fun hi () Int)\n(declare-fun mid () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(assert\n (let ((?x562 (* (- 1) lo)))\n (let ((?x421 (+ hi ?x562)))\n (let ((?x583 (div (ite (<= ?x421 0) (+ (* (- 1) hi) lo) ?x421) 2)))\n (let (($x288 (>= mid 0)))\n (let (($x470 (<= lo 2000000)))\n (let (($x287 (<= hi 2000000)))\n (let (($x221 (<= 0 hi)))\n (let (($x179 (or (not (<= 0 mid)) $x221)))\n (let ((?x231 (* 2 mid)))\n (let (($x431 (= ?x421 ?x231)))\n (let (($x507 (>= 1000000 mid)))\n (let (($x529 (<= 0 lo)))\n (let (($x332 (<= 0 mid)))\n (let (($x426 (<= hi 2147483647)))\n (let (($x508 (>= hi (- 2147483648))))\n (let (($x50 (<= lo 2147483647)))\n (let (($x259 (>= lo (- 2147483648))))\n (let (($x278 (<= mid 2147483647)))\n (let (($x345 (>= mid (- 2147483648))))\n (let (($x15 (<= hi__entry 2147483647)))\n (let (($x338 (>= hi__entry (- 2147483648))))\n (let (($x485 (<= lo__entry 2147483647)))\n (let (($x294 (>= lo__entry (- 2147483648))))\n (let (($x292 (<= mid__entry 2147483647)))\n (let (($x467 (>= mid__entry (- 2147483648))))\n (let ((?x381 (* 2 mid__pre)))\n (let (($x433 (= hi__entry ?x381)))\n (let (($x102 (= 0 lo__entry)))\n (let (($x344 (= mid__entry mid__pre)))\n (let (($x574 (<= mid__pre 1073741823)))\n (let (($x587 (>= mid__pre (- 1073741824))))\n (let (($x116 (>= 1000000 mid__pre)))\n (let (($x499 (not (<= mid__pre 0))))\n (let (($x216 (<= mid__pre 2147483647)))\n (let (($x317 (>= mid__pre (- 2147483648))))\n (and $x317 $x216 $x499 $x116 $x587 $x574 $x344 $x102 $x433 $x467 $x292 $x294 $x485 $x338 $x15 $x345 $x278 $x259 $x50 $x508 $x426 (or (<= 1 lo) (= 0 lo)) $x332 $x529 $x221 $x507 (>= hi lo) $x431 $x179 (>= 1000000 lo) $x287 (= hi (+ ?x231 lo)) (= (+ hi lo) ?x381) (<= (* 2 lo) ?x381) $x470 $x288 (= mid (ite (>= ?x421 0) ?x583 (* (- 1) ?x583))) (<= mid mid__pre) (<= lo ?x381) (= lo (+ ?x381 (* (- 1) hi))) (= hi (+ ?x381 ?x562)))))))))))))))))))))))))))))))))))))))\n(assert\n (let (($x93 (= 0 mid)))\n(let (($x360 (not $x93)))\n(let (($x172 (<= mid 0)))\n(and $x172 $x360)))))\n(check-sat)\n",
+    "sha256": "e57c4ef270356f6142347c9df80965ebb95e72d12de0afe57c676336498a78c6"
+  },
+  "non_contextual/goal_01_visible": {
+    "status": "unsat",
+    "seconds": 0.00017708499945001677,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun hi () Int)\n(declare-fun mid () Int)\n(declare-fun lo () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(declare-fun mid__pre () Int)\n(assert\n (let (($x221 (<= 0 hi)))\n (let (($x179 (or (not (<= 0 mid)) $x221)))\n (let (($x29 (= lo hi)))\n (let (($x93 (= 0 mid)))\n (let (($x360 (not $x93)))\n (let (($x436 (or $x360 $x29)))\n (let ((?x480 (* (- 1) hi)))\n (let ((?x408 (+ lo ?x480)))\n (let (($x493 (= ?x408 (* (- 2) mid))))\n (let (($x172 (<= mid 0)))\n (let (($x279 (or $x172 (not (<= hi 0)))))\n (let (($x288 (>= mid 0)))\n (let (($x507 (>= 1000000 mid)))\n (let (($x309 (<= lo (+ hi (* 2 mid)))))\n (let ((?x231 (* 2 mid)))\n (let ((?x562 (* (- 1) lo)))\n (let ((?x421 (+ hi ?x562)))\n (let (($x431 (= ?x421 ?x231)))\n (let (($x47 (<= lo hi)))\n (let (($x332 (<= 0 mid)))\n (let (($x529 (<= 0 lo)))\n (let (($x426 (<= hi 2147483647)))\n (let (($x508 (>= hi (- 2147483648))))\n (let (($x50 (<= lo 2147483647)))\n (let (($x259 (>= lo (- 2147483648))))\n (let (($x278 (<= mid 2147483647)))\n (let (($x345 (>= mid (- 2147483648))))\n (let (($x15 (<= hi__entry 2147483647)))\n (let (($x338 (>= hi__entry (- 2147483648))))\n (let (($x485 (<= lo__entry 2147483647)))\n (let (($x294 (>= lo__entry (- 2147483648))))\n (let (($x292 (<= mid__entry 2147483647)))\n (let (($x467 (>= mid__entry (- 2147483648))))\n (let ((?x381 (* 2 mid__pre)))\n (let (($x433 (= hi__entry ?x381)))\n (let (($x102 (= 0 lo__entry)))\n (let (($x344 (= mid__entry mid__pre)))\n (let (($x574 (<= mid__pre 1073741823)))\n (let (($x587 (>= mid__pre (- 1073741824))))\n (let (($x116 (>= 1000000 mid__pre)))\n (let (($x499 (not (<= mid__pre 0))))\n (let (($x216 (<= mid__pre 2147483647)))\n (let (($x317 (>= mid__pre (- 2147483648))))\n (and $x317 $x216 $x499 $x116 $x587 $x574 $x344 $x102 $x433 $x467 $x292 $x294 $x485 $x338 $x15 $x345 $x278 $x259 $x50 $x508 $x426 $x529 $x332 $x221 $x47 $x431 $x309 $x507 $x288 $x279 $x493 $x436 $x179)))))))))))))))))))))))))))))))))))))))))))))\n(assert\n (let (($x93 (= 0 mid)))\n(let (($x360 (not $x93)))\n(let (($x172 (<= mid 0)))\n(and $x172 $x360)))))\n(check-sat)\n",
+    "sha256": "de0d21e72f2f6eb42536bb39ab7d630c7c0c3f984c30e9249f57fa77abceee11"
+  },
+  "non_contextual/goal_01_context": {
+    "status": "sat",
+    "seconds": 0.00022285099839791656,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun hi () Int)\n(declare-fun lo () Int)\n(declare-fun mid () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(declare-fun mid__pre () Int)\n(assert\n (let (($x426 (<= hi 2147483647)))\n (let (($x508 (>= hi (- 2147483648))))\n (let (($x50 (<= lo 2147483647)))\n (let (($x259 (>= lo (- 2147483648))))\n (let (($x278 (<= mid 2147483647)))\n (let (($x345 (>= mid (- 2147483648))))\n (let (($x15 (<= hi__entry 2147483647)))\n (let (($x338 (>= hi__entry (- 2147483648))))\n (let (($x485 (<= lo__entry 2147483647)))\n (let (($x294 (>= lo__entry (- 2147483648))))\n (let (($x292 (<= mid__entry 2147483647)))\n (let (($x467 (>= mid__entry (- 2147483648))))\n (let ((?x381 (* 2 mid__pre)))\n (let (($x433 (= hi__entry ?x381)))\n (let (($x102 (= 0 lo__entry)))\n (let (($x344 (= mid__entry mid__pre)))\n (let (($x574 (<= mid__pre 1073741823)))\n (let (($x587 (>= mid__pre (- 1073741824))))\n (let (($x116 (>= 1000000 mid__pre)))\n (let (($x499 (not (<= mid__pre 0))))\n (let (($x216 (<= mid__pre 2147483647)))\n (let (($x317 (>= mid__pre (- 2147483648))))\n (and $x317 $x216 $x499 $x116 $x587 $x574 $x344 $x102 $x433 $x467 $x292 $x294 $x485 $x338 $x15 $x345 $x278 $x259 $x50 $x508 $x426))))))))))))))))))))))))\n(assert\n (let (($x93 (= 0 mid)))\n(let (($x360 (not $x93)))\n(let (($x172 (<= mid 0)))\n(and $x172 $x360)))))\n(check-sat)\n",
+    "sha256": "df5f88094a5c4862f9933dea5228d3d8b40b563b6eab3a2cb7156fdfc9578c34",
+    "model": {
+      "hi__entry": "2",
+      "mid": "-1",
+      "lo__entry": "0",
+      "mid__pre": "1",
+      "hi": "0",
+      "mid__entry": "1",
+      "lo": "0"
+    }
+  },
+  "non_contextual/goal_02_hidden": {
+    "status": "unsat",
+    "seconds": 0.0002927839959738776,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun lo () Int)\n(declare-fun mid__pre () Int)\n(declare-fun hi () Int)\n(declare-fun mid () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(assert\n (let ((?x562 (* (- 1) lo)))\n (let ((?x421 (+ hi ?x562)))\n (let ((?x583 (div (ite (<= ?x421 0) (+ (* (- 1) hi) lo) ?x421) 2)))\n (let (($x288 (>= mid 0)))\n (let (($x470 (<= lo 2000000)))\n (let (($x287 (<= hi 2000000)))\n (let (($x221 (<= 0 hi)))\n (let (($x179 (or (not (<= 0 mid)) $x221)))\n (let ((?x231 (* 2 mid)))\n (let (($x431 (= ?x421 ?x231)))\n (let (($x507 (>= 1000000 mid)))\n (let (($x529 (<= 0 lo)))\n (let (($x332 (<= 0 mid)))\n (let (($x426 (<= hi 2147483647)))\n (let (($x508 (>= hi (- 2147483648))))\n (let (($x50 (<= lo 2147483647)))\n (let (($x259 (>= lo (- 2147483648))))\n (let (($x278 (<= mid 2147483647)))\n (let (($x345 (>= mid (- 2147483648))))\n (let (($x15 (<= hi__entry 2147483647)))\n (let (($x338 (>= hi__entry (- 2147483648))))\n (let (($x485 (<= lo__entry 2147483647)))\n (let (($x294 (>= lo__entry (- 2147483648))))\n (let (($x292 (<= mid__entry 2147483647)))\n (let (($x467 (>= mid__entry (- 2147483648))))\n (let ((?x381 (* 2 mid__pre)))\n (let (($x433 (= hi__entry ?x381)))\n (let (($x102 (= 0 lo__entry)))\n (let (($x344 (= mid__entry mid__pre)))\n (let (($x574 (<= mid__pre 1073741823)))\n (let (($x587 (>= mid__pre (- 1073741824))))\n (let (($x116 (>= 1000000 mid__pre)))\n (let (($x499 (not (<= mid__pre 0))))\n (let (($x216 (<= mid__pre 2147483647)))\n (let (($x317 (>= mid__pre (- 2147483648))))\n (and $x317 $x216 $x499 $x116 $x587 $x574 $x344 $x102 $x433 $x467 $x292 $x294 $x485 $x338 $x15 $x345 $x278 $x259 $x50 $x508 $x426 (or (<= 1 lo) (= 0 lo)) $x332 $x529 $x221 $x507 (>= hi lo) $x431 $x179 (>= 1000000 lo) $x287 (= hi (+ ?x231 lo)) (= (+ hi lo) ?x381) (<= (* 2 lo) ?x381) $x470 $x288 (= mid (ite (>= ?x421 0) ?x583 (* (- 1) ?x583))) (<= mid mid__pre) (<= lo ?x381) (= lo (+ ?x381 (* (- 1) hi))) (= hi (+ ?x381 ?x562)))))))))))))))))))))))))))))))))))))))\n(assert\n (let (($x172 (<= mid 0)))\n(and $x172 (not (and (<= 0 hi) (<= hi mid__pre))))))\n(check-sat)\n",
+    "sha256": "8afdec20247b3aa67f66f2ffa5f51afb480fa603cbed077388922e971cfb2dc7"
+  },
+  "non_contextual/goal_02_visible": {
+    "status": "sat",
+    "seconds": 0.00030689100094605237,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun hi () Int)\n(declare-fun mid () Int)\n(declare-fun lo () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(declare-fun mid__pre () Int)\n(assert\n (let (($x221 (<= 0 hi)))\n (let (($x179 (or (not (<= 0 mid)) $x221)))\n (let (($x29 (= lo hi)))\n (let (($x436 (or (not (= 0 mid)) $x29)))\n (let ((?x480 (* (- 1) hi)))\n (let ((?x408 (+ lo ?x480)))\n (let (($x493 (= ?x408 (* (- 2) mid))))\n (let (($x172 (<= mid 0)))\n (let (($x279 (or $x172 (not (<= hi 0)))))\n (let (($x288 (>= mid 0)))\n (let (($x507 (>= 1000000 mid)))\n (let (($x309 (<= lo (+ hi (* 2 mid)))))\n (let ((?x231 (* 2 mid)))\n (let ((?x562 (* (- 1) lo)))\n (let ((?x421 (+ hi ?x562)))\n (let (($x431 (= ?x421 ?x231)))\n (let (($x47 (<= lo hi)))\n (let (($x332 (<= 0 mid)))\n (let (($x529 (<= 0 lo)))\n (let (($x426 (<= hi 2147483647)))\n (let (($x508 (>= hi (- 2147483648))))\n (let (($x50 (<= lo 2147483647)))\n (let (($x259 (>= lo (- 2147483648))))\n (let (($x278 (<= mid 2147483647)))\n (let (($x345 (>= mid (- 2147483648))))\n (let (($x15 (<= hi__entry 2147483647)))\n (let (($x338 (>= hi__entry (- 2147483648))))\n (let (($x485 (<= lo__entry 2147483647)))\n (let (($x294 (>= lo__entry (- 2147483648))))\n (let (($x292 (<= mid__entry 2147483647)))\n (let (($x467 (>= mid__entry (- 2147483648))))\n (let ((?x381 (* 2 mid__pre)))\n (let (($x433 (= hi__entry ?x381)))\n (let (($x102 (= 0 lo__entry)))\n (let (($x344 (= mid__entry mid__pre)))\n (let (($x574 (<= mid__pre 1073741823)))\n (let (($x587 (>= mid__pre (- 1073741824))))\n (let (($x116 (>= 1000000 mid__pre)))\n (let (($x499 (not (<= mid__pre 0))))\n (let (($x216 (<= mid__pre 2147483647)))\n (let (($x317 (>= mid__pre (- 2147483648))))\n (and $x317 $x216 $x499 $x116 $x587 $x574 $x344 $x102 $x433 $x467 $x292 $x294 $x485 $x338 $x15 $x345 $x278 $x259 $x50 $x508 $x426 $x529 $x332 $x221 $x47 $x431 $x309 $x507 $x288 $x279 $x493 $x436 $x179)))))))))))))))))))))))))))))))))))))))))))\n(assert\n (let (($x172 (<= mid 0)))\n(and $x172 (not (and (<= 0 hi) (<= hi mid__pre))))))\n(check-sat)\n",
+    "sha256": "6af5f57adada1723b93382e71377207bbef3d6c62cab4c711e21688586054219",
+    "model": {
+      "hi__entry": "2",
+      "mid": "0",
+      "lo__entry": "0",
+      "mid__pre": "1",
+      "hi": "2",
+      "mid__entry": "1",
+      "lo": "2"
+    }
+  },
+  "non_contextual/goal_02_context": {
+    "status": "sat",
+    "seconds": 0.0003088240046054125,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun hi () Int)\n(declare-fun lo () Int)\n(declare-fun mid () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(declare-fun mid__pre () Int)\n(assert\n (let (($x426 (<= hi 2147483647)))\n (let (($x508 (>= hi (- 2147483648))))\n (let (($x50 (<= lo 2147483647)))\n (let (($x259 (>= lo (- 2147483648))))\n (let (($x278 (<= mid 2147483647)))\n (let (($x345 (>= mid (- 2147483648))))\n (let (($x15 (<= hi__entry 2147483647)))\n (let (($x338 (>= hi__entry (- 2147483648))))\n (let (($x485 (<= lo__entry 2147483647)))\n (let (($x294 (>= lo__entry (- 2147483648))))\n (let (($x292 (<= mid__entry 2147483647)))\n (let (($x467 (>= mid__entry (- 2147483648))))\n (let ((?x381 (* 2 mid__pre)))\n (let (($x433 (= hi__entry ?x381)))\n (let (($x102 (= 0 lo__entry)))\n (let (($x344 (= mid__entry mid__pre)))\n (let (($x574 (<= mid__pre 1073741823)))\n (let (($x587 (>= mid__pre (- 1073741824))))\n (let (($x116 (>= 1000000 mid__pre)))\n (let (($x499 (not (<= mid__pre 0))))\n (let (($x216 (<= mid__pre 2147483647)))\n (let (($x317 (>= mid__pre (- 2147483648))))\n (and $x317 $x216 $x499 $x116 $x587 $x574 $x344 $x102 $x433 $x467 $x292 $x294 $x485 $x338 $x15 $x345 $x278 $x259 $x50 $x508 $x426))))))))))))))))))))))))\n(assert\n (let (($x172 (<= mid 0)))\n(and $x172 (not (and (<= 0 hi) (<= hi mid__pre))))))\n(check-sat)\n",
+    "sha256": "cbbbf7d629559dc5f7a205f7906bd4e5f20016a8cab5fba60a21ffecbf4e2970",
+    "model": {
+      "hi__entry": "2",
+      "mid": "-1",
+      "lo__entry": "0",
+      "mid__pre": "1",
+      "hi": "2",
+      "mid__entry": "1",
+      "lo": "0"
+    }
+  },
+  "non_contextual/goal_03_hidden": {
+    "status": "unsat",
+    "seconds": 0.00027187500381842256,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun lo () Int)\n(declare-fun mid__pre () Int)\n(declare-fun hi () Int)\n(declare-fun mid () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(assert\n (let ((?x562 (* (- 1) lo)))\n (let ((?x421 (+ hi ?x562)))\n (let ((?x583 (div (ite (<= ?x421 0) (+ (* (- 1) hi) lo) ?x421) 2)))\n (let (($x288 (>= mid 0)))\n (let (($x470 (<= lo 2000000)))\n (let (($x287 (<= hi 2000000)))\n (let (($x221 (<= 0 hi)))\n (let (($x179 (or (not (<= 0 mid)) $x221)))\n (let ((?x231 (* 2 mid)))\n (let (($x431 (= ?x421 ?x231)))\n (let (($x507 (>= 1000000 mid)))\n (let (($x529 (<= 0 lo)))\n (let (($x332 (<= 0 mid)))\n (let (($x426 (<= hi 2147483647)))\n (let (($x508 (>= hi (- 2147483648))))\n (let (($x50 (<= lo 2147483647)))\n (let (($x259 (>= lo (- 2147483648))))\n (let (($x278 (<= mid 2147483647)))\n (let (($x345 (>= mid (- 2147483648))))\n (let (($x15 (<= hi__entry 2147483647)))\n (let (($x338 (>= hi__entry (- 2147483648))))\n (let (($x485 (<= lo__entry 2147483647)))\n (let (($x294 (>= lo__entry (- 2147483648))))\n (let (($x292 (<= mid__entry 2147483647)))\n (let (($x467 (>= mid__entry (- 2147483648))))\n (let ((?x381 (* 2 mid__pre)))\n (let (($x433 (= hi__entry ?x381)))\n (let (($x102 (= 0 lo__entry)))\n (let (($x344 (= mid__entry mid__pre)))\n (let (($x574 (<= mid__pre 1073741823)))\n (let (($x587 (>= mid__pre (- 1073741824))))\n (let (($x116 (>= 1000000 mid__pre)))\n (let (($x499 (not (<= mid__pre 0))))\n (let (($x216 (<= mid__pre 2147483647)))\n (let (($x317 (>= mid__pre (- 2147483648))))\n (and $x317 $x216 $x499 $x116 $x587 $x574 $x344 $x102 $x433 $x467 $x292 $x294 $x485 $x338 $x15 $x345 $x278 $x259 $x50 $x508 $x426 (or (<= 1 lo) (= 0 lo)) $x332 $x529 $x221 $x507 (>= hi lo) $x431 $x179 (>= 1000000 lo) $x287 (= hi (+ ?x231 lo)) (= (+ hi lo) ?x381) (<= (* 2 lo) ?x381) $x470 $x288 (= mid (ite (>= ?x421 0) ?x583 (* (- 1) ?x583))) (<= mid mid__pre) (<= lo ?x381) (= lo (+ ?x381 (* (- 1) hi))) (= hi (+ ?x381 ?x562)))))))))))))))))))))))))))))))))))))))\n(assert\n (let (($x172 (<= mid 0)))\n(and $x172 (not (= hi mid__pre)))))\n(check-sat)\n",
+    "sha256": "11d13627da52ee7062b05e64428a7adfcdd71838db052fad9207d3d34731e659"
+  },
+  "non_contextual/goal_03_visible": {
+    "status": "sat",
+    "seconds": 0.00029405699751805514,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun hi () Int)\n(declare-fun mid () Int)\n(declare-fun lo () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(declare-fun mid__pre () Int)\n(assert\n (let (($x221 (<= 0 hi)))\n (let (($x179 (or (not (<= 0 mid)) $x221)))\n (let (($x29 (= lo hi)))\n (let (($x436 (or (not (= 0 mid)) $x29)))\n (let ((?x480 (* (- 1) hi)))\n (let ((?x408 (+ lo ?x480)))\n (let (($x493 (= ?x408 (* (- 2) mid))))\n (let (($x172 (<= mid 0)))\n (let (($x279 (or $x172 (not (<= hi 0)))))\n (let (($x288 (>= mid 0)))\n (let (($x507 (>= 1000000 mid)))\n (let (($x309 (<= lo (+ hi (* 2 mid)))))\n (let ((?x231 (* 2 mid)))\n (let ((?x562 (* (- 1) lo)))\n (let ((?x421 (+ hi ?x562)))\n (let (($x431 (= ?x421 ?x231)))\n (let (($x47 (<= lo hi)))\n (let (($x332 (<= 0 mid)))\n (let (($x529 (<= 0 lo)))\n (let (($x426 (<= hi 2147483647)))\n (let (($x508 (>= hi (- 2147483648))))\n (let (($x50 (<= lo 2147483647)))\n (let (($x259 (>= lo (- 2147483648))))\n (let (($x278 (<= mid 2147483647)))\n (let (($x345 (>= mid (- 2147483648))))\n (let (($x15 (<= hi__entry 2147483647)))\n (let (($x338 (>= hi__entry (- 2147483648))))\n (let (($x485 (<= lo__entry 2147483647)))\n (let (($x294 (>= lo__entry (- 2147483648))))\n (let (($x292 (<= mid__entry 2147483647)))\n (let (($x467 (>= mid__entry (- 2147483648))))\n (let ((?x381 (* 2 mid__pre)))\n (let (($x433 (= hi__entry ?x381)))\n (let (($x102 (= 0 lo__entry)))\n (let (($x344 (= mid__entry mid__pre)))\n (let (($x574 (<= mid__pre 1073741823)))\n (let (($x587 (>= mid__pre (- 1073741824))))\n (let (($x116 (>= 1000000 mid__pre)))\n (let (($x499 (not (<= mid__pre 0))))\n (let (($x216 (<= mid__pre 2147483647)))\n (let (($x317 (>= mid__pre (- 2147483648))))\n (and $x317 $x216 $x499 $x116 $x587 $x574 $x344 $x102 $x433 $x467 $x292 $x294 $x485 $x338 $x15 $x345 $x278 $x259 $x50 $x508 $x426 $x529 $x332 $x221 $x47 $x431 $x309 $x507 $x288 $x279 $x493 $x436 $x179)))))))))))))))))))))))))))))))))))))))))))\n(assert\n (let (($x172 (<= mid 0)))\n(and $x172 (not (= hi mid__pre)))))\n(check-sat)\n",
+    "sha256": "d5e9d309a100cf6add75a2ea95595f5823ee32e368a11b263897667c07bd6d59",
+    "model": {
+      "hi__entry": "2",
+      "mid": "0",
+      "lo__entry": "0",
+      "mid__pre": "1",
+      "hi": "2",
+      "mid__entry": "1",
+      "lo": "2"
+    }
+  },
+  "non_contextual/goal_03_context": {
+    "status": "sat",
+    "seconds": 0.0002312380020157434,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun hi () Int)\n(declare-fun lo () Int)\n(declare-fun mid () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(declare-fun mid__pre () Int)\n(assert\n (let (($x426 (<= hi 2147483647)))\n (let (($x508 (>= hi (- 2147483648))))\n (let (($x50 (<= lo 2147483647)))\n (let (($x259 (>= lo (- 2147483648))))\n (let (($x278 (<= mid 2147483647)))\n (let (($x345 (>= mid (- 2147483648))))\n (let (($x15 (<= hi__entry 2147483647)))\n (let (($x338 (>= hi__entry (- 2147483648))))\n (let (($x485 (<= lo__entry 2147483647)))\n (let (($x294 (>= lo__entry (- 2147483648))))\n (let (($x292 (<= mid__entry 2147483647)))\n (let (($x467 (>= mid__entry (- 2147483648))))\n (let ((?x381 (* 2 mid__pre)))\n (let (($x433 (= hi__entry ?x381)))\n (let (($x102 (= 0 lo__entry)))\n (let (($x344 (= mid__entry mid__pre)))\n (let (($x574 (<= mid__pre 1073741823)))\n (let (($x587 (>= mid__pre (- 1073741824))))\n (let (($x116 (>= 1000000 mid__pre)))\n (let (($x499 (not (<= mid__pre 0))))\n (let (($x216 (<= mid__pre 2147483647)))\n (let (($x317 (>= mid__pre (- 2147483648))))\n (and $x317 $x216 $x499 $x116 $x587 $x574 $x344 $x102 $x433 $x467 $x292 $x294 $x485 $x338 $x15 $x345 $x278 $x259 $x50 $x508 $x426))))))))))))))))))))))))\n(assert\n (let (($x172 (<= mid 0)))\n(and $x172 (not (= hi mid__pre)))))\n(check-sat)\n",
+    "sha256": "09d31ccbe6e4e1e42c5fef775fb323a10854448ddf954740f096d795695dc67c",
+    "model": {
+      "hi__entry": "2",
+      "mid": "-1",
+      "lo__entry": "0",
+      "mid__pre": "1",
+      "hi": "2",
+      "mid__entry": "1",
+      "lo": "0"
+    }
+  },
+  "non_contextual/goal_04_hidden": {
+    "status": "unsat",
+    "seconds": 0.00036256600287742913,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun lo () Int)\n(declare-fun mid__pre () Int)\n(declare-fun hi () Int)\n(declare-fun mid () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(assert\n (let ((?x562 (* (- 1) lo)))\n (let ((?x421 (+ hi ?x562)))\n (let ((?x583 (div (ite (<= ?x421 0) (+ (* (- 1) hi) lo) ?x421) 2)))\n (let (($x288 (>= mid 0)))\n (let (($x470 (<= lo 2000000)))\n (let (($x287 (<= hi 2000000)))\n (let (($x221 (<= 0 hi)))\n (let (($x179 (or (not (<= 0 mid)) $x221)))\n (let ((?x231 (* 2 mid)))\n (let (($x431 (= ?x421 ?x231)))\n (let (($x507 (>= 1000000 mid)))\n (let (($x529 (<= 0 lo)))\n (let (($x332 (<= 0 mid)))\n (let (($x426 (<= hi 2147483647)))\n (let (($x508 (>= hi (- 2147483648))))\n (let (($x50 (<= lo 2147483647)))\n (let (($x259 (>= lo (- 2147483648))))\n (let (($x278 (<= mid 2147483647)))\n (let (($x345 (>= mid (- 2147483648))))\n (let (($x15 (<= hi__entry 2147483647)))\n (let (($x338 (>= hi__entry (- 2147483648))))\n (let (($x485 (<= lo__entry 2147483647)))\n (let (($x294 (>= lo__entry (- 2147483648))))\n (let (($x292 (<= mid__entry 2147483647)))\n (let (($x467 (>= mid__entry (- 2147483648))))\n (let ((?x381 (* 2 mid__pre)))\n (let (($x433 (= hi__entry ?x381)))\n (let (($x102 (= 0 lo__entry)))\n (let (($x344 (= mid__entry mid__pre)))\n (let (($x574 (<= mid__pre 1073741823)))\n (let (($x587 (>= mid__pre (- 1073741824))))\n (let (($x116 (>= 1000000 mid__pre)))\n (let (($x499 (not (<= mid__pre 0))))\n (let (($x216 (<= mid__pre 2147483647)))\n (let (($x317 (>= mid__pre (- 2147483648))))\n (and $x317 $x216 $x499 $x116 $x587 $x574 $x344 $x102 $x433 $x467 $x292 $x294 $x485 $x338 $x15 $x345 $x278 $x259 $x50 $x508 $x426 (or (<= 1 lo) (= 0 lo)) $x332 $x529 $x221 $x507 (>= hi lo) $x431 $x179 (>= 1000000 lo) $x287 (= hi (+ ?x231 lo)) (= (+ hi lo) ?x381) (<= (* 2 lo) ?x381) $x470 $x288 (= mid (ite (>= ?x421 0) ?x583 (* (- 1) ?x583))) (<= mid mid__pre) (<= lo ?x381) (= lo (+ ?x381 (* (- 1) hi))) (= hi (+ ?x381 ?x562)))))))))))))))))))))))))))))))))))))))\n(assert\n (let (($x33 (= hi lo)))\n(let (($x264 (not $x33)))\n(let (($x172 (<= mid 0)))\n(and $x172 $x264)))))\n(check-sat)\n",
+    "sha256": "3e3b19940c810ac7eb8ba6772d6c216063a44d16924f24b4d88618a99f584a4a"
+  },
+  "non_contextual/goal_04_visible": {
+    "status": "unsat",
+    "seconds": 0.0002905189976445399,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun hi () Int)\n(declare-fun mid () Int)\n(declare-fun lo () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(declare-fun mid__pre () Int)\n(assert\n (let (($x221 (<= 0 hi)))\n (let (($x179 (or (not (<= 0 mid)) $x221)))\n (let (($x29 (= lo hi)))\n (let (($x436 (or (not (= 0 mid)) $x29)))\n (let ((?x480 (* (- 1) hi)))\n (let ((?x408 (+ lo ?x480)))\n (let (($x493 (= ?x408 (* (- 2) mid))))\n (let (($x172 (<= mid 0)))\n (let (($x279 (or $x172 (not (<= hi 0)))))\n (let (($x288 (>= mid 0)))\n (let (($x507 (>= 1000000 mid)))\n (let (($x309 (<= lo (+ hi (* 2 mid)))))\n (let ((?x231 (* 2 mid)))\n (let ((?x562 (* (- 1) lo)))\n (let ((?x421 (+ hi ?x562)))\n (let (($x431 (= ?x421 ?x231)))\n (let (($x47 (<= lo hi)))\n (let (($x332 (<= 0 mid)))\n (let (($x529 (<= 0 lo)))\n (let (($x426 (<= hi 2147483647)))\n (let (($x508 (>= hi (- 2147483648))))\n (let (($x50 (<= lo 2147483647)))\n (let (($x259 (>= lo (- 2147483648))))\n (let (($x278 (<= mid 2147483647)))\n (let (($x345 (>= mid (- 2147483648))))\n (let (($x15 (<= hi__entry 2147483647)))\n (let (($x338 (>= hi__entry (- 2147483648))))\n (let (($x485 (<= lo__entry 2147483647)))\n (let (($x294 (>= lo__entry (- 2147483648))))\n (let (($x292 (<= mid__entry 2147483647)))\n (let (($x467 (>= mid__entry (- 2147483648))))\n (let ((?x381 (* 2 mid__pre)))\n (let (($x433 (= hi__entry ?x381)))\n (let (($x102 (= 0 lo__entry)))\n (let (($x344 (= mid__entry mid__pre)))\n (let (($x574 (<= mid__pre 1073741823)))\n (let (($x587 (>= mid__pre (- 1073741824))))\n (let (($x116 (>= 1000000 mid__pre)))\n (let (($x499 (not (<= mid__pre 0))))\n (let (($x216 (<= mid__pre 2147483647)))\n (let (($x317 (>= mid__pre (- 2147483648))))\n (and $x317 $x216 $x499 $x116 $x587 $x574 $x344 $x102 $x433 $x467 $x292 $x294 $x485 $x338 $x15 $x345 $x278 $x259 $x50 $x508 $x426 $x529 $x332 $x221 $x47 $x431 $x309 $x507 $x288 $x279 $x493 $x436 $x179)))))))))))))))))))))))))))))))))))))))))))\n(assert\n (let (($x33 (= hi lo)))\n(let (($x264 (not $x33)))\n(let (($x172 (<= mid 0)))\n(and $x172 $x264)))))\n(check-sat)\n",
+    "sha256": "8d85f3c22024dc4bb4222b12db681a469358dca42039afdc1c17298d9228321e"
+  },
+  "non_contextual/goal_04_context": {
+    "status": "sat",
+    "seconds": 0.00027509000210557133,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun hi () Int)\n(declare-fun lo () Int)\n(declare-fun mid () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(declare-fun mid__pre () Int)\n(assert\n (let (($x426 (<= hi 2147483647)))\n (let (($x508 (>= hi (- 2147483648))))\n (let (($x50 (<= lo 2147483647)))\n (let (($x259 (>= lo (- 2147483648))))\n (let (($x278 (<= mid 2147483647)))\n (let (($x345 (>= mid (- 2147483648))))\n (let (($x15 (<= hi__entry 2147483647)))\n (let (($x338 (>= hi__entry (- 2147483648))))\n (let (($x485 (<= lo__entry 2147483647)))\n (let (($x294 (>= lo__entry (- 2147483648))))\n (let (($x292 (<= mid__entry 2147483647)))\n (let (($x467 (>= mid__entry (- 2147483648))))\n (let ((?x381 (* 2 mid__pre)))\n (let (($x433 (= hi__entry ?x381)))\n (let (($x102 (= 0 lo__entry)))\n (let (($x344 (= mid__entry mid__pre)))\n (let (($x574 (<= mid__pre 1073741823)))\n (let (($x587 (>= mid__pre (- 1073741824))))\n (let (($x116 (>= 1000000 mid__pre)))\n (let (($x499 (not (<= mid__pre 0))))\n (let (($x216 (<= mid__pre 2147483647)))\n (let (($x317 (>= mid__pre (- 2147483648))))\n (and $x317 $x216 $x499 $x116 $x587 $x574 $x344 $x102 $x433 $x467 $x292 $x294 $x485 $x338 $x15 $x345 $x278 $x259 $x50 $x508 $x426))))))))))))))))))))))))\n(assert\n (let (($x33 (= hi lo)))\n(let (($x264 (not $x33)))\n(let (($x172 (<= mid 0)))\n(and $x172 $x264)))))\n(check-sat)\n",
+    "sha256": "630a82f1117f8051dc56fec16a9a8eed10986a5e08411d2bbb640f1543144089",
+    "model": {
+      "hi__entry": "2",
+      "mid": "-1",
+      "lo__entry": "0",
+      "mid__pre": "1",
+      "hi": "2",
+      "mid__entry": "1",
+      "lo": "0"
+    }
+  },
+  "non_contextual/goal_05_hidden": {
+    "status": "unsat",
+    "seconds": 0.0002505040029063821,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun lo () Int)\n(declare-fun mid__pre () Int)\n(declare-fun hi () Int)\n(declare-fun mid () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(assert\n (let ((?x562 (* (- 1) lo)))\n (let ((?x421 (+ hi ?x562)))\n (let ((?x583 (div (ite (<= ?x421 0) (+ (* (- 1) hi) lo) ?x421) 2)))\n (let (($x288 (>= mid 0)))\n (let (($x470 (<= lo 2000000)))\n (let (($x287 (<= hi 2000000)))\n (let (($x221 (<= 0 hi)))\n (let (($x179 (or (not (<= 0 mid)) $x221)))\n (let ((?x231 (* 2 mid)))\n (let (($x431 (= ?x421 ?x231)))\n (let (($x507 (>= 1000000 mid)))\n (let (($x529 (<= 0 lo)))\n (let (($x332 (<= 0 mid)))\n (let (($x426 (<= hi 2147483647)))\n (let (($x508 (>= hi (- 2147483648))))\n (let (($x50 (<= lo 2147483647)))\n (let (($x259 (>= lo (- 2147483648))))\n (let (($x278 (<= mid 2147483647)))\n (let (($x345 (>= mid (- 2147483648))))\n (let (($x15 (<= hi__entry 2147483647)))\n (let (($x338 (>= hi__entry (- 2147483648))))\n (let (($x485 (<= lo__entry 2147483647)))\n (let (($x294 (>= lo__entry (- 2147483648))))\n (let (($x292 (<= mid__entry 2147483647)))\n (let (($x467 (>= mid__entry (- 2147483648))))\n (let ((?x381 (* 2 mid__pre)))\n (let (($x433 (= hi__entry ?x381)))\n (let (($x102 (= 0 lo__entry)))\n (let (($x344 (= mid__entry mid__pre)))\n (let (($x574 (<= mid__pre 1073741823)))\n (let (($x587 (>= mid__pre (- 1073741824))))\n (let (($x116 (>= 1000000 mid__pre)))\n (let (($x499 (not (<= mid__pre 0))))\n (let (($x216 (<= mid__pre 2147483647)))\n (let (($x317 (>= mid__pre (- 2147483648))))\n (and $x317 $x216 $x499 $x116 $x587 $x574 $x344 $x102 $x433 $x467 $x292 $x294 $x485 $x338 $x15 $x345 $x278 $x259 $x50 $x508 $x426 (or (<= 1 lo) (= 0 lo)) $x332 $x529 $x221 $x507 (>= hi lo) $x431 $x179 (>= 1000000 lo) $x287 (= hi (+ ?x231 lo)) (= (+ hi lo) ?x381) (<= (* 2 lo) ?x381) $x470 $x288 (= mid (ite (>= ?x421 0) ?x583 (* (- 1) ?x583))) (<= mid mid__pre) (<= lo ?x381) (= lo (+ ?x381 (* (- 1) hi))) (= hi (+ ?x381 ?x562)))))))))))))))))))))))))))))))))))))))\n(assert\n (let (($x172 (<= mid 0)))\n(and $x172 (not (= (+ hi mid) mid__pre)))))\n(check-sat)\n",
+    "sha256": "95127d99579e98b068ed6bf93ba6f32a73282fe682d4e55dd7081b7947d914a6"
+  },
+  "non_contextual/goal_05_visible": {
+    "status": "sat",
+    "seconds": 0.00024059499992290512,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun hi () Int)\n(declare-fun mid () Int)\n(declare-fun lo () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(declare-fun mid__pre () Int)\n(assert\n (let (($x221 (<= 0 hi)))\n (let (($x179 (or (not (<= 0 mid)) $x221)))\n (let (($x29 (= lo hi)))\n (let (($x436 (or (not (= 0 mid)) $x29)))\n (let ((?x480 (* (- 1) hi)))\n (let ((?x408 (+ lo ?x480)))\n (let (($x493 (= ?x408 (* (- 2) mid))))\n (let (($x172 (<= mid 0)))\n (let (($x279 (or $x172 (not (<= hi 0)))))\n (let (($x288 (>= mid 0)))\n (let (($x507 (>= 1000000 mid)))\n (let (($x309 (<= lo (+ hi (* 2 mid)))))\n (let ((?x231 (* 2 mid)))\n (let ((?x562 (* (- 1) lo)))\n (let ((?x421 (+ hi ?x562)))\n (let (($x431 (= ?x421 ?x231)))\n (let (($x47 (<= lo hi)))\n (let (($x332 (<= 0 mid)))\n (let (($x529 (<= 0 lo)))\n (let (($x426 (<= hi 2147483647)))\n (let (($x508 (>= hi (- 2147483648))))\n (let (($x50 (<= lo 2147483647)))\n (let (($x259 (>= lo (- 2147483648))))\n (let (($x278 (<= mid 2147483647)))\n (let (($x345 (>= mid (- 2147483648))))\n (let (($x15 (<= hi__entry 2147483647)))\n (let (($x338 (>= hi__entry (- 2147483648))))\n (let (($x485 (<= lo__entry 2147483647)))\n (let (($x294 (>= lo__entry (- 2147483648))))\n (let (($x292 (<= mid__entry 2147483647)))\n (let (($x467 (>= mid__entry (- 2147483648))))\n (let ((?x381 (* 2 mid__pre)))\n (let (($x433 (= hi__entry ?x381)))\n (let (($x102 (= 0 lo__entry)))\n (let (($x344 (= mid__entry mid__pre)))\n (let (($x574 (<= mid__pre 1073741823)))\n (let (($x587 (>= mid__pre (- 1073741824))))\n (let (($x116 (>= 1000000 mid__pre)))\n (let (($x499 (not (<= mid__pre 0))))\n (let (($x216 (<= mid__pre 2147483647)))\n (let (($x317 (>= mid__pre (- 2147483648))))\n (and $x317 $x216 $x499 $x116 $x587 $x574 $x344 $x102 $x433 $x467 $x292 $x294 $x485 $x338 $x15 $x345 $x278 $x259 $x50 $x508 $x426 $x529 $x332 $x221 $x47 $x431 $x309 $x507 $x288 $x279 $x493 $x436 $x179)))))))))))))))))))))))))))))))))))))))))))\n(assert\n (let (($x172 (<= mid 0)))\n(and $x172 (not (= (+ hi mid) mid__pre)))))\n(check-sat)\n",
+    "sha256": "b7bda97432d69e43b60f3c51d4744c5e73c759810c3f6aa6302f4cdb3588134b",
+    "model": {
+      "hi__entry": "2",
+      "mid": "0",
+      "lo__entry": "0",
+      "mid__pre": "1",
+      "hi": "2",
+      "mid__entry": "1",
+      "lo": "2"
+    }
+  },
+  "non_contextual/goal_05_context": {
+    "status": "sat",
+    "seconds": 0.00028417800058377907,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun hi () Int)\n(declare-fun lo () Int)\n(declare-fun mid () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(declare-fun mid__pre () Int)\n(assert\n (let (($x426 (<= hi 2147483647)))\n (let (($x508 (>= hi (- 2147483648))))\n (let (($x50 (<= lo 2147483647)))\n (let (($x259 (>= lo (- 2147483648))))\n (let (($x278 (<= mid 2147483647)))\n (let (($x345 (>= mid (- 2147483648))))\n (let (($x15 (<= hi__entry 2147483647)))\n (let (($x338 (>= hi__entry (- 2147483648))))\n (let (($x485 (<= lo__entry 2147483647)))\n (let (($x294 (>= lo__entry (- 2147483648))))\n (let (($x292 (<= mid__entry 2147483647)))\n (let (($x467 (>= mid__entry (- 2147483648))))\n (let ((?x381 (* 2 mid__pre)))\n (let (($x433 (= hi__entry ?x381)))\n (let (($x102 (= 0 lo__entry)))\n (let (($x344 (= mid__entry mid__pre)))\n (let (($x574 (<= mid__pre 1073741823)))\n (let (($x587 (>= mid__pre (- 1073741824))))\n (let (($x116 (>= 1000000 mid__pre)))\n (let (($x499 (not (<= mid__pre 0))))\n (let (($x216 (<= mid__pre 2147483647)))\n (let (($x317 (>= mid__pre (- 2147483648))))\n (and $x317 $x216 $x499 $x116 $x587 $x574 $x344 $x102 $x433 $x467 $x292 $x294 $x485 $x338 $x15 $x345 $x278 $x259 $x50 $x508 $x426))))))))))))))))))))))))\n(assert\n (let (($x172 (<= mid 0)))\n(and $x172 (not (= (+ hi mid) mid__pre)))))\n(check-sat)\n",
+    "sha256": "2d3e8008b25748b83bdf97c9739639bb688286e6ff646c614a25c4cc70cd13c3",
+    "model": {
+      "hi__entry": "2",
+      "mid": "0",
+      "lo__entry": "0",
+      "mid__pre": "1",
+      "hi": "2",
+      "mid__entry": "1",
+      "lo": "0"
+    }
+  },
+  "non_contextual/goal_06_hidden": {
+    "status": "unsat",
+    "seconds": 0.0005391180020524189,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun lo () Int)\n(declare-fun mid__pre () Int)\n(declare-fun hi () Int)\n(declare-fun mid () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(assert\n (let ((?x562 (* (- 1) lo)))\n (let ((?x421 (+ hi ?x562)))\n (let ((?x583 (div (ite (<= ?x421 0) (+ (* (- 1) hi) lo) ?x421) 2)))\n (let (($x288 (>= mid 0)))\n (let (($x470 (<= lo 2000000)))\n (let (($x287 (<= hi 2000000)))\n (let (($x221 (<= 0 hi)))\n (let (($x179 (or (not (<= 0 mid)) $x221)))\n (let ((?x231 (* 2 mid)))\n (let (($x431 (= ?x421 ?x231)))\n (let (($x507 (>= 1000000 mid)))\n (let (($x529 (<= 0 lo)))\n (let (($x332 (<= 0 mid)))\n (let (($x426 (<= hi 2147483647)))\n (let (($x508 (>= hi (- 2147483648))))\n (let (($x50 (<= lo 2147483647)))\n (let (($x259 (>= lo (- 2147483648))))\n (let (($x278 (<= mid 2147483647)))\n (let (($x345 (>= mid (- 2147483648))))\n (let (($x15 (<= hi__entry 2147483647)))\n (let (($x338 (>= hi__entry (- 2147483648))))\n (let (($x485 (<= lo__entry 2147483647)))\n (let (($x294 (>= lo__entry (- 2147483648))))\n (let (($x292 (<= mid__entry 2147483647)))\n (let (($x467 (>= mid__entry (- 2147483648))))\n (let ((?x381 (* 2 mid__pre)))\n (let (($x433 (= hi__entry ?x381)))\n (let (($x102 (= 0 lo__entry)))\n (let (($x344 (= mid__entry mid__pre)))\n (let (($x574 (<= mid__pre 1073741823)))\n (let (($x587 (>= mid__pre (- 1073741824))))\n (let (($x116 (>= 1000000 mid__pre)))\n (let (($x499 (not (<= mid__pre 0))))\n (let (($x216 (<= mid__pre 2147483647)))\n (let (($x317 (>= mid__pre (- 2147483648))))\n (and $x317 $x216 $x499 $x116 $x587 $x574 $x344 $x102 $x433 $x467 $x292 $x294 $x485 $x338 $x15 $x345 $x278 $x259 $x50 $x508 $x426 (or (<= 1 lo) (= 0 lo)) $x332 $x529 $x221 $x507 (>= hi lo) $x431 $x179 (>= 1000000 lo) $x287 (= hi (+ ?x231 lo)) (= (+ hi lo) ?x381) (<= (* 2 lo) ?x381) $x470 $x288 (= mid (ite (>= ?x421 0) ?x583 (* (- 1) ?x583))) (<= mid mid__pre) (<= lo ?x381) (= lo (+ ?x381 (* (- 1) hi))) (= hi (+ ?x381 ?x562)))))))))))))))))))))))))))))))))))))))\n(assert\n (let ((?x425 (div (ite (<= mid 0) (* (- 1) mid) mid) 2)))\n(let (($x288 (>= mid 0)))\n(let (($x172 (<= mid 0)))\n(and $x172 (not (= 0 (+ mid (* (- 2) (ite $x288 ?x425 (* (- 1) ?x425)))))))))))\n(check-sat)\n",
+    "sha256": "f11bbe45b2570fb332a7a299549c5f284b413d13f537e6a18c78ce176c01cdf8"
+  },
+  "non_contextual/goal_06_visible": {
+    "status": "unsat",
+    "seconds": 0.0003510040041874163,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun hi () Int)\n(declare-fun mid () Int)\n(declare-fun lo () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(declare-fun mid__pre () Int)\n(assert\n (let (($x221 (<= 0 hi)))\n (let (($x179 (or (not (<= 0 mid)) $x221)))\n (let (($x29 (= lo hi)))\n (let (($x436 (or (not (= 0 mid)) $x29)))\n (let ((?x480 (* (- 1) hi)))\n (let ((?x408 (+ lo ?x480)))\n (let (($x493 (= ?x408 (* (- 2) mid))))\n (let (($x172 (<= mid 0)))\n (let (($x279 (or $x172 (not (<= hi 0)))))\n (let (($x288 (>= mid 0)))\n (let (($x507 (>= 1000000 mid)))\n (let (($x309 (<= lo (+ hi (* 2 mid)))))\n (let ((?x231 (* 2 mid)))\n (let ((?x562 (* (- 1) lo)))\n (let ((?x421 (+ hi ?x562)))\n (let (($x431 (= ?x421 ?x231)))\n (let (($x47 (<= lo hi)))\n (let (($x332 (<= 0 mid)))\n (let (($x529 (<= 0 lo)))\n (let (($x426 (<= hi 2147483647)))\n (let (($x508 (>= hi (- 2147483648))))\n (let (($x50 (<= lo 2147483647)))\n (let (($x259 (>= lo (- 2147483648))))\n (let (($x278 (<= mid 2147483647)))\n (let (($x345 (>= mid (- 2147483648))))\n (let (($x15 (<= hi__entry 2147483647)))\n (let (($x338 (>= hi__entry (- 2147483648))))\n (let (($x485 (<= lo__entry 2147483647)))\n (let (($x294 (>= lo__entry (- 2147483648))))\n (let (($x292 (<= mid__entry 2147483647)))\n (let (($x467 (>= mid__entry (- 2147483648))))\n (let ((?x381 (* 2 mid__pre)))\n (let (($x433 (= hi__entry ?x381)))\n (let (($x102 (= 0 lo__entry)))\n (let (($x344 (= mid__entry mid__pre)))\n (let (($x574 (<= mid__pre 1073741823)))\n (let (($x587 (>= mid__pre (- 1073741824))))\n (let (($x116 (>= 1000000 mid__pre)))\n (let (($x499 (not (<= mid__pre 0))))\n (let (($x216 (<= mid__pre 2147483647)))\n (let (($x317 (>= mid__pre (- 2147483648))))\n (and $x317 $x216 $x499 $x116 $x587 $x574 $x344 $x102 $x433 $x467 $x292 $x294 $x485 $x338 $x15 $x345 $x278 $x259 $x50 $x508 $x426 $x529 $x332 $x221 $x47 $x431 $x309 $x507 $x288 $x279 $x493 $x436 $x179)))))))))))))))))))))))))))))))))))))))))))\n(assert\n (let ((?x425 (div (ite (<= mid 0) (* (- 1) mid) mid) 2)))\n(let (($x288 (>= mid 0)))\n(let (($x172 (<= mid 0)))\n(and $x172 (not (= 0 (+ mid (* (- 2) (ite $x288 ?x425 (* (- 1) ?x425)))))))))))\n(check-sat)\n",
+    "sha256": "325b3e5e2665567bebeab8fecd5c6bc203b4c7ff4db8ed88048561a9d5e0413a"
+  },
+  "non_contextual/goal_06_context": {
+    "status": "sat",
+    "seconds": 0.0004409239991218783,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun hi () Int)\n(declare-fun lo () Int)\n(declare-fun mid () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(declare-fun mid__pre () Int)\n(assert\n (let (($x426 (<= hi 2147483647)))\n (let (($x508 (>= hi (- 2147483648))))\n (let (($x50 (<= lo 2147483647)))\n (let (($x259 (>= lo (- 2147483648))))\n (let (($x278 (<= mid 2147483647)))\n (let (($x345 (>= mid (- 2147483648))))\n (let (($x15 (<= hi__entry 2147483647)))\n (let (($x338 (>= hi__entry (- 2147483648))))\n (let (($x485 (<= lo__entry 2147483647)))\n (let (($x294 (>= lo__entry (- 2147483648))))\n (let (($x292 (<= mid__entry 2147483647)))\n (let (($x467 (>= mid__entry (- 2147483648))))\n (let ((?x381 (* 2 mid__pre)))\n (let (($x433 (= hi__entry ?x381)))\n (let (($x102 (= 0 lo__entry)))\n (let (($x344 (= mid__entry mid__pre)))\n (let (($x574 (<= mid__pre 1073741823)))\n (let (($x587 (>= mid__pre (- 1073741824))))\n (let (($x116 (>= 1000000 mid__pre)))\n (let (($x499 (not (<= mid__pre 0))))\n (let (($x216 (<= mid__pre 2147483647)))\n (let (($x317 (>= mid__pre (- 2147483648))))\n (and $x317 $x216 $x499 $x116 $x587 $x574 $x344 $x102 $x433 $x467 $x292 $x294 $x485 $x338 $x15 $x345 $x278 $x259 $x50 $x508 $x426))))))))))))))))))))))))\n(assert\n (let ((?x425 (div (ite (<= mid 0) (* (- 1) mid) mid) 2)))\n(let (($x288 (>= mid 0)))\n(let (($x172 (<= mid 0)))\n(and $x172 (not (= 0 (+ mid (* (- 2) (ite $x288 ?x425 (* (- 1) ?x425)))))))))))\n(check-sat)\n",
+    "sha256": "bfac3327d277c96411113483d73fa9f8ae1d0d7632a620408a8611da5d341593",
+    "model": {
+      "hi__entry": "2",
+      "mid": "-1",
+      "lo__entry": "0",
+      "mid__pre": "1",
+      "hi": "2",
+      "mid__entry": "1",
+      "lo": "0"
+    }
+  },
+  "non_contextual/goal_07_hidden": {
+    "status": "unsat",
+    "seconds": 0.0008979390040622093,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun lo () Int)\n(declare-fun mid__pre () Int)\n(declare-fun hi () Int)\n(declare-fun mid () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(assert\n (let ((?x562 (* (- 1) lo)))\n (let ((?x421 (+ hi ?x562)))\n (let ((?x583 (div (ite (<= ?x421 0) (+ (* (- 1) hi) lo) ?x421) 2)))\n (let (($x288 (>= mid 0)))\n (let (($x470 (<= lo 2000000)))\n (let (($x287 (<= hi 2000000)))\n (let (($x221 (<= 0 hi)))\n (let (($x179 (or (not (<= 0 mid)) $x221)))\n (let ((?x231 (* 2 mid)))\n (let (($x431 (= ?x421 ?x231)))\n (let (($x507 (>= 1000000 mid)))\n (let (($x529 (<= 0 lo)))\n (let (($x332 (<= 0 mid)))\n (let (($x426 (<= hi 2147483647)))\n (let (($x508 (>= hi (- 2147483648))))\n (let (($x50 (<= lo 2147483647)))\n (let (($x259 (>= lo (- 2147483648))))\n (let (($x278 (<= mid 2147483647)))\n (let (($x345 (>= mid (- 2147483648))))\n (let (($x15 (<= hi__entry 2147483647)))\n (let (($x338 (>= hi__entry (- 2147483648))))\n (let (($x485 (<= lo__entry 2147483647)))\n (let (($x294 (>= lo__entry (- 2147483648))))\n (let (($x292 (<= mid__entry 2147483647)))\n (let (($x467 (>= mid__entry (- 2147483648))))\n (let ((?x381 (* 2 mid__pre)))\n (let (($x433 (= hi__entry ?x381)))\n (let (($x102 (= 0 lo__entry)))\n (let (($x344 (= mid__entry mid__pre)))\n (let (($x574 (<= mid__pre 1073741823)))\n (let (($x587 (>= mid__pre (- 1073741824))))\n (let (($x116 (>= 1000000 mid__pre)))\n (let (($x499 (not (<= mid__pre 0))))\n (let (($x216 (<= mid__pre 2147483647)))\n (let (($x317 (>= mid__pre (- 2147483648))))\n (and $x317 $x216 $x499 $x116 $x587 $x574 $x344 $x102 $x433 $x467 $x292 $x294 $x485 $x338 $x15 $x345 $x278 $x259 $x50 $x508 $x426 (or (<= 1 lo) (= 0 lo)) $x332 $x529 $x221 $x507 (>= hi lo) $x431 $x179 (>= 1000000 lo) $x287 (= hi (+ ?x231 lo)) (= (+ hi lo) ?x381) (<= (* 2 lo) ?x381) $x470 $x288 (= mid (ite (>= ?x421 0) ?x583 (* (- 1) ?x583))) (<= mid mid__pre) (<= lo ?x381) (= lo (+ ?x381 (* (- 1) hi))) (= hi (+ ?x381 ?x562)))))))))))))))))))))))))))))))))))))))\n(assert\n (let (($x172 (<= mid 0)))\n(and $x172 (not (<= (* hi hi) (* lo lo))))))\n(check-sat)\n",
+    "sha256": "155a27b7d425a7dc0e969b0cd62fb1d0c4944e7cee397567f5b31508aee98af1"
+  },
+  "non_contextual/goal_07_visible": {
+    "status": "unsat",
+    "seconds": 0.0006903260000399314,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun hi () Int)\n(declare-fun mid () Int)\n(declare-fun lo () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(declare-fun mid__pre () Int)\n(assert\n (let (($x221 (<= 0 hi)))\n (let (($x179 (or (not (<= 0 mid)) $x221)))\n (let (($x29 (= lo hi)))\n (let (($x436 (or (not (= 0 mid)) $x29)))\n (let ((?x480 (* (- 1) hi)))\n (let ((?x408 (+ lo ?x480)))\n (let (($x493 (= ?x408 (* (- 2) mid))))\n (let (($x172 (<= mid 0)))\n (let (($x279 (or $x172 (not (<= hi 0)))))\n (let (($x288 (>= mid 0)))\n (let (($x507 (>= 1000000 mid)))\n (let (($x309 (<= lo (+ hi (* 2 mid)))))\n (let ((?x231 (* 2 mid)))\n (let ((?x562 (* (- 1) lo)))\n (let ((?x421 (+ hi ?x562)))\n (let (($x431 (= ?x421 ?x231)))\n (let (($x47 (<= lo hi)))\n (let (($x332 (<= 0 mid)))\n (let (($x529 (<= 0 lo)))\n (let (($x426 (<= hi 2147483647)))\n (let (($x508 (>= hi (- 2147483648))))\n (let (($x50 (<= lo 2147483647)))\n (let (($x259 (>= lo (- 2147483648))))\n (let (($x278 (<= mid 2147483647)))\n (let (($x345 (>= mid (- 2147483648))))\n (let (($x15 (<= hi__entry 2147483647)))\n (let (($x338 (>= hi__entry (- 2147483648))))\n (let (($x485 (<= lo__entry 2147483647)))\n (let (($x294 (>= lo__entry (- 2147483648))))\n (let (($x292 (<= mid__entry 2147483647)))\n (let (($x467 (>= mid__entry (- 2147483648))))\n (let ((?x381 (* 2 mid__pre)))\n (let (($x433 (= hi__entry ?x381)))\n (let (($x102 (= 0 lo__entry)))\n (let (($x344 (= mid__entry mid__pre)))\n (let (($x574 (<= mid__pre 1073741823)))\n (let (($x587 (>= mid__pre (- 1073741824))))\n (let (($x116 (>= 1000000 mid__pre)))\n (let (($x499 (not (<= mid__pre 0))))\n (let (($x216 (<= mid__pre 2147483647)))\n (let (($x317 (>= mid__pre (- 2147483648))))\n (and $x317 $x216 $x499 $x116 $x587 $x574 $x344 $x102 $x433 $x467 $x292 $x294 $x485 $x338 $x15 $x345 $x278 $x259 $x50 $x508 $x426 $x529 $x332 $x221 $x47 $x431 $x309 $x507 $x288 $x279 $x493 $x436 $x179)))))))))))))))))))))))))))))))))))))))))))\n(assert\n (let (($x172 (<= mid 0)))\n(and $x172 (not (<= (* hi hi) (* lo lo))))))\n(check-sat)\n",
+    "sha256": "6a8df8d31fd7dbedb368b8a70355c47b9ced487489f1de8846d35eb2c6f77750"
+  },
+  "non_contextual/goal_07_context": {
+    "status": "sat",
+    "seconds": 0.00042158800351899117,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun hi () Int)\n(declare-fun lo () Int)\n(declare-fun mid () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(declare-fun mid__pre () Int)\n(assert\n (let (($x426 (<= hi 2147483647)))\n (let (($x508 (>= hi (- 2147483648))))\n (let (($x50 (<= lo 2147483647)))\n (let (($x259 (>= lo (- 2147483648))))\n (let (($x278 (<= mid 2147483647)))\n (let (($x345 (>= mid (- 2147483648))))\n (let (($x15 (<= hi__entry 2147483647)))\n (let (($x338 (>= hi__entry (- 2147483648))))\n (let (($x485 (<= lo__entry 2147483647)))\n (let (($x294 (>= lo__entry (- 2147483648))))\n (let (($x292 (<= mid__entry 2147483647)))\n (let (($x467 (>= mid__entry (- 2147483648))))\n (let ((?x381 (* 2 mid__pre)))\n (let (($x433 (= hi__entry ?x381)))\n (let (($x102 (= 0 lo__entry)))\n (let (($x344 (= mid__entry mid__pre)))\n (let (($x574 (<= mid__pre 1073741823)))\n (let (($x587 (>= mid__pre (- 1073741824))))\n (let (($x116 (>= 1000000 mid__pre)))\n (let (($x499 (not (<= mid__pre 0))))\n (let (($x216 (<= mid__pre 2147483647)))\n (let (($x317 (>= mid__pre (- 2147483648))))\n (and $x317 $x216 $x499 $x116 $x587 $x574 $x344 $x102 $x433 $x467 $x292 $x294 $x485 $x338 $x15 $x345 $x278 $x259 $x50 $x508 $x426))))))))))))))))))))))))\n(assert\n (let (($x172 (<= mid 0)))\n(and $x172 (not (<= (* hi hi) (* lo lo))))))\n(check-sat)\n",
+    "sha256": "28b261b9a4336e7856dbd6b82ef2257e896409989eed130af4f7c7560cf3a3a1",
+    "model": {
+      "hi__entry": "2",
+      "mid": "-1",
+      "lo__entry": "0",
+      "mid__pre": "1",
+      "hi": "1",
+      "mid__entry": "1",
+      "lo": "0"
+    }
+  },
+  "non_contextual/goal_08_hidden": {
+    "status": "unsat",
+    "seconds": 0.0003303810008219443,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun lo () Int)\n(declare-fun mid__pre () Int)\n(declare-fun hi () Int)\n(declare-fun mid () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(assert\n (let ((?x562 (* (- 1) lo)))\n (let ((?x421 (+ hi ?x562)))\n (let ((?x583 (div (ite (<= ?x421 0) (+ (* (- 1) hi) lo) ?x421) 2)))\n (let (($x288 (>= mid 0)))\n (let (($x470 (<= lo 2000000)))\n (let (($x287 (<= hi 2000000)))\n (let (($x221 (<= 0 hi)))\n (let (($x179 (or (not (<= 0 mid)) $x221)))\n (let ((?x231 (* 2 mid)))\n (let (($x431 (= ?x421 ?x231)))\n (let (($x507 (>= 1000000 mid)))\n (let (($x529 (<= 0 lo)))\n (let (($x332 (<= 0 mid)))\n (let (($x426 (<= hi 2147483647)))\n (let (($x508 (>= hi (- 2147483648))))\n (let (($x50 (<= lo 2147483647)))\n (let (($x259 (>= lo (- 2147483648))))\n (let (($x278 (<= mid 2147483647)))\n (let (($x345 (>= mid (- 2147483648))))\n (let (($x15 (<= hi__entry 2147483647)))\n (let (($x338 (>= hi__entry (- 2147483648))))\n (let (($x485 (<= lo__entry 2147483647)))\n (let (($x294 (>= lo__entry (- 2147483648))))\n (let (($x292 (<= mid__entry 2147483647)))\n (let (($x467 (>= mid__entry (- 2147483648))))\n (let ((?x381 (* 2 mid__pre)))\n (let (($x433 (= hi__entry ?x381)))\n (let (($x102 (= 0 lo__entry)))\n (let (($x344 (= mid__entry mid__pre)))\n (let (($x574 (<= mid__pre 1073741823)))\n (let (($x587 (>= mid__pre (- 1073741824))))\n (let (($x116 (>= 1000000 mid__pre)))\n (let (($x64 (<= mid__pre 0)))\n (let (($x499 (not $x64)))\n (let (($x216 (<= mid__pre 2147483647)))\n (let (($x317 (>= mid__pre (- 2147483648))))\n (and $x317 $x216 $x499 $x116 $x587 $x574 $x344 $x102 $x433 $x467 $x292 $x294 $x485 $x338 $x15 $x345 $x278 $x259 $x50 $x508 $x426 (or (<= 1 lo) (= 0 lo)) $x332 $x529 $x221 $x507 (>= hi lo) $x431 $x179 (>= 1000000 lo) $x287 (= hi (+ ?x231 lo)) (= (+ hi lo) ?x381) (<= (* 2 lo) ?x381) $x470 $x288 (= mid (ite (>= ?x421 0) ?x583 (* (- 1) ?x583))) (<= mid mid__pre) (<= lo ?x381) (= lo (+ ?x381 (* (- 1) hi))) (= hi (+ ?x381 ?x562))))))))))))))))))))))))))))))))))))))))\n(assert\n (let (($x172 (<= mid 0)))\n(and $x172 (not (or (<= mid__pre 0) (not (<= hi 0)))))))\n(check-sat)\n",
+    "sha256": "e067442f8a092a562d366ef8c3ee5431bfab320b63fc5fa231eda819a7e8bc76"
+  },
+  "non_contextual/goal_08_visible": {
+    "status": "sat",
+    "seconds": 0.00026596299721859396,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun hi () Int)\n(declare-fun mid () Int)\n(declare-fun lo () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(declare-fun mid__pre () Int)\n(assert\n (let (($x221 (<= 0 hi)))\n (let (($x179 (or (not (<= 0 mid)) $x221)))\n (let (($x29 (= lo hi)))\n (let (($x436 (or (not (= 0 mid)) $x29)))\n (let ((?x480 (* (- 1) hi)))\n (let ((?x408 (+ lo ?x480)))\n (let (($x493 (= ?x408 (* (- 2) mid))))\n (let (($x203 (<= hi 0)))\n (let (($x343 (not $x203)))\n (let (($x172 (<= mid 0)))\n (let (($x279 (or $x172 $x343)))\n (let (($x288 (>= mid 0)))\n (let (($x507 (>= 1000000 mid)))\n (let (($x309 (<= lo (+ hi (* 2 mid)))))\n (let ((?x231 (* 2 mid)))\n (let ((?x562 (* (- 1) lo)))\n (let ((?x421 (+ hi ?x562)))\n (let (($x431 (= ?x421 ?x231)))\n (let (($x47 (<= lo hi)))\n (let (($x332 (<= 0 mid)))\n (let (($x529 (<= 0 lo)))\n (let (($x426 (<= hi 2147483647)))\n (let (($x508 (>= hi (- 2147483648))))\n (let (($x50 (<= lo 2147483647)))\n (let (($x259 (>= lo (- 2147483648))))\n (let (($x278 (<= mid 2147483647)))\n (let (($x345 (>= mid (- 2147483648))))\n (let (($x15 (<= hi__entry 2147483647)))\n (let (($x338 (>= hi__entry (- 2147483648))))\n (let (($x485 (<= lo__entry 2147483647)))\n (let (($x294 (>= lo__entry (- 2147483648))))\n (let (($x292 (<= mid__entry 2147483647)))\n (let (($x467 (>= mid__entry (- 2147483648))))\n (let ((?x381 (* 2 mid__pre)))\n (let (($x433 (= hi__entry ?x381)))\n (let (($x102 (= 0 lo__entry)))\n (let (($x344 (= mid__entry mid__pre)))\n (let (($x574 (<= mid__pre 1073741823)))\n (let (($x587 (>= mid__pre (- 1073741824))))\n (let (($x116 (>= 1000000 mid__pre)))\n (let (($x64 (<= mid__pre 0)))\n (let (($x499 (not $x64)))\n (let (($x216 (<= mid__pre 2147483647)))\n (let (($x317 (>= mid__pre (- 2147483648))))\n (and $x317 $x216 $x499 $x116 $x587 $x574 $x344 $x102 $x433 $x467 $x292 $x294 $x485 $x338 $x15 $x345 $x278 $x259 $x50 $x508 $x426 $x529 $x332 $x221 $x47 $x431 $x309 $x507 $x288 $x279 $x493 $x436 $x179))))))))))))))))))))))))))))))))))))))))))))))\n(assert\n (let (($x172 (<= mid 0)))\n(and $x172 (not (or (<= mid__pre 0) (not (<= hi 0)))))))\n(check-sat)\n",
+    "sha256": "db26d4d920eff21df44d430ca906a84855a374449c1a38e3fac66d33b9150a1d",
+    "model": {
+      "hi__entry": "2",
+      "mid": "0",
+      "lo__entry": "0",
+      "mid__pre": "1",
+      "hi": "0",
+      "mid__entry": "1",
+      "lo": "0"
+    }
+  },
+  "non_contextual/goal_08_context": {
+    "status": "sat",
+    "seconds": 0.0002533389997552149,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun hi () Int)\n(declare-fun lo () Int)\n(declare-fun mid () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(declare-fun mid__pre () Int)\n(assert\n (let (($x426 (<= hi 2147483647)))\n (let (($x508 (>= hi (- 2147483648))))\n (let (($x50 (<= lo 2147483647)))\n (let (($x259 (>= lo (- 2147483648))))\n (let (($x278 (<= mid 2147483647)))\n (let (($x345 (>= mid (- 2147483648))))\n (let (($x15 (<= hi__entry 2147483647)))\n (let (($x338 (>= hi__entry (- 2147483648))))\n (let (($x485 (<= lo__entry 2147483647)))\n (let (($x294 (>= lo__entry (- 2147483648))))\n (let (($x292 (<= mid__entry 2147483647)))\n (let (($x467 (>= mid__entry (- 2147483648))))\n (let ((?x381 (* 2 mid__pre)))\n (let (($x433 (= hi__entry ?x381)))\n (let (($x102 (= 0 lo__entry)))\n (let (($x344 (= mid__entry mid__pre)))\n (let (($x574 (<= mid__pre 1073741823)))\n (let (($x587 (>= mid__pre (- 1073741824))))\n (let (($x116 (>= 1000000 mid__pre)))\n (let (($x64 (<= mid__pre 0)))\n (let (($x499 (not $x64)))\n (let (($x216 (<= mid__pre 2147483647)))\n (let (($x317 (>= mid__pre (- 2147483648))))\n (and $x317 $x216 $x499 $x116 $x587 $x574 $x344 $x102 $x433 $x467 $x292 $x294 $x485 $x338 $x15 $x345 $x278 $x259 $x50 $x508 $x426)))))))))))))))))))))))))\n(assert\n (let (($x172 (<= mid 0)))\n(and $x172 (not (or (<= mid__pre 0) (not (<= hi 0)))))))\n(check-sat)\n",
+    "sha256": "e6920cd6bfa5be50de86c5b0935360e1f580932331e606f96441454a6a62dadf",
+    "model": {
+      "hi__entry": "2",
+      "mid": "-1",
+      "lo__entry": "0",
+      "mid__pre": "1",
+      "hi": "0",
+      "mid__entry": "1",
+      "lo": "0"
+    }
+  },
+  "exit_context/hidden_nonvacuity": {
+    "status": "sat",
+    "seconds": 0.0003785959997912869,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun lo () Int)\n(declare-fun mid__pre () Int)\n(declare-fun hi () Int)\n(declare-fun mid () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(assert\n (let (($x632 (= hi (+ (* 2 mid__pre) (* (- 1) lo)))))\n (let (($x156 (= lo (+ (* 2 mid__pre) (* (- 1) hi)))))\n (let ((?x366 (* 2 mid__pre)))\n (let (($x608 (<= lo ?x366)))\n (let (($x384 (<= mid mid__pre)))\n (let ((?x416 (* (- 1) lo)))\n (let ((?x609 (+ hi ?x416)))\n (let ((?x362 (div (ite (<= ?x609 0) (+ (* (- 1) hi) lo) ?x609) 2)))\n (let (($x626 (= mid (ite (>= ?x609 0) ?x362 (* (- 1) ?x362)))))\n (let (($x106 (>= mid 0)))\n (let (($x425 (<= lo 2000000)))\n (let (($x258 (<= (* 2 lo) ?x366)))\n (let (($x352 (= (+ hi lo) ?x366)))\n (let (($x347 (= hi (+ (* 2 mid) lo))))\n (let (($x575 (<= hi 2000000)))\n (let (($x611 (>= 1000000 lo)))\n (let (($x34 (<= 0 hi)))\n (let (($x607 (or (not (<= 0 mid)) $x34)))\n (let ((?x545 (* 2 mid)))\n (let (($x39 (= ?x609 ?x545)))\n (let (($x282 (>= hi lo)))\n (let (($x528 (>= 1000000 mid)))\n (let (($x336 (<= 0 lo)))\n (let (($x214 (<= 0 mid)))\n (let (($x637 (= 0 lo)))\n (let (($x453 (or (<= 1 lo) $x637)))\n (let (($x327 (<= hi 2147483647)))\n (let (($x466 (>= hi (- 2147483648))))\n (let (($x44 (<= lo 2147483647)))\n (let (($x298 (>= lo (- 2147483648))))\n (let (($x304 (<= mid 2147483647)))\n (let (($x638 (>= mid (- 2147483648))))\n (let (($x428 (<= hi__entry 2147483647)))\n (let (($x531 (>= hi__entry (- 2147483648))))\n (let (($x248 (<= lo__entry 2147483647)))\n (let (($x67 (>= lo__entry (- 2147483648))))\n (let (($x305 (<= mid__entry 2147483647)))\n (let (($x618 (>= mid__entry (- 2147483648))))\n (let (($x394 (= hi__entry ?x366)))\n (let (($x349 (= 0 lo__entry)))\n (let (($x341 (= mid__entry mid__pre)))\n (let (($x57 (<= mid__pre 1073741823)))\n (let (($x25 (>= mid__pre (- 1073741824))))\n (let (($x64 (>= 1000000 mid__pre)))\n (let (($x314 (<= mid__pre 0)))\n (let (($x169 (not $x314)))\n (let (($x571 (<= mid__pre 2147483647)))\n (let (($x92 (>= mid__pre (- 2147483648))))\n (and $x92 $x571 $x169 $x64 $x25 $x57 $x341 $x349 $x394 $x618 $x305 $x67 $x248 $x531 $x428 $x638 $x304 $x298 $x44 $x466 $x327 $x453 $x214 $x336 $x34 $x528 $x282 $x39 $x607 $x611 $x575 $x347 $x352 $x258 $x425 $x106 $x626 $x384 $x608 $x156 $x632))))))))))))))))))))))))))))))))))))))))))))))))))\n(assert\n (<= mid 0))\n(check-sat)\n",
+    "sha256": "fca12246201d65e7968a1f3f6a2bf6a545cabd9015dc5bf11d31f8833b6a5fbe",
+    "model": {
+      "hi__entry": "2",
+      "mid": "0",
+      "lo__entry": "0",
+      "mid__pre": "1",
+      "hi": "1",
+      "mid__entry": "1",
+      "lo": "1"
+    }
+  },
+  "exit_context/visible_nonvacuity": {
+    "status": "sat",
+    "seconds": 0.00026474100013729185,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun hi () Int)\n(declare-fun mid () Int)\n(declare-fun lo () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(declare-fun mid__pre () Int)\n(assert\n (let (($x34 (<= 0 hi)))\n (let (($x607 (or (not (<= 0 mid)) $x34)))\n (let (($x507 (= lo hi)))\n (let (($x560 (or (not (= 0 mid)) $x507)))\n (let ((?x598 (* (- 2) mid)))\n (let ((?x225 (* (- 1) hi)))\n (let ((?x288 (+ lo ?x225)))\n (let (($x636 (= ?x288 ?x598)))\n (let (($x435 (<= mid 0)))\n (let (($x479 (or $x435 (not (<= hi 0)))))\n (let (($x106 (>= mid 0)))\n (let (($x528 (>= 1000000 mid)))\n (let (($x238 (<= lo (+ hi (* 2 mid)))))\n (let ((?x545 (* 2 mid)))\n (let ((?x416 (* (- 1) lo)))\n (let ((?x609 (+ hi ?x416)))\n (let (($x39 (= ?x609 ?x545)))\n (let (($x586 (<= lo hi)))\n (let (($x214 (<= 0 mid)))\n (let (($x336 (<= 0 lo)))\n (let (($x327 (<= hi 2147483647)))\n (let (($x466 (>= hi (- 2147483648))))\n (let (($x44 (<= lo 2147483647)))\n (let (($x298 (>= lo (- 2147483648))))\n (let (($x304 (<= mid 2147483647)))\n (let (($x638 (>= mid (- 2147483648))))\n (let (($x428 (<= hi__entry 2147483647)))\n (let (($x531 (>= hi__entry (- 2147483648))))\n (let (($x248 (<= lo__entry 2147483647)))\n (let (($x67 (>= lo__entry (- 2147483648))))\n (let (($x305 (<= mid__entry 2147483647)))\n (let (($x618 (>= mid__entry (- 2147483648))))\n (let ((?x366 (* 2 mid__pre)))\n (let (($x394 (= hi__entry ?x366)))\n (let (($x349 (= 0 lo__entry)))\n (let (($x341 (= mid__entry mid__pre)))\n (let (($x57 (<= mid__pre 1073741823)))\n (let (($x25 (>= mid__pre (- 1073741824))))\n (let (($x64 (>= 1000000 mid__pre)))\n (let (($x314 (<= mid__pre 0)))\n (let (($x169 (not $x314)))\n (let (($x571 (<= mid__pre 2147483647)))\n (let (($x92 (>= mid__pre (- 2147483648))))\n (and $x92 $x571 $x169 $x64 $x25 $x57 $x341 $x349 $x394 $x618 $x305 $x67 $x248 $x531 $x428 $x638 $x304 $x298 $x44 $x466 $x327 $x336 $x214 $x34 $x586 $x39 $x238 $x528 $x106 $x479 $x636 $x560 $x607)))))))))))))))))))))))))))))))))))))))))))))\n(assert\n (<= mid 0))\n(check-sat)\n",
+    "sha256": "8a61313e6e2d16ee142721689089684f9b4ea5570e8a3d31d5a4b60ee8cee0fb",
+    "model": {
+      "hi__entry": "2",
+      "mid": "0",
+      "lo__entry": "0",
+      "mid__pre": "1",
+      "hi": "0",
+      "mid__entry": "1",
+      "lo": "0"
+    }
+  },
+  "exit_context/context_nonvacuity": {
+    "status": "sat",
+    "seconds": 0.00021609900431940332,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun hi () Int)\n(declare-fun lo () Int)\n(declare-fun mid () Int)\n(declare-fun hi__entry () Int)\n(declare-fun lo__entry () Int)\n(declare-fun mid__entry () Int)\n(declare-fun mid__pre () Int)\n(assert\n (let (($x327 (<= hi 2147483647)))\n (let (($x466 (>= hi (- 2147483648))))\n (let (($x44 (<= lo 2147483647)))\n (let (($x298 (>= lo (- 2147483648))))\n (let (($x304 (<= mid 2147483647)))\n (let (($x638 (>= mid (- 2147483648))))\n (let (($x428 (<= hi__entry 2147483647)))\n (let (($x531 (>= hi__entry (- 2147483648))))\n (let (($x248 (<= lo__entry 2147483647)))\n (let (($x67 (>= lo__entry (- 2147483648))))\n (let (($x305 (<= mid__entry 2147483647)))\n (let (($x618 (>= mid__entry (- 2147483648))))\n (let ((?x366 (* 2 mid__pre)))\n (let (($x394 (= hi__entry ?x366)))\n (let (($x349 (= 0 lo__entry)))\n (let (($x341 (= mid__entry mid__pre)))\n (let (($x57 (<= mid__pre 1073741823)))\n (let (($x25 (>= mid__pre (- 1073741824))))\n (let (($x64 (>= 1000000 mid__pre)))\n (let (($x314 (<= mid__pre 0)))\n (let (($x169 (not $x314)))\n (let (($x571 (<= mid__pre 2147483647)))\n (let (($x92 (>= mid__pre (- 2147483648))))\n (and $x92 $x571 $x169 $x64 $x25 $x57 $x341 $x349 $x394 $x618 $x305 $x67 $x248 $x531 $x428 $x638 $x304 $x298 $x44 $x466 $x327)))))))))))))))))))))))))\n(assert\n (<= mid 0))\n(check-sat)\n",
+    "sha256": "fa26751d07c085b3d22864d8c375f86ddf34b291c24f74cb9fa42f999714743b",
+    "model": {
+      "hi__entry": "2",
+      "mid": "0",
+      "lo__entry": "0",
+      "mid__pre": "1",
+      "hi": "0",
+      "mid__entry": "1",
+      "lo": "0"
+    }
+  }
+}

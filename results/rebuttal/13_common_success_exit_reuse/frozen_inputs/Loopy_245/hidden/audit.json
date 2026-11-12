@@ -1,0 +1,84 @@
+{
+  "key": "Loopy_245",
+  "k": 16,
+  "source_path": "/tmp/craft16_minimal_20261107_v2/sources/Loopy_245.original.c",
+  "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/Loopy_245.json",
+  "source_sha256": "b0e7f7090d601b90532699238df8176c3a59994012dbc42476300427efd0772d",
+  "verification_sha256": "b423c36d7dd60445badb8c087bc77d67519a204798ae46b3bd07e3ff91a13135",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "Loopy",
+  "original_verified": true,
+  "survivor_count": 27,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "x": "1",
+        "y__pre": "0",
+        "x__entry": "1",
+        "y__entry": "0",
+        "y": "0"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "x": "3",
+        "y__pre": "1",
+        "x__entry": "1",
+        "y__entry": "1",
+        "y": "1"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "x": "0",
+        "y__pre": "0",
+        "x__entry": "1",
+        "y__entry": "0",
+        "y": "0"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "unknown_reachability",
+    "attempts": [
+      {
+        "variable": "x",
+        "direction": 1,
+        "status": "sat"
+      },
+      {
+        "variable": "x",
+        "direction": -1,
+        "status": "sat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "y": "i",
+    "x": "i"
+  },
+  "frame_variables": [
+    "y"
+  ],
+  "proof_queries_sha256": "e42d36ef1a9dd4c4b510ab8f60fdfaaf74da178661035880cf2761e56fd55631",
+  "seconds": 1.5057130830246024
+}

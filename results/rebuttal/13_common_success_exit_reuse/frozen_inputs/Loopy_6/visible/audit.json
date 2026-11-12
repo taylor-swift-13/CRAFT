@@ -1,0 +1,80 @@
+{
+  "key": "Loopy_6",
+  "k": 16,
+  "source_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/Loopy_6.original.c",
+  "verification_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/Loopy_6.json",
+  "source_sha256": "e21bb1cd1a9cbc2b2204b69b9f5725078391906baf649e57c8bd1deddc7ddad7",
+  "verification_sha256": "b3826a741daf8b9086fb6baef1b396ef121fa951c0170eaf19d0f5363344571d",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "Loopy",
+  "original_verified": true,
+  "survivor_count": 19,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "path-safety obligation",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "x": "9999",
+        "y": "9999",
+        "x__entry": "0",
+        "y__entry": "0",
+        "y__pre": "0"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "x": "0",
+        "y__pre": "0",
+        "y": "-1",
+        "x__entry": "0",
+        "y__entry": "0"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "x": "10000",
+        "y__pre": "0",
+        "y": "-1",
+        "x__entry": "0",
+        "y__entry": "0"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "x",
+    "rank_direction": 1,
+    "attempts": [
+      {
+        "variable": "x",
+        "direction": 1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "y": "i",
+    "x": "i"
+  },
+  "frame_variables": [],
+  "proof_queries_sha256": "1c24318e3a33d9bd6477379eeff1e4010e312f1934a4401abbe0ad5152a52129",
+  "seconds": 1.0974171989946626
+}

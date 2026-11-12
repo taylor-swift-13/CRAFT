@@ -1,0 +1,71 @@
+{
+  "key": "linear_30",
+  "k": 16,
+  "source_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/linear_30.original.c",
+  "verification_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/linear_30.json",
+  "source_sha256": "908c3834559e7597f1acafef2f6b2d116921e95c3966525194f31138cdff7f12",
+  "verification_sha256": "025efc291c8ac25db54e8f123723f7a781c7cd0e07395a5ddd167e0bb9593e6f",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "linear",
+  "original_verified": true,
+  "survivor_count": 20,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "target_equivalent",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "x__entry": "100",
+        "x": "0"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "unsat"
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "x": "-2147483648",
+        "x__entry": "100"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "x",
+    "rank_direction": -1,
+    "attempts": [
+      {
+        "variable": "x",
+        "direction": 1,
+        "status": "sat"
+      },
+      {
+        "variable": "x",
+        "direction": -1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "x": "i"
+  },
+  "frame_variables": [],
+  "proof_queries_sha256": "59d7b98899ccf821df3b4946b01c0c4e053d5747a44affd538f6af379e0fb3d6",
+  "seconds": 0.3616117289639078
+}

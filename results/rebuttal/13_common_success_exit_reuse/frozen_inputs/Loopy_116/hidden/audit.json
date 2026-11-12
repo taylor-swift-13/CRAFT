@@ -1,0 +1,94 @@
+{
+  "key": "Loopy_116",
+  "k": 16,
+  "source_path": "/tmp/craft16_minimal_20261107_v2/sources/Loopy_116.original.c",
+  "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/Loopy_116.json",
+  "source_sha256": "c76a0920d3a3448fb8cb716522913397470927d2a331dc39c7f1f76d3df94348",
+  "verification_sha256": "7e0429355ecf5538da956af38667df4f684f4d9e41a5bb097cb1b03b10faed90",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "Loopy",
+  "original_verified": true,
+  "survivor_count": 41,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "target_equivalent",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "x": "0",
+        "input__pre": "0",
+        "n__pre": "1",
+        "input": "-1",
+        "x__entry": "0",
+        "n__entry": "1",
+        "input__entry": "0",
+        "n": "1"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "unsat"
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "x": "1",
+        "input__pre": "0",
+        "n__pre": "1",
+        "input": "-1",
+        "x__entry": "0",
+        "n__entry": "1",
+        "input__entry": "0",
+        "n": "1"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "unknown_reachability",
+    "attempts": [
+      {
+        "variable": "input",
+        "direction": 1,
+        "status": "sat"
+      },
+      {
+        "variable": "input",
+        "direction": -1,
+        "status": "sat"
+      },
+      {
+        "variable": "x",
+        "direction": 1,
+        "status": "sat"
+      },
+      {
+        "variable": "x",
+        "direction": -1,
+        "status": "sat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "n": "i",
+    "input": "i",
+    "x": "i"
+  },
+  "frame_variables": [
+    "n"
+  ],
+  "proof_queries_sha256": "f182e0620a8f12df9f186242b0f5b9328352c872bda6f8c13b183aa12541be83",
+  "seconds": 0.5808886410086416
+}

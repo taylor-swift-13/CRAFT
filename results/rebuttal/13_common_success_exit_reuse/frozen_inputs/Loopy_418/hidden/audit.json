@@ -1,0 +1,75 @@
+{
+  "key": "Loopy_418",
+  "k": 16,
+  "source_path": "/tmp/craft16_minimal_20261107_v2/sources/Loopy_418.original.c",
+  "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/Loopy_418.json",
+  "source_sha256": "d9e8af39952fe69f3137da96deee72f85af7cb9ab738ad40a8f486fd8cac12a0",
+  "verification_sha256": "ea3309b1a55a0808d600bc5d346353b6511b752dc2ed5c2b62be1e4d7d1cc5d6",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "Loopy",
+  "original_verified": true,
+  "survivor_count": 17,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "x": "1",
+        "x__pre": "1",
+        "x__entry": "1"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "x": "3",
+        "x__pre": "1",
+        "x__entry": "1"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "x": "9",
+        "x__pre": "1",
+        "x__entry": "1"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "unknown_reachability",
+    "attempts": [
+      {
+        "variable": "x",
+        "direction": 1,
+        "status": "sat"
+      },
+      {
+        "variable": "x",
+        "direction": -1,
+        "status": "sat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "x": "i"
+  },
+  "frame_variables": [],
+  "proof_queries_sha256": "7fd558030a803fa43cb8cc0775756ab29ab47f136017fd1dc7eccd2aadefa68a",
+  "seconds": 0.29985326301539317
+}

@@ -1,0 +1,227 @@
+{
+  "key": "Loopy_385",
+  "suite": "Loopy",
+  "case_id": "385",
+  "fingerprint": "ee1b18f11b01b79a1975a5b57a68eb9fe0aa04221156326cff4a24de32500589",
+  "generation_sha256": "1e6d74b1257e00a986e604c5d2020465094ff266885943b60262eedcfed1ff1c",
+  "status": "complete",
+  "started_utc": "2026-11-07T07:54:52.752048+00:00",
+  "verified": true,
+  "rollouts": [
+    [
+      "0 <= i",
+      "i <= i + j",
+      "k >= 0",
+      "i == k * 1 + (i - k)",
+      "0 <= k",
+      "i <= LARGE_INT * k",
+      "0 <= j",
+      "k <= i",
+      "i == k * (i / max(1, k))"
+    ],
+    [
+      "0 <= i",
+      "i <= LARGE_INT",
+      "k >= 0",
+      "i + (LARGE_INT - 1) * k <= LARGE_INT * k + i",
+      "k == (i / 1) - 0"
+    ],
+    [
+      "0 <= i",
+      "0 <= k",
+      "i <= LARGE_INT",
+      "k >= 0",
+      "i == k * 1 * 0 + i"
+    ],
+    [
+      "0 <= i",
+      "i <= LARGE_INT",
+      "0 <= k",
+      "i == k * (average of j) ?"
+    ],
+    [
+      "0 <= i",
+      "i <= LARGE_INT",
+      "k >= 0",
+      "i == k * 0 + i"
+    ],
+    [
+      "0 <= i",
+      "i <= LARGE_INT",
+      "k >= 0",
+      "i == k * 0 + i"
+    ],
+    [
+      "0 <= i",
+      "i <= LARGE_INT",
+      "k >= 0",
+      "i == k * 0 + i",
+      "i + (LARGE_INT - 1) * k >= 0",
+      "k <= LARGE_INT",
+      "0 <= k <= LARGE_INT",
+      "0 <= i && i <= LARGE_INT",
+      "(i == sum_{t=0}^{k-1} j_t) ==> true",
+      "k >= 0 && k <= LARGE_INT",
+      "i <= LARGE_INT",
+      "i >= k",
+      "k <= i",
+      "0 <= i"
+    ],
+    [
+      "0 <= i",
+      "i <= LARGE_INT",
+      "k >= 0",
+      "i == k * 0 + i"
+    ],
+    [
+      "0 <= i",
+      "i <= LARGE_INT",
+      "k >= 0",
+      "0 <= k",
+      "i + (LARGE_INT - 0) * (0 == 0) == i"
+    ],
+    [
+      "0 <= i",
+      "i <= LARGE_INT",
+      "k >= 0",
+      "i + (LARGE_INT - 1) * k <= LARGE_INT * LARGE_INT",
+      "k == 0 ==> i == 0",
+      "1 <= j <= LARGE_INT ==> i == (/* unknown: placeholder as j var not tracked */ i)",
+      "i == 0 ==> k == 0",
+      "i >= k",
+      "k <= LARGE_INT / 1",
+      "i <= LARGE_INT",
+      "i >= 0"
+    ],
+    [
+      "0 <= i",
+      "k >= 0",
+      "i <= LARGE_INT * k",
+      "k <= LARGE_INT",
+      "i + (LARGE_INT - 1) * k == LARGE_INT * k",
+      "k > 0 ==> i >= k",
+      "i <= LARGE_INT",
+      "k <= LARGE_INT",
+      "0 <= i && i + (LARGE_INT - 1) * k <= LARGE_INT * k",
+      "(k == 0) ==> (i == 0)",
+      "(k > 0) ==> (i >= k)"
+    ],
+    [
+      "i >= 0",
+      "k >= 0",
+      "i <= LARGE_INT * k",
+      "k >= 0",
+      "0 <= i && i <= LARGE_INT * k",
+      "k >= 1 ==> i > 0",
+      "i == k * (i / k) || true"
+    ],
+    [
+      "0 <= i",
+      "i <= LARGE_INT",
+      "k >= 0",
+      "i + (LARGE_INT - 1) * k >= i",
+      "i <= LARGE_INT",
+      "k <= LARGE_INT"
+    ],
+    [
+      "0 <= i",
+      "0 <= k",
+      "i <= LARGE_INT",
+      "k >= 0",
+      "i + k <= LARGE_INT * (LARGE_INT > 0 ? 1 : 0)"
+    ],
+    [
+      "0 <= i",
+      "i <= LARGE_INT",
+      "k >= 0",
+      "0 <= k",
+      "i == k * 0 + i"
+    ],
+    [
+      "0 <= i",
+      "i <= LARGE_INT",
+      "k >= 0",
+      "i == k * 0 + i"
+    ]
+  ],
+  "union": [
+    "0 <= i",
+    "i <= i + j",
+    "k >= 0",
+    "i == k * 1 + (i - k)",
+    "i <= LARGE_INT * k",
+    "0 <= j",
+    "k <= i",
+    "i == k * (i / max(1, k))",
+    "i <= LARGE_INT",
+    "i + (LARGE_INT - 1) * k <= LARGE_INT * k + i",
+    "k == (i / 1) - 0",
+    "i == k * 1 * 0 + i",
+    "i == k * (average of j) ?",
+    "i + (LARGE_INT - 1) * k >= 0",
+    "k <= LARGE_INT",
+    "0 <= k <= LARGE_INT",
+    "0 <= i && i <= LARGE_INT",
+    "(i == sum_{t=0}^{k-1} j_t) ==> true",
+    "i + (LARGE_INT - 0) * (0 == 0) == i",
+    "i + (LARGE_INT - 1) * k <= LARGE_INT * LARGE_INT",
+    "k == 0 ==> i == 0",
+    "1 <= j <= LARGE_INT ==> i == (/* unknown: placeholder as j var not tracked */ i)",
+    "i == 0 ==> k == 0",
+    "k <= LARGE_INT / 1",
+    "i + (LARGE_INT - 1) * k == LARGE_INT * k",
+    "k > 0 ==> i >= k",
+    "0 <= i && i + (LARGE_INT - 1) * k <= LARGE_INT * k",
+    "0 <= i && i <= LARGE_INT * k",
+    "k >= 1 ==> i > 0",
+    "i == k * (i / k) || true",
+    "i + (LARGE_INT - 1) * k >= i",
+    "i + k <= LARGE_INT * (LARGE_INT > 0 ? 1 : 0)"
+  ],
+  "survivors": [
+    "0 <= i",
+    "k >= 0",
+    "i == k * 1 + (i - k)",
+    "i <= LARGE_INT * k",
+    "k <= i",
+    "i + (LARGE_INT - 1) * k <= LARGE_INT * k + i",
+    "i == k * 1 * 0 + i",
+    "i + (LARGE_INT - 1) * k >= 0",
+    "k <= LARGE_INT",
+    "0 <= k <= LARGE_INT",
+    "k == 0 ==> i == 0",
+    "i == 0 ==> k == 0",
+    "k <= LARGE_INT / 1",
+    "k > 0 ==> i >= k",
+    "0 <= i && i <= LARGE_INT * k",
+    "k >= 1 ==> i > 0",
+    "i + (LARGE_INT - 1) * k >= i"
+  ],
+  "judgment": {
+    "verified": true,
+    "judge_error": null,
+    "judge_seconds": 3.7104903209838085,
+    "invariants": [
+      "0 <= i",
+      "k >= 0",
+      "i == k * 1 + (i - k)",
+      "i <= LARGE_INT * k",
+      "k <= i",
+      "i + (LARGE_INT - 1) * k <= LARGE_INT * k + i",
+      "i == k * 1 * 0 + i",
+      "i + (LARGE_INT - 1) * k >= 0",
+      "k <= LARGE_INT",
+      "0 <= k <= LARGE_INT",
+      "k == 0 ==> i == 0",
+      "i == 0 ==> k == 0",
+      "k <= LARGE_INT / 1",
+      "k > 0 ==> i >= k",
+      "0 <= i && i <= LARGE_INT * k",
+      "k >= 1 ==> i > 0",
+      "i + (LARGE_INT - 1) * k >= i"
+    ],
+    "invariant_count": 17
+  },
+  "seconds": 49.222950906987535,
+  "updated_utc": "2026-11-07T07:55:41.975282+00:00"
+}

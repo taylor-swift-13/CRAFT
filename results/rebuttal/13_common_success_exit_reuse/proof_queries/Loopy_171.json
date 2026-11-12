@@ -1,0 +1,126 @@
+{
+  "non_contextual/hidden_redundancy_00": {
+    "status": "sat",
+    "seconds": 0.00030233200232032686,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun x () Int)\n(declare-fun y () Int)\n(declare-fun y__entry () Int)\n(declare-fun x__entry () Int)\n(declare-fun abstract_div_0 () Int)\n(assert\n (let (($x417 (= 0 x)))\n (let (($x364 (or (<= 2 y) $x417)))\n (let (($x424 (<= y 0)))\n (let (($x117 (not $x424)))\n (let (($x508 (or $x117 (<= 6 x))))\n (let (($x59 (>= 6 x)))\n (let (($x111 (or $x417 $x59)))\n (let (($x193 (= 6 x)))\n (let (($x357 (= 1 x)))\n (let (($x121 (or $x417 $x357 (= 2 x) (= 3 x) (= 4 x) (= 5 x) $x193)))\n (let (($x368 (= 64 y)))\n (let (($x355 (or (not $x193) $x368)))\n (let (($x462 (= 1 y)))\n (let (($x414 (or (not $x417) $x462)))\n (let (($x150 (<= 1 y)))\n (let (($x388 (<= 0 x)))\n (let (($x99 (<= y 4294967295)))\n (let (($x469 (>= y 0)))\n (let (($x386 (<= x 4294967295)))\n (let (($x252 (>= x 0)))\n (let (($x295 (<= y__entry 4294967295)))\n (let (($x223 (>= y__entry 0)))\n (let (($x30 (<= x__entry 4294967295)))\n (let (($x366 (>= x__entry 0)))\n (let (($x495 (= 1 y__entry)))\n (let (($x242 (= 0 x__entry)))\n (and $x242 $x495 $x366 $x30 $x223 $x295 $x252 $x386 $x469 $x99 $x59 $x388 $x150 $x414 $x355 $x121 $x111 $x508 $x364))))))))))))))))))))))))))))\n(assert\n (let (($x95 (= y abstract_div_0)))\n(not $x95)))\n(check-sat)\n",
+    "sha256": "aa3040efe7f32332ef8e30f107fa7b9dd8d92ab8a4cdfaacc64d2e11b0648527",
+    "model": {
+      "y": "1",
+      "x": "0",
+      "abstract_div_0": "7",
+      "y__entry": "1",
+      "x__entry": "0"
+    }
+  },
+  "non_contextual/hidden_nonvacuity": {
+    "status": "sat",
+    "seconds": 0.0006254040054045618,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun x () Int)\n(declare-fun y () Int)\n(declare-fun y__entry () Int)\n(declare-fun x__entry () Int)\n(assert\n (let (($x417 (= 0 x)))\n (let (($x364 (or (<= 2 y) $x417)))\n (let (($x424 (<= y 0)))\n (let (($x117 (not $x424)))\n (let (($x508 (or $x117 (<= 6 x))))\n (let (($x59 (>= 6 x)))\n (let (($x111 (or $x417 $x59)))\n (let (($x193 (= 6 x)))\n (let (($x357 (= 1 x)))\n (let (($x121 (or $x417 $x357 (= 2 x) (= 3 x) (= 4 x) (= 5 x) $x193)))\n (let (($x368 (= 64 y)))\n (let (($x355 (or (not $x193) $x368)))\n (let (($x462 (= 1 y)))\n (let (($x414 (or (not $x417) $x462)))\n (let (($x150 (<= 1 y)))\n (let (($x388 (<= 0 x)))\n (let (($x99 (<= y 4294967295)))\n (let (($x469 (>= y 0)))\n (let (($x386 (<= x 4294967295)))\n (let (($x252 (>= x 0)))\n (let (($x295 (<= y__entry 4294967295)))\n (let (($x223 (>= y__entry 0)))\n (let (($x30 (<= x__entry 4294967295)))\n (let (($x366 (>= x__entry 0)))\n (let (($x495 (= 1 y__entry)))\n (let (($x242 (= 0 x__entry)))\n (and $x242 $x495 $x366 $x30 $x223 $x295 $x252 $x386 $x469 $x99 $x59 $x388 $x150 $x414 $x355 $x121 $x111 $x508 $x364))))))))))))))))))))))))))))\n(assert\n (let ((?x411 (mod x 4294967296)))\n(<= 6 ?x411)))\n(check-sat)\n",
+    "sha256": "fa85e4c4972c4698480bb0238258679e7109b638431ade4ee06179ea97c35288",
+    "model": {
+      "y": "64",
+      "x": "6",
+      "y__entry": "1",
+      "x__entry": "0"
+    }
+  },
+  "non_contextual/visible_redundancy_11": {
+    "status": "sat",
+    "seconds": 0.00026724499912234023,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun y () Int)\n(declare-fun x () Int)\n(declare-fun y__entry () Int)\n(declare-fun x__entry () Int)\n(declare-fun abstract_div_0 () Int)\n(assert\n (let (($x424 (<= y 0)))\n (let ((?x358 (ite $x424 (* (- 1) y) y)))\n (let (($x469 (>= y 0)))\n (let (($x113 (= 0 (+ y (* (- 1) (ite $x469 ?x358 (* (- 1) ?x358)))))))\n (let (($x400 (<= x 6)))\n (let (($x117 (not $x424)))\n (let (($x265 (<= 6 x)))\n (let (($x508 (or $x117 $x265)))\n (let (($x368 (= 64 y)))\n (let (($x355 (or (not (= 6 x)) $x368)))\n (let (($x27 (= (ite (= 0 x) 1 0) (ite (= 1 y) 1 0))))\n (let (($x253 (or $x265 $x469)))\n (let (($x462 (= 1 y)))\n (let (($x414 (or (not (= 0 x)) $x462)))\n (let (($x193 (= 6 x)))\n (let (($x357 (= 1 x)))\n (let (($x417 (= 0 x)))\n (let (($x121 (or $x417 $x357 (= 2 x) (= 3 x) (= 4 x) (= 5 x) $x193)))\n (let (($x59 (>= 6 x)))\n (let (($x150 (<= 1 y)))\n (let (($x388 (<= 0 x)))\n (let (($x99 (<= y 4294967295)))\n (let (($x386 (<= x 4294967295)))\n (let (($x252 (>= x 0)))\n (let (($x295 (<= y__entry 4294967295)))\n (let (($x223 (>= y__entry 0)))\n (let (($x30 (<= x__entry 4294967295)))\n (let (($x366 (>= x__entry 0)))\n (let (($x495 (= 1 y__entry)))\n (let (($x242 (= 0 x__entry)))\n (and $x242 $x495 $x366 $x30 $x223 $x295 $x252 $x386 $x469 $x99 $x388 $x150 $x59 $x121 $x414 $x253 $x27 $x355 $x508 $x117 $x400 $x113))))))))))))))))))))))))))))))))\n(assert\n (let (($x95 (= y abstract_div_0)))\n(not $x95)))\n(check-sat)\n",
+    "sha256": "4ee7db26742944666b3fdec20b4f7795d17eeae27d7b45bed63f7a4db37c8a1b",
+    "model": {
+      "y": "1",
+      "x": "0",
+      "abstract_div_0": "7",
+      "y__entry": "1",
+      "x__entry": "0"
+    }
+  },
+  "non_contextual/visible_nonvacuity": {
+    "status": "sat",
+    "seconds": 0.0004901970023638569,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun y () Int)\n(declare-fun x () Int)\n(declare-fun y__entry () Int)\n(declare-fun x__entry () Int)\n(assert\n (let (($x424 (<= y 0)))\n (let ((?x358 (ite $x424 (* (- 1) y) y)))\n (let (($x469 (>= y 0)))\n (let (($x113 (= 0 (+ y (* (- 1) (ite $x469 ?x358 (* (- 1) ?x358)))))))\n (let (($x400 (<= x 6)))\n (let (($x117 (not $x424)))\n (let (($x265 (<= 6 x)))\n (let (($x508 (or $x117 $x265)))\n (let (($x368 (= 64 y)))\n (let (($x355 (or (not (= 6 x)) $x368)))\n (let (($x27 (= (ite (= 0 x) 1 0) (ite (= 1 y) 1 0))))\n (let (($x253 (or $x265 $x469)))\n (let (($x462 (= 1 y)))\n (let (($x414 (or (not (= 0 x)) $x462)))\n (let (($x193 (= 6 x)))\n (let (($x357 (= 1 x)))\n (let (($x417 (= 0 x)))\n (let (($x121 (or $x417 $x357 (= 2 x) (= 3 x) (= 4 x) (= 5 x) $x193)))\n (let (($x59 (>= 6 x)))\n (let (($x150 (<= 1 y)))\n (let (($x388 (<= 0 x)))\n (let (($x99 (<= y 4294967295)))\n (let (($x386 (<= x 4294967295)))\n (let (($x252 (>= x 0)))\n (let (($x295 (<= y__entry 4294967295)))\n (let (($x223 (>= y__entry 0)))\n (let (($x30 (<= x__entry 4294967295)))\n (let (($x366 (>= x__entry 0)))\n (let (($x495 (= 1 y__entry)))\n (let (($x242 (= 0 x__entry)))\n (and $x242 $x495 $x366 $x30 $x223 $x295 $x252 $x386 $x469 $x99 $x388 $x150 $x59 $x121 $x414 $x253 $x27 $x355 $x508 $x117 $x400 $x113))))))))))))))))))))))))))))))))\n(assert\n (let ((?x411 (mod x 4294967296)))\n(<= 6 ?x411)))\n(check-sat)\n",
+    "sha256": "37a0f13f9291b284b6de1277afbc9be9dab6478d73d382e952c4ce6b2c6462d8",
+    "model": {
+      "y": "64",
+      "x": "6",
+      "y__entry": "1",
+      "x__entry": "0"
+    }
+  },
+  "non_contextual/context_nonvacuity": {
+    "status": "sat",
+    "seconds": 0.0003505830027279444,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun y () Int)\n(declare-fun x () Int)\n(declare-fun y__entry () Int)\n(declare-fun x__entry () Int)\n(assert\n (let (($x99 (<= y 4294967295)))\n (let (($x469 (>= y 0)))\n (let (($x386 (<= x 4294967295)))\n (let (($x252 (>= x 0)))\n (let (($x295 (<= y__entry 4294967295)))\n (let (($x223 (>= y__entry 0)))\n (let (($x30 (<= x__entry 4294967295)))\n (let (($x366 (>= x__entry 0)))\n (let (($x495 (= 1 y__entry)))\n (let (($x242 (= 0 x__entry)))\n (and $x242 $x495 $x366 $x30 $x223 $x295 $x252 $x386 $x469 $x99))))))))))))\n(assert\n (let ((?x411 (mod x 4294967296)))\n(<= 6 ?x411)))\n(check-sat)\n",
+    "sha256": "3e15999a3970880282363abc68844ab2f88750902ad6e03cd479dcd16f1360b0",
+    "model": {
+      "y": "0",
+      "x": "6",
+      "y__entry": "1",
+      "x__entry": "0"
+    }
+  },
+  "exit_context/hidden_redundancy_00": {
+    "status": "sat",
+    "seconds": 0.00035077400389127433,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun x () Int)\n(declare-fun y () Int)\n(declare-fun y__entry () Int)\n(declare-fun x__entry () Int)\n(declare-fun abstract_div_0 () Int)\n(assert\n (let (($x385 (= 0 x)))\n (let (($x286 (or (<= 2 y) $x385)))\n (let (($x284 (<= y 0)))\n (let (($x285 (not $x284)))\n (let (($x283 (or (<= 6 x) $x285)))\n (let (($x373 (>= 6 x)))\n (let (($x273 (or $x385 $x373)))\n (let (($x379 (= 6 x)))\n (let (($x336 (= 1 x)))\n (let (($x272 (or $x385 $x336 (= 2 x) (= 3 x) (= 4 x) (= 5 x) $x379)))\n (let (($x342 (or (not $x379) (= 64 y))))\n (let (($x377 (= 1 y)))\n (let (($x378 (or (not $x385) $x377)))\n (let (($x162 (<= 1 y)))\n (let (($x280 (<= 0 x)))\n (let (($x369 (<= y 4294967295)))\n (let (($x271 (>= y 0)))\n (let (($x96 (<= x 4294967295)))\n (let (($x321 (>= x 0)))\n (let (($x149 (<= y__entry 4294967295)))\n (let (($x186 (>= y__entry 0)))\n (let (($x157 (<= x__entry 4294967295)))\n (let (($x91 (>= x__entry 0)))\n (let (($x78 (= 1 y__entry)))\n (let (($x107 (= 0 x__entry)))\n (and $x107 $x78 $x91 $x157 $x186 $x149 $x321 $x96 $x271 $x369 $x373 $x280 $x162 $x378 $x342 $x272 $x273 $x283 $x286)))))))))))))))))))))))))))\n(assert\n (let (($x144 (= y abstract_div_0)))\n(not $x144)))\n(check-sat)\n",
+    "sha256": "cf8248e97b819c1161dd692f06e191c3f2ba35e64c05875f5737b43e1b7b9742",
+    "model": {
+      "y": "1",
+      "x": "0",
+      "abstract_div_0": "7",
+      "y__entry": "1",
+      "x__entry": "0"
+    }
+  },
+  "exit_context/hidden_nonvacuity": {
+    "status": "sat",
+    "seconds": 0.0008245499993790872,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun x () Int)\n(declare-fun y () Int)\n(declare-fun y__entry () Int)\n(declare-fun x__entry () Int)\n(assert\n (let (($x385 (= 0 x)))\n (let (($x286 (or (<= 2 y) $x385)))\n (let (($x284 (<= y 0)))\n (let (($x285 (not $x284)))\n (let (($x283 (or (<= 6 x) $x285)))\n (let (($x373 (>= 6 x)))\n (let (($x273 (or $x385 $x373)))\n (let (($x379 (= 6 x)))\n (let (($x336 (= 1 x)))\n (let (($x272 (or $x385 $x336 (= 2 x) (= 3 x) (= 4 x) (= 5 x) $x379)))\n (let (($x342 (or (not $x379) (= 64 y))))\n (let (($x377 (= 1 y)))\n (let (($x378 (or (not $x385) $x377)))\n (let (($x162 (<= 1 y)))\n (let (($x280 (<= 0 x)))\n (let (($x369 (<= y 4294967295)))\n (let (($x271 (>= y 0)))\n (let (($x96 (<= x 4294967295)))\n (let (($x321 (>= x 0)))\n (let (($x149 (<= y__entry 4294967295)))\n (let (($x186 (>= y__entry 0)))\n (let (($x157 (<= x__entry 4294967295)))\n (let (($x91 (>= x__entry 0)))\n (let (($x78 (= 1 y__entry)))\n (let (($x107 (= 0 x__entry)))\n (and $x107 $x78 $x91 $x157 $x186 $x149 $x321 $x96 $x271 $x369 $x373 $x280 $x162 $x378 $x342 $x272 $x273 $x283 $x286)))))))))))))))))))))))))))\n(assert\n (let ((?x246 (mod x 4294967296)))\n(<= 6 ?x246)))\n(check-sat)\n",
+    "sha256": "24656cc3beff404866357f1315a54bebed613c0d791cbec37a59ff64f305774a",
+    "model": {
+      "y": "64",
+      "x": "6",
+      "y__entry": "1",
+      "x__entry": "0"
+    }
+  },
+  "exit_context/visible_redundancy_11": {
+    "status": "sat",
+    "seconds": 0.0002582989982329309,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun y () Int)\n(declare-fun x () Int)\n(declare-fun y__entry () Int)\n(declare-fun x__entry () Int)\n(declare-fun abstract_div_0 () Int)\n(assert\n (let (($x284 (<= y 0)))\n (let ((?x298 (ite $x284 (* (- 1) y) y)))\n (let (($x271 (>= y 0)))\n (let (($x173 (= 0 (+ y (* (- 1) (ite $x271 ?x298 (* (- 1) ?x298)))))))\n (let (($x363 (<= x 6)))\n (let (($x285 (not $x284)))\n (let (($x281 (<= 6 x)))\n (let (($x283 (or $x281 $x285)))\n (let (($x342 (or (not (= 6 x)) (= 64 y))))\n (let (($x319 (= (ite (= 0 x) 1 0) (ite (= 1 y) 1 0))))\n (let (($x269 (or $x281 $x271)))\n (let (($x377 (= 1 y)))\n (let (($x378 (or (not (= 0 x)) $x377)))\n (let (($x379 (= 6 x)))\n (let (($x336 (= 1 x)))\n (let (($x385 (= 0 x)))\n (let (($x272 (or $x385 $x336 (= 2 x) (= 3 x) (= 4 x) (= 5 x) $x379)))\n (let (($x373 (>= 6 x)))\n (let (($x162 (<= 1 y)))\n (let (($x280 (<= 0 x)))\n (let (($x369 (<= y 4294967295)))\n (let (($x96 (<= x 4294967295)))\n (let (($x321 (>= x 0)))\n (let (($x149 (<= y__entry 4294967295)))\n (let (($x186 (>= y__entry 0)))\n (let (($x157 (<= x__entry 4294967295)))\n (let (($x91 (>= x__entry 0)))\n (let (($x78 (= 1 y__entry)))\n (let (($x107 (= 0 x__entry)))\n (and $x107 $x78 $x91 $x157 $x186 $x149 $x321 $x96 $x271 $x369 $x280 $x162 $x373 $x272 $x378 $x269 $x319 $x342 $x283 $x285 $x363 $x173)))))))))))))))))))))))))))))))\n(assert\n (let (($x144 (= y abstract_div_0)))\n(not $x144)))\n(check-sat)\n",
+    "sha256": "d230519b41f29d61ab472c3cd959e9f05b4116a60466809a0a76a9a3647b0795",
+    "model": {
+      "y": "1",
+      "x": "0",
+      "abstract_div_0": "7",
+      "y__entry": "1",
+      "x__entry": "0"
+    }
+  },
+  "exit_context/visible_nonvacuity": {
+    "status": "sat",
+    "seconds": 0.0004120900048292242,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun y () Int)\n(declare-fun x () Int)\n(declare-fun y__entry () Int)\n(declare-fun x__entry () Int)\n(assert\n (let (($x284 (<= y 0)))\n (let ((?x298 (ite $x284 (* (- 1) y) y)))\n (let (($x271 (>= y 0)))\n (let (($x173 (= 0 (+ y (* (- 1) (ite $x271 ?x298 (* (- 1) ?x298)))))))\n (let (($x363 (<= x 6)))\n (let (($x285 (not $x284)))\n (let (($x281 (<= 6 x)))\n (let (($x283 (or $x281 $x285)))\n (let (($x342 (or (not (= 6 x)) (= 64 y))))\n (let (($x319 (= (ite (= 0 x) 1 0) (ite (= 1 y) 1 0))))\n (let (($x269 (or $x281 $x271)))\n (let (($x377 (= 1 y)))\n (let (($x378 (or (not (= 0 x)) $x377)))\n (let (($x379 (= 6 x)))\n (let (($x336 (= 1 x)))\n (let (($x385 (= 0 x)))\n (let (($x272 (or $x385 $x336 (= 2 x) (= 3 x) (= 4 x) (= 5 x) $x379)))\n (let (($x373 (>= 6 x)))\n (let (($x162 (<= 1 y)))\n (let (($x280 (<= 0 x)))\n (let (($x369 (<= y 4294967295)))\n (let (($x96 (<= x 4294967295)))\n (let (($x321 (>= x 0)))\n (let (($x149 (<= y__entry 4294967295)))\n (let (($x186 (>= y__entry 0)))\n (let (($x157 (<= x__entry 4294967295)))\n (let (($x91 (>= x__entry 0)))\n (let (($x78 (= 1 y__entry)))\n (let (($x107 (= 0 x__entry)))\n (and $x107 $x78 $x91 $x157 $x186 $x149 $x321 $x96 $x271 $x369 $x280 $x162 $x373 $x272 $x378 $x269 $x319 $x342 $x283 $x285 $x363 $x173)))))))))))))))))))))))))))))))\n(assert\n (let ((?x246 (mod x 4294967296)))\n(<= 6 ?x246)))\n(check-sat)\n",
+    "sha256": "3e62765a6cf2330a662d383cecc28fc11dfca60efd79963d500b3f6dd260f8a4",
+    "model": {
+      "y": "64",
+      "x": "6",
+      "y__entry": "1",
+      "x__entry": "0"
+    }
+  },
+  "exit_context/context_nonvacuity": {
+    "status": "sat",
+    "seconds": 0.0003138539977953769,
+    "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun y () Int)\n(declare-fun x () Int)\n(declare-fun y__entry () Int)\n(declare-fun x__entry () Int)\n(assert\n (let (($x369 (<= y 4294967295)))\n (let (($x271 (>= y 0)))\n (let (($x96 (<= x 4294967295)))\n (let (($x321 (>= x 0)))\n (let (($x149 (<= y__entry 4294967295)))\n (let (($x186 (>= y__entry 0)))\n (let (($x157 (<= x__entry 4294967295)))\n (let (($x91 (>= x__entry 0)))\n (let (($x78 (= 1 y__entry)))\n (let (($x107 (= 0 x__entry)))\n (and $x107 $x78 $x91 $x157 $x186 $x149 $x321 $x96 $x271 $x369))))))))))))\n(assert\n (let ((?x246 (mod x 4294967296)))\n(<= 6 ?x246)))\n(check-sat)\n",
+    "sha256": "ef5474279ec4b2f0a2a2061514c8c605bdb7dac11a6b93526a8440b2f8ed0c6e",
+    "model": {
+      "y": "0",
+      "x": "6",
+      "y__entry": "1",
+      "x__entry": "0"
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "key": "linear_280",
+  "k": 16,
+  "source_path": "/tmp/craft16_minimal_20261107_v2/sources/linear_280.original.c",
+  "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/linear_280.json",
+  "source_sha256": "ba8d8513e92c47980c9d244ca750ab960d57b5890636529e9b343c9f0e07be7c",
+  "verification_sha256": "81f87df36100343c5b4a737434dbf4834d0ac79f68c380bb8e28056d65438052",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "linear",
+  "original_verified": true,
+  "survivor_count": 16,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "x": "-2147483646",
+        "x__pre": "-2147483648",
+        "y__pre": "-2147483647",
+        "y": "-2147483647",
+        "x__entry": "-2147483648",
+        "y__entry": "-2147483647"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "x": "100",
+        "x__pre": "-1",
+        "y__pre": "0",
+        "y": "0",
+        "x__entry": "-1",
+        "y__entry": "0"
+      }
+    },
+    "target_without_invariant": {
+      "status": "unsat"
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "unknown_reachability",
+    "attempts": [
+      {
+        "variable": "x",
+        "direction": 1,
+        "status": "sat"
+      },
+      {
+        "variable": "x",
+        "direction": -1,
+        "status": "sat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "x": "i",
+    "y": "i"
+  },
+  "frame_variables": [
+    "y"
+  ],
+  "proof_queries_sha256": "565e37482e49d40b65d059d81f6389a49826625e8eb0aba6d681bab04611ff14",
+  "seconds": 1.540368250978645
+}

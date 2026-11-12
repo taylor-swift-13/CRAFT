@@ -1,0 +1,95 @@
+{
+  "key": "linear_294",
+  "k": 16,
+  "source_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/linear_294.original.c",
+  "verification_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/linear_294.json",
+  "source_sha256": "2f9a947f255522c94e9a4b2d6c38600141bd0d3308e73504714c7e67448133e6",
+  "verification_sha256": "e999bdd225f35d87b00a753b16c749f43962fe79f421deb69108100d98a7d206",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "linear",
+  "original_verified": true,
+  "survivor_count": 7,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "xa__entry": "1",
+        "ya__entry": "0",
+        "ya": "2",
+        "xa__pre": "1",
+        "xa": "-1",
+        "ya__pre": "0"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "ya__pre": "2",
+        "xa": "0",
+        "ya": "0",
+        "xa__pre": "-1",
+        "ya__entry": "2",
+        "xa__entry": "-1"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "ya__pre": "0",
+        "xa": "0",
+        "ya": "-1",
+        "xa__pre": "1",
+        "ya__entry": "0",
+        "xa__entry": "1"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "unknown_reachability",
+    "attempts": [
+      {
+        "variable": "xa",
+        "direction": 1,
+        "status": "sat"
+      },
+      {
+        "variable": "xa",
+        "direction": -1,
+        "status": "sat"
+      },
+      {
+        "variable": "ya",
+        "direction": 1,
+        "status": "sat"
+      },
+      {
+        "variable": "ya",
+        "direction": -1,
+        "status": "sat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "xa": "i",
+    "ya": "i"
+  },
+  "frame_variables": [],
+  "proof_queries_sha256": "537cc6ec3a44807a8efa4c7947015a62d3d201e5607ad8a85d447920e7432682",
+  "seconds": 1.3063045809976757
+}

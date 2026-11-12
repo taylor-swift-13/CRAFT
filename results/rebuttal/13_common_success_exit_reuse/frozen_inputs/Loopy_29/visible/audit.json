@@ -1,0 +1,138 @@
+{
+  "key": "Loopy_29",
+  "k": 16,
+  "source_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/Loopy_29.original.c",
+  "verification_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/Loopy_29.json",
+  "source_sha256": "6ed6be5d04c6e301655e03b102608054ce1dc6f692fc443e7aa7efdc88193b2c",
+  "verification_sha256": "73aafa363c2daa1a62833e576e4aeaf2500979a4200ba3fff14e127e323a5946",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "Loopy",
+  "original_verified": true,
+  "survivor_count": 37,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "glob3_dc": "1",
+        "glob3_pathlim_off__entry": "2",
+        "pattern_off__entry": "0",
+        "glob3_pathend_off__entry": "0",
+        "MAXPATHLEN": "2",
+        "bound_off": "2",
+        "pattern_off": "0",
+        "MAXPATHLEN__pre": "2",
+        "buf_off__entry": "0",
+        "glob3_pathlim_off": "2",
+        "glob3_pathbuf_off": "0",
+        "glob3_pathbuf_off__entry": "0",
+        "glob3_pattern_off": "0",
+        "bound_off__entry": "2",
+        "glob3_pathend_off": "0",
+        "MAXPATHLEN__entry": "2",
+        "buf_off": "0",
+        "glob3_dc__entry": "0",
+        "glob3_pattern_off__entry": "0"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "glob3_dc": "-1",
+        "bound_off": "1",
+        "pattern_off__entry": "0",
+        "glob3_pathlim_off__entry": "1",
+        "glob3_pathend_off__entry": "0",
+        "MAXPATHLEN": "1",
+        "pattern_off": "0",
+        "MAXPATHLEN__pre": "1",
+        "buf_off__entry": "0",
+        "glob3_pathlim_off": "1",
+        "glob3_pathbuf_off": "0",
+        "glob3_pathbuf_off__entry": "0",
+        "glob3_pattern_off": "0",
+        "bound_off__entry": "1",
+        "glob3_pathend_off": "0",
+        "MAXPATHLEN__entry": "1",
+        "buf_off": "0",
+        "glob3_dc__entry": "0",
+        "glob3_pattern_off__entry": "0"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "glob3_dc": "-2",
+        "bound_off": "1",
+        "pattern_off__entry": "0",
+        "glob3_pathlim_off__entry": "1",
+        "glob3_pathend_off__entry": "0",
+        "MAXPATHLEN": "1",
+        "pattern_off": "0",
+        "MAXPATHLEN__pre": "1",
+        "buf_off__entry": "0",
+        "glob3_pathlim_off": "1",
+        "glob3_pathbuf_off": "0",
+        "glob3_pathbuf_off__entry": "0",
+        "glob3_pattern_off": "0",
+        "bound_off__entry": "1",
+        "glob3_pathend_off": "0",
+        "MAXPATHLEN__entry": "1",
+        "buf_off": "0",
+        "glob3_dc__entry": "0",
+        "glob3_pattern_off__entry": "0"
+      }
+    },
+    "target_sites": 2,
+    "target_paths": 2
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "glob3_dc",
+    "rank_direction": 1,
+    "attempts": [
+      {
+        "variable": "glob3_dc",
+        "direction": 1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "MAXPATHLEN": "i",
+    "buf_off": "i",
+    "pattern_off": "i",
+    "bound_off": "i",
+    "glob3_pathbuf_off": "i",
+    "glob3_pathend_off": "i",
+    "glob3_pathlim_off": "i",
+    "glob3_pattern_off": "i",
+    "glob3_dc": "i"
+  },
+  "frame_variables": [
+    "MAXPATHLEN",
+    "bound_off",
+    "buf_off",
+    "glob3_pathbuf_off",
+    "glob3_pathend_off",
+    "glob3_pathlim_off",
+    "glob3_pattern_off",
+    "pattern_off"
+  ],
+  "proof_queries_sha256": "6ce9fa5892c2a8085fb04ec980975535ae3bf76111f628f79aa6febf7598aa95",
+  "seconds": 0.38733040797524154
+}

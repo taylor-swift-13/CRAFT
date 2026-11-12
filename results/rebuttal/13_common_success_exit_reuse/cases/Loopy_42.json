@@ -1,0 +1,256 @@
+{
+  "key": "Loopy_42",
+  "program_included": true,
+  "planned_goal_count": 8,
+  "inputs": {
+    "hidden": {
+      "source_path": "/home/yangfp/craft_empirical_runs/recovered_hidden_evidence_20261110/craft16/sources/Loopy_42.original.c",
+      "source_sha256": "7300d2c0e75beb97eba21577d321825ac1d07542cc32d628ece803ad852f1a89",
+      "verification_path": "/home/yangfp/craft_empirical_runs/recovered_hidden_evidence_20261110/craft16/verification/Loopy_42.json",
+      "verification_sha256": "e9bf642c23e845529ea601205e8d3da7a11a1b81bc785d8d2bc34304b30687a0",
+      "audit_path": "/home/yangfp/craft_empirical_runs/craft16_hidden_prefix_semantics_control_20261110/k16/cases/Loopy_42.json",
+      "audit_sha256": "9f860aa52cd2b9d036233116dd60ad5d863f72a5e3ce3b975c5799c00bc71f25",
+      "survivor_count": 24
+    },
+    "visible": {
+      "source_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/Loopy_42.original.c",
+      "source_sha256": "7300d2c0e75beb97eba21577d321825ac1d07542cc32d628ece803ad852f1a89",
+      "verification_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/Loopy_42.json",
+      "verification_sha256": "3a84dfc2c3eda101dc993b24bea11fc4b3749b79aa3028f3cfa669e1a27e0284",
+      "audit_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_semantics_20261110/k16/cases/Loopy_42.json",
+      "audit_sha256": "d3c7ba3d9ea3f81266e83a3114cc36fa98425776eb2fa6ff1017945604bddc46",
+      "survivor_count": 41
+    }
+  },
+  "candidate_pool_sha256": "a29dc5dab3469f1866a06811f94618c9fa7be6b512a74e05204a82c051018561",
+  "selected_goals": [
+    {
+      "slot": 1,
+      "id": "range_10",
+      "family": "range",
+      "formula": "n <= j && j <= (n)+1",
+      "arms": {
+        "hidden": {
+          "classification": "supported",
+          "query": "non_contextual/goal_01_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "non_contextual/goal_01_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "non_contextual/goal_01_context",
+      "source_stage": "non_contextual",
+      "source_slot": 1,
+      "exit_context_alone": false
+    },
+    {
+      "slot": 2,
+      "id": "input_relation_08",
+      "family": "input_relation",
+      "formula": "j == (\\at(n,Pre))+(1)",
+      "arms": {
+        "hidden": {
+          "classification": "supported",
+          "query": "non_contextual/goal_02_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "non_contextual/goal_02_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "non_contextual/goal_02_context",
+      "source_stage": "non_contextual",
+      "source_slot": 2,
+      "exit_context_alone": false
+    },
+    {
+      "slot": 3,
+      "id": "conditional_21",
+      "family": "conditional",
+      "formula": "n < 0 ==> j <= 0",
+      "arms": {
+        "hidden": {
+          "classification": "supported",
+          "query": "non_contextual/goal_03_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "non_contextual/goal_03_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "non_contextual/goal_03_context",
+      "source_stage": "non_contextual",
+      "source_slot": 3,
+      "exit_context_alone": false
+    },
+    {
+      "slot": 4,
+      "id": "range_18",
+      "family": "range",
+      "formula": "\\at(n,Pre) <= j && j <= (\\at(n,Pre))+1",
+      "arms": {
+        "hidden": {
+          "classification": "supported",
+          "query": "non_contextual/goal_04_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "non_contextual/goal_04_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "non_contextual/goal_04_context",
+      "source_stage": "non_contextual",
+      "source_slot": 4,
+      "exit_context_alone": false
+    },
+    {
+      "slot": 5,
+      "id": "conditional_37",
+      "family": "conditional",
+      "formula": "\\at(n,Pre) < 0 ==> j <= 0",
+      "arms": {
+        "hidden": {
+          "classification": "supported",
+          "query": "non_contextual/goal_05_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "non_contextual/goal_05_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "non_contextual/goal_05_context",
+      "source_stage": "non_contextual",
+      "source_slot": 5,
+      "exit_context_alone": false
+    },
+    {
+      "slot": 6,
+      "id": "input_relation_02",
+      "family": "input_relation",
+      "formula": "j >= \\at(j,Pre)",
+      "arms": {
+        "hidden": {
+          "classification": "supported",
+          "query": "exit_context/goal_02_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "exit_context/goal_02_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "exit_context/goal_02_context",
+      "exit_context_alone": true,
+      "entry_query": "exit_context/goal_02_entry",
+      "source_stage": "exit_context",
+      "source_slot": 2
+    },
+    {
+      "slot": 7,
+      "id": "pair_relation_09",
+      "family": "pair_relation",
+      "formula": "j >= n",
+      "arms": {
+        "hidden": {
+          "classification": "supported",
+          "query": "exit_context/goal_03_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "exit_context/goal_03_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "exit_context/goal_03_context",
+      "exit_context_alone": true,
+      "entry_query": "exit_context/goal_03_entry",
+      "source_stage": "exit_context",
+      "source_slot": 3
+    },
+    {
+      "slot": 8,
+      "id": "conditional_19",
+      "family": "conditional",
+      "formula": "n > 0 ==> j > 0",
+      "arms": {
+        "hidden": {
+          "classification": "supported",
+          "query": "exit_context/goal_04_hidden",
+          "solver_status": "unsat"
+        },
+        "visible": {
+          "classification": "supported",
+          "query": "exit_context/goal_04_visible",
+          "solver_status": "unsat"
+        }
+      },
+      "context_query": "exit_context/goal_04_context",
+      "exit_context_alone": true,
+      "entry_query": "exit_context/goal_04_entry",
+      "source_stage": "exit_context",
+      "source_slot": 4
+    }
+  ],
+  "unfilled_slots": 0,
+  "arm_support": {
+    "non_contextual": {
+      "hidden": {
+        "full_summary_represented": true,
+        "nonvacuity": {
+          "query": "hidden_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [],
+        "eligible_for_confirmation": true
+      },
+      "visible": {
+        "full_summary_represented": true,
+        "nonvacuity": {
+          "query": "visible_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [],
+        "eligible_for_confirmation": true
+      }
+    },
+    "exit_context": {
+      "hidden": {
+        "full_summary_represented": true,
+        "nonvacuity": {
+          "query": "hidden_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [],
+        "eligible_for_confirmation": true
+      },
+      "visible": {
+        "full_summary_represented": true,
+        "nonvacuity": {
+          "query": "visible_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [],
+        "eligible_for_confirmation": true
+      }
+    }
+  },
+  "error": null,
+  "screening_stage_files": {
+    "non_contextual": "history/non_contextual/cases/Loopy_42.json",
+    "exit_context": "history/exit_context/cases/Loopy_42.json"
+  },
+  "proof_queries_sha256": "7fdd6288cf4b4b873c9e80b2500e52334b363d411b25aecb947cdb46b2104dd7"
+}

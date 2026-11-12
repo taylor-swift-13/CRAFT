@@ -1,0 +1,78 @@
+{
+  "key": "linear_202",
+  "k": 16,
+  "source_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/linear_202.original.c",
+  "verification_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/linear_202.json",
+  "source_sha256": "2a8fe87a7938c86d23615ee2aff006f430b722848cdbda6fa214838bc2617b49",
+  "verification_sha256": "f6794ddde0e302b60afadb01bfda707c818d1f53ee90f6706f50c5ed31d59030",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "linear",
+  "original_verified": true,
+  "survivor_count": 13,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "x": "0",
+        "x__pre": "0",
+        "y": "0",
+        "x__entry": "0",
+        "y__entry": "-3"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "x": "2",
+        "x__pre": "0",
+        "y": "1",
+        "x__entry": "0",
+        "y__entry": "-3"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "x": "0",
+        "x__pre": "0",
+        "y": "-4",
+        "x__entry": "0",
+        "y__entry": "-3"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_not_exact",
+    "inductive_lemma": "x <= entry",
+    "unreachable_state": {
+      "x": "1",
+      "x__pre": "0",
+      "y": "0",
+      "x__entry": "0",
+      "y__entry": "-3"
+    }
+  },
+  "modeled_variables": {
+    "x": "i",
+    "y": "i"
+  },
+  "frame_variables": [],
+  "proof_queries_sha256": "bf9f8e927d13fd29909ecd16a7cae45f306cfa99a0ae846fd1653d83b2ba7d47",
+  "seconds": 0.41757452802266926
+}

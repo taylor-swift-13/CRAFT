@@ -1,0 +1,1381 @@
+{
+  "parameters": [
+    "outfilelen"
+  ],
+  "variables": [
+    "nchar",
+    "out",
+    "outfilelen"
+  ],
+  "modified_variables": [
+    "nchar",
+    "out"
+  ],
+  "source_constants": [
+    0,
+    1,
+    -1
+  ],
+  "families": [
+    "exact_value",
+    "range",
+    "input_relation",
+    "pair_relation",
+    "conservation",
+    "modular",
+    "polynomial",
+    "conditional"
+  ],
+  "candidates": [
+    {
+      "id": "exact_value_01",
+      "family": "exact_value",
+      "formula": "nchar == 0"
+    },
+    {
+      "id": "exact_value_02",
+      "family": "exact_value",
+      "formula": "out == 0"
+    },
+    {
+      "id": "exact_value_03",
+      "family": "exact_value",
+      "formula": "nchar == -1"
+    },
+    {
+      "id": "exact_value_04",
+      "family": "exact_value",
+      "formula": "out == -1"
+    },
+    {
+      "id": "exact_value_05",
+      "family": "exact_value",
+      "formula": "nchar == 1"
+    },
+    {
+      "id": "exact_value_06",
+      "family": "exact_value",
+      "formula": "out == 1"
+    },
+    {
+      "id": "exact_value_07",
+      "family": "exact_value",
+      "formula": "nchar == 2"
+    },
+    {
+      "id": "exact_value_08",
+      "family": "exact_value",
+      "formula": "out == 2"
+    },
+    {
+      "id": "exact_value_09",
+      "family": "exact_value",
+      "formula": "nchar == -2"
+    },
+    {
+      "id": "exact_value_10",
+      "family": "exact_value",
+      "formula": "out == -2"
+    },
+    {
+      "id": "range_01",
+      "family": "range",
+      "formula": "0 <= nchar && nchar <= outfilelen"
+    },
+    {
+      "id": "range_02",
+      "family": "range",
+      "formula": "outfilelen <= nchar && nchar <= (outfilelen)+1"
+    },
+    {
+      "id": "range_03",
+      "family": "range",
+      "formula": "nchar >= outfilelen"
+    },
+    {
+      "id": "range_04",
+      "family": "range",
+      "formula": "nchar <= outfilelen"
+    },
+    {
+      "id": "range_05",
+      "family": "range",
+      "formula": "0 <= out && out <= outfilelen"
+    },
+    {
+      "id": "range_06",
+      "family": "range",
+      "formula": "outfilelen <= out && out <= (outfilelen)+1"
+    },
+    {
+      "id": "range_07",
+      "family": "range",
+      "formula": "out >= outfilelen"
+    },
+    {
+      "id": "range_08",
+      "family": "range",
+      "formula": "out <= outfilelen"
+    },
+    {
+      "id": "range_09",
+      "family": "range",
+      "formula": "0 <= nchar && nchar <= \\at(outfilelen,Pre)"
+    },
+    {
+      "id": "range_10",
+      "family": "range",
+      "formula": "\\at(outfilelen,Pre) <= nchar && nchar <= (\\at(outfilelen,Pre))+1"
+    },
+    {
+      "id": "range_11",
+      "family": "range",
+      "formula": "nchar >= \\at(outfilelen,Pre)"
+    },
+    {
+      "id": "range_12",
+      "family": "range",
+      "formula": "nchar <= \\at(outfilelen,Pre)"
+    },
+    {
+      "id": "range_13",
+      "family": "range",
+      "formula": "0 <= out && out <= \\at(outfilelen,Pre)"
+    },
+    {
+      "id": "range_14",
+      "family": "range",
+      "formula": "\\at(outfilelen,Pre) <= out && out <= (\\at(outfilelen,Pre))+1"
+    },
+    {
+      "id": "range_15",
+      "family": "range",
+      "formula": "out >= \\at(outfilelen,Pre)"
+    },
+    {
+      "id": "range_16",
+      "family": "range",
+      "formula": "out <= \\at(outfilelen,Pre)"
+    },
+    {
+      "id": "range_17",
+      "family": "range",
+      "formula": "nchar >= 0"
+    },
+    {
+      "id": "range_18",
+      "family": "range",
+      "formula": "nchar <= 0"
+    },
+    {
+      "id": "range_19",
+      "family": "range",
+      "formula": "out >= 0"
+    },
+    {
+      "id": "range_20",
+      "family": "range",
+      "formula": "out <= 0"
+    },
+    {
+      "id": "range_21",
+      "family": "range",
+      "formula": "nchar >= -1"
+    },
+    {
+      "id": "range_22",
+      "family": "range",
+      "formula": "nchar <= -1"
+    },
+    {
+      "id": "range_23",
+      "family": "range",
+      "formula": "out >= -1"
+    },
+    {
+      "id": "range_24",
+      "family": "range",
+      "formula": "out <= -1"
+    },
+    {
+      "id": "range_25",
+      "family": "range",
+      "formula": "nchar >= 1"
+    },
+    {
+      "id": "range_26",
+      "family": "range",
+      "formula": "nchar <= 1"
+    },
+    {
+      "id": "range_27",
+      "family": "range",
+      "formula": "out >= 1"
+    },
+    {
+      "id": "range_28",
+      "family": "range",
+      "formula": "out <= 1"
+    },
+    {
+      "id": "range_29",
+      "family": "range",
+      "formula": "nchar >= 2"
+    },
+    {
+      "id": "range_30",
+      "family": "range",
+      "formula": "nchar <= 2"
+    },
+    {
+      "id": "range_31",
+      "family": "range",
+      "formula": "out >= 2"
+    },
+    {
+      "id": "range_32",
+      "family": "range",
+      "formula": "out <= 2"
+    },
+    {
+      "id": "range_33",
+      "family": "range",
+      "formula": "nchar >= -2"
+    },
+    {
+      "id": "range_34",
+      "family": "range",
+      "formula": "nchar <= -2"
+    },
+    {
+      "id": "range_35",
+      "family": "range",
+      "formula": "out >= -2"
+    },
+    {
+      "id": "range_36",
+      "family": "range",
+      "formula": "out <= -2"
+    },
+    {
+      "id": "range_37",
+      "family": "range",
+      "formula": "nchar <= 3"
+    },
+    {
+      "id": "range_38",
+      "family": "range",
+      "formula": "out <= 3"
+    },
+    {
+      "id": "range_39",
+      "family": "range",
+      "formula": "nchar >= -3"
+    },
+    {
+      "id": "range_40",
+      "family": "range",
+      "formula": "out >= -3"
+    },
+    {
+      "id": "range_41",
+      "family": "range",
+      "formula": "nchar <= 4"
+    },
+    {
+      "id": "range_42",
+      "family": "range",
+      "formula": "out <= 4"
+    },
+    {
+      "id": "range_43",
+      "family": "range",
+      "formula": "nchar >= -4"
+    },
+    {
+      "id": "range_44",
+      "family": "range",
+      "formula": "out >= -4"
+    },
+    {
+      "id": "range_45",
+      "family": "range",
+      "formula": "nchar <= 5"
+    },
+    {
+      "id": "range_46",
+      "family": "range",
+      "formula": "out <= 5"
+    },
+    {
+      "id": "range_47",
+      "family": "range",
+      "formula": "nchar >= -5"
+    },
+    {
+      "id": "range_48",
+      "family": "range",
+      "formula": "out >= -5"
+    },
+    {
+      "id": "range_49",
+      "family": "range",
+      "formula": "nchar >= -8"
+    },
+    {
+      "id": "range_50",
+      "family": "range",
+      "formula": "nchar <= 8"
+    },
+    {
+      "id": "range_51",
+      "family": "range",
+      "formula": "out >= -8"
+    },
+    {
+      "id": "range_52",
+      "family": "range",
+      "formula": "out <= 8"
+    },
+    {
+      "id": "range_53",
+      "family": "range",
+      "formula": "nchar >= -7"
+    },
+    {
+      "id": "range_54",
+      "family": "range",
+      "formula": "nchar <= 9"
+    },
+    {
+      "id": "range_55",
+      "family": "range",
+      "formula": "out >= -7"
+    },
+    {
+      "id": "range_56",
+      "family": "range",
+      "formula": "out <= 9"
+    },
+    {
+      "id": "range_57",
+      "family": "range",
+      "formula": "nchar >= -9"
+    },
+    {
+      "id": "range_58",
+      "family": "range",
+      "formula": "nchar <= 7"
+    },
+    {
+      "id": "range_59",
+      "family": "range",
+      "formula": "out >= -9"
+    },
+    {
+      "id": "range_60",
+      "family": "range",
+      "formula": "out <= 7"
+    },
+    {
+      "id": "range_61",
+      "family": "range",
+      "formula": "nchar >= -16"
+    },
+    {
+      "id": "range_62",
+      "family": "range",
+      "formula": "nchar <= 16"
+    },
+    {
+      "id": "range_63",
+      "family": "range",
+      "formula": "out >= -16"
+    },
+    {
+      "id": "range_64",
+      "family": "range",
+      "formula": "out <= 16"
+    },
+    {
+      "id": "input_relation_01",
+      "family": "input_relation",
+      "formula": "nchar == (\\at(outfilelen,Pre))+(0)"
+    },
+    {
+      "id": "input_relation_02",
+      "family": "input_relation",
+      "formula": "nchar >= \\at(outfilelen,Pre)"
+    },
+    {
+      "id": "input_relation_03",
+      "family": "input_relation",
+      "formula": "nchar <= \\at(outfilelen,Pre)"
+    },
+    {
+      "id": "input_relation_04",
+      "family": "input_relation",
+      "formula": "out == (\\at(outfilelen,Pre))+(0)"
+    },
+    {
+      "id": "input_relation_05",
+      "family": "input_relation",
+      "formula": "out >= \\at(outfilelen,Pre)"
+    },
+    {
+      "id": "input_relation_06",
+      "family": "input_relation",
+      "formula": "out <= \\at(outfilelen,Pre)"
+    },
+    {
+      "id": "input_relation_07",
+      "family": "input_relation",
+      "formula": "nchar == (\\at(outfilelen,Pre))+(1)"
+    },
+    {
+      "id": "input_relation_08",
+      "family": "input_relation",
+      "formula": "out == (\\at(outfilelen,Pre))+(1)"
+    },
+    {
+      "id": "input_relation_09",
+      "family": "input_relation",
+      "formula": "nchar == (\\at(outfilelen,Pre))+(-1)"
+    },
+    {
+      "id": "input_relation_10",
+      "family": "input_relation",
+      "formula": "out == (\\at(outfilelen,Pre))+(-1)"
+    },
+    {
+      "id": "input_relation_11",
+      "family": "input_relation",
+      "formula": "nchar == (\\at(outfilelen,Pre))+(2)"
+    },
+    {
+      "id": "input_relation_12",
+      "family": "input_relation",
+      "formula": "out == (\\at(outfilelen,Pre))+(2)"
+    },
+    {
+      "id": "input_relation_13",
+      "family": "input_relation",
+      "formula": "nchar == (\\at(outfilelen,Pre))+(-2)"
+    },
+    {
+      "id": "input_relation_14",
+      "family": "input_relation",
+      "formula": "out == (\\at(outfilelen,Pre))+(-2)"
+    },
+    {
+      "id": "pair_relation_01",
+      "family": "pair_relation",
+      "formula": "nchar == out"
+    },
+    {
+      "id": "pair_relation_02",
+      "family": "pair_relation",
+      "formula": "nchar == outfilelen"
+    },
+    {
+      "id": "pair_relation_03",
+      "family": "pair_relation",
+      "formula": "out == outfilelen"
+    },
+    {
+      "id": "pair_relation_04",
+      "family": "pair_relation",
+      "formula": "nchar <= out"
+    },
+    {
+      "id": "pair_relation_05",
+      "family": "pair_relation",
+      "formula": "nchar <= outfilelen"
+    },
+    {
+      "id": "pair_relation_06",
+      "family": "pair_relation",
+      "formula": "out <= outfilelen"
+    },
+    {
+      "id": "pair_relation_07",
+      "family": "pair_relation",
+      "formula": "nchar >= out"
+    },
+    {
+      "id": "pair_relation_08",
+      "family": "pair_relation",
+      "formula": "nchar >= outfilelen"
+    },
+    {
+      "id": "pair_relation_09",
+      "family": "pair_relation",
+      "formula": "out >= outfilelen"
+    },
+    {
+      "id": "pair_relation_10",
+      "family": "pair_relation",
+      "formula": "nchar == (2)*out"
+    },
+    {
+      "id": "pair_relation_11",
+      "family": "pair_relation",
+      "formula": "out == (2)*nchar"
+    },
+    {
+      "id": "pair_relation_12",
+      "family": "pair_relation",
+      "formula": "nchar == (2)*outfilelen"
+    },
+    {
+      "id": "pair_relation_13",
+      "family": "pair_relation",
+      "formula": "outfilelen == (2)*nchar"
+    },
+    {
+      "id": "pair_relation_14",
+      "family": "pair_relation",
+      "formula": "out == (2)*outfilelen"
+    },
+    {
+      "id": "pair_relation_15",
+      "family": "pair_relation",
+      "formula": "outfilelen == (2)*out"
+    },
+    {
+      "id": "pair_relation_16",
+      "family": "pair_relation",
+      "formula": "nchar == (3)*out"
+    },
+    {
+      "id": "pair_relation_17",
+      "family": "pair_relation",
+      "formula": "out == (3)*nchar"
+    },
+    {
+      "id": "pair_relation_18",
+      "family": "pair_relation",
+      "formula": "nchar == (3)*outfilelen"
+    },
+    {
+      "id": "pair_relation_19",
+      "family": "pair_relation",
+      "formula": "outfilelen == (3)*nchar"
+    },
+    {
+      "id": "pair_relation_20",
+      "family": "pair_relation",
+      "formula": "out == (3)*outfilelen"
+    },
+    {
+      "id": "pair_relation_21",
+      "family": "pair_relation",
+      "formula": "outfilelen == (3)*out"
+    },
+    {
+      "id": "pair_relation_22",
+      "family": "pair_relation",
+      "formula": "nchar == (4)*out"
+    },
+    {
+      "id": "pair_relation_23",
+      "family": "pair_relation",
+      "formula": "out == (4)*nchar"
+    },
+    {
+      "id": "pair_relation_24",
+      "family": "pair_relation",
+      "formula": "nchar == (4)*outfilelen"
+    },
+    {
+      "id": "pair_relation_25",
+      "family": "pair_relation",
+      "formula": "outfilelen == (4)*nchar"
+    },
+    {
+      "id": "pair_relation_26",
+      "family": "pair_relation",
+      "formula": "out == (4)*outfilelen"
+    },
+    {
+      "id": "pair_relation_27",
+      "family": "pair_relation",
+      "formula": "outfilelen == (4)*out"
+    },
+    {
+      "id": "pair_relation_28",
+      "family": "pair_relation",
+      "formula": "nchar == (-1)*out"
+    },
+    {
+      "id": "pair_relation_29",
+      "family": "pair_relation",
+      "formula": "out == (-1)*nchar"
+    },
+    {
+      "id": "pair_relation_30",
+      "family": "pair_relation",
+      "formula": "nchar == (-1)*outfilelen"
+    },
+    {
+      "id": "pair_relation_31",
+      "family": "pair_relation",
+      "formula": "outfilelen == (-1)*nchar"
+    },
+    {
+      "id": "pair_relation_32",
+      "family": "pair_relation",
+      "formula": "out == (-1)*outfilelen"
+    },
+    {
+      "id": "pair_relation_33",
+      "family": "pair_relation",
+      "formula": "outfilelen == (-1)*out"
+    },
+    {
+      "id": "conservation_01",
+      "family": "conservation",
+      "formula": "nchar+out == (1)*(outfilelen)"
+    },
+    {
+      "id": "conservation_02",
+      "family": "conservation",
+      "formula": "nchar-out == (1)*(outfilelen)"
+    },
+    {
+      "id": "conservation_03",
+      "family": "conservation",
+      "formula": "nchar+out == (1)*(\\at(outfilelen,Pre))"
+    },
+    {
+      "id": "conservation_04",
+      "family": "conservation",
+      "formula": "nchar-out == (1)*(\\at(outfilelen,Pre))"
+    },
+    {
+      "id": "conservation_05",
+      "family": "conservation",
+      "formula": "nchar+outfilelen == (1)*(outfilelen)"
+    },
+    {
+      "id": "conservation_06",
+      "family": "conservation",
+      "formula": "nchar-outfilelen == (1)*(outfilelen)"
+    },
+    {
+      "id": "conservation_07",
+      "family": "conservation",
+      "formula": "nchar+outfilelen == (1)*(\\at(outfilelen,Pre))"
+    },
+    {
+      "id": "conservation_08",
+      "family": "conservation",
+      "formula": "nchar-outfilelen == (1)*(\\at(outfilelen,Pre))"
+    },
+    {
+      "id": "conservation_09",
+      "family": "conservation",
+      "formula": "out+outfilelen == (1)*(outfilelen)"
+    },
+    {
+      "id": "conservation_10",
+      "family": "conservation",
+      "formula": "out-outfilelen == (1)*(outfilelen)"
+    },
+    {
+      "id": "conservation_11",
+      "family": "conservation",
+      "formula": "out+outfilelen == (1)*(\\at(outfilelen,Pre))"
+    },
+    {
+      "id": "conservation_12",
+      "family": "conservation",
+      "formula": "out-outfilelen == (1)*(\\at(outfilelen,Pre))"
+    },
+    {
+      "id": "conservation_13",
+      "family": "conservation",
+      "formula": "nchar+out == (2)*(outfilelen)"
+    },
+    {
+      "id": "conservation_14",
+      "family": "conservation",
+      "formula": "nchar-out == (2)*(outfilelen)"
+    },
+    {
+      "id": "conservation_15",
+      "family": "conservation",
+      "formula": "nchar+out == (2)*(\\at(outfilelen,Pre))"
+    },
+    {
+      "id": "conservation_16",
+      "family": "conservation",
+      "formula": "nchar-out == (2)*(\\at(outfilelen,Pre))"
+    },
+    {
+      "id": "conservation_17",
+      "family": "conservation",
+      "formula": "nchar+outfilelen == (2)*(outfilelen)"
+    },
+    {
+      "id": "conservation_18",
+      "family": "conservation",
+      "formula": "nchar-outfilelen == (2)*(outfilelen)"
+    },
+    {
+      "id": "conservation_19",
+      "family": "conservation",
+      "formula": "nchar+outfilelen == (2)*(\\at(outfilelen,Pre))"
+    },
+    {
+      "id": "conservation_20",
+      "family": "conservation",
+      "formula": "nchar-outfilelen == (2)*(\\at(outfilelen,Pre))"
+    },
+    {
+      "id": "conservation_21",
+      "family": "conservation",
+      "formula": "out+outfilelen == (2)*(outfilelen)"
+    },
+    {
+      "id": "conservation_22",
+      "family": "conservation",
+      "formula": "out-outfilelen == (2)*(outfilelen)"
+    },
+    {
+      "id": "conservation_23",
+      "family": "conservation",
+      "formula": "out+outfilelen == (2)*(\\at(outfilelen,Pre))"
+    },
+    {
+      "id": "conservation_24",
+      "family": "conservation",
+      "formula": "out-outfilelen == (2)*(\\at(outfilelen,Pre))"
+    },
+    {
+      "id": "conservation_25",
+      "family": "conservation",
+      "formula": "nchar+out == (3)*(outfilelen)"
+    },
+    {
+      "id": "conservation_26",
+      "family": "conservation",
+      "formula": "nchar-out == (3)*(outfilelen)"
+    },
+    {
+      "id": "conservation_27",
+      "family": "conservation",
+      "formula": "nchar+out == (3)*(\\at(outfilelen,Pre))"
+    },
+    {
+      "id": "conservation_28",
+      "family": "conservation",
+      "formula": "nchar-out == (3)*(\\at(outfilelen,Pre))"
+    },
+    {
+      "id": "conservation_29",
+      "family": "conservation",
+      "formula": "nchar+outfilelen == (3)*(outfilelen)"
+    },
+    {
+      "id": "conservation_30",
+      "family": "conservation",
+      "formula": "nchar-outfilelen == (3)*(outfilelen)"
+    },
+    {
+      "id": "conservation_31",
+      "family": "conservation",
+      "formula": "nchar+outfilelen == (3)*(\\at(outfilelen,Pre))"
+    },
+    {
+      "id": "conservation_32",
+      "family": "conservation",
+      "formula": "nchar-outfilelen == (3)*(\\at(outfilelen,Pre))"
+    },
+    {
+      "id": "conservation_33",
+      "family": "conservation",
+      "formula": "out+outfilelen == (3)*(outfilelen)"
+    },
+    {
+      "id": "conservation_34",
+      "family": "conservation",
+      "formula": "out-outfilelen == (3)*(outfilelen)"
+    },
+    {
+      "id": "conservation_35",
+      "family": "conservation",
+      "formula": "out+outfilelen == (3)*(\\at(outfilelen,Pre))"
+    },
+    {
+      "id": "conservation_36",
+      "family": "conservation",
+      "formula": "out-outfilelen == (3)*(\\at(outfilelen,Pre))"
+    },
+    {
+      "id": "conservation_37",
+      "family": "conservation",
+      "formula": "nchar+out == (-1)*(outfilelen)"
+    },
+    {
+      "id": "conservation_38",
+      "family": "conservation",
+      "formula": "nchar-out == (-1)*(outfilelen)"
+    },
+    {
+      "id": "conservation_39",
+      "family": "conservation",
+      "formula": "nchar+out == (-1)*(\\at(outfilelen,Pre))"
+    },
+    {
+      "id": "conservation_40",
+      "family": "conservation",
+      "formula": "nchar-out == (-1)*(\\at(outfilelen,Pre))"
+    },
+    {
+      "id": "conservation_41",
+      "family": "conservation",
+      "formula": "nchar+outfilelen == (-1)*(outfilelen)"
+    },
+    {
+      "id": "conservation_42",
+      "family": "conservation",
+      "formula": "nchar-outfilelen == (-1)*(outfilelen)"
+    },
+    {
+      "id": "conservation_43",
+      "family": "conservation",
+      "formula": "nchar+outfilelen == (-1)*(\\at(outfilelen,Pre))"
+    },
+    {
+      "id": "conservation_44",
+      "family": "conservation",
+      "formula": "nchar-outfilelen == (-1)*(\\at(outfilelen,Pre))"
+    },
+    {
+      "id": "conservation_45",
+      "family": "conservation",
+      "formula": "out+outfilelen == (-1)*(outfilelen)"
+    },
+    {
+      "id": "conservation_46",
+      "family": "conservation",
+      "formula": "out-outfilelen == (-1)*(outfilelen)"
+    },
+    {
+      "id": "conservation_47",
+      "family": "conservation",
+      "formula": "out+outfilelen == (-1)*(\\at(outfilelen,Pre))"
+    },
+    {
+      "id": "conservation_48",
+      "family": "conservation",
+      "formula": "out-outfilelen == (-1)*(\\at(outfilelen,Pre))"
+    },
+    {
+      "id": "conservation_49",
+      "family": "conservation",
+      "formula": "nchar+out == 0"
+    },
+    {
+      "id": "conservation_50",
+      "family": "conservation",
+      "formula": "nchar-out == 0"
+    },
+    {
+      "id": "conservation_51",
+      "family": "conservation",
+      "formula": "nchar+outfilelen == 0"
+    },
+    {
+      "id": "conservation_52",
+      "family": "conservation",
+      "formula": "nchar-outfilelen == 0"
+    },
+    {
+      "id": "conservation_53",
+      "family": "conservation",
+      "formula": "out+outfilelen == 0"
+    },
+    {
+      "id": "conservation_54",
+      "family": "conservation",
+      "formula": "out-outfilelen == 0"
+    },
+    {
+      "id": "conservation_55",
+      "family": "conservation",
+      "formula": "nchar+out == 1"
+    },
+    {
+      "id": "conservation_56",
+      "family": "conservation",
+      "formula": "nchar-out == 1"
+    },
+    {
+      "id": "conservation_57",
+      "family": "conservation",
+      "formula": "nchar+outfilelen == 1"
+    },
+    {
+      "id": "conservation_58",
+      "family": "conservation",
+      "formula": "nchar-outfilelen == 1"
+    },
+    {
+      "id": "conservation_59",
+      "family": "conservation",
+      "formula": "out+outfilelen == 1"
+    },
+    {
+      "id": "conservation_60",
+      "family": "conservation",
+      "formula": "out-outfilelen == 1"
+    },
+    {
+      "id": "conservation_61",
+      "family": "conservation",
+      "formula": "nchar+out == -1"
+    },
+    {
+      "id": "conservation_62",
+      "family": "conservation",
+      "formula": "nchar-out == -1"
+    },
+    {
+      "id": "conservation_63",
+      "family": "conservation",
+      "formula": "nchar+outfilelen == -1"
+    },
+    {
+      "id": "conservation_64",
+      "family": "conservation",
+      "formula": "nchar-outfilelen == -1"
+    },
+    {
+      "id": "modular_01",
+      "family": "modular",
+      "formula": "nchar % 2 == 0"
+    },
+    {
+      "id": "modular_02",
+      "family": "modular",
+      "formula": "out % 2 == 0"
+    },
+    {
+      "id": "modular_03",
+      "family": "modular",
+      "formula": "nchar % 2 == 1"
+    },
+    {
+      "id": "modular_04",
+      "family": "modular",
+      "formula": "out % 2 == 1"
+    },
+    {
+      "id": "modular_05",
+      "family": "modular",
+      "formula": "nchar % 3 == 0"
+    },
+    {
+      "id": "modular_06",
+      "family": "modular",
+      "formula": "out % 3 == 0"
+    },
+    {
+      "id": "modular_07",
+      "family": "modular",
+      "formula": "nchar % 3 == 1"
+    },
+    {
+      "id": "modular_08",
+      "family": "modular",
+      "formula": "out % 3 == 1"
+    },
+    {
+      "id": "modular_09",
+      "family": "modular",
+      "formula": "nchar % 3 == 2"
+    },
+    {
+      "id": "modular_10",
+      "family": "modular",
+      "formula": "out % 3 == 2"
+    },
+    {
+      "id": "modular_11",
+      "family": "modular",
+      "formula": "nchar % 4 == 0"
+    },
+    {
+      "id": "modular_12",
+      "family": "modular",
+      "formula": "out % 4 == 0"
+    },
+    {
+      "id": "modular_13",
+      "family": "modular",
+      "formula": "nchar % 4 == 1"
+    },
+    {
+      "id": "modular_14",
+      "family": "modular",
+      "formula": "out % 4 == 1"
+    },
+    {
+      "id": "modular_15",
+      "family": "modular",
+      "formula": "nchar % 4 == 2"
+    },
+    {
+      "id": "modular_16",
+      "family": "modular",
+      "formula": "out % 4 == 2"
+    },
+    {
+      "id": "modular_17",
+      "family": "modular",
+      "formula": "nchar % 4 == 3"
+    },
+    {
+      "id": "modular_18",
+      "family": "modular",
+      "formula": "out % 4 == 3"
+    },
+    {
+      "id": "polynomial_01",
+      "family": "polynomial",
+      "formula": "2*nchar == out*(out+(-1))"
+    },
+    {
+      "id": "polynomial_02",
+      "family": "polynomial",
+      "formula": "2*out == nchar*(nchar+(-1))"
+    },
+    {
+      "id": "polynomial_03",
+      "family": "polynomial",
+      "formula": "2*nchar == out*(out+(0))"
+    },
+    {
+      "id": "polynomial_04",
+      "family": "polynomial",
+      "formula": "2*out == nchar*(nchar+(0))"
+    },
+    {
+      "id": "polynomial_05",
+      "family": "polynomial",
+      "formula": "2*nchar == out*(out+(1))"
+    },
+    {
+      "id": "polynomial_06",
+      "family": "polynomial",
+      "formula": "2*out == nchar*(nchar+(1))"
+    },
+    {
+      "id": "polynomial_07",
+      "family": "polynomial",
+      "formula": "nchar*out == 0"
+    },
+    {
+      "id": "polynomial_08",
+      "family": "polynomial",
+      "formula": "nchar*nchar <= out*out"
+    },
+    {
+      "id": "polynomial_09",
+      "family": "polynomial",
+      "formula": "out*out <= nchar*nchar"
+    },
+    {
+      "id": "polynomial_10",
+      "family": "polynomial",
+      "formula": "2*nchar == outfilelen*(outfilelen+(-1))"
+    },
+    {
+      "id": "polynomial_11",
+      "family": "polynomial",
+      "formula": "2*outfilelen == nchar*(nchar+(-1))"
+    },
+    {
+      "id": "polynomial_12",
+      "family": "polynomial",
+      "formula": "2*nchar == outfilelen*(outfilelen+(0))"
+    },
+    {
+      "id": "polynomial_13",
+      "family": "polynomial",
+      "formula": "2*outfilelen == nchar*(nchar+(0))"
+    },
+    {
+      "id": "polynomial_14",
+      "family": "polynomial",
+      "formula": "2*nchar == outfilelen*(outfilelen+(1))"
+    },
+    {
+      "id": "polynomial_15",
+      "family": "polynomial",
+      "formula": "2*outfilelen == nchar*(nchar+(1))"
+    },
+    {
+      "id": "polynomial_16",
+      "family": "polynomial",
+      "formula": "nchar*outfilelen == 0"
+    },
+    {
+      "id": "polynomial_17",
+      "family": "polynomial",
+      "formula": "nchar*nchar <= outfilelen*outfilelen"
+    },
+    {
+      "id": "polynomial_18",
+      "family": "polynomial",
+      "formula": "outfilelen*outfilelen <= nchar*nchar"
+    },
+    {
+      "id": "polynomial_19",
+      "family": "polynomial",
+      "formula": "2*out == outfilelen*(outfilelen+(-1))"
+    },
+    {
+      "id": "polynomial_20",
+      "family": "polynomial",
+      "formula": "2*outfilelen == out*(out+(-1))"
+    },
+    {
+      "id": "polynomial_21",
+      "family": "polynomial",
+      "formula": "2*out == outfilelen*(outfilelen+(0))"
+    },
+    {
+      "id": "polynomial_22",
+      "family": "polynomial",
+      "formula": "2*outfilelen == out*(out+(0))"
+    },
+    {
+      "id": "polynomial_23",
+      "family": "polynomial",
+      "formula": "2*out == outfilelen*(outfilelen+(1))"
+    },
+    {
+      "id": "polynomial_24",
+      "family": "polynomial",
+      "formula": "2*outfilelen == out*(out+(1))"
+    },
+    {
+      "id": "polynomial_25",
+      "family": "polynomial",
+      "formula": "out*outfilelen == 0"
+    },
+    {
+      "id": "polynomial_26",
+      "family": "polynomial",
+      "formula": "out*out <= outfilelen*outfilelen"
+    },
+    {
+      "id": "polynomial_27",
+      "family": "polynomial",
+      "formula": "outfilelen*outfilelen <= out*out"
+    },
+    {
+      "id": "polynomial_28",
+      "family": "polynomial",
+      "formula": "nchar*nchar == outfilelen"
+    },
+    {
+      "id": "polynomial_29",
+      "family": "polynomial",
+      "formula": "nchar*((outfilelen)-nchar) >= 0"
+    },
+    {
+      "id": "polynomial_30",
+      "family": "polynomial",
+      "formula": "out*out == outfilelen"
+    },
+    {
+      "id": "polynomial_31",
+      "family": "polynomial",
+      "formula": "out*((outfilelen)-out) >= 0"
+    },
+    {
+      "id": "polynomial_32",
+      "family": "polynomial",
+      "formula": "nchar*nchar == \\at(outfilelen,Pre)"
+    },
+    {
+      "id": "polynomial_33",
+      "family": "polynomial",
+      "formula": "nchar*((\\at(outfilelen,Pre))-nchar) >= 0"
+    },
+    {
+      "id": "polynomial_34",
+      "family": "polynomial",
+      "formula": "out*out == \\at(outfilelen,Pre)"
+    },
+    {
+      "id": "polynomial_35",
+      "family": "polynomial",
+      "formula": "out*((\\at(outfilelen,Pre))-out) >= 0"
+    },
+    {
+      "id": "conditional_01",
+      "family": "conditional",
+      "formula": "outfilelen <= 0 ==> nchar == 0"
+    },
+    {
+      "id": "conditional_02",
+      "family": "conditional",
+      "formula": "outfilelen == 0 ==> nchar == 0"
+    },
+    {
+      "id": "conditional_03",
+      "family": "conditional",
+      "formula": "outfilelen > 0 ==> nchar > 0"
+    },
+    {
+      "id": "conditional_04",
+      "family": "conditional",
+      "formula": "outfilelen >= 0 ==> nchar >= 0"
+    },
+    {
+      "id": "conditional_05",
+      "family": "conditional",
+      "formula": "outfilelen < 0 ==> nchar <= 0"
+    },
+    {
+      "id": "conditional_06",
+      "family": "conditional",
+      "formula": "outfilelen > 0 ==> nchar == outfilelen"
+    },
+    {
+      "id": "conditional_07",
+      "family": "conditional",
+      "formula": "outfilelen <= 0 ==> nchar == outfilelen"
+    },
+    {
+      "id": "conditional_08",
+      "family": "conditional",
+      "formula": "(nchar == 0) <==> (outfilelen <= 0)"
+    },
+    {
+      "id": "conditional_09",
+      "family": "conditional",
+      "formula": "outfilelen <= 0 ==> out == 0"
+    },
+    {
+      "id": "conditional_10",
+      "family": "conditional",
+      "formula": "outfilelen == 0 ==> out == 0"
+    },
+    {
+      "id": "conditional_11",
+      "family": "conditional",
+      "formula": "outfilelen > 0 ==> out > 0"
+    },
+    {
+      "id": "conditional_12",
+      "family": "conditional",
+      "formula": "outfilelen >= 0 ==> out >= 0"
+    },
+    {
+      "id": "conditional_13",
+      "family": "conditional",
+      "formula": "outfilelen < 0 ==> out <= 0"
+    },
+    {
+      "id": "conditional_14",
+      "family": "conditional",
+      "formula": "outfilelen > 0 ==> out == outfilelen"
+    },
+    {
+      "id": "conditional_15",
+      "family": "conditional",
+      "formula": "outfilelen <= 0 ==> out == outfilelen"
+    },
+    {
+      "id": "conditional_16",
+      "family": "conditional",
+      "formula": "(out == 0) <==> (outfilelen <= 0)"
+    },
+    {
+      "id": "conditional_17",
+      "family": "conditional",
+      "formula": "\\at(outfilelen,Pre) <= 0 ==> nchar == 0"
+    },
+    {
+      "id": "conditional_18",
+      "family": "conditional",
+      "formula": "\\at(outfilelen,Pre) == 0 ==> nchar == 0"
+    },
+    {
+      "id": "conditional_19",
+      "family": "conditional",
+      "formula": "\\at(outfilelen,Pre) > 0 ==> nchar > 0"
+    },
+    {
+      "id": "conditional_20",
+      "family": "conditional",
+      "formula": "\\at(outfilelen,Pre) >= 0 ==> nchar >= 0"
+    },
+    {
+      "id": "conditional_21",
+      "family": "conditional",
+      "formula": "\\at(outfilelen,Pre) < 0 ==> nchar <= 0"
+    },
+    {
+      "id": "conditional_22",
+      "family": "conditional",
+      "formula": "\\at(outfilelen,Pre) > 0 ==> nchar == \\at(outfilelen,Pre)"
+    },
+    {
+      "id": "conditional_23",
+      "family": "conditional",
+      "formula": "\\at(outfilelen,Pre) <= 0 ==> nchar == \\at(outfilelen,Pre)"
+    },
+    {
+      "id": "conditional_24",
+      "family": "conditional",
+      "formula": "(nchar == 0) <==> (\\at(outfilelen,Pre) <= 0)"
+    },
+    {
+      "id": "conditional_25",
+      "family": "conditional",
+      "formula": "\\at(outfilelen,Pre) <= 0 ==> out == 0"
+    },
+    {
+      "id": "conditional_26",
+      "family": "conditional",
+      "formula": "\\at(outfilelen,Pre) == 0 ==> out == 0"
+    },
+    {
+      "id": "conditional_27",
+      "family": "conditional",
+      "formula": "\\at(outfilelen,Pre) > 0 ==> out > 0"
+    },
+    {
+      "id": "conditional_28",
+      "family": "conditional",
+      "formula": "\\at(outfilelen,Pre) >= 0 ==> out >= 0"
+    },
+    {
+      "id": "conditional_29",
+      "family": "conditional",
+      "formula": "\\at(outfilelen,Pre) < 0 ==> out <= 0"
+    },
+    {
+      "id": "conditional_30",
+      "family": "conditional",
+      "formula": "\\at(outfilelen,Pre) > 0 ==> out == \\at(outfilelen,Pre)"
+    },
+    {
+      "id": "conditional_31",
+      "family": "conditional",
+      "formula": "\\at(outfilelen,Pre) <= 0 ==> out == \\at(outfilelen,Pre)"
+    },
+    {
+      "id": "conditional_32",
+      "family": "conditional",
+      "formula": "(out == 0) <==> (\\at(outfilelen,Pre) <= 0)"
+    }
+  ]
+}

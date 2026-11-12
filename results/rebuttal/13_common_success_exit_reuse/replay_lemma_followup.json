@@ -1,0 +1,24 @@
+{
+  "key": "Loopy_185",
+  "query": "non_contextual/goal_05_visible",
+  "saved_query_sha256": "b3b5ca2bc19faab265c5c20f396dddbe05b4ee7d3a35ebdae8a8dc3bcdaf72cb",
+  "goal": "j*j <= i*i",
+  "method": "Linear premise plus universally valid real-arithmetic lemma. Original inputs, summaries, goals, budgets and counts unchanged.",
+  "obligations": [
+    {
+      "description": "The full frozen context/invariant implies 0 <= j <= i, without assuming the target or its negation.",
+      "status": "unsat",
+      "seconds": 0.005356394998671021,
+      "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun from () Int)\n(declare-fun i () Int)\n(declare-fun j () Int)\n(declare-fun k () Int)\n(declare-fun to () Int)\n(declare-fun k__entry () Int)\n(declare-fun to__entry () Int)\n(declare-fun from__entry () Int)\n(declare-fun j__entry () Int)\n(declare-fun i__entry () Int)\n(declare-fun from__pre () Int)\n(declare-fun k__pre () Int)\n(declare-fun to__pre () Int)\n(assert\n (let (($x35 (<= 0 k)))\n (let (($x36 (>= 100 k)))\n (let (($x7 (>= i from)))\n (let (($x10 (<= 0 j)))\n (let (($x19 (<= i k)))\n (let (($x51 (<= j 2147483647)))\n (let (($x55 (<= i 2147483647)))\n (let (($x57 (<= k 2147483647)))\n (let (($x60 (<= to 2147483647)))\n (let (($x62 (<= from 2147483647)))\n (let (($x65 (= k k__entry)))\n (let (($x67 (= to to__entry)))\n (let (($x69 (= from from__entry)))\n (let (($x71 (<= j__entry 2147483647)))\n (let (($x74 (<= i__entry 2147483647)))\n (let (($x76 (<= k__entry 2147483647)))\n (let (($x78 (<= to__entry 2147483647)))\n (let (($x80 (<= from__entry 2147483647)))\n (let (($x84 (= i__entry from__pre)))\n (let (($x86 (= k__entry k__pre)))\n (let (($x88 (= to__entry to__pre)))\n (let (($x89 (= from__entry from__pre)))\n (let (($x94 (<= k__pre 2147483647)))\n (let (($x96 (<= to__pre 2147483647)))\n (let (($x98 (<= from__pre 2147483647)))\n (and (>= from__pre (- 2147483648)) $x98 (>= to__pre (- 2147483648)) $x96 (>= k__pre (- 2147483648)) $x94 (<= 0 k__pre) (>= 100 k__pre) (<= 0 from__pre) (<= from__pre k__pre) $x89 $x88 $x86 $x84 (= 0 j__entry) (>= from__entry (- 2147483648)) $x80 (>= to__entry (- 2147483648)) $x78 (>= k__entry (- 2147483648)) $x76 (>= i__entry (- 2147483648)) $x74 (>= j__entry (- 2147483648)) $x71 $x69 $x67 $x65 (>= from (- 2147483648)) $x62 (>= to (- 2147483648)) $x60 (>= k (- 2147483648)) $x57 (>= i (- 2147483648)) $x55 (>= j (- 2147483648)) $x51 (<= 0 i) $x19 (= j (+ i (* (- 1) from))) $x10 $x7 (<= j (+ k (* (- 1) from))) (<= j k) (<= 0 (+ i (* (- 1) from))) (>= 100 j) (or (not (and $x35 $x36)) $x19) (= i (+ from j)) (>= 100 i) $x36 $x35 (<= 0 from) (<= from k) (<= j (+ 100 (* (- 1) from))) (= (+ i (* (- 1) from)) j) (or (not (= i from)) (= 0 j)) (or (not $x19) (<= j (+ i (* (- 1) from)))) (<= 0 (+ k (* (- 1) i))) (or (not $x10) $x7))))))))))))))))))))))))))))\n(assert\n (let (($x107 (>= j 0)))\n(let (($x109 (and $x107 (<= j i))))\n(not $x109))))\n(check-sat)\n",
+      "sha256": "d8bd37bd5fc7adffc9e580b75ec969a2c2400006578d02ea464c6fabf439ff23"
+    },
+    {
+      "description": "For all real x,y, 0 <= x <= y implies x*x <= y*y; hence it also holds for mathematical integers.",
+      "status": "unsat",
+      "seconds": 0.0030930129942134954,
+      "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun lemma_j () Real)\n(declare-fun lemma_i () Real)\n(assert\n (>= lemma_j 0.0))\n(assert\n (<= lemma_j lemma_i))\n(assert\n (not (<= (* lemma_j lemma_j) (* lemma_i lemma_i))))\n(check-sat)\n",
+      "sha256": "b778eba04534a33f690db70ae9191d47944e07c30f1b7e5307d3afdecbe1aa1c"
+    }
+  ],
+  "confirmed": true
+}

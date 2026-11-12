@@ -1,0 +1,272 @@
+{
+  "key": "NLA_lipus_34",
+  "program_included": true,
+  "planned_goal_count": 8,
+  "inputs": {
+    "hidden": {
+      "source_path": "/home/yangfp/craft_empirical_runs/recovered_hidden_evidence_20261110/craft16/sources/NLA_lipus_34.original.c",
+      "source_sha256": "e791d31f265fd4fb52e7a4f90cb41ab51dbc99126d1abd5240ff5dfef598c72a",
+      "verification_path": "/home/yangfp/craft_empirical_runs/recovered_hidden_evidence_20261110/craft16/verification/NLA_lipus_34.json",
+      "verification_sha256": "3e3ebe52f0c4909622930ad66e9ad3cef1ab49a55cb0f43fb4d50ec65316453a",
+      "audit_path": "/home/yangfp/craft_empirical_runs/craft16_hidden_prefix_semantics_control_20261110/k16/cases/NLA_lipus_34.json",
+      "audit_sha256": "7eafeaa69ebfdc1fdaf4e3ec3c32592fa186e51f9b111583dd34e4aa4bb06045",
+      "survivor_count": 34
+    },
+    "visible": {
+      "source_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/NLA_lipus_34.original.c",
+      "source_sha256": "e791d31f265fd4fb52e7a4f90cb41ab51dbc99126d1abd5240ff5dfef598c72a",
+      "verification_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/NLA_lipus_34.json",
+      "verification_sha256": "d940f0bae03636a6eac2e3dd50a91edf90d94d8c5b990c5910ab78aa64989178",
+      "audit_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_semantics_20261110/k16/cases/NLA_lipus_34.json",
+      "audit_sha256": "51411dfe28250090cfb346b66cb72f600ae6749069121b2641f3263a9af86fcc",
+      "survivor_count": 26
+    }
+  },
+  "candidate_pool_sha256": "bae8e283d3f2d4fa9e86a55e70733c805ab0c36a4c755193439a033f52fd4e65",
+  "selected_goals": [],
+  "unfilled_slots": 8,
+  "arm_support": {
+    "non_contextual": {
+      "hidden": {
+        "full_summary_represented": false,
+        "nonvacuity": {
+          "query": "hidden_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [
+          {
+            "clause": "v == (a - x) / b * b",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_00",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "(x > y) ==> (v == (a - x) / b * b)",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_01",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "v == (a - x) * (b / b)",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_02",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "v == (a - x) / y * b",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_03",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "(a - x) % y == 0 ==> v == (a - x) / y * b",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_04",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "x == a - v / b * b",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_05",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "(v % b) == 0 ==> x + v == a",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_06",
+              "status": "unsat"
+            }
+          },
+          {
+            "clause": "x > y ==> (a - x) % b == 0",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_07",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "x - y == a - b - (v / u) * u",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_08",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "x == a - (v / u) * u",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_09",
+              "status": "sat"
+            }
+          }
+        ],
+        "eligible_for_confirmation": false
+      },
+      "visible": {
+        "full_summary_represented": false,
+        "nonvacuity": {
+          "query": "visible_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [
+          {
+            "clause": "v == (a - x) * (b / b)",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "visible_redundancy_00",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "x + v/y <= a + b",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "visible_redundancy_01",
+              "status": "sat"
+            }
+          }
+        ],
+        "eligible_for_confirmation": false
+      }
+    },
+    "exit_context": {
+      "hidden": {
+        "full_summary_represented": false,
+        "nonvacuity": {
+          "query": "hidden_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [
+          {
+            "clause": "v == (a - x) / b * b",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_00",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "(x > y) ==> (v == (a - x) / b * b)",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_01",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "v == (a - x) * (b / b)",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_02",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "v == (a - x) / y * b",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_03",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "(a - x) % y == 0 ==> v == (a - x) / y * b",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_04",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "x == a - v / b * b",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_05",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "(v % b) == 0 ==> x + v == a",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_06",
+              "status": "unsat"
+            }
+          },
+          {
+            "clause": "x > y ==> (a - x) % b == 0",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_07",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "x - y == a - b - (v / u) * u",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_08",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "x == a - (v / u) * u",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_09",
+              "status": "sat"
+            }
+          }
+        ],
+        "eligible_for_confirmation": false
+      },
+      "visible": {
+        "full_summary_represented": false,
+        "nonvacuity": {
+          "query": "visible_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [
+          {
+            "clause": "v == (a - x) * (b / b)",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "visible_redundancy_00",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "x + v/y <= a + b",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "visible_redundancy_01",
+              "status": "sat"
+            }
+          }
+        ],
+        "eligible_for_confirmation": false
+      }
+    }
+  },
+  "error": "neither arm has a fully represented, confirmed feasible exit summary",
+  "screening_stage_files": {
+    "non_contextual": "history/non_contextual/cases/NLA_lipus_34.json",
+    "exit_context": "history/exit_context/cases/NLA_lipus_34.json"
+  },
+  "proof_queries_sha256": "e33685c2938ed577651dd4c03d1e8b2825ccb00709cc328975b50dc76e9da045"
+}

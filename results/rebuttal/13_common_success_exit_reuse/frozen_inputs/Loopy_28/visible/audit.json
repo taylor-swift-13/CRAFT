@@ -1,0 +1,103 @@
+{
+  "key": "Loopy_28",
+  "k": 16,
+  "source_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/Loopy_28.original.c",
+  "verification_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/Loopy_28.json",
+  "source_sha256": "3a61ffd6f19c02e76cb388a5f553153fd685a6e787f26dffa7867afef46c207c",
+  "verification_sha256": "5cd0cb1445acbdd6b3640577a7d3429ef3d28642daaa1023abb14b71b030fef6",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "Loopy",
+  "original_verified": true,
+  "survivor_count": 24,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "target_equivalent",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "glob2_p_off__pre": "0",
+        "glob2_p_off": "0",
+        "choice_1": "0",
+        "glob2_pathlim_off__entry": "1",
+        "glob2_pathbuf_off__entry": "0",
+        "glob2_p_off__entry": "0",
+        "pathbuf_off": "0",
+        "MAXPATHLEN": "1",
+        "bound_off__entry": "1",
+        "bound_off": "1",
+        "MAXPATHLEN__entry": "1",
+        "pathbuf_off__entry": "0",
+        "glob2_pathlim_off": "1",
+        "MAXPATHLEN__pre": "1",
+        "glob2_pathbuf_off": "0"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "unsat"
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "glob2_p_off__pre": "0",
+        "glob2_p_off": "-1",
+        "choice_1": "0",
+        "bound_off": "1",
+        "glob2_p_off__entry": "0",
+        "glob2_pathlim_off__entry": "1",
+        "glob2_pathbuf_off__entry": "0",
+        "pathbuf_off": "0",
+        "MAXPATHLEN": "1",
+        "bound_off__entry": "1",
+        "MAXPATHLEN__entry": "1",
+        "pathbuf_off__entry": "0",
+        "glob2_pathlim_off": "1",
+        "MAXPATHLEN__pre": "1",
+        "glob2_pathbuf_off": "0"
+      }
+    },
+    "target_sites": 2,
+    "target_paths": 2
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "glob2_p_off",
+    "rank_direction": 1,
+    "attempts": [
+      {
+        "variable": "glob2_p_off",
+        "direction": 1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "MAXPATHLEN": "i",
+    "glob2_p_off": "i",
+    "pathbuf_off": "i",
+    "bound_off": "i",
+    "glob2_pathbuf_off": "i",
+    "glob2_pathlim_off": "i"
+  },
+  "frame_variables": [
+    "MAXPATHLEN",
+    "bound_off",
+    "glob2_pathbuf_off",
+    "glob2_pathlim_off",
+    "pathbuf_off"
+  ],
+  "proof_queries_sha256": "828d8c68f63f0a8d64a62ac67d77f87be42485220d7e49ed22c3625eb8c89f4d",
+  "seconds": 0.2839620420127176
+}

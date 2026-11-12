@@ -1,0 +1,89 @@
+{
+  "key": "Loopy_17",
+  "k": 16,
+  "source_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/Loopy_17.original.c",
+  "verification_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/Loopy_17.json",
+  "source_sha256": "8ad2a39346d09ee2218858c142e5902ef36d61683ad84d796a96d4fc298d4956",
+  "verification_sha256": "f0df3c0d93caf393350991376425d035f265fd9fed5f7c77eacbbd7ce9a45e42",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "Loopy",
+  "original_verified": true,
+  "survivor_count": 35,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "N__pre": "2",
+        "i": "2",
+        "x__entry": "1",
+        "x": "1",
+        "i__entry": "0",
+        "N": "2",
+        "N__entry": "2"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "x__entry": "1",
+        "N__pre": "0",
+        "x": "2",
+        "i": "1",
+        "i__entry": "0",
+        "N": "0",
+        "N__entry": "0"
+      }
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "x": "3",
+        "N__pre": "0",
+        "i": "0",
+        "i__entry": "0",
+        "N": "0",
+        "N__entry": "0",
+        "x__entry": "1"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "i",
+    "rank_direction": 1,
+    "attempts": [
+      {
+        "variable": "i",
+        "direction": 1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "N": "i",
+    "i": "i",
+    "x": "i"
+  },
+  "frame_variables": [
+    "N"
+  ],
+  "proof_queries_sha256": "fcfb257c1a5cc1a492a260810cb22f5998a0ae114382b38559089d7d7f6fb8cb",
+  "seconds": 0.8211945529910736
+}

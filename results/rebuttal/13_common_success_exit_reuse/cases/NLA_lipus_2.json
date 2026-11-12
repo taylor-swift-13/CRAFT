@@ -1,0 +1,240 @@
+{
+  "key": "NLA_lipus_2",
+  "program_included": true,
+  "planned_goal_count": 8,
+  "inputs": {
+    "hidden": {
+      "source_path": "/home/yangfp/craft_empirical_runs/recovered_hidden_evidence_20261110/craft16/sources/NLA_lipus_2.original.c",
+      "source_sha256": "9953e32b06484bf35363930cf77295b2b23cc9f2f15e72a6a7d14c2a71474d21",
+      "verification_path": "/home/yangfp/craft_empirical_runs/recovered_hidden_evidence_20261110/craft16/verification/NLA_lipus_2.json",
+      "verification_sha256": "875c90560850b01a868ba3b419d82bc36e364619819a0f67ad592e241968c56d",
+      "audit_path": "/home/yangfp/craft_empirical_runs/craft16_hidden_prefix_semantics_control_20261110/k16/cases/NLA_lipus_2.json",
+      "audit_sha256": "45036e26ecc4204ddaf9e1c9c470fe7e0c30222111f0e2de88e4ef6d788d1ff6",
+      "survivor_count": 41
+    },
+    "visible": {
+      "source_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/NLA_lipus_2.original.c",
+      "source_sha256": "9953e32b06484bf35363930cf77295b2b23cc9f2f15e72a6a7d14c2a71474d21",
+      "verification_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/NLA_lipus_2.json",
+      "verification_sha256": "bd3ff884cf6b7232ec71afd56c377d0ec4cb3d6a5e65df0a8104679a5218c126",
+      "audit_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_semantics_20261110/k16/cases/NLA_lipus_2.json",
+      "audit_sha256": "2d989a4cdf827df0d521b3bbaf7fa2f2b47aa0b69f42c1a65726e6be7814b896",
+      "survivor_count": 42
+    }
+  },
+  "candidate_pool_sha256": "f02f955ab03452af44c960c53267a557155e4fac3d0563ceca2e68713fc2bee5",
+  "selected_goals": [],
+  "unfilled_slots": 8,
+  "arm_support": {
+    "non_contextual": {
+      "hidden": {
+        "full_summary_represented": false,
+        "nonvacuity": {
+          "query": "hidden_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [
+          {
+            "clause": "(x - r) % y == 0 ==> q <= x / y",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_00",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "q <= x / y",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_01",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "q <= x / y + 1",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_02",
+              "status": "sat"
+            }
+          }
+        ],
+        "eligible_for_confirmation": false
+      },
+      "visible": {
+        "full_summary_represented": false,
+        "nonvacuity": {
+          "query": "visible_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [
+          {
+            "clause": "q <= x / y",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "visible_redundancy_00",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "(x / y) * y <= x",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "visible_redundancy_01",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "r < y ==> q <= x / y",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "visible_redundancy_02",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "0 <= q && q <= x / y",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "visible_redundancy_03",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "(x / y) * y + (x % y) == x",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "visible_redundancy_04",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "q == x / y ==> (x == q * y + r) ==> r < y",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "visible_redundancy_05",
+              "status": "unsat"
+            }
+          },
+          {
+            "clause": "(q < x / y) ==> (r < y)",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "visible_redundancy_06",
+              "status": "unsat"
+            }
+          }
+        ],
+        "eligible_for_confirmation": false
+      }
+    },
+    "exit_context": {
+      "hidden": {
+        "full_summary_represented": false,
+        "nonvacuity": {
+          "query": "hidden_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [
+          {
+            "clause": "(x - r) % y == 0 ==> q <= x / y",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_00",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "q <= x / y",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_01",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "q <= x / y + 1",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "hidden_redundancy_02",
+              "status": "sat"
+            }
+          }
+        ],
+        "eligible_for_confirmation": false
+      },
+      "visible": {
+        "full_summary_represented": false,
+        "nonvacuity": {
+          "query": "visible_nonvacuity",
+          "status": "sat"
+        },
+        "unsupported_clause_redundancy": [
+          {
+            "clause": "q <= x / y",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "visible_redundancy_00",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "(x / y) * y <= x",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "visible_redundancy_01",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "r < y ==> q <= x / y",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "visible_redundancy_02",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "0 <= q && q <= x / y",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "visible_redundancy_03",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "(x / y) * y + (x % y) == x",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "visible_redundancy_04",
+              "status": "sat"
+            }
+          },
+          {
+            "clause": "q == x / y ==> (x == q * y + r) ==> r < y",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "visible_redundancy_05",
+              "status": "unsat"
+            }
+          },
+          {
+            "clause": "(q < x / y) ==> (r < y)",
+            "translation_error": "nonconstant ACSL divisor",
+            "proof": {
+              "query": "visible_redundancy_06",
+              "status": "unsat"
+            }
+          }
+        ],
+        "eligible_for_confirmation": false
+      }
+    }
+  },
+  "error": "neither arm has a fully represented, confirmed feasible exit summary",
+  "screening_stage_files": {
+    "non_contextual": "history/non_contextual/cases/NLA_lipus_2.json",
+    "exit_context": "history/exit_context/cases/NLA_lipus_2.json"
+  },
+  "proof_queries_sha256": "44099f6f19364ec59ae1c44485b2951ff2875fe38b46eb424c5c95b148b810d7"
+}

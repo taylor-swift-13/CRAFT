@@ -1,0 +1,94 @@
+{
+  "key": "Loopy_204",
+  "k": 16,
+  "source_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/Loopy_204.original.c",
+  "verification_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/Loopy_204.json",
+  "source_sha256": "e0bc7c27e46ac999c487b954874e8facb3fccf75b7d90eaadca2cc9c21f3582a",
+  "verification_sha256": "88079fb9b988b685569751023df77c1ef71c2c5ac760f59e7e7f51afe64f0426",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "Loopy",
+  "original_verified": true,
+  "survivor_count": 34,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "target_equivalent",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "n": "1",
+        "x__entry": "1",
+        "x": "0",
+        "n__pre": "1",
+        "y": "1",
+        "y__entry": "0",
+        "n__entry": "1"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "unsat"
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "x__entry": "0",
+        "x": "0",
+        "n": "0",
+        "y": "1",
+        "y__entry": "0",
+        "n__entry": "0",
+        "n__pre": "0"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "unknown_reachability",
+    "attempts": [
+      {
+        "variable": "x",
+        "direction": 1,
+        "status": "sat"
+      },
+      {
+        "variable": "x",
+        "direction": -1,
+        "status": "unknown",
+        "reason": "timeout"
+      },
+      {
+        "variable": "y",
+        "direction": 1,
+        "status": "unknown",
+        "reason": "timeout"
+      },
+      {
+        "variable": "y",
+        "direction": -1,
+        "status": "sat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "n": "u",
+    "x": "u",
+    "y": "u"
+  },
+  "frame_variables": [
+    "n"
+  ],
+  "proof_queries_sha256": "c28dfb7dafeb6cfde1b2646f076c2f867222688d28025768e1b105848984a95e",
+  "seconds": 1.7892588049871847
+}

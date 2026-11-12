@@ -1,0 +1,73 @@
+{
+  "key": "linear_273",
+  "k": 16,
+  "source_path": "/tmp/craft16_minimal_20261107_v2/sources/linear_273.original.c",
+  "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/linear_273.json",
+  "source_sha256": "2ae9a5c3c4a7f8c06154a6f30beb95d91947fcc6dbd9313df2a80be8c59f7cbb",
+  "verification_sha256": "6ba8a95ce513aaab9d84699b5e0e038963b63736ab5e52de9fb84f84ce62781c",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "linear",
+  "original_verified": true,
+  "survivor_count": 34,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "target_equivalent",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "i__pre": "8",
+        "i__entry": "8",
+        "i": "0"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "unsat"
+    },
+    "target_without_invariant": {
+      "status": "sat",
+      "model": {
+        "i": "-1",
+        "i__pre": "0",
+        "i__entry": "0"
+      }
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "i",
+    "rank_direction": -1,
+    "attempts": [
+      {
+        "variable": "i",
+        "direction": 1,
+        "status": "sat"
+      },
+      {
+        "variable": "i",
+        "direction": -1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "i": "i"
+  },
+  "frame_variables": [],
+  "proof_queries_sha256": "b7c4aeaf554fec89981dbb5f7a0d9527463ac03f96af83950d8e58ab8cfe5676",
+  "seconds": 0.8081391709856689
+}

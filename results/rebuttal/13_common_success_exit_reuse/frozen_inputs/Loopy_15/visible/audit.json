@@ -1,0 +1,85 @@
+{
+  "key": "Loopy_15",
+  "k": 16,
+  "source_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/Loopy_15.original.c",
+  "verification_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/Loopy_15.json",
+  "source_sha256": "bbf76de19692ff184cb5c43b17e95435a46066b8b87d1de8b8b0efd8c46854b1",
+  "verification_sha256": "6ad08ed9017bab6127fed08245802fcf029d21497e1810f3ba5f2bd013e54c95",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "Loopy",
+  "original_verified": true,
+  "survivor_count": 52,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "x__pre": "-1",
+        "i__pre": "0",
+        "i__entry": "0",
+        "i": "10",
+        "y__pre": "0",
+        "y__entry": "0",
+        "x__entry": "0",
+        "y": "0",
+        "x": "0"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "x__pre": "1",
+        "i__pre": "0",
+        "i__entry": "0",
+        "i": "11",
+        "y__entry": "0",
+        "y__pre": "0",
+        "x__entry": "1",
+        "y": "0",
+        "x": "1"
+      }
+    },
+    "target_without_invariant": {
+      "status": "unsat"
+    },
+    "target_sites": 2,
+    "target_paths": 2
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "proven_exact",
+    "certificate": "inductive + well-founded predecessor coverage",
+    "rank_variable": "i",
+    "rank_direction": 1,
+    "attempts": [
+      {
+        "variable": "i",
+        "direction": 1,
+        "status": "unsat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "i": "i",
+    "x": "i",
+    "y": "i"
+  },
+  "frame_variables": [
+    "x",
+    "y"
+  ],
+  "proof_queries_sha256": "4b6360cc02e090b736bc9f4380e58569eb203b53b9ba3b8d2f2d57581adbc5b1",
+  "seconds": 0.4064962320262566
+}

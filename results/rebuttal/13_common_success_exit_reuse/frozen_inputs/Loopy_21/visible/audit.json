@@ -1,0 +1,101 @@
+{
+  "key": "Loopy_21",
+  "k": 16,
+  "source_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/sources/Loopy_21.original.c",
+  "verification_path": "/home/yangfp/craft_empirical_runs/craft16_target_visible_20261110/verification/Loopy_21.json",
+  "source_sha256": "80b89f44281f296ed5b2ae73fb48aea5a1584087823e4f8d6d9559583ee0f02f",
+  "verification_sha256": "b79b92a9f8b2b966d4d3b73250820b2957ff1b339dcf6b932b6fbd27882d5edc",
+  "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+  "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+  "suite": "Loopy",
+  "original_verified": true,
+  "survivor_count": 25,
+  "exact_budget_seconds": 15,
+  "schema_version": 2,
+  "strength": {
+    "classification": "strictly_stronger",
+    "target_condition_kind": "target-reaching context",
+    "invariant_context": {
+      "status": "sat",
+      "model": {
+        "N__pre": "0",
+        "a__entry": "0",
+        "N__entry": "0",
+        "i": "0",
+        "x__entry": "1",
+        "a__pre": "0",
+        "NONDET__entry": "1",
+        "i__pre": "0",
+        "NONDET__pre": "1",
+        "i__entry": "0",
+        "a": "0",
+        "N": "0",
+        "x": "1",
+        "NONDET": "1"
+      }
+    },
+    "I_not_target": {
+      "status": "unsat"
+    },
+    "target_not_I": {
+      "status": "sat",
+      "model": {
+        "N__pre": "1",
+        "N__entry": "1",
+        "a__entry": "0",
+        "i": "1",
+        "x__entry": "2",
+        "a__pre": "0",
+        "NONDET__entry": "0",
+        "NONDET__pre": "0",
+        "i__pre": "2",
+        "i__entry": "2",
+        "a": "0",
+        "N": "1",
+        "x": "2",
+        "NONDET": "0"
+      }
+    },
+    "target_without_invariant": {
+      "status": "unsat"
+    },
+    "target_sites": 1,
+    "target_paths": 1
+  },
+  "exact": {
+    "initialization": {
+      "status": "unsat"
+    },
+    "preservation": {
+      "status": "unsat"
+    },
+    "classification": "unknown_reachability",
+    "attempts": [
+      {
+        "variable": "i",
+        "direction": 1,
+        "status": "sat"
+      },
+      {
+        "variable": "i",
+        "direction": -1,
+        "status": "sat"
+      }
+    ]
+  },
+  "modeled_variables": {
+    "NONDET": "i",
+    "i": "i",
+    "N": "i",
+    "a": "i",
+    "x": "i"
+  },
+  "frame_variables": [
+    "N",
+    "NONDET",
+    "a",
+    "x"
+  ],
+  "proof_queries_sha256": "2017beb718e177a6357ace571e7a1376521d5911faccaed22a4860de8dee6859",
+  "seconds": 0.8325011940323748
+}

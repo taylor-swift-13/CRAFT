@@ -1,0 +1,5313 @@
+[
+  {
+    "key": "Loopy_135",
+    "source": "// Source: data/benchmarks/LinearArbitrary-SeaHorn/pie/hola/30.c\n\nvoid loopy_135(void) {\n\n  int i, c;\n  i = 0;\n  c = 0;\n  while (i < 1000) {\n    c = c + i;\n    i = i + 1;\n  }\n\n  {;\n//@ assert(c>=0);\n}\n\n}\n",
+    "survivors": [
+      "i >= 0",
+      "i <= 1000",
+      "c == (i * (i - 1)) / 2",
+      "0 <= i <= 1000",
+      "c <= 499500",
+      "c >= 0",
+      "i + (2 * c) == i * i",
+      "c == (i * (i - 1)) / 2 ==> i >= 0",
+      "i >= 0 ==> c >= 0",
+      "i <= 1000 ==> c <= 499500",
+      "(i * (i - 1)) / 2 <= c",
+      "c >= 0 && i >= 0",
+      "i <= 1000 && c <= 499500",
+      "i * (i - 1) == 2 * c",
+      "i <= 1000 && c >= 0",
+      "i == 0 ==> c == 0",
+      "i >= 0 ==> c == i*(i-1)/2",
+      "i <= 1000 ==> c <= 1000*(1000-1)/2",
+      "i == 0 || c == (i*(i-1))/2",
+      "i >= 0 && (i <= 1000) ==> (2*c == i*(i-1))",
+      "c == (i*i - i)/2",
+      "(i*(i-1)) % 2 == 0",
+      "i > 0 ==> c >= (i - 1) * i / 2 - 0",
+      "c == (i * (i - 1)) / 2 && i <= 1000",
+      "c >= 0 && c <= 499500",
+      "i == 0 || i > 0 ==> c >= 0",
+      "i * i == i * i",
+      "i == 1000 ==> c == 499500",
+      "i * (i - 1) >= 0",
+      "i + (i - 1) == 2 * i - 1",
+      "i >= 0 && c >= 0",
+      "i + 0 == i",
+      "c <= (i * (i - 1)) / 2",
+      "c == 0 || c > 0",
+      "i == 0 || i > 0",
+      "c < 1000*1001/2",
+      "c - (i*(i-1))/2 == 0",
+      "i + c * 2 == i + (i * (i - 1))"
+    ],
+    "audit": {
+      "key": "Loopy_135",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/Loopy_135.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/Loopy_135.json",
+      "source_sha256": "dc63025afa9e26daaa8a4885f2740404212e3db1d7351d0ac58b3c4e6298cc0d",
+      "verification_sha256": "67a6b4add80fb54ba86b45ad989e902bceec523a7614be24377b17086a2f46d2",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "Loopy",
+      "original_verified": true,
+      "survivor_count": 38,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "i__entry": "0",
+            "c__entry": "0",
+            "c": "499500",
+            "i": "1000"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "i__entry": "0",
+            "c__entry": "0",
+            "i": "1002",
+            "c": "2"
+          }
+        },
+        "target_without_invariant": {
+          "status": "sat",
+          "model": {
+            "i": "1000",
+            "c": "-1",
+            "i__entry": "0",
+            "c__entry": "0"
+          }
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "i",
+        "rank_direction": 1,
+        "attempts": [
+          {
+            "variable": "c",
+            "direction": 1,
+            "status": "sat"
+          },
+          {
+            "variable": "c",
+            "direction": -1,
+            "status": "sat"
+          },
+          {
+            "variable": "i",
+            "direction": 1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "i": "i",
+        "c": "i"
+      },
+      "frame_variables": [],
+      "proof_queries_sha256": "dfaca6aea2cd501d9d2bbf3b5c3b4291b3d07757f359e28c6dad12a0afd44808",
+      "seconds": 0.6859648760291748
+    },
+    "replay": {
+      "key": "Loopy_135",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "a8e0197255248410ee62874ed5e6431263b61f7849a6eeabce509ca8ff4a74cb",
+      "proof_queries_sha256": "dfaca6aea2cd501d9d2bbf3b5c3b4291b3d07757f359e28c6dad12a0afd44808",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.05300088302465156,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "linear_255",
+    "source": "void foo255() {\n\n    int v;\n\n    v = 1;\n\n\n    while (v <= 50) {\n       v = v + 2;\n      }\n\n    /*@ assert v <= 52; */\n\n  }",
+    "survivors": [
+      "v >= 1",
+      "v <= 50 ==> v + 2 <= 52",
+      "(v - 1) % 2 == 0",
+      "0 <= v - 1",
+      "v == 1 + 2 * ((v - 1) / 2)",
+      "v - 1 == 2 * ((v - 1) / 2)",
+      "v <= 51",
+      "v % 2 == 1",
+      "v <= 50 + 1",
+      "v <= 50 ==> v >= 1",
+      "(v - 1) / 2 >= 0",
+      "v <= 50 ==> (v == 1) || (v == 3) || (v == 5) || (v == 7) || (v == 9) || (v == 11) || (v == 13) || (v == 15) || (v == 17) || (v == 19) || (v == 21) || (v == 23) || (v == 25) || (v == 27) || (v == 29) || (v == 31) || (v == 33) || (v == 35) || (v == 37) || (v == 39) || (v == 41) || (v == 43) || (v == 45) || (v == 47) || (v == 49) || (v == 51)",
+      "v <= 50 ==> v == 1 + 2 * ((v - 1) / 2)",
+      "v <= 50 ==> v == 1 || (v == 3) || (v == 5) || (v == 7) || (v == 9) || (v == 11) || (v == 13) || (v == 15) || (v == 17) || (v == 19) || (v == 21) || (v == 23) || (v == 25) || (v == 27) || (v == 29) || (v == 31) || (v == 33) || (v == 35) || (v == 37) || (v == 39) || (v == 41) || (v == 43) || (v == 45) || (v == 47) || (v == 49) || (v == 50)",
+      "v + 1 <= 52",
+      "v <= 50 ==> v == 1 || (v - 1) % 2 == 0",
+      "v >= 1 && v <= 50 + 2",
+      "v <= 52",
+      "0 <= v - 1 && v - 1 <= 51",
+      "v == 1 + 2*(v - 1)/2",
+      "v <= 50 + 2",
+      "v >= 1 && v <= 51",
+      "(v - 1) / 2 <= 25",
+      "(v - 1) % 2 == 0 && v >= 1",
+      "v - 1 < 100",
+      "v <= 50 || v > 50"
+    ],
+    "audit": {
+      "key": "linear_255",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/linear_255.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/linear_255.json",
+      "source_sha256": "0fb3ad938797b0631f999b3b74cfb2f49f74b3dd57653857646b67c4b44f2cb2",
+      "verification_sha256": "e7fa39683a6838b95cb63fc6982d633f5034d9d7f4f87400519481bf658315be",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "linear",
+      "original_verified": true,
+      "survivor_count": 26,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "v": "51",
+            "v__entry": "1"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "v__entry": "1",
+            "v": "52"
+          }
+        },
+        "target_without_invariant": {
+          "status": "sat",
+          "model": {
+            "v": "61",
+            "v__entry": "1"
+          }
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "v",
+        "rank_direction": 1,
+        "attempts": [
+          {
+            "variable": "v",
+            "direction": 1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "v": "i"
+      },
+      "frame_variables": [],
+      "proof_queries_sha256": "9011f18f0a2f6f73f7a82a51f600f62d24028f65449da7a599eb673b5324c227",
+      "seconds": 1.0998565180343576
+    },
+    "replay": {
+      "key": "linear_255",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "92b5060516edf3bd2c72c729a9cce6fd0e5dada4e480d46154b26da5c7403e17",
+      "proof_queries_sha256": "9011f18f0a2f6f73f7a82a51f600f62d24028f65449da7a599eb673b5324c227",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.09092368697747588,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "linear_146",
+    "source": "void foo146() {\n\n    int x;\n    int y;\n\n    x = 1;\n    y = 0;\n\n\n    while(y < 1024){\n       x = 0;\n       y = y + 1;\n      }\n\n    /*@ assert x == 0; */\n\n  }",
+    "survivors": [
+      "y >= 0",
+      "y <= 1024",
+      "y <= 1024 && y >= 0",
+      "y == (0 + 1) * y",
+      "x == 0 ==> y >= 1",
+      "x == 1 || x == 0",
+      "x <= 1",
+      "x >= 0",
+      "y - y == 0",
+      "(y == 1024) ==> x == 0",
+      "y == 0 || y > 0",
+      "0 <= y <= 1024",
+      "y == 0 ==> x == 1",
+      "x == 0 || (y == 0 && x == 1) ==> y >= 0",
+      "y == 0 <==> x == 1",
+      "x == 1 || (x == 0 && y >= 1)",
+      "y > 0 ==> x == 0",
+      "y % 1 == 0",
+      "(y <= 1024) ==> (y < 1025)",
+      "(y < 1024) ==> (y + 1 <= 1025)",
+      "(y <= 1023) ==> (y + 1 <= 1024)",
+      "x == 0 || x == 1",
+      "y == 0 || (y >= 1)",
+      "y <= 0 || y > 0",
+      "(y != 0) ==> (x == 0)",
+      "y <= 1024 && y % 1 == 0",
+      "1 <= x + y",
+      "x == 0 ==> y >= 0",
+      "y == (1 + (y - 1))",
+      "y == 0 + (1024 - (1024 - y))"
+    ],
+    "audit": {
+      "key": "linear_146",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/linear_146.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/linear_146.json",
+      "source_sha256": "41609a9ef67b8ac0e1258ca0f526dce0a11364b81ae11bbfd1846d59df9d90a0",
+      "verification_sha256": "1feab6ec9d59353265e6d7ec86a5a0c62ccab54172c126b7833d6951b00eea84",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "linear",
+      "original_verified": true,
+      "survivor_count": 30,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "x": "0",
+            "y": "1024",
+            "x__entry": "1",
+            "y__entry": "0"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "y": "1610613758",
+            "x__entry": "1",
+            "y__entry": "0",
+            "x": "0"
+          }
+        },
+        "target_without_invariant": {
+          "status": "sat",
+          "model": {
+            "x": "-1",
+            "y": "1024",
+            "x__entry": "1",
+            "y__entry": "0"
+          }
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "y",
+        "rank_direction": 1,
+        "attempts": [
+          {
+            "variable": "x",
+            "direction": 1,
+            "status": "sat"
+          },
+          {
+            "variable": "x",
+            "direction": -1,
+            "status": "sat"
+          },
+          {
+            "variable": "y",
+            "direction": 1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "x": "i",
+        "y": "i"
+      },
+      "frame_variables": [],
+      "proof_queries_sha256": "3e692ae987f0022ec4db18f11e30098075f41ca6bfd4145960caa426ee80adfb",
+      "seconds": 1.1973304339917377
+    },
+    "replay": {
+      "key": "linear_146",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "4851fa38bc0b8e85e874afd3b41c40a5a0eac1da7ff413b9c01f904219a19f91",
+      "proof_queries_sha256": "3e692ae987f0022ec4db18f11e30098075f41ca6bfd4145960caa426ee80adfb",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.3158222580095753,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "linear_278",
+    "source": "/*@ requires k > i - j && i < j; */\nvoid foo278(int i, int j, int k) {\n\n\n\n    while (i < j) {\n       k = k + 1;\n       i = i + 1;\n      }\n\n    /*@ assert k > 0; */\n\n  }",
+    "survivors": [
+      "i <= j",
+      "k == \\at(k, Pre) + (i - \\at(i, Pre))",
+      "i - k >= \\at(i, Pre) - \\at(k, Pre)",
+      "k >= \\at(k, Pre)",
+      "0 <= i - \\at(i, Pre)",
+      "k <= \\at(k, Pre) + ( \\at(j, Pre) - \\at(i, Pre) )",
+      "i <= j && k == \\at(k, Pre) + (i - \\at(i, Pre))",
+      "\\at(i, Pre) <= i",
+      "i <= j && k >= \\at(k, Pre)",
+      "0 <= k - \\at(k, Pre)",
+      "i - j <= 0",
+      "j - i >= 0",
+      "k - i == \\at(k, Pre) - \\at(i, Pre)",
+      "k == k",
+      "k - (k) == 0",
+      "i == i",
+      "j >= \\at(j, Pre)",
+      "(j - i) + i == j",
+      "k - i == k - i",
+      "k <= k + (j - i)",
+      "(i - \\at(i, Pre)) == 0 ==> (k - \\at(k, Pre)) >= 0",
+      "i - (i) == 0",
+      "i + k <= j + k",
+      "i - j == - (j - i)",
+      "j - i >= k - k",
+      "k - \\at(k, Pre) == i - \\at(i, Pre)",
+      "0 <= j - \\at(j, Pre)",
+      "i - k == i - k",
+      "k >= \\at(k, Pre) + (i - \\at(i, Pre))",
+      "i == \\at(i, Pre) + (k - \\at(k, Pre))",
+      "k - i >= \\at(k, Pre) - \\at(i, Pre)",
+      "i <= j ==> k - i <= \\at(k, Pre) - \\at(i, Pre) + (j - \\at(j, Pre))",
+      "\\at(j, Pre) >= j",
+      "(k - i) == (\\at(k, Pre) - \\at(i, Pre)) + (i - \\at(i, Pre)) - (i - \\at(i, Pre))",
+      "k - i <= \\at(k, Pre) - \\at(i, Pre) + (j - \\at(j, Pre))",
+      "i <= j ==> k >= \\at(k, Pre) + (i - \\at(i, Pre))",
+      "i <= j ==> k == \\at(k, Pre) + (i - \\at(i, Pre))",
+      "i - \\at(i, Pre) == i - \\at(i, Pre)",
+      "i <= \\at(j, Pre)",
+      "i >= 0 ==> k >= \\at(k, Pre)",
+      "i <= j ==> k <= \\at(k, Pre) + (j - \\at(i, Pre))",
+      "\\at(i, Pre) <= j",
+      "i - k == \\at(i, Pre) - \\at(k, Pre)",
+      "i <= j ==> k - i == \\at(k, Pre) - \\at(i, Pre)",
+      "i - \\at(i, Pre) == 0 ==> k - \\at(k, Pre) == 0",
+      "i - j < 1",
+      "i - j < 0 ==> i <= j",
+      "i + k == i + k",
+      "i - j == i - j"
+    ],
+    "audit": {
+      "key": "linear_278",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/linear_278.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/linear_278.json",
+      "source_sha256": "7cb293df04abcb6515975f6f32994df2c2a8029bdc6447f6efefde07799d0fa8",
+      "verification_sha256": "73552f960e56da0a42b7533f24a126ceff757f9c30290776322574c0e96d2cae",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "linear",
+      "original_verified": true,
+      "survivor_count": 49,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "k": "1",
+            "j__pre": "0",
+            "i": "0",
+            "i__entry": "-1",
+            "j": "0",
+            "i__pre": "-1",
+            "k__pre": "0",
+            "k__entry": "0",
+            "j__entry": "0"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "k": "1",
+            "j__pre": "0",
+            "k__pre": "0",
+            "i__pre": "-1",
+            "i": "1",
+            "i__entry": "-1",
+            "k__entry": "0",
+            "j": "0",
+            "j__entry": "0"
+          }
+        },
+        "target_without_invariant": {
+          "status": "sat",
+          "model": {
+            "k": "0",
+            "j__pre": "0",
+            "k__pre": "0",
+            "i__pre": "-1",
+            "i": "0",
+            "i__entry": "-1",
+            "k__entry": "0",
+            "j": "0",
+            "j__entry": "0"
+          }
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "i",
+        "rank_direction": 1,
+        "attempts": [
+          {
+            "variable": "i",
+            "direction": 1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "i": "i",
+        "j": "i",
+        "k": "i"
+      },
+      "frame_variables": [
+        "j"
+      ],
+      "proof_queries_sha256": "3c19b386f9a736fd10d5350d3c10fc80f033744a7b2c86cddedf8f9811628c78",
+      "seconds": 2.177737681020517
+    },
+    "replay": {
+      "key": "linear_278",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "3ecb1fb7b359f72a58c3e1b4c914884ad7fe137787a2ee5785f3e289a44541f3",
+      "proof_queries_sha256": "3c19b386f9a736fd10d5350d3c10fc80f033744a7b2c86cddedf8f9811628c78",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.1439717389876023,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "linear_284",
+    "source": "/*@ requires y >= 0 && y <= 20000001; */\nvoid foo284(int y) {\n\n    int x;\n\n    x = 4 * y;\n\n\n    while (x > 0) {\n       x -= 4;\n       y--;\n      }\n\n    /*@ assert y >= 0; */\n\n  }",
+    "survivors": [
+      "x == 4 * y",
+      "y >= 0",
+      "x >= 0",
+      "y <= 20000001",
+      "y <= 20000001 && y >= 0",
+      "x >= 0 && y >= 0",
+      "x == 4 * y && y >= 0",
+      "x == 4 * y && y <= 20000001",
+      "y >= 0 ==> x == 4 * y",
+      "y == 0 || y > 0",
+      "(x % 4) == 0",
+      "x == 4 * y && y >= 0 && x >= 0",
+      "x >= 0 && y >= 0 && x == 4 * y",
+      "x <= 4 * 20000001",
+      "y >= 0 ==> x >= 0",
+      "0 <= y <= 20000001",
+      "x <= 4 * y + 0",
+      "(4 * y) - x == 0",
+      "(x / 4) == y",
+      "(x - 4 * y) == 0",
+      "y >= 0 && x >= 0",
+      "x > 0 ==> y > 0",
+      "y <= \\at(y, Pre)",
+      "x <= 4 * \\at(y, Pre)",
+      "x >= 0 ==> y >= 0",
+      "y == 0 ==> x == 0",
+      "x > 0 ==> (x - 4) >= 0"
+    ],
+    "audit": {
+      "key": "linear_284",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/linear_284.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/linear_284.json",
+      "source_sha256": "ade4a49db759a397edb8901e36fb9623951ab01ee620be69ee0a933be0851e4e",
+      "verification_sha256": "18954d9f397a45ae9a05ec4baced902e76eae66db881285cfca7f1c3eea95d34",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "linear",
+      "original_verified": true,
+      "survivor_count": 27,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "y__pre": "0",
+            "x__entry": "0",
+            "y__entry": "0",
+            "x": "0",
+            "y": "0"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "x": "-1",
+            "y__pre": "0",
+            "y__entry": "0",
+            "y": "0",
+            "x__entry": "0"
+          }
+        },
+        "target_without_invariant": {
+          "status": "sat",
+          "model": {
+            "x": "0",
+            "y__pre": "0",
+            "y": "-1",
+            "x__entry": "0",
+            "y__entry": "0"
+          }
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "x",
+        "rank_direction": -1,
+        "attempts": [
+          {
+            "variable": "x",
+            "direction": 1,
+            "status": "sat"
+          },
+          {
+            "variable": "x",
+            "direction": -1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "y": "i",
+        "x": "i"
+      },
+      "frame_variables": [],
+      "proof_queries_sha256": "2eac44ac77a10d9430e1db7f7d57ccc045ffd8f02086a8766df39a7db97c0528",
+      "seconds": 1.0683512919931673
+    },
+    "replay": {
+      "key": "linear_284",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "cf12b4343f7dcdbad2640678a8612697fcda4fed11f4234446d3d0bfccffc617",
+      "proof_queries_sha256": "2eac44ac77a10d9430e1db7f7d57ccc045ffd8f02086a8766df39a7db97c0528",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.06462138000642881,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "linear_298",
+    "source": "void foo298() {\n\n    int x;\n    int z;\n\n    x = 0;\n    z = 5000000;\n\n\n    while(x < 10000000){\n       if(x >= 5000000)\n       z--;\n       x++;\n      }\n\n    /*@ assert z == 0; */\n\n  }",
+    "survivors": [
+      "0 <= x",
+      "x <= 10000000",
+      "0 <= z",
+      "0 <= z <= 5000000",
+      "0 <= x - 5000000 ==> z == 5000000 - (x - 5000000)",
+      "0 <= x && x <= 10000000",
+      "z <= 5000000",
+      "x <= 10000000 && z >= 0",
+      "(x < 10000000) ==> (z >= 0)",
+      "(x >= 5000000) ==> (z == 10000000 - x)",
+      "(x >= 0) ==> (z <= 5000000)",
+      "(x < 10000000) ==> (z <= 5000000)",
+      "(x >= 5000000) ==> (z == 5000000 - (x - 5000000) / 1)",
+      "(x < 5000000) ==> (z == 5000000)",
+      "(x == 0) ==> (z == 5000000)",
+      "(x == 10000000) ==> (z <= 5000000 - 5000000)",
+      "(x >= 5000000) ==> (z == 5000000 - (x - 5000000))",
+      "(x <= 5000000) ==> (z == 5000000)",
+      "(x > 5000000) ==> (z == 5000000 - (x - 5000000))",
+      "x - z <= 10000000",
+      "x == 0 || x == 1 || x > 0",
+      "(x < 10000000) ==> (z >= 1)",
+      "x + z <= 15000000",
+      "(x > 0) ==> (z <= 5000000)",
+      "x <= 10000000 ==> z >= 0",
+      "x == 10000000 ==> z == 0"
+    ],
+    "audit": {
+      "key": "linear_298",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/linear_298.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/linear_298.json",
+      "source_sha256": "7911049e3111bedc4cb38382ec823e208a7995c09fe130592d9ab15a51c83a9f",
+      "verification_sha256": "0eadf71cf1bf4968be664945bfa276b88c24c69e657c20a19b3e25abb8fb570a",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "linear",
+      "original_verified": true,
+      "survivor_count": 26,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "x": "10000000",
+            "z": "0",
+            "x__entry": "0",
+            "z__entry": "5000000"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "x": "20016257",
+            "x__entry": "0",
+            "z__entry": "5000000",
+            "z": "0"
+          }
+        },
+        "target_without_invariant": {
+          "status": "sat",
+          "model": {
+            "x": "10000000",
+            "z": "-1",
+            "x__entry": "0",
+            "z__entry": "5000000"
+          }
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "x",
+        "rank_direction": 1,
+        "attempts": [
+          {
+            "variable": "x",
+            "direction": 1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "x": "i",
+        "z": "i"
+      },
+      "frame_variables": [],
+      "proof_queries_sha256": "54c264931fc356f34b621ef9a7053f7f7b2e26a750bd95de016ecfe62e45dda4",
+      "seconds": 1.2286508749821223
+    },
+    "replay": {
+      "key": "linear_298",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "2989919484373f85465dc8e65a96ff2490a0cf642c3c30d7c18c97b66da09aa5",
+      "proof_queries_sha256": "54c264931fc356f34b621ef9a7053f7f7b2e26a750bd95de016ecfe62e45dda4",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.1293193010496907,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "NLA_lipus_32",
+    "source": "\nint main32(int a){\n\n  int sn = 0;\n  int x = 0;\n\n  while(unknown()) {\n    if (x<10) {\n        sn = sn + a;\n        x++;\n    }\n  }\n  /*@ assert sn == x*a || sn == 0;*/\n}\n\n",
+    "survivors": [
+      "0 <= x",
+      "x <= 10",
+      "sn == (x * a)",
+      "(x <= 10) ==> (sn == x * a)",
+      "(sn >= 0) ==> (x >= 0)",
+      "sn - x * a == 0",
+      "0 <= x && x <= 10",
+      "a * x - sn == 0",
+      "x <= 10 && sn == a * x",
+      "(x < 10) ==> (sn == a * x)",
+      "(x >= 0) && (sn == a * x)",
+      "(a == 0) ==> (sn == 0)",
+      "(a != 0) ==> (sn == a * x)",
+      "x <= 10 || !(x <= 10) ==> (sn == a * x)",
+      "(x == 0) ==> (sn == 0)",
+      "(x > 0) ==> (sn == (x * a))",
+      "sn == x * a <==> x >= 0",
+      "x <= 10 ==> (sn + a * (10 - x) == a * 10)",
+      "x <= 10 ==> sn <= a * x",
+      "a == a",
+      "0 <= sn - a * x",
+      "sn == a * (x / 1) - a * (x - (x / 1))",
+      "x == 0 || sn == a * x",
+      "x >= 0 ==> sn == a * x",
+      "sn - a * x == 0 ==> (x <= 10)",
+      "x <= 10 && x >= 0",
+      "x <= 11 ==> sn == a * x",
+      "(sn == a * x) ==> (x <= 10)",
+      "sn == (x * a) - (x * a - sn)",
+      "sn <= x * a",
+      "(sn - x * a) <= 0",
+      "x == 0 || x >= 1"
+    ],
+    "audit": {
+      "key": "NLA_lipus_32",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/NLA_lipus_32.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/NLA_lipus_32.json",
+      "source_sha256": "d181c4ac87dbf0930409fdbba1b7d1be13a1ea3e5a0c14cf130b913fdec88628",
+      "verification_sha256": "6e2091a53db55d30468ab52ad7d367eebded44d722390a67f19dcc72313cdaae",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "NLA_lipus",
+      "original_verified": true,
+      "survivor_count": 32,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "sn": "-1269538960",
+            "sn__entry": "0",
+            "a": "-317384740",
+            "x__entry": "0",
+            "a__entry": "-317384740",
+            "x": "4",
+            "a__pre": "-317384740"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "a__pre": "-1",
+            "x": "11",
+            "a__entry": "-1",
+            "sn": "-11",
+            "sn__entry": "0",
+            "x__entry": "0",
+            "a": "-1"
+          }
+        },
+        "target_without_invariant": {
+          "status": "sat",
+          "model": {
+            "sn__entry": "0",
+            "x__entry": "0",
+            "sn": "715827886",
+            "a__entry": "-2147483647",
+            "x": "6",
+            "a": "-2147483647",
+            "a__pre": "-2147483647"
+          }
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "x",
+        "rank_direction": 1,
+        "attempts": [
+          {
+            "variable": "sn",
+            "direction": 1,
+            "status": "sat"
+          },
+          {
+            "variable": "sn",
+            "direction": -1,
+            "status": "sat"
+          },
+          {
+            "variable": "x",
+            "direction": 1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "a": "i",
+        "sn": "i",
+        "x": "i"
+      },
+      "frame_variables": [
+        "a"
+      ],
+      "proof_queries_sha256": "b39811217d58f97dd387b4a77a774485237d81d7c2fa904b37a3561a242cdbca",
+      "seconds": 8.140880851016846
+    },
+    "replay": {
+      "key": "NLA_lipus_32",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "5feff83bed26500fa113313a596f61b2dfaa4b182f9b48e33c1ef4583c42bef3",
+      "proof_queries_sha256": "b39811217d58f97dd387b4a77a774485237d81d7c2fa904b37a3561a242cdbca",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.7054332609986886,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "linear_209",
+    "source": "int unknown();\nvoid foo209() {\n\n    int x;\n    int y;\n    int z;\n\n    x = 0;\n    y = 0;\n    z = 0;\n\n\n    while(unknown()){\n       x = x + 1;\n       y = y + 2;\n       z = z + 3;\n      }\n\n    /*@ assert x >= 0; */\n\n  }",
+    "survivors": [
+      "x >= 0",
+      "y >= 0",
+      "z >= 0",
+      "y == 2 * x",
+      "z == 3 * x",
+      "x + 1 > 0 ==> y - 2 * x == 0",
+      "x + 1 > 0 ==> z - 3 * x == 0",
+      "x == y / 2",
+      "x == z / 3",
+      "x - y == -x",
+      "y - z == -x",
+      "z - 3 * x == 0",
+      "0 <= x && 0 <= y && 0 <= z",
+      "x + y + z == 6 * x",
+      "x <= x + 1",
+      "y <= y + 2",
+      "z <= z + 3",
+      "x == 0 ==> y == 0",
+      "y == 0 ==> z == 0",
+      "z == 0 ==> x == 0",
+      "(x + y + z) % 6 == 0",
+      "x <= y <= z",
+      "x <= x",
+      "z == x + y",
+      "5 * x - y - z == 0",
+      "x + 0 <= y",
+      "y + 0 <= z",
+      "z - y == x",
+      "z - x == z - x",
+      "2*x - y == 0",
+      "x == 0 || x >= 1",
+      "y == 0 || y >= 2",
+      "z == 0 || z >= 3",
+      "x == 0 || (x > 0)",
+      "y == 0 || (y > 0)",
+      "z == 0 || (z > 0)",
+      "x + y + z == 0 || x + y + z > 0",
+      "y - 2 * x == 0",
+      "x <= z / 3",
+      "y <= 2 * x",
+      "z <= 3 * x"
+    ],
+    "audit": {
+      "key": "linear_209",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/linear_209.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/linear_209.json",
+      "source_sha256": "86aabb5b6852da913255eac10323d573054a004f8154e6ba48bd9242726cf9fd",
+      "verification_sha256": "7a712bc490b08877bd3215ff27b8f43b98f4bee6b99ea1fa2bd68ec70acc8b07",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "linear",
+      "original_verified": true,
+      "survivor_count": 41,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "x__entry": "0",
+            "x": "1",
+            "y__entry": "0",
+            "z": "3",
+            "z__entry": "0",
+            "y": "2"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "y__entry": "0",
+            "z__entry": "0",
+            "z": "0",
+            "x__entry": "0",
+            "x": "2",
+            "y": "-1"
+          }
+        },
+        "target_without_invariant": {
+          "status": "sat",
+          "model": {
+            "x": "-1",
+            "z": "0",
+            "y": "0",
+            "x__entry": "0",
+            "z__entry": "0",
+            "y__entry": "0"
+          }
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "x",
+        "rank_direction": 1,
+        "attempts": [
+          {
+            "variable": "x",
+            "direction": 1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "x": "i",
+        "y": "i",
+        "z": "i"
+      },
+      "frame_variables": [],
+      "proof_queries_sha256": "2a5254c91e309a81d2e4be6c70384a8f25fe3cec31abc2a8bf60fc2026c15c9f",
+      "seconds": 2.2278646510094404
+    },
+    "replay": {
+      "key": "linear_209",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "0eb543c3f6ffd2eb6eb11dcbade9b4a188cebba9b6c989a173d1a2d3422a59e9",
+      "proof_queries_sha256": "2a5254c91e309a81d2e4be6c70384a8f25fe3cec31abc2a8bf60fc2026c15c9f",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.14300616300897673,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "linear_16",
+    "source": "int unknown();\nvoid foo16(int n) {\n    int x = 0;\n    int m = 0;\n\n    \n    while (x < n) {\n        \n        if (unknown()) {\n            m = x;\n        }\n        \n        x = x + 1;\n    }\n\n    /*@ assert (n > 0) ==> (m >= 0); */\n\n}",
+    "survivors": [
+      "0 <= x",
+      "m <= x",
+      "(m >= 0) ==> (m <= x)",
+      "x - m >= 0",
+      "x == m || x == m + (n - m) || x <= n",
+      "(x <= n) ==> (m <= x)",
+      "0 <= m",
+      "x - m == 0 ==> m == x",
+      "x == m + (x - m)",
+      "(x < n) ==> (x + 1 <= n)",
+      "x == 0 ==> m == 0",
+      "(m == x - 1) ==> (x > 0)",
+      "x - m == (x - m)",
+      "x == m || x > m",
+      "(x == n) ==> (m <= n)",
+      "(x < n) ==> (m <= x)",
+      "(x >= 0) ==> (m >= 0)",
+      "(x == n) ==> (m == m)",
+      "x <= n ==> (m == 0 || m <= x)",
+      "(m == 0) ==> x >= 0",
+      "(x >= 0) ==> (m <= x || m == 0)",
+      "(x == n) ==> (m <= x)",
+      "x >= 0 && m >= 0",
+      "(m != 0) ==> (m < x)",
+      "0 <= m && m <= x",
+      "m <= x ==> m == x || m == m",
+      "(m < x) ==> (x <= n)",
+      "(m != 0) ==> (m <= x - 1)",
+      "(x <= n) ==> (x - m >= 0)",
+      "(m < x) ==> (m == 0 || m < x)",
+      "(m == x) ==> (m >= 0)"
+    ],
+    "audit": {
+      "key": "linear_16",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/linear_16.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/linear_16.json",
+      "source_sha256": "11c03d8ec53d622f8c9e346914fc402ee4d47ab8294a783c911a5dbaa50eb6b4",
+      "verification_sha256": "2dd3053115078ea83e5e9658a24cf28710cb194a61fd271cfec9c93c4af80a0e",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "linear",
+      "original_verified": true,
+      "survivor_count": 31,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "x": "0",
+            "m": "0",
+            "n__pre": "-1",
+            "x__entry": "0",
+            "m__entry": "0",
+            "n__entry": "-1",
+            "n": "-1"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "x": "0",
+            "m": "-1",
+            "n__pre": "-1",
+            "x__entry": "0",
+            "m__entry": "0",
+            "n__entry": "-1",
+            "n": "-1"
+          }
+        },
+        "target_without_invariant": {
+          "status": "sat",
+          "model": {
+            "x": "1",
+            "m": "-1",
+            "n__pre": "1",
+            "x__entry": "0",
+            "m__entry": "0",
+            "n__entry": "1",
+            "n": "1"
+          }
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "x",
+        "rank_direction": 1,
+        "attempts": [
+          {
+            "variable": "m",
+            "direction": 1,
+            "status": "sat"
+          },
+          {
+            "variable": "m",
+            "direction": -1,
+            "status": "sat"
+          },
+          {
+            "variable": "x",
+            "direction": 1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "n": "i",
+        "x": "i",
+        "m": "i"
+      },
+      "frame_variables": [
+        "n"
+      ],
+      "proof_queries_sha256": "615fdd832ec449c16dda62f5f42c2df5f7df738b83db04f2cabf08176331ccef",
+      "seconds": 2.4697900269529782
+    },
+    "replay": {
+      "key": "linear_16",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "aead88a5bd5600ee20b7a9a9a5e12912dee082aca04ac536402318bc69fd9e76",
+      "proof_queries_sha256": "615fdd832ec449c16dda62f5f42c2df5f7df738b83db04f2cabf08176331ccef",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.10278654401190579,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "linear_267",
+    "source": "/*@ requires n >= 1 && k >= n; */\nvoid foo267(int k, int n) {\n\n    int j;\n\n    j = 0;\n\n\n    while (j <= n - 1) {\n       j = j + 1;\n       k = k - 1;\n      }\n\n    /*@ assert k >= 0; */\n\n  }",
+    "survivors": [
+      "j >= 0",
+      "j <= n",
+      "k + j == k + j",
+      "k == \\at(k, Pre) - j",
+      "j == (k - \\at(k, Pre)) * 0 + j",
+      "n >= 1",
+      "k >= 0",
+      "k + j <= \\at(k, Pre) + n",
+      "j >= 0 && j <= n",
+      "k == n + (k - n)",
+      "k >= k - j",
+      "k >= n - j",
+      "k == k",
+      "k >= \\at(k,Pre) - n",
+      "k - j == k - j",
+      "j == 0 ==> k == k",
+      "j <= n - 1 ==> k >= 1",
+      "j - 1 >= -1",
+      "k >= 0 && j >= 0",
+      "k + j <= k + n",
+      "k + j == n + (k - (n - j))",
+      "(j <= n) ==> (k >= n - j)",
+      "(j <= n) ==> (k + j <= k + n)",
+      "k == k - j + j",
+      "j <= n - 1 + 1",
+      "k <= k + (n - j)",
+      "k >= k - (n - j)",
+      "j >= 0 && k >= 0",
+      "k + j == \\at(k,Pre)",
+      "(k >= 0) ==> (j >= 0)",
+      "k - (n - j) == k - n + j"
+    ],
+    "audit": {
+      "key": "linear_267",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/linear_267.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/linear_267.json",
+      "source_sha256": "a3c83c656c5025187ce2193ed184fcca52500b71c2f14425cf76eacbb5ca4e4e",
+      "verification_sha256": "88b8669a15b686972a17bb7e04032bf62b05382e6a7a6754afa5688f2964a006",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "linear",
+      "original_verified": true,
+      "survivor_count": 31,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "k": "0",
+            "n__pre": "1",
+            "j": "1",
+            "n__entry": "1",
+            "k__pre": "1",
+            "k__entry": "1",
+            "n": "1",
+            "j__entry": "0"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "k": "0",
+            "k__pre": "1",
+            "n__pre": "1",
+            "j": "2",
+            "n__entry": "1",
+            "k__entry": "1",
+            "n": "1",
+            "j__entry": "0"
+          }
+        },
+        "target_without_invariant": {
+          "status": "sat",
+          "model": {
+            "k": "-1",
+            "k__pre": "1",
+            "n__pre": "1",
+            "j": "1",
+            "n__entry": "1",
+            "k__entry": "1",
+            "n": "1",
+            "j__entry": "0"
+          }
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "j",
+        "rank_direction": 1,
+        "attempts": [
+          {
+            "variable": "j",
+            "direction": 1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "k": "i",
+        "n": "i",
+        "j": "i"
+      },
+      "frame_variables": [
+        "n"
+      ],
+      "proof_queries_sha256": "f8bf007a23d7303b6b4650f6d8c4a8d6849c82a4551d2486395a3b00ff05fb4d",
+      "seconds": 0.7599630790064111
+    },
+    "replay": {
+      "key": "linear_267",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "bfa094425ced888797d7c0d42763490878da7712e62e393b6990ecc7a436e5c1",
+      "proof_queries_sha256": "f8bf007a23d7303b6b4650f6d8c4a8d6849c82a4551d2486395a3b00ff05fb4d",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.0699948969995603,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "linear_277",
+    "source": "/*@ requires n >= 0 && n <= 20000001; */\nvoid foo277(int n) {\n\n    int i;\n    int k;\n\n    i = 0;\n    k = n;\n\n\n    while (i < n) {\n       k--;\n       i += 2;\n      }\n\n    /*@ assert 2 * k >= n - 1; */\n\n  }",
+    "survivors": [
+      "i >= 0",
+      "k >= 0",
+      "i % 2 == 0",
+      "i >= 0 && k >= 0",
+      "i == 2 * (i / 2)",
+      "(i < n) ==> (k >= 0)",
+      "(i >= 0) ==> (k <= n)",
+      "i % 2 == 0 ==> i - 0 >= 0",
+      "i <= 2 * ((n + 1) / 2)",
+      "k <= n",
+      "k == n - i/2",
+      "(k >= 0) ==> ((n - i/2) >= 0)",
+      "(i <= n) ==> (k == n - i/2)",
+      "(i % 2 == 0) ==> (k == n - i/2)",
+      "i == 2 * (n - k)",
+      "0 <= n - k",
+      "k % 1 == 0"
+    ],
+    "audit": {
+      "key": "linear_277",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/linear_277.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/linear_277.json",
+      "source_sha256": "eff3369a057430da27311e45948080088b7814403cf942e4a279b71160d5c0cd",
+      "verification_sha256": "eab810b4e2afcc4acb0810e0b432dcd9da46473b334340b28dc8b7115a33d73a",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "linear",
+      "original_verified": true,
+      "survivor_count": 17,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "k": "1",
+            "n__entry": "2",
+            "k__entry": "2",
+            "n": "2",
+            "i": "2",
+            "n__pre": "2",
+            "i__entry": "0"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "n": "0",
+            "n__pre": "0",
+            "i": "1",
+            "n__entry": "0",
+            "k__entry": "0",
+            "k": "0",
+            "i__entry": "0"
+          }
+        },
+        "target_without_invariant": {
+          "status": "sat",
+          "model": {
+            "k": "-1",
+            "k__entry": "0",
+            "i": "0",
+            "i__entry": "0",
+            "n__entry": "0",
+            "n__pre": "0",
+            "n": "0"
+          }
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "i",
+        "rank_direction": 1,
+        "attempts": [
+          {
+            "variable": "i",
+            "direction": 1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "n": "i",
+        "i": "i",
+        "k": "i"
+      },
+      "frame_variables": [
+        "n"
+      ],
+      "proof_queries_sha256": "6de48c79c5df823972832d29ec507aefdb764e8714d34566df254733fbfc8dd4",
+      "seconds": 1.840821527002845
+    },
+    "replay": {
+      "key": "linear_277",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "3017657ec81cbfe506604de5c902f3ed15b5708b89cc4107361873f268d5c269",
+      "proof_queries_sha256": "6de48c79c5df823972832d29ec507aefdb764e8714d34566df254733fbfc8dd4",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.11337977595394477,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "linear_287",
+    "source": "/*@ requires x < 100 && y < 100; */\nvoid foo287(int x, int y) {\n\n\n\n    while (x < 100 && y < 100) {\n       x = x + 1;\n       y = y + 1;\n      }\n\n    /*@ assert x == 100 || y == 100; */\n\n  }",
+    "survivors": [
+      "x <= 100",
+      "y <= 100",
+      "x <= y ==> x <= 100",
+      "y <= x ==> y <= 100",
+      "x - y == 0 ==> x <= 100",
+      "y - x == 0 ==> y <= 100",
+      "x <= 100 && y <= 100",
+      "x == y + (\\at(x, Pre) - \\at(y, Pre))",
+      "(\\at(x, Pre)) <= 100",
+      "(\\at(y, Pre)) <= 100",
+      "x - y == 0 ==> x == y",
+      "x - y >= (\\at(x, Pre) - \\at(y, Pre))",
+      "x >= \\at(x, Pre) && y >= \\at(y, Pre)",
+      "x - y <= (\\at(x, Pre) - \\at(y, Pre))",
+      "x - 0 == x",
+      "y - 0 == y",
+      "x - y <= 0 ==> x <= y",
+      "x - y >= 0 ==> x >= y",
+      "x - x == 0",
+      "y - y == 0",
+      "x - y == x - y",
+      "x - 1 <= 99",
+      "y - 1 <= 99",
+      "(x - 100) == -(100 - x)",
+      "(y - 100) == -(100 - y)",
+      "x == y ==> x <= 100",
+      "0 <= x - x",
+      "0 <= y - y",
+      "x >= x - 0",
+      "y >= y - 0",
+      "x - y == \\at(x, Pre) - \\at(y, Pre)",
+      "x - (\\at(x, Pre)) == y - (\\at(y, Pre))",
+      "(x <= 100) ==> (y <= 100)",
+      "x == y == 0 ==> (x <= 0 && y <= 0)"
+    ],
+    "audit": {
+      "key": "linear_287",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/linear_287.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/linear_287.json",
+      "source_sha256": "af19b1f8368746950d852095408e3249707748e3c268ad9f115790365b6c75af",
+      "verification_sha256": "6ead2c89efbbf115f92df7f2ea5b2384e2a1235b015f63f1a46e2a712df9d939",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "linear",
+      "original_verified": true,
+      "survivor_count": 34,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "x": "100",
+            "y__entry": "0",
+            "x__entry": "0",
+            "y": "100",
+            "y__pre": "0",
+            "x__pre": "0"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "x": "100",
+            "x__pre": "0",
+            "y__pre": "0",
+            "y": "-1",
+            "x__entry": "0",
+            "y__entry": "0"
+          }
+        },
+        "target_without_invariant": {
+          "status": "sat",
+          "model": {
+            "x": "101",
+            "x__pre": "0",
+            "y__pre": "0",
+            "y": "101",
+            "x__entry": "0",
+            "y__entry": "0"
+          }
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "x",
+        "rank_direction": 1,
+        "attempts": [
+          {
+            "variable": "x",
+            "direction": 1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "x": "i",
+        "y": "i"
+      },
+      "frame_variables": [],
+      "proof_queries_sha256": "6c1bb469e175ed106e5eaca567a787d2b89df2cbb1512c71221878418486a4b6",
+      "seconds": 1.6247193150338717
+    },
+    "replay": {
+      "key": "linear_287",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "4c74d0215f66f681e0b1b7689571384120307f28f69a024e07a8b2358b2ebf2c",
+      "proof_queries_sha256": "6c1bb469e175ed106e5eaca567a787d2b89df2cbb1512c71221878418486a4b6",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.1190316709689796,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "Loopy_58",
+    "source": "// Source: data/benchmarks/LinearArbitrary-SeaHorn/loops/loop-lit/gr2006_true-unreach-call_true-termination.c\n\nvoid loopy_58(void) {\n    int x, y;\n    x = 0;\n    y = 0;\n    while (1) {\n        if (x < 50) {\n            y++;\n        } else {\n            y--;\n        }\n        if (y < 0) break;\n        x++;\n    }\n    {;\n//@ assert(x == 100);\n}\n\n    return;\n}",
+    "survivors": [
+      "x >= 0",
+      "y >= 0",
+      "x <= 50 || (x > 50 ==> y >= 0)",
+      "(x <= 50) ==> (y == x)",
+      "(x >= 0) ==> (y >= 0)",
+      "x <= 50 || x > 50",
+      "x >= 0 && y >= 0",
+      "x + y >= 0",
+      "(x < 50) ==> (y == x)",
+      "y >= 0 && x >= 0",
+      "y <= x",
+      "(x <= 50) ==> ((y == x) || (y == x - 1) || (y == x - 2) || (y == x - 3) || (y == x - 4) || (y == x - 5))",
+      "(x == 0) ==> (y == 0)",
+      "(x == 50) ==> (y >= 0)",
+      "(y >= 0) ==> (x >= 0)",
+      "(x >= 0) && (y >= 0) && (y <= x)",
+      "x <= 100",
+      "x > 50 ==> y == 100 - x",
+      "0 <= x && x <= 50 || x > 50",
+      "y <= 100 - (x - 0)",
+      "(x < 50) ==> (y >= 0)",
+      "(x >= 50) ==> (y >= 0)",
+      "y >= 0 ==> x <= 100",
+      "y == 0 ==> x >= 0",
+      "(y > 0) ==> (x > 0)",
+      "(x <= 50) ==> (y >= 0)",
+      "x > 50 ==> y == 50 - (x - 50)",
+      "x >= 0 && y >= 0 && (x <= 50 ==> y == x)",
+      "x <= 50 ==> y <= x",
+      "x + y <= 100",
+      "x <= 50 ==> y == y",
+      "(x >= 50) ==> (y == 50 - (x - 50) )",
+      "(x <= 50) && (y >= 0) ==> (y <= x)"
+    ],
+    "audit": {
+      "key": "Loopy_58",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/Loopy_58.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/Loopy_58.json",
+      "source_sha256": "7c20df1ba2a9fc3c8baba8a13d4576f40aed48bb1c6a05349be3068667f78e58",
+      "verification_sha256": "213df5a84825979ac8ef4918d0f57ec939867824536295d858d54e4eedd5f9f0",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "Loopy",
+      "original_verified": true,
+      "survivor_count": 33,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "x": "100",
+            "y": "0",
+            "x__entry": "0",
+            "y__entry": "0"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "x": "100",
+            "y": "-1",
+            "x__entry": "0",
+            "y__entry": "0"
+          }
+        },
+        "target_without_invariant": {
+          "status": "sat",
+          "model": {
+            "x": "0",
+            "y": "-2",
+            "x__entry": "0",
+            "y__entry": "0"
+          }
+        },
+        "target_sites": 1,
+        "target_paths": 2
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "x",
+        "rank_direction": 1,
+        "attempts": [
+          {
+            "variable": "x",
+            "direction": 1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "x": "i",
+        "y": "i"
+      },
+      "frame_variables": [],
+      "proof_queries_sha256": "5f27275ea55d4a15f3c3ffec1fd7d479c2fb52cd891ab2783439c284854fe575",
+      "seconds": 1.4791341800009832
+    },
+    "replay": {
+      "key": "Loopy_58",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "762694ec5408f982612b88c15770dbafee77a46a1b41deb5f4419e30d88f225f",
+      "proof_queries_sha256": "5f27275ea55d4a15f3c3ffec1fd7d479c2fb52cd891ab2783439c284854fe575",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.055660323007032275,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "Loopy_128",
+    "source": "// Source: data/benchmarks/LinearArbitrary-SeaHorn/pie/hola/16.c\n\nextern int unknown1();\n\nvoid loopy_128(int i, int j) {\n\n  \n  \n  \n  int x = i;\n  int y = j;\n \n  while(x!=0) {\n\tx--;\n\ty--;\n  }\n  if(i==j)\n\t{;\n//@ assert(y==0);\n}\n\n}\n",
+    "survivors": [
+      "i == \\at(i, Pre)",
+      "j == \\at(j, Pre)",
+      "x - y == i - j",
+      "x == i - (i - x)",
+      "y == j - (j - y)",
+      "(i - x) == (j - y)",
+      "x <= i",
+      "y <= j",
+      "(i - x) >= 0",
+      "(j - y) >= 0",
+      "x == 0 ==> i >= 0",
+      "y == 0 ==> j >= 0",
+      "(i - x) >= 0 && (j - y) >= 0",
+      "x <= i && y <= j",
+      "x - y <= i - j",
+      "x - y >= i - j",
+      "x == i - (j - y)",
+      "y == j - (i - x)",
+      "(y == 0) ==> (x == i - j)",
+      "x + y == i + j - 2 * (i - x)",
+      "i - x == i - x",
+      "j - y == j - y",
+      "(x == 0) ==> (y == j - i + x)",
+      "(x == 0) ==> (y == j - i)",
+      "(x >= 0) ==> (y <= j - (i - x))",
+      "(x + y) <= i + j",
+      "(i >= 0) ==> (x >= 0)",
+      "x <= y + (i - j)",
+      "(x != 0) ==> (y != j - i)",
+      "(x == 0) <==> (y == j - i)",
+      "y - x == j - i",
+      "(i - x) >= 0 ==> (j - y) >= 0",
+      "x - (i - j) == y",
+      "i != j ==> x - y <= i - j"
+    ],
+    "audit": {
+      "key": "Loopy_128",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/Loopy_128.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/Loopy_128.json",
+      "source_sha256": "1d6b22e25657e238748f003788e9dd54072f395c2048dcff4243fae4f28001f2",
+      "verification_sha256": "305631f5c9318d876ca1744e8dee507453aaa964279f6db87badc72d51b1645f",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "Loopy",
+      "original_verified": true,
+      "survivor_count": 34,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "y__entry": "0",
+            "x__entry": "0",
+            "y": "0",
+            "j": "0",
+            "i__pre": "0",
+            "i": "0",
+            "j__pre": "0",
+            "x": "0",
+            "i__entry": "0",
+            "j__entry": "0"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "y__entry": "-2147483648",
+            "x__entry": "-2147483648",
+            "i__entry": "-2147483648",
+            "i__pre": "-2147483648",
+            "j__pre": "-2147483648",
+            "x": "0",
+            "j": "-2147483648",
+            "i": "-2147483648",
+            "y": "0",
+            "j__entry": "-2147483648"
+          }
+        },
+        "target_without_invariant": {
+          "status": "sat",
+          "model": {
+            "y__entry": "0",
+            "y": "-1",
+            "x__entry": "0",
+            "i__entry": "0",
+            "i__pre": "0",
+            "i": "0",
+            "j__pre": "0",
+            "x": "0",
+            "j": "0",
+            "j__entry": "0"
+          }
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "x",
+        "rank_direction": -1,
+        "attempts": [
+          {
+            "variable": "x",
+            "direction": 1,
+            "status": "sat"
+          },
+          {
+            "variable": "x",
+            "direction": -1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "i": "i",
+        "j": "i",
+        "x": "i",
+        "y": "i"
+      },
+      "frame_variables": [
+        "i",
+        "j"
+      ],
+      "proof_queries_sha256": "688cf52dae80ea1af2d87e252395b4f118c3bb9aee51ef88870ffa0e8158b311",
+      "seconds": 0.831285824009683
+    },
+    "replay": {
+      "key": "Loopy_128",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "21d1b1685ec2d6791edd33adfe4514059f7da4140a9cae4add60639e9a3ab1f0",
+      "proof_queries_sha256": "688cf52dae80ea1af2d87e252395b4f118c3bb9aee51ef88870ffa0e8158b311",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.03182367596309632,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "linear_194",
+    "source": "/*@ requires i >= 0; */\nvoid foo194(int i) {\n\n    int x;\n    int y;\n    int z;\n\n    x = i;\n    y = i;\n    z = 0;\n\n\n    while(x != 0){\n       x = x - 1;\n       y = y - 2;\n       z = z + 1;\n      }\n\n    /*@ assert y == 0 - z; */\n\n  }",
+    "survivors": [
+      "0 <= i",
+      "z >= 0",
+      "z == i - x",
+      "x >= 0",
+      "y >= -i",
+      "x + z == i",
+      "y + (2 * z) == i",
+      "x == i - z",
+      "y == i - z - (i - x)",
+      "z <= i",
+      "i >= 0 ==> x == i - z",
+      "y - i == - (i - x) * 2",
+      "y >= -2 * i",
+      "z <= i && z >= 0",
+      "y == i - (i - x) * 2",
+      "x <= i",
+      "y <= i",
+      "x == i - (i - x)",
+      "(x == 0) ==> (z == i)",
+      "(x >= 0) && (y == i - 2*(i - x))",
+      "i >= 0 ==> y == i - 2*(i - x)",
+      "i >= 0 ==> x + z == i",
+      "i >= 0 ==> y + 2*z == i",
+      "y == i - 2*(z)",
+      "x - (i - z) == 0",
+      "y - (i - 2*(z)) == 0",
+      "2*(i) == 2*(x) + 2*(z)",
+      "x >= 0 ==> y >= -i",
+      "x >= 0 && y <= i*2 && z >= 0",
+      "y == i - (i - y)",
+      "x >= 0 && z >= 0",
+      "y + z <= i",
+      "i >= 0 && z >= 0",
+      "i >= 0 ==> z == i - x",
+      "x <= i && y <= 2*i && z <= i",
+      "z == (i - x) && x >= 0",
+      "y + 2*(i - x) == i",
+      "(i - x) >= 0",
+      "y == x * 2 - i * 2 + i",
+      "y <= 2 * i",
+      "x == i - z && y == i - 2 * z",
+      "(i - x) >= 0 ==> z == i - x",
+      "x + y + z == 2*i - (i - x) - (i - y) + (i - x)"
+    ],
+    "audit": {
+      "key": "linear_194",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/linear_194.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/linear_194.json",
+      "source_sha256": "d3b6bc7f5037fdc1cab04f3029fd12f840d288e9fbbbe77f91b046b93169417e",
+      "verification_sha256": "e7d136dceadc81180419ad8690ccfde4484409ed2151ade4923bc9bcfccd264b",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "linear",
+      "original_verified": true,
+      "survivor_count": 43,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "x__entry": "0",
+            "z": "0",
+            "y": "0",
+            "y__entry": "0",
+            "i__pre": "0",
+            "i": "0",
+            "x": "0",
+            "z__entry": "0",
+            "i__entry": "0"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "z": "1",
+            "x__entry": "0",
+            "i__entry": "0",
+            "y__entry": "0",
+            "i__pre": "0",
+            "i": "0",
+            "y": "-1",
+            "x": "0",
+            "z__entry": "0"
+          }
+        },
+        "target_without_invariant": {
+          "status": "sat",
+          "model": {
+            "x__entry": "0",
+            "z": "-1",
+            "y": "0",
+            "i__entry": "0",
+            "y__entry": "0",
+            "i__pre": "0",
+            "i": "0",
+            "x": "0",
+            "z__entry": "0"
+          }
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "x",
+        "rank_direction": -1,
+        "attempts": [
+          {
+            "variable": "x",
+            "direction": 1,
+            "status": "sat"
+          },
+          {
+            "variable": "x",
+            "direction": -1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "i": "i",
+        "x": "i",
+        "y": "i",
+        "z": "i"
+      },
+      "frame_variables": [
+        "i"
+      ],
+      "proof_queries_sha256": "1de9553094a6159f9fd8c507e44cbb7dca4821d168280b8d925fb1ba3f8c9555",
+      "seconds": 2.505256590025965
+    },
+    "replay": {
+      "key": "linear_194",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "21569941623ac9628205f6cd6587839e7204318817ec08804e829157b19f2a56",
+      "proof_queries_sha256": "1de9553094a6159f9fd8c507e44cbb7dca4821d168280b8d925fb1ba3f8c9555",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.09551628702320158,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "linear_94",
+    "source": "/*@ requires n >= 0; \n    requires k >= 0;\n*/\nvoid foo94(int n,int k) {\n  \n    int i = 0;\n    int j = 0;\n    \n    \n    while (i <= n) {\n      \n       i  = i + 1;\n       j  = j + i;\n      \n  \n    }\n    /*@ assert i + j + k > (2 * n); */\n  \n  }",
+    "survivors": [
+      "0 <= i",
+      "0 <= j",
+      "i <= n + 1",
+      "j == i * (i + 1) / 2",
+      "0 <= i <= n + 1",
+      "0 <= i <= n + 1 && 0 <= j",
+      "n >= 0 && k >= 0 ==> i <= n + 1",
+      "j <= (n + 1) * (n + 2) / 2",
+      "k >= 0",
+      "i == j - 1 || (i >= 1 ==> j == i*(i+1)/2)",
+      "n >= 0",
+      "(i >= 0) ==> (j >= 0)",
+      "(i == 0) ==> (j == 0)",
+      "n >= 0 ==> i >= 0",
+      "k >= 0 ==> j >= 0",
+      "(i - 1) * i / 2 <= j",
+      "(i * (i + 1)) / 2 <= j",
+      "n >= i - 1",
+      "(i * (i + 1)) == 2 * j",
+      "i >= 0 && j >= 0",
+      "i <= n + 1 && j <= (n + 1) * (n + 2) / 2",
+      "j == (i - 1) * i / 2 + i",
+      "(i * (i + 1)) % 2 == 0",
+      "i + j >= 0",
+      "j - i*(i+1)/2 == 0",
+      "0 <= j <= (n + 1) * (n + 2) / 2",
+      "i + n + 1 >= 1",
+      "i + 1 == (n + 1) - (n - i + 1) + 1",
+      "j == 0 ==> i == 0"
+    ],
+    "audit": {
+      "key": "linear_94",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/linear_94.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/linear_94.json",
+      "source_sha256": "3bc9df7882ac26d09abe071e647991ac4f5bd06e27e4eaedd10db2a75bda7c9a",
+      "verification_sha256": "10d3aafa7a9e34f7ef769dd92793fb1eead50f0bcb0303a6bf0bca8cf1c93981",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "linear",
+      "original_verified": true,
+      "survivor_count": 29,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "i__entry": "0",
+            "n": "0",
+            "i": "1",
+            "n__entry": "0",
+            "j": "1",
+            "k": "0",
+            "j__entry": "0",
+            "k__entry": "0",
+            "n__pre": "0",
+            "k__pre": "0"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "j__entry": "0",
+            "n": "0",
+            "i": "2",
+            "n__entry": "0",
+            "j": "0",
+            "i__entry": "0",
+            "k": "0",
+            "k__entry": "0",
+            "n__pre": "0",
+            "k__pre": "0"
+          }
+        },
+        "target_without_invariant": {
+          "status": "sat",
+          "model": {
+            "n__pre": "0",
+            "k__pre": "0",
+            "i": "1",
+            "j": "-1",
+            "i__entry": "0",
+            "n__entry": "0",
+            "k__entry": "0",
+            "k": "0",
+            "n": "0",
+            "j__entry": "0"
+          }
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "i",
+        "rank_direction": 1,
+        "attempts": [
+          {
+            "variable": "i",
+            "direction": 1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "n": "i",
+        "k": "i",
+        "i": "i",
+        "j": "i"
+      },
+      "frame_variables": [
+        "k",
+        "n"
+      ],
+      "proof_queries_sha256": "c9138262aaffbe97a5f2ea34d3626b1084e2d922bf3d1ce234199797a8b16e42",
+      "seconds": 1.2324585229507647
+    },
+    "replay": {
+      "key": "linear_94",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "cc0a8b0273896f4f2db6e7be46012a6302577d20e70e08bc1fa1696de7286e52",
+      "proof_queries_sha256": "c9138262aaffbe97a5f2ea34d3626b1084e2d922bf3d1ce234199797a8b16e42",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.16291671100771055,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "Loopy_390",
+    "source": "// Source: data/benchmarks/sv-benchmarks/loop-zilu/benchmark02_linear.c\nextern int unknown_int(void);\n/*@\n  requires l>0;\n*/\nvoid loopy_390(int n, int l) {\n  \n  int i = unknown_int();\n  \n  i = l;\n  \n  while (i < n) {\n    i++;\n  }\n  {;\n//@ assert(l>=1);\n}\n\n  return;\n}",
+    "survivors": [
+      "i >= l",
+      "i == l || i > l",
+      "i - l >= 0",
+      "l >= 1",
+      "i - l == 0 || i - l > 0",
+      "0 <= i",
+      "i == l + (i - l)",
+      "(i <= n) ==> (i - l) <= (n - l)",
+      "(i - l) == 0 ==> i == l",
+      "(i - l) == (i - l)",
+      "i < n ==> i + 1 <= n",
+      "i == l || (i > l && i <= n)",
+      "i > l ==> i <= n",
+      "i == l + ( (n - l) - (n - i) )",
+      "i <= n && l > 0 ==> i <= n",
+      "i <= n && l > 0 ==> i >= l"
+    ],
+    "audit": {
+      "key": "Loopy_390",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/Loopy_390.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/Loopy_390.json",
+      "source_sha256": "92b9c654c2edd58438cd50250c5294a8893a54f5980ca993ad720c4ac96a4cf6",
+      "verification_sha256": "1da5d5fca92156d474f6f543aa5c0f09599e547b60b31886a5e72be0ec2210c0",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "Loopy",
+      "original_verified": true,
+      "survivor_count": 16,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "n__pre": "0",
+            "choice_1": "0",
+            "i": "1",
+            "i__entry": "1",
+            "l__entry": "1",
+            "n__entry": "0",
+            "l": "1",
+            "n": "0",
+            "l__pre": "1"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "n__pre": "0",
+            "choice_1": "0",
+            "i": "0",
+            "i__entry": "1",
+            "l__entry": "1",
+            "n__entry": "0",
+            "l": "1",
+            "n": "0",
+            "l__pre": "1"
+          }
+        },
+        "target_without_invariant": {
+          "status": "unsat"
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "i",
+        "rank_direction": 1,
+        "attempts": [
+          {
+            "variable": "i",
+            "direction": 1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "n": "i",
+        "l": "i",
+        "i": "i"
+      },
+      "frame_variables": [
+        "l",
+        "n"
+      ],
+      "proof_queries_sha256": "6d6769b0937958658d6b4919e8cc8a0b63945af72e859ef9843d04e206234103",
+      "seconds": 0.5361633379943669
+    },
+    "replay": {
+      "key": "Loopy_390",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "590afb109f1ab367dad5a56c184e4b453d24f37db1f15d968343839427fafea1",
+      "proof_queries_sha256": "6d6769b0937958658d6b4919e8cc8a0b63945af72e859ef9843d04e206234103",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.028216406994033605,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "linear_145",
+    "source": "/*@ requires mid > 0; */\nvoid foo145(int mid) {\n\n    int lo;\n    int hi;\n\n    lo = 0;\n    hi = 2 * mid;\n\n\n    while(mid > 0){\n       lo = lo + 1;\n       hi = hi - 1;\n       mid = mid - 1;\n      }\n\n    /*@ assert lo == hi; */\n\n  }",
+    "survivors": [
+      "lo >= 0",
+      "hi >= 0",
+      "mid >= 0",
+      "hi - lo == 2 * (mid - 0)",
+      "lo + hi == 2 * \\at(mid, Pre)",
+      "lo <= 2 * \\at(mid, Pre) - 0",
+      "mid <= \\at(mid, Pre)",
+      "hi >= lo",
+      "\\at(mid, Pre) > 0 ==> lo <= 2 * (\\at(mid, Pre) - mid) + lo",
+      "mid == (hi - lo) / 2",
+      "mid >= 0 ==> hi >= 0",
+      "hi >= mid",
+      "mid == \\at(mid, Pre) - (lo - 0)",
+      "lo <= lo + hi"
+    ],
+    "audit": {
+      "key": "linear_145",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/linear_145.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/linear_145.json",
+      "source_sha256": "d7aaa0752772378e3bbbe9800e45e51786868a6b02251978987b6831a483f070",
+      "verification_sha256": "5e347c782508929f21224a722c01f75b62da3177ea77e3c46ec975ac3edc0606",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "linear",
+      "original_verified": true,
+      "survivor_count": 14,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "mid__entry": "1",
+            "hi": "1",
+            "lo": "1",
+            "mid__pre": "1",
+            "lo__entry": "0",
+            "hi__entry": "2",
+            "mid": "0"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "mid": "0",
+            "mid__pre": "1",
+            "hi": "-1",
+            "lo": "-1",
+            "lo__entry": "0",
+            "mid__entry": "1",
+            "hi__entry": "2"
+          }
+        },
+        "target_without_invariant": {
+          "status": "sat",
+          "model": {
+            "mid": "0",
+            "mid__pre": "1",
+            "lo": "0",
+            "hi": "1",
+            "lo__entry": "0",
+            "mid__entry": "1",
+            "hi__entry": "2"
+          }
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "hi",
+        "rank_direction": -1,
+        "attempts": [
+          {
+            "variable": "hi",
+            "direction": 1,
+            "status": "sat"
+          },
+          {
+            "variable": "hi",
+            "direction": -1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "mid": "i",
+        "lo": "i",
+        "hi": "i"
+      },
+      "frame_variables": [],
+      "proof_queries_sha256": "a31eebe6e14ae5b0968f0592cb643782dba20a00ce820f81f261cc5cd87bc31c",
+      "seconds": 1.438918012951035
+    },
+    "replay": {
+      "key": "linear_145",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "565f6887ec6a9b326a4dfc8c2507176f3989a52e2bfad3aedc3ddb5c973843d4",
+      "proof_queries_sha256": "a31eebe6e14ae5b0968f0592cb643782dba20a00ce820f81f261cc5cd87bc31c",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.06867735396372154,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "linear_39",
+    "source": "int unknown();\n/*@ requires n > 0; */\nvoid foo39(int n) {\n\n    int c = 0;\n\n    while (unknown()){\n        \n        if(c == n) {\n            c = 1;\n        }\n        else {\n            c = c + 1;\n        }\n    }\n           \n    /*@ assert  (c == n) ==> (c <= n); */\n\n\n}",
+    "survivors": [
+      "0 <= c",
+      "c <= n",
+      "(c == 0) ==> (n > 0)",
+      "(c == 1) ==> (n > 0)",
+      "c <= n ==> (c == 0 || c >= 1)",
+      "(c == 1) ==> (c <= n)",
+      "0 <= c && c <= n",
+      "(c == 1) || (c == 0) || (c > 1)",
+      "(c != 0) ==> (c == n || c == n - 1 || c < n)",
+      "(c == n) ==> (c <= n)",
+      "(c + 1) <= n ==> (c <= n - 1)",
+      "(c == n) ==> (n > 0)",
+      "(c < n) ==> (c + 1 <= n)",
+      "(c == n) ==> (c >= 1)",
+      "(c <= n) ==> (c == n || c < n)",
+      "0 <= c && c <= n && n > 0",
+      "c <= n || c == 1",
+      "c == 0 || c == 1 || (c > 1 && c <= n)",
+      "n > 0",
+      "c != 0 ==> c >= 1",
+      "(c != 0) ==> (c - 1 < n)",
+      "(c == 1) ==> (c == 1)",
+      "(c <= n) && (c >= 1) || (c == 0)",
+      "0 <= n",
+      "(c == 1) ==> (n == n)",
+      "(c == 0) ==> (n >= 0)",
+      "0 <= n && c <= n",
+      "c <= n + 1",
+      "c <= n + 1 ==> c <= n + 1",
+      "c == 1 || c == 0 || c >= 2",
+      "(c == 1) ==> (n >= 1)",
+      "(c <= n) ==> (c >= 0)",
+      "(c != 1) ==> (c <= n)",
+      "c >= 0 && c <= n + 1",
+      "c == 0 || c == 1 || (c >= 2 && c <= n)",
+      "(c <= n) ==> (c + 1 <= n + 1)",
+      "c - (n * 0) == c",
+      "c <= n || (n > 0 && c == 1)",
+      "c == n || c == 1 || c < n",
+      "c >= 1 ==> c <= n",
+      "c <= n && (c == n || c < n)",
+      "c == 1 || c == n || c < n",
+      "(c > 0) ==> (c <= n)",
+      "(c == n) ==> (c == n)",
+      "(c == n) ==> (c == 1 || c == n)",
+      "c == 0 || (c > 0)",
+      "(c == n) || (c < n)",
+      "c != 0 ==> c <= n",
+      "(c <= n) && (c >= 0)",
+      "c <= n * 2",
+      "c <= n || c == 1 || c == 0",
+      "c <= n ==> (c <= n)",
+      "c > 0 ==> (c <= n || c == 0)",
+      "(c <= n) ==> (c == 0 || c == 1 || c <= n)",
+      "(c != 0) ==> (c <= n + 1)",
+      "(c <= n) <==> (c == 0 || c >= 1 && c <= n)",
+      "0 <= n && n > 0",
+      "c <= n + 0 && c >= 1 ==> n >= 1",
+      "c == 0 || (1 <= c && c <= n)",
+      "1 <= c && c <= n || c == 0",
+      "(c != n) ==> (c <= n)",
+      "(c < n) ==> (c >= 0)",
+      "(c > n) ==> (c >= 0)",
+      "(c != n) ==> (c == c + 0)",
+      "(c == 0) || (c == 1) || (c > 1)",
+      "c <= n || (n < 0)",
+      "((c <= n) && (c >= 0)) ==> (c <= n)",
+      "c == 0 || c == 1 || c >= 2",
+      "(c != n) ==> (c + 1 <= n)",
+      "c == 1 || c != 1",
+      "(c > 1) ==> (c <= n)",
+      "(c == 1) || (c == 0) || (c >= 2 && c <= n)",
+      "(c <= n) ==> (c == 0 || c == 1 || c >= 2)",
+      "c <= c + 1",
+      "c <= n ==> (c == 1 || c <= n)",
+      "(c >= 0) ==> (c <= n || c == 1)"
+    ],
+    "audit": {
+      "key": "linear_39",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/linear_39.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/linear_39.json",
+      "source_sha256": "6f8373d1679fb9b0acbeedb56973e9f0b8c62ff75667ee43096569ebe6ce3594",
+      "verification_sha256": "450c3968234f3713418b4fe3a11a99fa430b60f456eb7d1a8826e0161f9efc45",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "linear",
+      "original_verified": true,
+      "survivor_count": 76,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "n__pre": "3",
+            "c": "1",
+            "c__entry": "0",
+            "n__entry": "3",
+            "n": "3"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "n__pre": "1",
+            "c": "2",
+            "c__entry": "0",
+            "n__entry": "1",
+            "n": "1"
+          }
+        },
+        "target_without_invariant": {
+          "status": "unsat"
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "c",
+        "rank_direction": 1,
+        "attempts": [
+          {
+            "variable": "c",
+            "direction": 1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "n": "i",
+        "c": "i"
+      },
+      "frame_variables": [
+        "n"
+      ],
+      "proof_queries_sha256": "20cd99e42aa2202737eaef3e8c53ed8f45e7cda751b460ea118c9e797e8424d8",
+      "seconds": 2.110406483989209
+    },
+    "replay": {
+      "key": "linear_39",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "537675bf9d04378e9e5f314abd1d5b30e95bde0d2c8da15d9f1f67a84a2349a7",
+      "proof_queries_sha256": "20cd99e42aa2202737eaef3e8c53ed8f45e7cda751b460ea118c9e797e8424d8",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.09423249203246087,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "linear_263",
+    "source": "/*@ requires k >= 0 && k <= 20000001; */\nvoid foo263(int k) {\n\n    int n;\n    int i;\n\n    n = 0;\n    i = 0;\n\n\n    while (i < 2 * k) {\n       if(i % 2 == 0){\n       n = n + 1;\n      }\n       i = i + 1;\n      }\n\n    /*@ assert n == k; */\n\n  }",
+    "survivors": [
+      "0 <= i",
+      "i <= 2 * k",
+      "(i % 2 == 0) ==> (n == i / 2)",
+      "0 <= n",
+      "n <= k",
+      "i - n == n + (i - 2*n)",
+      "n <= i",
+      "0 <= k",
+      "n == (i / 2) + (i % 2)",
+      "(i % 2 == 1) ==> (n == (i - 1) / 2 + 1)",
+      "i >= 0 ==> n <= i",
+      "n <= k + 1",
+      "(i % 2) == 0 ==> (n * 2 == i)",
+      "(i % 2) != 0 ==> (2 * n - 1 == i)",
+      "!(i == 2 * k) ==> (i < 2 * k)",
+      "i <= 2 * k && i >= 0",
+      "(i % 2 == 0) == (n * 2 == i)",
+      "(i <= 2 * k) ==> (n <= k)",
+      "(i >= 0) ==> (n <= k)",
+      "i - 2 * n <= 1",
+      "(i % 2 != 0) ==> n == (i - 1) / 2 + 1",
+      "0 <= n <= k",
+      "(i % 2 == 0) || (i % 2 == 1)",
+      "i <= 2 * k && n == (i + 1) / 2",
+      "n + (2 * k - i) >= 0",
+      "(i % 2 == 0) ==> (n >= 0)",
+      "(i % 2 == 0) ==> (n <= i / 2 + k)",
+      "i == 0 ==> n == 0"
+    ],
+    "audit": {
+      "key": "linear_263",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/linear_263.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/linear_263.json",
+      "source_sha256": "9e286896d68ccccf3eaf1a14ad0f159146155da46273cc46dbcffc3cd9353ffe",
+      "verification_sha256": "3fbb5bd09d426b63ee1e98f359e5f3dc0bde79178dfd5755ff7bd7edb8eca5db",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "linear",
+      "original_verified": true,
+      "survivor_count": 28,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "k": "2",
+            "k__pre": "2",
+            "n": "2",
+            "i": "4",
+            "k__entry": "2",
+            "i__entry": "0",
+            "n__entry": "0"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "k__pre": "0",
+            "n__entry": "0",
+            "i": "1",
+            "i__entry": "0",
+            "k": "0",
+            "n": "0",
+            "k__entry": "0"
+          }
+        },
+        "target_without_invariant": {
+          "status": "sat",
+          "model": {
+            "n": "1",
+            "k__pre": "0",
+            "i": "0",
+            "i__entry": "0",
+            "n__entry": "0",
+            "k__entry": "0",
+            "k": "0"
+          }
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "i",
+        "rank_direction": 1,
+        "attempts": [
+          {
+            "variable": "i",
+            "direction": 1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "k": "i",
+        "n": "i",
+        "i": "i"
+      },
+      "frame_variables": [
+        "k"
+      ],
+      "proof_queries_sha256": "6aeb939a23c4a32ded24636a6b986c31297e3a6a81072b0a9799d8e91eae7958",
+      "seconds": 1.7149962420226075
+    },
+    "replay": {
+      "key": "linear_263",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "0a605d75cafb2007b14c8009b6bdbe4f9d17ebbce1602b8956b2c2e78cf2a8fe",
+      "proof_queries_sha256": "6aeb939a23c4a32ded24636a6b986c31297e3a6a81072b0a9799d8e91eae7958",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.13199111097492278,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "linear_78",
+    "source": "\nint unknown();\n/*@ requires x >= y  && y >= 0; */\nvoid foo78(int x, int y) {\n\n    int i = 0;\n    \n    \n    while (unknown()) {\n      if ( i < y )\n      {\n      i  = (i + 1);\n      }\n  \n    }\n    \n  /*@ assert (i < y) ==> (i >= 0); */\n    \n}",
+    "survivors": [
+      "0 <= i",
+      "i <= y",
+      "0 <= i && i <= y ==> i == (i / 1) * 1",
+      "i <= y ==> i >= 0",
+      "0 <= i && i <= y && y >= 0",
+      "(i <= y) ==> (i + (y - i) >= y)",
+      "(i < y) ==> (i + 1 <= y)",
+      "(i == y) || (i < y)",
+      "0 <= y",
+      "i <= y && y >= 0",
+      "(i == y) ==> (i <= y)",
+      "y - i >= 0",
+      "i == y ==> (i == y)",
+      "(i <= y) ==> (i <= y)",
+      "(i < y) ==> (i <= y)",
+      "i <= y && 0 <= i",
+      "i == (0) + i",
+      "0 <= i && i <= y",
+      "i == y ==> i >= 0",
+      "(i == 0) ==> (i >= 0)",
+      "(i >= 0) ==> (i <= y)",
+      "x >= y",
+      "i <= y ==> i == y || i < y",
+      "(i + (y - i)) == y",
+      "x >= y && y >= 0 ==> x >= i",
+      "i == y ==> !(i < y)",
+      "i == 0 || i > 0",
+      "(i >= 0) ==> (i <= y) ==> (i <= y)",
+      "i == 0 || i <= y",
+      "(i == 0) ==> (i <= y)",
+      "(i < y) ==> (i == i)",
+      "(i < y) ==> (i + 1 == i + 1)",
+      "i == 0 || i == 1 || i >= 2",
+      "(i + 1) <= y ==> i < y",
+      "i == y * 0 + i",
+      "(i > 0) ==> (i <= y)",
+      "i <= y && (i == y ==> i >= 0)"
+    ],
+    "audit": {
+      "key": "linear_78",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/linear_78.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/linear_78.json",
+      "source_sha256": "9e5e02de464a4e10307672b967df781d5e79902b2b75b876734601456191b62d",
+      "verification_sha256": "de21238463e8aee9ea9c5d6f676479118bdb3193770636fc34b5f4292f8ebf33",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "linear",
+      "original_verified": true,
+      "survivor_count": 37,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "x__pre": "1",
+            "y__pre": "1",
+            "i": "0",
+            "x__entry": "1",
+            "y__entry": "1",
+            "y": "1",
+            "x": "1",
+            "i__entry": "0"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "x__pre": "0",
+            "y__pre": "0",
+            "i": "2",
+            "x__entry": "0",
+            "y__entry": "0",
+            "y": "0",
+            "x": "0",
+            "i__entry": "0"
+          }
+        },
+        "target_without_invariant": {
+          "status": "sat",
+          "model": {
+            "x__pre": "0",
+            "y__pre": "0",
+            "i": "-1",
+            "x__entry": "0",
+            "y__entry": "0",
+            "y": "0",
+            "x": "0",
+            "i__entry": "0"
+          }
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "i",
+        "rank_direction": 1,
+        "attempts": [
+          {
+            "variable": "i",
+            "direction": 1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "x": "i",
+        "y": "i",
+        "i": "i"
+      },
+      "frame_variables": [
+        "x",
+        "y"
+      ],
+      "proof_queries_sha256": "706bc0a76c7d621d2a7e19c8769f4b91a50c6941554aed55bf006eca6897d7cc",
+      "seconds": 0.9553675649804063
+    },
+    "replay": {
+      "key": "linear_78",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "a9507eb4c77370c084b1db33e7f9151a3bbbb9ce9bf2d666594dbb8cee788486",
+      "proof_queries_sha256": "706bc0a76c7d621d2a7e19c8769f4b91a50c6941554aed55bf006eca6897d7cc",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.1458706230041571,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "Loopy_123",
+    "source": "// Source: data/benchmarks/LinearArbitrary-SeaHorn/pie/hola/10.c\n\nextern int unknown2();\n\nvoid loopy_123(void) {\n\n\tint w = 1;\n\tint z = 0;\n\tint x= 0;\n\tint y=0;\n\n         while(unknown2()){\n\t    if(w) {\n\t\tx++; \n\t\tw=!w;\n\t    };\n\t    if(!z) {\n\t\ty++; \n\t\tz=!z;\n\t    };\n\t}\n\n\t{;\n//@ assert(x==y);\n}\n\n}",
+    "survivors": [
+      "w == 1 || w == 0",
+      "z == 0 || z == 1",
+      "x >= 0",
+      "y >= 0",
+      "x + y <= 2 * (w + z) + 0",
+      "w + z <= 2",
+      "x <= 1",
+      "y <= 1",
+      "w <= 1",
+      "z <= 1",
+      "0 <= x <= 1",
+      "0 <= y <= 1",
+      "w == 1 ==> x == 0",
+      "w == 0 ==> x >= 0",
+      "z == 0 ==> y >= 0",
+      "w + z == 1",
+      "(w == 1) <==> (x == 0)",
+      "w == 0 || w == 1",
+      "x + y <= 2",
+      "x <= 1 || y <= 1",
+      "x - y == 0",
+      "(w == 1) ==> (x == y)",
+      "(z == 0) ==> (y == x % 2)",
+      "(w == 0) ==> (x >= 1 ==> x == y)",
+      "w + z <= 1",
+      "x <= y + 1",
+      "y <= x + 1",
+      "x <= z + w",
+      "x <= 1 + x",
+      "y <= 1 + y",
+      "0 <= w <= 1",
+      "0 <= z <= 1",
+      "(z == 0) ==> (y == 0)",
+      "x <= 1 && y <= 1",
+      "z == 0 ==> y - x == 0",
+      "x == 0 || x == 1",
+      "y == 0 || y == 1",
+      "z * y == y",
+      "w + z == 1 || w == z",
+      "(w == 1) ==> (x == x)"
+    ],
+    "audit": {
+      "key": "Loopy_123",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/Loopy_123.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/Loopy_123.json",
+      "source_sha256": "ee3ceac4d261e658dfd8d031f0d05e7a528f01be21016f85c520207e80ef8e08",
+      "verification_sha256": "b066d03ff08aa2bd2dd12f43235f751bde15be942eab75a122001368d9e34611",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "Loopy",
+      "original_verified": true,
+      "survivor_count": 40,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "w__entry": "1",
+            "x": "0",
+            "x__entry": "0",
+            "w": "1",
+            "z": "0",
+            "y": "0",
+            "z__entry": "0",
+            "y__entry": "0"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "z__entry": "0",
+            "y": "-1",
+            "y__entry": "0",
+            "z": "0",
+            "w__entry": "1",
+            "x__entry": "0",
+            "x": "-1",
+            "w": "1"
+          }
+        },
+        "target_without_invariant": {
+          "status": "sat",
+          "model": {
+            "x": "0",
+            "w": "0",
+            "z": "0",
+            "y": "1",
+            "x__entry": "0",
+            "z__entry": "0",
+            "y__entry": "0",
+            "w__entry": "1"
+          }
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "w",
+        "rank_direction": -1,
+        "attempts": [
+          {
+            "variable": "w",
+            "direction": 1,
+            "status": "sat"
+          },
+          {
+            "variable": "w",
+            "direction": -1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "w": "i",
+        "z": "i",
+        "x": "i",
+        "y": "i"
+      },
+      "frame_variables": [],
+      "proof_queries_sha256": "cd813946604b215cc8810869da34bdf9abc4218a23e925cbed2d0c93d9633ed5",
+      "seconds": 0.6741796960122883
+    },
+    "replay": {
+      "key": "Loopy_123",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "f46eee494db468e9c972c321e64d1c75aff8357b66874f5b218ab592bf851347",
+      "proof_queries_sha256": "cd813946604b215cc8810869da34bdf9abc4218a23e925cbed2d0c93d9633ed5",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.06388700602110475,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "linear_10",
+    "source": "int unknown();\n/*@ requires x >= 0 && x <= 2 && y <= 2 && y >= 0; */\nvoid foo10(int x,int y) {\n\n  \n    while (unknown()) {\n      \n      x  = x + 2;\n      y  = y + 2;\n\n    }\n      /*@ assert (y == 0) ==> (x != 4);  */\n  \n  }",
+    "survivors": [
+      "x - y == \\at(x, Pre) - \\at(y, Pre)",
+      "(x - \\at(x, Pre)) == (y - \\at(y, Pre))",
+      "x <= y ==> x - y <= 0",
+      "x >= 0",
+      "y >= 0",
+      "x >= 0 && y >= 0",
+      "(\\at(x, Pre) <= x)",
+      "(\\at(y, Pre) <= y)",
+      "x - y >= \\at(x, Pre) - \\at(y, Pre)",
+      "0 <= x - \\at(x, Pre)",
+      "0 <= y - \\at(y, Pre)",
+      "x - \\at(x, Pre) == 2 * (x - \\at(x, Pre)) / 2",
+      "y - \\at(y, Pre) == 2 * (y - \\at(y, Pre)) / 2",
+      "0 <= \\at(x, Pre)",
+      "\\at(x, Pre) <= 2",
+      "0 <= \\at(y, Pre)",
+      "\\at(y, Pre) <= 2",
+      "\\at(x, Pre) <= \\at(x, Pre) + 2",
+      "\\at(y, Pre) <= \\at(y, Pre) + 2",
+      "x >= 2 * 0 + \\at(x, Pre)",
+      "y >= 2 * 0 + \\at(y, Pre)",
+      "x % 2 == \\at(x, Pre) % 2",
+      "y % 2 == \\at(y, Pre) % 2",
+      "x + y >= 0",
+      "0 <= x - x % 2",
+      "0 <= y - y % 2",
+      "x - 2 * (0) == x",
+      "y - 2 * (0) == y",
+      "x == x",
+      "y == y",
+      "x <= 2147483647",
+      "y <= 2147483647",
+      "y - x == \\at(y,Pre) - \\at(x,Pre)"
+    ],
+    "audit": {
+      "key": "linear_10",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/linear_10.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/linear_10.json",
+      "source_sha256": "b602224cb700a43a9e6b5b11cf8d80b31a3d8d6ecd2b272fe3a5dcd9cd365fdc",
+      "verification_sha256": "f08b6766f107ac786071cc19bc190ff0c0be3b49c507bc9696cc29fcb1698c74",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "linear",
+      "original_verified": true,
+      "survivor_count": 33,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "y": "0",
+            "x__pre": "0",
+            "y__entry": "0",
+            "x__entry": "0",
+            "y__pre": "0",
+            "x": "0"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "y__entry": "0",
+            "x__entry": "1",
+            "y": "1",
+            "y__pre": "0",
+            "x": "0",
+            "x__pre": "1"
+          }
+        },
+        "target_without_invariant": {
+          "status": "sat",
+          "model": {
+            "x__pre": "0",
+            "y__pre": "0",
+            "x__entry": "0",
+            "y__entry": "0",
+            "x": "4",
+            "y": "0"
+          }
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "x",
+        "rank_direction": 1,
+        "attempts": [
+          {
+            "variable": "x",
+            "direction": 1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "x": "i",
+        "y": "i"
+      },
+      "frame_variables": [],
+      "proof_queries_sha256": "d2508279b89228f9b051f32f52889be00a43d6e72dfcd10c105de10f25ba2bf1",
+      "seconds": 2.357412095007021
+    },
+    "replay": {
+      "key": "linear_10",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "114ffd278b612ec99b4d585f6a07c37c628b549ec95e054b8d77d345c21605e2",
+      "proof_queries_sha256": "d2508279b89228f9b051f32f52889be00a43d6e72dfcd10c105de10f25ba2bf1",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.2761407379875891,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "linear_35",
+    "source": "int unknown();\n\nvoid foo35() {\n    int c = 0;\n  \n    while (unknown()) {\n      if (unknown()) {\n        if (c != 40) {\n          c  = c + 1;\n        }\n      } else {\n        if (c == 40) {\n          c  = 1;\n        }\n      }\n    }\n\n      /*@ assert (c != 40) ==> (c >= 0);*/\n  \n  }\n  ",
+    "survivors": [
+      "0 <= c",
+      "c <= 40 ==> c == 40 || c <= 39",
+      "(c != 40) ==> (c == 0 || c == 1 || c == 2 || c == 3 || c == 4 || c == 5 || c == 6 || c == 7 || c == 8 || c == 9 || c == 10 || c == 11 || c == 12 || c == 13 || c == 14 || c == 15 || c == 16 || c == 17 || c == 18 || c == 19 || c == 20 || c == 21 || c == 22 || c == 23 || c == 24 || c == 25 || c == 26 || c == 27 || c == 28 || c == 29 || c == 30 || c == 31 || c == 32 || c == 33 || c == 34 || c == 35 || c == 36 || c == 37 || c == 38 || c == 39)",
+      "(c == 40) ==> (c == 40)",
+      "0 <= c <= 40",
+      "(c != 40) ==> (c >= 0 && c <= 39)",
+      "c == 0 || c == 1 || c == 2 || c == 3 || c == 4 || c == 5 || c == 6 || c == 7 || c == 8 || c == 9 || c == 10 || c == 11 || c == 12 || c == 13 || c == 14 || c == 15 || c == 16 || c == 17 || c == 18 || c == 19 || c == 20 || c == 21 || c == 22 || c == 23 || c == 24 || c == 25 || c == 26 || c == 27 || c == 28 || c == 29 || c == 30 || c == 31 || c == 32 || c == 33 || c == 34 || c == 35 || c == 36 || c == 37 || c == 38 || c == 39 || c == 40",
+      "(c != 40) ==> (c <= 40)",
+      "(c == 0) || (c == 1) || (c == 40) || (c >= 2 && c <= 39)",
+      "c <= 40",
+      "(c == 0) <==> (c <= 0)",
+      "(c == 40) ==> (c >= 40)",
+      "c <= 40 ==> c == 0 || c == 1 || c == 2 || c == 3 || c == 4 || c == 5 || c == 6 || c == 7 || c == 8 || c == 9 || c == 10 || c == 11 || c == 12 || c == 13 || c == 14 || c == 15 || c == 16 || c == 17 || c == 18 || c == 19 || c == 20 || c == 21 || c == 22 || c == 23 || c == 24 || c == 25 || c == 26 || c == 27 || c == 28 || c == 29 || c == 30 || c == 31 || c == 32 || c == 33 || c == 34 || c == 35 || c == 36 || c == 37 || c == 38 || c == 39 || c == 40",
+      "c == 0 || (c > 0 && c <= 40)",
+      "(c == 1) ==> (c >= 1)",
+      "(c != 40) ==> (c <= 39)",
+      "(c < 40) ==> (c == c)",
+      "(c != 40) ==> (c < 40)",
+      "(c == 0) ==> (c <= 0)",
+      "(c <= 40) && (c >= 0)",
+      "0 <= c < 41",
+      "c == 0 || c == 40 || (0 <= c && c <= 39)",
+      "(c < 40) ==> (c <= 39)",
+      "(c == 1) ==> (c <= 40)",
+      "c % 1 == 0",
+      "(c == 0) ==> (c >= 0)",
+      "(c == 40) ==> (c >= 0)",
+      "(c < 40) ==> (c + 1 <= 41)",
+      "c <= 40 ==> c == 40 || c < 40",
+      "(c == 40) ==> (c != 0)",
+      "c == 0 || c == 40 || (c >= 1 && c <= 39)",
+      "(c == 40) ==> (c <= 40)",
+      "c == 0 || (c >= 1 && c <= 40)",
+      "(c < 40) ==> (c + 1 <= 40)",
+      "c == 0 || c == 1 || (c >= 2 && c <= 40)",
+      "(c == 40) ==> (c >= 1)",
+      "(c != 40) ==> (c >= 0)"
+    ],
+    "audit": {
+      "key": "linear_35",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/linear_35.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/linear_35.json",
+      "source_sha256": "115d49f68da98956aa51a06a52be8e1ba06bc7ae30281d24672e53bc658faee6",
+      "verification_sha256": "fb0ef2cc1a1dfda17ad87c0567b476d8e481ae4b86d8f124663695cd1d1478f4",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "linear",
+      "original_verified": true,
+      "survivor_count": 37,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "c": "2",
+            "c__entry": "0"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "c": "41",
+            "c__entry": "0"
+          }
+        },
+        "target_without_invariant": {
+          "status": "sat",
+          "model": {
+            "c": "-2147483648",
+            "c__entry": "0"
+          }
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "c",
+        "rank_direction": 1,
+        "attempts": [
+          {
+            "variable": "c",
+            "direction": 1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "c": "i"
+      },
+      "frame_variables": [],
+      "proof_queries_sha256": "439c9725f7f9e272467cc0922774c32e6c1a6feb1e5549b2e7bea53360b317b6",
+      "seconds": 1.2912411220022477
+    },
+    "replay": {
+      "key": "linear_35",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "b8b5e8ed2b3b05f7f4588aa9bcd7ae71ef483db83f520cf4b85d90e8b4950321",
+      "proof_queries_sha256": "439c9725f7f9e272467cc0922774c32e6c1a6feb1e5549b2e7bea53360b317b6",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.4321836610324681,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "NLA_lipus_43",
+    "source": "/*@ requires a % 2 == 0 && a > 0;*/\nint main43(int a){\n  \n  int r = 0;\n  int x = a / 2;\n\n  while (x > r){\n        x = x - r;\n        r = r + 1;\n    }\n  /*@ assert (r+1) * (r+1) >= a;*/\n}\n\n",
+    "survivors": [
+      "0 <= r",
+      "x >= 0",
+      "r <= a / 2",
+      "x > r ==> (x - r) > 0",
+      "r <= a / 2 && x >= 0",
+      "0 <= a / 2 - r",
+      "0 <= a",
+      "(x - r) + (r) == x",
+      "0 <= r && r <= a / 2",
+      "a > 0",
+      "x == a / 2 - (r - 1) * r / 2",
+      "(x - r) >= 0 ==> x >= r",
+      "(a % 2 == 0) ==> (2 * r <= a)",
+      "x > 0 ==> r < a / 2 + 1",
+      "a == 2 * x + r * (r - 1)",
+      "x <= a / 2",
+      "a == 2 * (a/2)",
+      "x >= 0 && r >= 0",
+      "a % 2 == 0",
+      "r <= a",
+      "x > r ==> x - r == (a / 2) - (r * (r + 1)) / 2",
+      "x - (a / 2) == -(r * (r - 1)) / 2",
+      "(r < a) ==> (x > 0)",
+      "2 * r <= a",
+      "x > r || !(x > r)",
+      "0 <= a / 2",
+      "(r*(r-1))/2 <= a/2",
+      "a == 2*(x + (r*(r-1))/2)",
+      "(x >= 0) ==> ((r*(r-1))/2 <= a/2)",
+      "r*(r-1) <= a - 1"
+    ],
+    "audit": {
+      "key": "NLA_lipus_43",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/NLA_lipus_43.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/NLA_lipus_43.json",
+      "source_sha256": "047cc1b98c03d11d27a297f9aba9342a9f372a9800f03bcd1989694037b58c62",
+      "verification_sha256": "af3df957cb5ae18822f24c5898a7678cee8acf93d6eb05b66394de99375b98b0",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "NLA_lipus",
+      "original_verified": true,
+      "survivor_count": 30,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "a__pre": "2",
+            "x": "1",
+            "a": "2",
+            "a__entry": "2",
+            "r": "1",
+            "r__entry": "0",
+            "x__entry": "1"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "a__pre": "2",
+            "x": "-2147483648",
+            "a": "2",
+            "a__entry": "2",
+            "r": "-2147483647",
+            "r__entry": "0",
+            "x__entry": "1"
+          }
+        },
+        "target_without_invariant": {
+          "status": "sat",
+          "model": {
+            "x__entry": "1",
+            "a__pre": "2",
+            "x": "0",
+            "a__entry": "2",
+            "r": "0",
+            "a": "2",
+            "r__entry": "0"
+          }
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "r",
+        "rank_direction": 1,
+        "attempts": [
+          {
+            "variable": "r",
+            "direction": 1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "a": "i",
+        "r": "i",
+        "x": "i"
+      },
+      "frame_variables": [
+        "a"
+      ],
+      "proof_queries_sha256": "aa941c203c2db6b3831762929f89a6a46158bb3b802b16acb3402a1c3cb3d3e4",
+      "seconds": 2.398465659993235
+    },
+    "replay": {
+      "key": "NLA_lipus_43",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "3fe7d7851df08caa4737c0fa2d7c406c1dcb7daa36d1529f98851279f4701333",
+      "proof_queries_sha256": "aa941c203c2db6b3831762929f89a6a46158bb3b802b16acb3402a1c3cb3d3e4",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.11849906301358715,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "linear_27",
+    "source": "void foo27(int n) {\n\n    int x = n;\n    \n    \n    while (x > 1) {\n      \n       x  = x - 1;\n  \n    }\n  \n   /*@ assert (n >= 1) ==> (x == 1); */\n  }",
+    "survivors": [
+      "x <= n",
+      "0 <= n - x",
+      "x > 1 ==> (n - x) < n",
+      "n - x == 0 || n - x >= 0",
+      "x - 0 == n - (n - x)",
+      "x + (n - x) == n",
+      "x > 0 ==> x >= 1",
+      "(x - 1) == (n - (n - x)) - 1",
+      "n >= 1 ==> x <= n",
+      "x - 1 <= n - 1",
+      "(x > 1) ==> (x - 1 >= 1)",
+      "n >= 1 ==> x >= 1",
+      "(n - x) % 1 == 0",
+      "n > 1 ==> x >= 1",
+      "n - x > 0 ==> x > 0",
+      "n == \\at(n, Pre)",
+      "n == n",
+      "(n - x) == 0 ==> x == n",
+      "x > 1 ==> x >= 1",
+      "(n - x) == (n - x)",
+      "x > 0 ==> (x - 1) >= 0",
+      "x >= 1 ==> x <= n",
+      "x > 1 ==> x >= 2"
+    ],
+    "audit": {
+      "key": "linear_27",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/linear_27.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/linear_27.json",
+      "source_sha256": "b5fce24fee5f3d54ed4699c07213765cc88b6e2a4ffd3723c1cff3485724832b",
+      "verification_sha256": "72d83b720236f34d9d2a57f08d4f8840fddbcae8cbba9e61dd3ef0e690dbec41",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "linear",
+      "original_verified": true,
+      "survivor_count": 23,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "x": "1",
+            "x__entry": "2",
+            "n__entry": "2",
+            "n__pre": "2",
+            "n": "2"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "x": "-1",
+            "x__entry": "0",
+            "n__entry": "0",
+            "n__pre": "0",
+            "n": "0"
+          }
+        },
+        "target_without_invariant": {
+          "status": "sat",
+          "model": {
+            "x": "0",
+            "x__entry": "1",
+            "n__entry": "1",
+            "n__pre": "1",
+            "n": "1"
+          }
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "x",
+        "rank_direction": -1,
+        "attempts": [
+          {
+            "variable": "x",
+            "direction": 1,
+            "status": "sat"
+          },
+          {
+            "variable": "x",
+            "direction": -1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "n": "i",
+        "x": "i"
+      },
+      "frame_variables": [
+        "n"
+      ],
+      "proof_queries_sha256": "2ab43e4b97af15eb923a0ac5d20a7c0a83af48e85d8764f36814c3cda09e87ae",
+      "seconds": 1.508676560013555
+    },
+    "replay": {
+      "key": "linear_27",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "bec9cec537a1d83e60e8dbfe5914e4f9d473645fce9173b3a8887c03be0459f7",
+      "proof_queries_sha256": "2ab43e4b97af15eb923a0ac5d20a7c0a83af48e85d8764f36814c3cda09e87ae",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.26118337601656094,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "linear_102",
+    "source": "void foo102(int n) {\n  \n    int x = 0;\n    \n    \n    while (x < n) {\n      \n      x  = (x + 1);\n      \n    }\n    /*@ assert (n >= 0) ==> (x == n); */\n    \n  }",
+    "survivors": [
+      "0 <= x",
+      "x == 0 || x > 0",
+      "x + (n - x) == n",
+      "(x < n) ==> (x + 1 <= n)",
+      "(x < n) ==> (x + 1 == x + 1)",
+      "n == n",
+      "x != -1",
+      "x == (x + 1) - 1",
+      "x == x",
+      "n >= 0 ==> x <= n",
+      "x == n * 0 + x",
+      "(x == n) ==> (x <= n)",
+      "(x < n) ==> (n - x) > 0",
+      "x == n - (n - x)",
+      "x + 1 <= n ==> x < n",
+      "x - (n - x) == 2 * x - n",
+      "(x <= n) ==> (x >= 0)",
+      "x - x == 0",
+      "1 <= x ==> x <= n",
+      "(x + 1) >= 1",
+      "x == 0 ==> n == n",
+      "x == (x / 1) * 1",
+      "(n - x) % 1 == 0"
+    ],
+    "audit": {
+      "key": "linear_102",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/linear_102.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/linear_102.json",
+      "source_sha256": "6d79d9f43211af3931823ad90732e500d777a2f3d23025c29db53075cfebffab",
+      "verification_sha256": "6ebf200c1a4fab5a2800e29fb38882812885cfd1ae483a032ae5f876e71b4d0e",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "linear",
+      "original_verified": true,
+      "survivor_count": 23,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "x": "1",
+            "n__pre": "1",
+            "x__entry": "0",
+            "n__entry": "1",
+            "n": "1"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "x": "-2",
+            "n__pre": "-3",
+            "x__entry": "0",
+            "n__entry": "-3",
+            "n": "-3"
+          }
+        },
+        "target_without_invariant": {
+          "status": "sat",
+          "model": {
+            "x": "1",
+            "n__pre": "0",
+            "x__entry": "0",
+            "n__entry": "0",
+            "n": "0"
+          }
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "x",
+        "rank_direction": 1,
+        "attempts": [
+          {
+            "variable": "x",
+            "direction": 1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "n": "i",
+        "x": "i"
+      },
+      "frame_variables": [
+        "n"
+      ],
+      "proof_queries_sha256": "e0ffbc9a5abdb6a8be0a054e1a4e1dd3c723e495571d98606d351b034e3edac1",
+      "seconds": 0.9165679590078071
+    },
+    "replay": {
+      "key": "linear_102",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "d05ffb8f896119940efa335fbe2f328eb59d88e06e26c190ba3e2ea40d3806ec",
+      "proof_queries_sha256": "e0ffbc9a5abdb6a8be0a054e1a4e1dd3c723e495571d98606d351b034e3edac1",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.09385110100265592,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "linear_72",
+    "source": "int unknown();\n/*@ requires 0 <= y && y <= 127; */\nvoid foo72(int y) {\n  int c = 0;\n  int z = 36 * y;\n  \n\n\n\n  while (unknown()) {\n\n    if ( c < 36 )\n    {\n    z  = z + 1;\n    c  = c + 1;\n    }\n  }\n\n  /*@ assert  ( c < 36 ) ==> ( z >= 0 ) ; */\n    \n\n\n}",
+    "survivors": [
+      "0 <= c",
+      "c <= 36",
+      "z == 36 * y + c",
+      "0 <= z",
+      "0 <= y",
+      "(c < 36) ==> (z == 36 * y + c)",
+      "z - c == 36 * y",
+      "(c == 36) ==> (z == 36 * y + 36)",
+      "0 <= c <= 36",
+      "z <= 36 * y + 36",
+      "z - y * 36 == c",
+      "z >= 36 * y",
+      "c <= 36 ==> z == 36 * y + c",
+      "0 <= y <= 127 ==> z >= 0",
+      "0 <= z - 36 * y",
+      "c <= 36 && z <= 36 * y + 36",
+      "c <= 36 && z == 36 * y + c",
+      "(c >= 0) ==> (z >= 36 * y)",
+      "(c <= 36) ==> (z <= 36 * y + 36)",
+      "0 <= y <= 127",
+      "(c == 0) ==> (z == 36 * y)",
+      "z - 36 * y <= 36",
+      "z % 1 == 0",
+      "c % 1 == 0",
+      "(c >= 0) ==> (z >= 36 * y + c)",
+      "c <= 36 ==> z - 36 * y == c",
+      "0 <= z - 36 * y && z - 36 * y <= 36",
+      "z <= 36*y + 36 && z >= 36*y",
+      "y <= 127",
+      "(c >= 36) ==> (z == 36 * y + 36)",
+      "c <= 36 && z >= 36 * y",
+      "c >= 0 && z >= 0",
+      "c <= 36 && c >= 0",
+      "(c != 0) ==> (z == 36 * y + c)",
+      "(c >= 0) ==> (z >= 0)",
+      "c == 0 || c == 1 || c == 2 || c == 3 || c == 4 || c == 5 || c == 6 || c == 7 || c == 8 || c == 9 || c == 10 || c == 11 || c == 12 || c == 13 || c == 14 || c == 15 || c == 16 || c == 17 || c == 18 || c == 19 || c == 20 || c == 21 || c == 22 || c == 23 || c == 24 || c == 25 || c == 26 || c == 27 || c == 28 || c == 29 || c == 30 || c == 31 || c == 32 || c == 33 || c == 34 || c == 35 || c == 36",
+      "(z == 36 * y) ==> (c == 0)"
+    ],
+    "audit": {
+      "key": "linear_72",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/linear_72.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/linear_72.json",
+      "source_sha256": "4a38c88532d20861dd7a8e6f446db3f4d419a708196c3a9df44875ae76c23a55",
+      "verification_sha256": "9d31b17f012499211b33ae2d649a63a282111339e417f78d0b503075fef728ca",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "linear",
+      "original_verified": true,
+      "survivor_count": 37,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "y__pre": "1",
+            "z": "36",
+            "y": "1",
+            "c": "0",
+            "y__entry": "1",
+            "z__entry": "36",
+            "c__entry": "0"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "y__pre": "0",
+            "c": "0",
+            "z": "1",
+            "c__entry": "0",
+            "z__entry": "0",
+            "y__entry": "0",
+            "y": "0"
+          }
+        },
+        "target_without_invariant": {
+          "status": "sat",
+          "model": {
+            "y__pre": "0",
+            "c": "0",
+            "z": "-1",
+            "c__entry": "0",
+            "z__entry": "0",
+            "y__entry": "0",
+            "y": "0"
+          }
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "c",
+        "rank_direction": 1,
+        "attempts": [
+          {
+            "variable": "c",
+            "direction": 1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "y": "i",
+        "c": "i",
+        "z": "i"
+      },
+      "frame_variables": [
+        "y"
+      ],
+      "proof_queries_sha256": "d47652f873bf4a290bbbe8a2c5103d670079168b9495efa95945bf7e3ed48400",
+      "seconds": 1.1246317339828238
+    },
+    "replay": {
+      "key": "linear_72",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "d8239411fcef92eb6195d1ac2383ec910d3b318a52ed9f41a8bae2857505537d",
+      "proof_queries_sha256": "d47652f873bf4a290bbbe8a2c5103d670079168b9495efa95945bf7e3ed48400",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.4438491660403088,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "Loopy_185",
+    "source": "// Source: data/benchmarks/accelerating_invariant_generation/dagger/substring1.c\n\n/*@\n  requires k >= 0;\n  requires k <= 100;\n  requires from >= 0;\n  requires from <= k;\n*/\nvoid loopy_185(int from, int to, int k) {\nint i, j;\n\n\n\n\n\n\n\n\n\n\n\n\ni = from;\nj = 0;\n\nwhile (i < k) {\ni++;\nj++;\n}\n\n{;\n//@ assert(j <= 100);\n}\n\n}\n",
+    "survivors": [
+      "i == from + j",
+      "j >= 0",
+      "i >= from",
+      "i <= k",
+      "j <= k - from",
+      "i - from == j",
+      "i <= k && j <= k - from ==> i - from == j",
+      "i >= from && i <= k",
+      "i <= k || (i == k + 1 && j == k - from + 1)",
+      "i <= k && j <= k - from",
+      "i - from >= 0",
+      "i - from <= k - from",
+      "i - from >= 0 ==> j >= 0",
+      "i <= k && j <= k - from && i >= from",
+      "0 <= i",
+      "j >= 0 ==> i >= from",
+      "i <= k ==> j <= k - from",
+      "from <= i == from + j",
+      "j <= k",
+      "0 <= from",
+      "i - from == j && i <= k",
+      "i >= from && j >= 0",
+      "i - from == j && i <= k && j <= k",
+      "j >= 0 && j <= k - from ==> i - from == j",
+      "k <= 100",
+      "from <= k",
+      "(i < k) ==> (j < k - from)"
+    ],
+    "audit": {
+      "key": "Loopy_185",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/Loopy_185.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/Loopy_185.json",
+      "source_sha256": "3f58de5374f401b617e5a7df827bc22846346365805426c36b002daf7424fc93",
+      "verification_sha256": "1d5c78a6a5f50fd22b6688c4591086c626141ee06c758f10bd3f48c1fbf56241",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "Loopy",
+      "original_verified": true,
+      "survivor_count": 27,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "to__pre": "0",
+            "i__entry": "0",
+            "k__pre": "0",
+            "j": "0",
+            "i": "0",
+            "k": "0",
+            "k__entry": "0",
+            "to__entry": "0",
+            "from__entry": "0",
+            "from": "0",
+            "from__pre": "0",
+            "to": "0",
+            "j__entry": "0"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "to__pre": "0",
+            "i__entry": "0",
+            "k__pre": "0",
+            "i": "1",
+            "j": "0",
+            "k": "0",
+            "k__entry": "0",
+            "to__entry": "0",
+            "from": "0",
+            "from__entry": "0",
+            "from__pre": "0",
+            "to": "0",
+            "j__entry": "0"
+          }
+        },
+        "target_without_invariant": {
+          "status": "sat",
+          "model": {
+            "to__pre": "0",
+            "i__entry": "0",
+            "k__pre": "0",
+            "i": "0",
+            "j": "101",
+            "k": "0",
+            "k__entry": "0",
+            "to__entry": "0",
+            "from": "0",
+            "from__entry": "0",
+            "from__pre": "0",
+            "to": "0",
+            "j__entry": "0"
+          }
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "i",
+        "rank_direction": 1,
+        "attempts": [
+          {
+            "variable": "i",
+            "direction": 1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "from": "i",
+        "to": "i",
+        "k": "i",
+        "i": "i",
+        "j": "i"
+      },
+      "frame_variables": [
+        "from",
+        "k",
+        "to"
+      ],
+      "proof_queries_sha256": "cd7ed1ff29e502ace651cf0a4776cd5d66aa467276d77fc5bca6eee1e4cd4dd1",
+      "seconds": 0.2747028830344789
+    },
+    "replay": {
+      "key": "Loopy_185",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "b4cfc7192aacdb68e2f5072f76795e3ab4f6010c755a2a28df2fa6b3a0195704",
+      "proof_queries_sha256": "cd7ed1ff29e502ace651cf0a4776cd5d66aa467276d77fc5bca6eee1e4cd4dd1",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.0687143980176188,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  },
+  {
+    "key": "linear_93",
+    "source": "int unknown();\n\n/*@ requires n >= 0; */\nvoid foo93(int n) {\n  \n    int i = 0;\n    int x = 0;\n    int y = 0;\n    \n  \n    while (i < n) {\n      \n        i  = i + 1;\n        if (unknown()) {\n          \n          x  = x + 1;\n          y  = y + 2;\n          \n        } else {\n          \n          x  = x + 2;\n          y  = y + 1;\n          \n        }\n  \n  \n    }\n  \n    /*@ assert (3 * n) == (x + y); */\n  \n  }",
+    "survivors": [
+      "0 <= i",
+      "i <= n",
+      "x >= 0",
+      "y >= 0",
+      "0 <= i && i <= n",
+      "i <= n ==> x + y == 3 * i",
+      "x <= 2 * i",
+      "y <= 2 * i",
+      "(i > 0) ==> (x + y >= 3 * (i))",
+      "x + y == i + (x + y) - i",
+      "x + y == 3 * i",
+      "(i == 0) ==> (x == 0 && y == 0)",
+      "(i > 0) ==> (x >= 0 && y >= 0)",
+      "x + y <= 3 * i",
+      "x + y >= 3 * i",
+      "x + y - 3 * i == 0",
+      "i > 0 ==> (x + y == 3 * i)",
+      "i < n ==> (x + y == 3 * i)",
+      "(0 <= i) && (i <= n) ==> (x + y == 3*i)",
+      "(i >= 0) ==> (x == 0 || x >= 0)",
+      "(i >= 0) ==> (y == 0 || y >= 0)",
+      "x + y == 3 * i - (i - i)"
+    ],
+    "audit": {
+      "key": "linear_93",
+      "k": 16,
+      "source_path": "/tmp/craft16_minimal_20261107_v2/sources/linear_93.original.c",
+      "verification_path": "/tmp/craft16_minimal_20261107_v2/verification/linear_93.json",
+      "source_sha256": "f7d0cc91c126b06a739d14b384e78cb3a50fe8e4bb608628315f996854930a4f",
+      "verification_sha256": "1640d1bf0d7918d0cb10914358fccea25e1be31c2d9d5197f2edcaccfe730027",
+      "analysis_engine_sha256": "fd8d4ec37308f800e2e77c2946e8307eebf28f7c5976e12c2464a5cbdfcdb662",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "suite": "linear",
+      "original_verified": true,
+      "survivor_count": 22,
+      "exact_budget_seconds": 15,
+      "schema_version": 2,
+      "strength": {
+        "classification": "strictly_stronger",
+        "target_condition_kind": "target-reaching context",
+        "invariant_context": {
+          "status": "sat",
+          "model": {
+            "n__pre": "1",
+            "i": "1",
+            "y": "1",
+            "i__entry": "0",
+            "y__entry": "0",
+            "n__entry": "1",
+            "n": "1",
+            "x": "2",
+            "x__entry": "0"
+          }
+        },
+        "I_not_target": {
+          "status": "unsat"
+        },
+        "target_not_I": {
+          "status": "sat",
+          "model": {
+            "n__pre": "0",
+            "i": "0",
+            "y": "-1",
+            "i__entry": "0",
+            "y__entry": "0",
+            "n__entry": "0",
+            "x": "1",
+            "n": "0",
+            "x__entry": "0"
+          }
+        },
+        "target_without_invariant": {
+          "status": "sat",
+          "model": {
+            "x": "0",
+            "n__pre": "0",
+            "i": "0",
+            "y": "1",
+            "i__entry": "0",
+            "y__entry": "0",
+            "n__entry": "0",
+            "n": "0",
+            "x__entry": "0"
+          }
+        },
+        "target_sites": 1,
+        "target_paths": 1
+      },
+      "exact": {
+        "initialization": {
+          "status": "unsat"
+        },
+        "preservation": {
+          "status": "unsat"
+        },
+        "classification": "proven_exact",
+        "certificate": "inductive + well-founded predecessor coverage",
+        "rank_variable": "i",
+        "rank_direction": 1,
+        "attempts": [
+          {
+            "variable": "i",
+            "direction": 1,
+            "status": "unsat"
+          }
+        ]
+      },
+      "modeled_variables": {
+        "n": "i",
+        "i": "i",
+        "x": "i",
+        "y": "i"
+      },
+      "frame_variables": [
+        "n"
+      ],
+      "proof_queries_sha256": "0379f41a32ec3163750e0add69c729e3b48764aa36e8fbda9000daa684ca5616",
+      "seconds": 1.140991629974451
+    },
+    "replay": {
+      "key": "linear_93",
+      "k": 16,
+      "schema_version": 2,
+      "case_sha256": "f7b6fbf4cd49d518a3393eedf7079a679319b75271718513a0e19b4efdf8c955",
+      "proof_queries_sha256": "0379f41a32ec3163750e0add69c729e3b48764aa36e8fbda9000daa684ca5616",
+      "driver_sha256": "4f3f7566db8d52bd996a796e35e2ec36511f830412688c39a406a91d9181c714",
+      "timeout_ms": 8000,
+      "solver": "Z3",
+      "solver_version": "4.13.3",
+      "properties": {
+        "strength": true,
+        "exact": true
+      },
+      "queries": {
+        "strength_nonvacuity": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "strength_forward": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "strength_reverse": {
+          "expected": "sat",
+          "actual": "sat",
+          "pass": true
+        },
+        "initialization": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "preservation": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        },
+        "exact_completeness": {
+          "expected": "unsat",
+          "actual": "unsat",
+          "pass": true
+        }
+      },
+      "pass": true,
+      "seconds": 0.12100392702268437,
+      "scope": "Fresh SMT-LIB parsing and solving in a separate replay process pool; not an independently implemented C translator or proof-object checker."
+    }
+  }
+]

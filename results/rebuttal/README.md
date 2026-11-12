@@ -17,6 +17,7 @@ the original paper tables or experimental records.
 | [08_target_visibility_matched](08_target_visibility_matched/) | Matched target-visible/hidden generation and prefix semantic audits | R1/R2 reuse and visibility analysis |
 | [09_loopy_cumulative_success](09_loopy_cumulative_success/) | Cumulative success at every iteration (running snapshot) | Rebuttal supporting evidence |
 | [10_additional_artifacts_and_coverage](10_additional_artifacts_and_coverage/) | Additional pilots, probes, diagnostics and complete artifact coverage | Rebuttal supporting evidence |
+| [11_reuse_examples_readonly](11_reuse_examples_readonly/) | 30 existing certified programs; manually derived reuse goals | Read-only illustrative reuse analysis |
 
 ## Current response draft
 

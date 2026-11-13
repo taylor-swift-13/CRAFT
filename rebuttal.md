@@ -12,9 +12,9 @@ Both SFT datasets use the same input-program pool, Qwen3-8B generator, and train
 
 In the original SFT ablation, construction budgets differ: SFT (single) filters one response and skips examples with no valid clauses. Composed-label SFT jointly filters 16 responses per round for at most five rounds, accepting labels at negative coverage >= 0.5; SFT (single) has no such threshold. The 63.94% versus 23.20% compose@1 result compares these complete construction procedures.
 
-For the supplementary experiment, we compare highest-coverage selection and composition on all 466 Loopy programs using exactly the same candidate pool. Both methods reuse the same first N GPT-5-nano/minimal responses, matching LLM generation costs in model-call counts and token usage. Both methods share the parser and Houdini settings.
+In the supplementary experiment, we compare highest-coverage selection and composition on all 466 Loopy programs using the same first N GPT-5-nano/minimal responses, parser, and Houdini settings. This matches model-call counts and generation token costs.
 
-With this fixed candidate pool, selecting the best single response requires N independent filtering runs, whereas composition filters the clause union jointly. The verification workloads therefore differ by construction; their CPU-cost ratio depends on N and the proof workload. Highest-coverage selection chooses an independently filtered response using shared, frozen negative traces. Targets are hidden during selection and restored for evaluation. "Any single succeeds" counts a program if any independently filtered response proves its target.
+With this fixed candidate pool, selecting the best single response requires N independent filtering runs, whereas composition filters the clause union jointly. Their filtering workloads differ, with CPU-cost ratios depending on N and the proof tasks. Highest-coverage selection chooses an independently filtered response using shared, frozen negative traces. Targets are hidden during selection and restored for evaluation. "Any single succeeds" counts a program if any independently filtered response proves its target.
 
 | Responses N | Highest-coverage single | Any single succeeds | Composition |
 |---|---:|---:|---:|

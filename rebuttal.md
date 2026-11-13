@@ -76,7 +76,7 @@ Our supplementary inference comparison illustrates the benefit of available goal
 
 Thank you for raising this question. Our motivation is to generate useful, reusable invariants when verification targets are not yet available. We supplement Appendix B with a target-visibility comparison, a semantic audit, and an additional-goal evaluation.
 
-We use GPT-5-nano/minimal on the same 832 programs, with the same prompt template, generation settings, parser, and verifier. The intended difference is whether generation sees the original target. Each setting uses prefixes of its own fixed 16-response pool:
+We compare target-hidden and target-visible GPT-5-nano/minimal on the same 832 programs, keeping the prompt template, generation settings, parser, and verifier fixed apart from target visibility. Each setting uses prefixes of its own fixed 16-response pool:
 
 | Responses | Target-hidden | Target-visible |
 |---|---:|---:|
@@ -100,7 +100,7 @@ The audit combines generated clauses with entry conditions, facts about unchange
 
 Thus, the strict summaries retain information absent from the original target. For each exact summary, every property valid for all reachable loop-head states follows logically from that summary under the stated semantics and context.
 
-We also constructed eight additional post-loop goals for each of **446 programs whose original targets were successfully verified in both settings**, and compared how many goals could be proved using the existing target-hidden and target-visible invariants. The goals came from fixed source-based templates covering bounds, input–output relations, parity, and other arithmetic properties. Each program used exactly the same eight goals in both settings.
+For **446 programs whose original targets were successfully verified in both settings**, we compared the existing invariants on the same eight additional post-loop goals per program. These goals came from fixed source-based templates covering bounds, input–output relations, parity, and other arithmetic properties.
 
 | Metric | Target-hidden | Target-visible |
 |---|---:|---:|

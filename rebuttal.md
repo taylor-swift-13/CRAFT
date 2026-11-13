@@ -170,7 +170,7 @@ With composition-aligned training, Qwen3-8B reaches 63.94% compose@1 after SFT a
 
 ### Q3 — Does composition still offer a substantial gain when reasoning is enabled under a comparable inference budget?
 
-Thank you for this question. We compare CRAFT with GPT-5-nano at minimal and medium reasoning on the same 832 target-hidden programs. At similar recorded token costs:
+Thank you for this question. We compare minimal and medium reasoning in CRAFT with GPT-5-nano on the same 832 target-hidden programs:
 
 | Reasoning | CRAFT budget | Verification rate | Tokens/program |
 |---|---|---:|---:|
@@ -179,7 +179,7 @@ Thank you for this question. We compare CRAFT with GPT-5-nano at minimal and med
 
 At similar recorded token cost, minimal compose@16 achieves 14.30 percentage points higher verification than medium compose@1 with approximately 4% more tokens. The configurations use different system prompts and response batches.
 
-Within the medium configuration, prefixes of the same response pool show the following sampling-budget trend:
+With medium reasoning, increasing the prefix size of the same response pool gives:
 
 | CRAFT (medium reasoning) | Verification rate | Tokens/program | Cumulative API time/program |
 |---|---:|---:|---:|

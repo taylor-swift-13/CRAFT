@@ -2,7 +2,7 @@
 
 #### Q3.1 — Second, in Table 23, GPT-5-nano's pass@1 is 3.80% on Linear and 3.86% on Loopy, whereas in Table 25 it is 2.53% and 4.72%; both tables report an overall value of 3.61%, and the text states that the same sample pool is used. Is this a typo in one of the tables, or do the two evaluations differ in how they are processed?
 
-Thank you for identifying this reporting error. The GPT-5-nano pass@1 results in Tables 23 and 25 come from two independent runs. We will correct the shared-pool description and use the first run, underlying Table 23, as the common reporting source for both tables.
+Thank you for identifying this reporting error. The GPT-5-nano pass@1 results in Tables 23 and 25 come from independent runs. We will correct the shared-pool description and report both tables using the first run, corresponding to Table 23.
 
 #### Q3.2 — First, does the SFT (single) in K.2 also use the same coverage threshold as the compositional labels? Does "approximately the same number of training samples" mean that both groups use the same batch of programs?
 
